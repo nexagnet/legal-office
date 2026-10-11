@@ -1,4 +1,4 @@
-name: Legal Office bootstrap checks
+name: ci
 
 # R3 source. Docs/bootstrap-only checks, NOT application or runtime proof.
 on:
