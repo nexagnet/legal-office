@@ -1,0 +1,43 @@
+name: Legal Office bootstrap checks
+
+# R3 source. Docs/bootstrap-only checks, NOT application or runtime proof.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: legal-office-bootstrap-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bootstrap-verify:
+    name: bootstrap-verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Validate bootstrap contract and tracked files
+        run: node --test tests/bootstrap-contract.test.mjs
+
+  bootstrap-safety:
+    name: bootstrap-safety
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Verify tracked file restrictions
+        run: node scripts/check-tracked-file-safety.mjs
+
+# Neither check proves package build, auth, migrations, data isolation, nor Claude.
+# Expand CI in a separately reviewed R3 change before real feature implementation.
