@@ -496,4 +496,81 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
     ).toBe(404);
     expect((await api('POST', `${root}/delegations/${d}/activation`, null)).status).toBe(401);
   });
+
+  it('tracks a multi-party, multi-obligation enforcement case over HTTP with partial results', async () => {
+    const root = '/enforcement-cases';
+    const created = await api('POST', root, U.clerk, {
+      officeId: OFF,
+      branchId: BR1,
+      caseRef: 'THA/http',
+      agreementRef: 'HĐDV-giả-lập',
+      decisionRef: 'QĐ-giả-lập',
+    });
+    expect(created.status).toBe(200);
+    const cs = created.json.label as string;
+    expect(
+      (await api('PUT', `${root}/${cs}/handler`, U.thv, { handlerUserId: U.thv })).status,
+    ).toBe(403);
+    expect(
+      (await api('PUT', `${root}/${cs}/handler`, U.admin, { handlerUserId: U.thv })).status,
+    ).toBe(200);
+    const party = async (role: string) =>
+      (
+        await api('POST', `${root}/${cs}/parties`, U.thv, {
+          displayName: 'Đương sự',
+          kind: 'PERSON',
+          role,
+        })
+      ).json.label as string;
+    await party('CREDITOR');
+    const debtor = await party('DEBTOR');
+    await party('RELATED_PARTY');
+    expect(
+      (
+        await api('POST', `${root}/${cs}/parties`, U.thv2, {
+          displayName: 'X',
+          kind: 'PERSON',
+          role: 'DEBTOR',
+        })
+      ).status,
+    ).toBe(403);
+    const ob = async () =>
+      (
+        await api('POST', `${root}/${cs}/obligations`, U.thv, {
+          description: 'Nghĩa vụ',
+          obligorPartyId: debtor,
+        })
+      ).json.label as string;
+    const o1 = await ob();
+    const o2 = await ob();
+    const ev = (o: string, body: Record<string, unknown>, user = U.thv) =>
+      api('POST', `${root}/obligations/${o}/events`, user, body);
+    const partial = {
+      kind: 'PARTIAL_RESULT',
+      note: 'Một phần',
+      evidenceKey: 'th/http/1',
+      evidenceSha256: 'a'.repeat(64),
+      idempotencyKey: 'p1',
+    };
+    expect((await ev(o1, { ...partial, evidenceKey: null, evidenceSha256: null })).status).toBe(
+      422,
+    );
+    expect((await ev(o1, partial)).status).toBe(200);
+    const retry = await ev(o1, partial);
+    expect(retry.status).toBe(200);
+    expect(retry.json.code).toBe('ALREADY_RECORDED');
+    expect((await ev(o1, { ...partial, idempotencyKey: 'p2' }, U.thv2)).status).toBe(403);
+    expect((await ev(o1, { ...partial, kind: 'COMPLETION', idempotencyKey: 'c1' })).status).toBe(
+      200,
+    );
+    const fin = { evidenceKey: 'th/http/done', evidenceSha256: 'b'.repeat(64) };
+    expect((await api('POST', `${root}/${cs}/completion`, U.admin, fin)).status).toBe(409);
+    expect((await ev(o2, { ...partial, kind: 'COMPLETION', idempotencyKey: 'c2' })).status).toBe(
+      200,
+    );
+    expect((await api('POST', `${root}/${cs}/completion`, U.thv, fin)).status).toBe(403);
+    expect((await api('POST', `${root}/${cs}/completion`, U.admin, fin, T2)).status).toBe(404);
+    expect((await api('POST', `${root}/${cs}/completion`, U.admin, fin)).status).toBe(200);
+    expect((await api('POST', `${root}/${cs}/completion`, null, fin)).status).toBe(401);
+  });
 });

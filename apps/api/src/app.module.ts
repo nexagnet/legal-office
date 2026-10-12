@@ -1,6 +1,7 @@
 import { type DynamicModule, Module } from '@nestjs/common';
 import type pg from 'pg';
 import { PG_POOL, PgService } from './db/pg.service';
+import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
 import { HealthController } from './health.controller';
 import { type ActorResolver } from './http/actor';
 import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
@@ -25,6 +26,7 @@ export class AppModule {
         VibangController,
         ServiceOfDocumentsController,
         VerificationController,
+        EnforcementCaseController,
       ],
       providers: [
         { provide: PG_POOL, useValue: options.pool },
