@@ -73,3 +73,69 @@ describe('legal-office R3 bootstrap-only CI contract', () => {
     assert.doesNotMatch(workflow, /continue-on-error: true/);
   });
 });
+
+
+const builderCaller = readFileSync(
+  new URL('../.github/workflows/claude-builder-caller.yml', import.meta.url), 'utf8',
+).replaceAll('\r\n', '\n');
+const reviewerCaller = readFileSync(
+  new URL('../.github/workflows/claude-reviewer-caller.yml', import.meta.url), 'utf8',
+).replaceAll('\r\n', '\n');
+
+describe('V5 consumer callers R3 static security contract (not runtime proof)', () => {
+  const builderPinned = 'c98e47e9008cdd5de6e8b68839b64f50bee81ae9';
+  const reviewerPinned = '7dd9f51531667f7d2e89d87145e028965d4080da';
+
+  it('pins independent immutable and reviewed central Builder/Reviewer workflow versions', () => {
+    assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + builderPinned));
+    assert.match(reviewerCaller, new RegExp('claude-reviewer\\.yml@' + reviewerPinned));
+    assert.doesNotMatch(builderCaller + reviewerCaller, /@(?:main|master|HEAD|v\d+)\b/);
+  });
+
+  it('Builder allows only owner-authored Issue comments and explicit credentials', () => {
+    assert.match(builderCaller, /issue_comment:\n\s+types: \[created\]/);
+    assert.match(builderCaller, /github\.actor == 'phungtienviet14-sketch'/);
+    assert.match(builderCaller, /github\.event\.issue\.pull_request == null/);
+    assert.match(builderCaller, /contains\(github\.event\.comment\.body, '@claude'\)/);
+    assert.match(builderCaller, /permissions:\n  contents: read\n  issues: read\n  pull-requests: read/);
+    for (const s of [
+      'CLAUDE_CODE_OAUTH_TOKEN',
+      'BUILDER_PUBLISHER_APP_ID',
+      'BUILDER_PUBLISHER_APP_PRIVATE_KEY',
+    ]) {
+      assert.match(builderCaller, new RegExp(s + ': \\$\\{\\{ secrets\\.' + s + ' \\}\\}'));
+    }
+    assert.doesNotMatch(builderCaller, /secrets:\s*inherit|pull_request_target|contents: write|issues: write/);
+  });
+
+  it('Reviewer accepts successful PR CI with exact HEAD inputs and expected jobs', () => {
+    assert.match(reviewerCaller, /workflow_run:\n\s+workflows: \[ci\]\n\s+types: \[completed\]/);
+    assert.match(reviewerCaller, /github\.event\.workflow_run\.event == 'pull_request'/);
+    assert.match(reviewerCaller, /github\.event\.workflow_run\.conclusion == 'success'/);
+    assert.match(reviewerCaller, /github\.event\.workflow_run\.pull_requests\[0\]\.number != null/);
+    assert.match(reviewerCaller, /expected_head_sha: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+    assert.match(reviewerCaller, /ci_run_id: \$\{\{ github\.event\.workflow_run\.id \}\}/);
+    assert.match(reviewerCaller, /required_jobs_csv: bootstrap-verify,bootstrap-safety/);
+    assert.match(reviewerCaller, /permissions:\n  contents: read\n  actions: read\n  checks: read\n  issues: read\n(?:  # [^\n]+\n)*  pull-requests: write/);
+    assert.match(reviewerCaller, /CLAUDE_CODE_OAUTH_TOKEN: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/);
+    assert.doesNotMatch(reviewerCaller, /BUILDER_PUBLISHER_APP_|secrets:\s*inherit|contents: write|pull_request_target/);
+  });
+
+  it('does not include privileged cross-org targets, automatic merge or deployment', () => {
+    for (const caller of [builderCaller, reviewerCaller]) {
+      assert.match(caller, /github\.repository == 'nexagnet\/legal-office'/);
+      assert.doesNotMatch(caller, /secrets:\s*inherit|gh pr merge|deployment:|deployments: write/);
+    }
+  });
+  it('grants PR-comment write only at Reviewer caller ceiling, never to Builder or Claude', () => {
+    assert.match(reviewerCaller, /pull-requests: write/);
+    assert.match(reviewerCaller, /issues: read/);
+    assert.doesNotMatch(reviewerCaller, /issues: write|contents: write|actions: write|id-token: write/);
+    assert.doesNotMatch(reviewerCaller, /secrets: inherit|BUILDER_PUBLISHER_APP_ID|BUILDER_PUBLISHER_APP_PRIVATE_KEY/);
+    assert.doesNotMatch(builderCaller, /pull-requests: write|issues: write|contents: write/);
+    assert.match(reviewerCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-reviewer\.yml@7dd9f51531667f7d2e89d87145e028965d4080da/);
+    assert.match(builderCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-builder\.yml@c98e47e9008cdd5de6e8b68839b64f50bee81ae9/);
+    assert.doesNotMatch(reviewerCaller, /pull_request_target|workflow_dispatch|gh pr merge|gh api.*merge|deploy/);
+  });
+
+});
