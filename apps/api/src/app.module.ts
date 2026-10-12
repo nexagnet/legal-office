@@ -4,6 +4,7 @@ import { PG_POOL, PgService } from './db/pg.service';
 import { HealthController } from './health.controller';
 import { type ActorResolver } from './http/actor';
 import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
+import { ServiceOfDocumentsController } from './service-of-documents/service-of-documents.controller';
 import { VibangController } from './vibang/vibang.controller';
 import { VibangRepo } from './vibang/vibang.repo';
 
@@ -18,7 +19,7 @@ export class AppModule {
   static register(options: AppOptions): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, VibangController],
+      controllers: [HealthController, VibangController, ServiceOfDocumentsController],
       providers: [
         { provide: PG_POOL, useValue: options.pool },
         { provide: ACTOR_RESOLVER, useValue: options.resolver },
