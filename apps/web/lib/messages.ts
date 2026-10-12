@@ -11,6 +11,15 @@ const MESSAGES: Record<string, string> = {
   BRANCH_NOT_FOUND: 'Không tìm thấy chi nhánh.',
   INVALID_CUSTOMER: 'Loại khách hàng không hợp lệ.',
   INVALID_CREDENTIALS: 'Email hoặc mật khẩu không đúng.',
+  EDIT_WINDOW_CLOSED: 'Đã quá 48 giờ, hãy lập đề nghị thay đổi.',
+  EDIT_WINDOW_OPEN: 'Còn trong 48 giờ, có thể sửa trực tiếp.',
+  CASE_FINAL: 'Hồ sơ đã kết thúc, không thể thay đổi.',
+  NOTHING_TO_CHANGE: 'Không có gì để thay đổi.',
+  REASON_REQUIRED: 'Cần nhập lý do.',
+  INVALID_VALUE: 'Giá trị mới không hợp lệ.',
+  REQUEST_NOT_PENDING: 'Đề nghị này đã được xử lý.',
+  CANCEL_NOT_ALLOWED: 'Hồ sơ đã qua bước pháp lý, không huỷ được ở đây.',
+  CASE_NOT_FOUND: 'Không tìm thấy hồ sơ.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 

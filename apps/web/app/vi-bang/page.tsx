@@ -79,7 +79,9 @@ export default async function ViBangPage() {
             <tbody>
               {cases.map((c) => (
                 <tr key={c.id}>
-                  <th scope="row">{c.title}</th>
+                  <th scope="row">
+                    <Link href={`/vi-bang/${c.id}`}>{c.title}</Link>
+                  </th>
                   <td>
                     <span className="badge" data-status={c.status}>
                       {CASE_STATUS_LABEL[c.status] ?? c.status}

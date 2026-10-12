@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LoginForm } from '../components/LoginForm';
+import { CaseActions } from '../components/CaseActions';
+import { ChangeDecision } from '../components/ChangeRequestRow';
 import { NewCaseForm } from '../components/NewCaseForm';
 import { messageFor } from '../lib/messages';
 
@@ -108,5 +110,63 @@ describe('messageFor', () => {
     expect(messageFor('BRANCH_NOT_GRANTED')).toContain('chưa được cấp quyền');
     expect(messageFor('SOMETHING_NEW')).toContain('SOMETHING_NEW');
     expect(messageFor(undefined)).toContain('thử lại');
+  });
+});
+
+describe('CaseActions', () => {
+  const props = { caseId: 'c1', title: 'T', description: 'D', isFinal: false, canCancel: true };
+
+  it('edits directly inside the 48-hour window', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(<CaseActions {...props} windowOpen />);
+    fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Mới' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/vibang/cases/c1/details');
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      title: 'Mới',
+      description: 'D',
+    });
+  });
+
+  it('files a change request after 48 hours and shows server denials in Vietnamese', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch');
+    spy.mockImplementationOnce(() => reply(403, { code: 'ROLE_LACKS_PERMISSION' }));
+    render(<CaseActions {...props} windowOpen={false} canCancel={false} />);
+    expect(screen.queryByRole('button', { name: 'Huỷ hồ sơ' })).toBeNull();
+    fireEvent.change(screen.getByLabelText('Giá trị mới'), { target: { value: 'X' } });
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Sai chính tả' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi đề nghị' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Vai trò của bạn không được thực hiện thao tác này.',
+    );
+    expect(spy.mock.calls[0]![0]).toBe('/api/vibang/cases/c1/change-requests');
+  });
+
+  it('hides editing for finished cases', () => {
+    render(<CaseActions {...props} windowOpen isFinal canCancel />);
+    expect(screen.getByText(/không thể sửa/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Huỷ hồ sơ' })).toBeNull();
+  });
+});
+
+describe('ChangeDecision', () => {
+  it('lets only Admin decide and posts the decision', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    const { unmount } = render(<ChangeDecision requestId="r1" canDecide={false} />);
+    expect(screen.queryByRole('button', { name: 'Duyệt' })).toBeNull();
+    unmount();
+    render(<ChangeDecision requestId="r1" canDecide />);
+    fireEvent.click(screen.getByRole('button', { name: 'Từ chối' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/vibang/change-requests/r1/decision');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ accept: false });
   });
 });
