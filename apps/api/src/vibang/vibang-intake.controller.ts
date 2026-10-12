@@ -143,6 +143,87 @@ export class VibangIntakeController {
     return this.run(a, 'vb_assign_thv', [id, b.thvUserId, b.reason ?? null]);
   }
 
+  @Put('cases/:id/details')
+  editDetails(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ title: text(300).optional(), description: text(5000).optional() }).strict(),
+      body,
+    );
+    return this.run(a, 'vb_edit_case', [id, b.title ?? null, b.description ?? null]);
+  }
+
+  @Post('cases/:id/change-requests')
+  @HttpCode(HttpStatus.OK)
+  requestChange(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({ field: z.enum(['title', 'description']), value: text(5000), reason: text(2000) })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'vb_request_change', [id, b.field, b.value, b.reason]);
+  }
+
+  @Post('change-requests/:id/decision')
+  @HttpCode(HttpStatus.OK)
+  decideChange(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ accept: z.boolean() }).strict(), body);
+    return this.run(a, 'vb_decide_change', [id, b.accept]);
+  }
+
+  @Post('cases/:id/cancellation')
+  @HttpCode(HttpStatus.OK)
+  cancel(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ reason: text(2000) }).strict(), body);
+    return this.run(a, 'vb_cancel_case', [id, b.reason]);
+  }
+
+  @Get('cases/:id/change-requests')
+  async changes(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{
+      id: string;
+      case_id: string;
+      requested_by: string;
+      reason: string;
+      before: unknown;
+      after: unknown;
+      status: string;
+      created_at: Date;
+      decided_by: string | null;
+      decided_at: Date | null;
+    }>(a.tenantId, 'vb_list_changes', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        caseId: r.case_id,
+        requestedBy: r.requested_by,
+        reason: r.reason,
+        before: r.before,
+        after: r.after,
+        status: r.status,
+        createdAt: r.created_at,
+        decidedBy: r.decided_by,
+        decidedAt: r.decided_at,
+      })),
+    };
+  }
+
   @Get('cases')
   async list(@CurrentActor() a: AuthenticatedActor, @Query('limit') limit?: string) {
     const n = limit === undefined ? 50 : Number(limit);
