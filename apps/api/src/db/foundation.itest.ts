@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -9,7 +9,12 @@ import { branches } from './schema';
 
 // Cần PostgreSQL tạm với quyền tạo database. Không dùng dữ liệu thật.
 const ADMIN_URL = process.env.DATABASE_URL;
-const MIGRATION = readFileSync(resolve(__dirname, '../../drizzle/0000_foundation.sql'), 'utf8');
+const MIGRATION_DIR = resolve(__dirname, '../../drizzle');
+const MIGRATION = readdirSync(MIGRATION_DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => readFileSync(resolve(MIGRATION_DIR, f), 'utf8'))
+  .join('\n');
 const DB = `lo_it_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
 
 const withDb = (url: string, db: string) => {
