@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -54,6 +55,36 @@ export class EnforcementCaseController {
     return this.repo
       .call(actor.tenantId, fn, [actor.tenantId, actor.userId, ...args])
       .then(respond);
+  }
+
+  @Get()
+  async list(@CurrentActor() a: AuthenticatedActor) {
+    const rows = await this.repo.rows<{
+      case_id: string;
+      case_ref: string;
+      agreement_ref: string;
+      decision_ref: string;
+      branch_id: string;
+      status: string;
+      handler_user_id: string | null;
+      created_at: Date;
+      parties: unknown;
+      obligations: unknown;
+    }>(a.tenantId, 'th_list_cases', [a.tenantId, a.userId, 100]);
+    return {
+      items: rows.map((r) => ({
+        caseId: r.case_id,
+        caseRef: r.case_ref,
+        agreementRef: r.agreement_ref,
+        decisionRef: r.decision_ref,
+        branchId: r.branch_id,
+        status: r.status,
+        handlerUserId: r.handler_user_id,
+        createdAt: r.created_at,
+        parties: r.parties,
+        obligations: r.obligations,
+      })),
+    };
   }
 
   @Post()

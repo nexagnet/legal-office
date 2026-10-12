@@ -42,6 +42,10 @@ const MESSAGES: Record<string, string> = {
   SIGNING_AUTHORITY_NOT_GRANTED: 'Bạn chưa được cấp quyền ký pháp lý.',
   NO_PROPOSAL: 'Chưa có đề xuất kết luận.',
   SEPARATE_REVIEWER_REQUIRED: 'Người quyết định phải khác người đề xuất.',
+  INVALID_OBLIGATION: 'Nghĩa vụ không hợp lệ.',
+  OBLIGATION_NOT_FOUND: 'Không tìm thấy nghĩa vụ.',
+  OBLIGATION_FINAL: 'Nghĩa vụ đã hoàn tất, không ghi thêm được.',
+  ALREADY_RECORDED: 'Nội dung này đã được ghi nhận trước đó.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
@@ -86,4 +90,24 @@ export const VERIFICATION_STATUS_LABEL: Record<string, string> = {
 export const ROUND_STATUS_LABEL: Record<string, string> = {
   IN_PROGRESS: 'Đang thực hiện',
   COMPLETED: 'Đã hoàn thành',
+};
+
+export const ENFORCEMENT_STATUS_LABEL: Record<string, string> = {
+  OPEN: 'Đang thực hiện',
+  COMPLETED: 'Đã hoàn tất',
+};
+export const OBLIGATION_STATUS_LABEL: Record<string, string> = {
+  OPEN: 'Chưa thực hiện',
+  PARTIAL: 'Thực hiện một phần',
+  COMPLETED: 'Đã hoàn tất',
+};
+export const PARTY_ROLE_LABEL: Record<string, string> = {
+  CREDITOR: 'Người được thi hành',
+  DEBTOR: 'Người phải thi hành',
+  RELATED_PARTY: 'Người có quyền lợi, nghĩa vụ liên quan',
+  REPRESENTATIVE: 'Người đại diện',
+};
+export const PARTY_KIND_LABEL: Record<string, string> = {
+  PERSON: 'Cá nhân',
+  ORGANIZATION: 'Tổ chức',
 };
