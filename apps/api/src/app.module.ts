@@ -7,6 +7,7 @@ import { HealthController } from './health.controller';
 import { type ActorResolver } from './http/actor';
 import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
 import { ServiceOfDocumentsController } from './service-of-documents/service-of-documents.controller';
+import { OfficeController } from './office/office.controller';
 import { VerificationController } from './verification/verification.controller';
 import { VibangController } from './vibang/vibang.controller';
 import { VibangRepo } from './vibang/vibang.repo';
@@ -29,6 +30,7 @@ export class AppModule {
         VerificationController,
         EnforcementCaseController,
         AssetsController,
+        OfficeController,
       ],
       providers: [
         { provide: PG_POOL, useValue: options.pool },
