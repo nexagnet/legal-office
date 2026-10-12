@@ -1,4 +1,5 @@
 import {
+  bigint,
   bigserial,
   boolean,
   index,
@@ -282,3 +283,38 @@ export const vibangNumbers = pgTable(
     unique('vibang_numbers_seq_uq').on(t.tenantId, t.officeId, t.year, t.seq),
   ],
 );
+
+// Lát #8 (bằng chứng pháp lý). Chỉ siêu dữ liệu tệp; hàm nghiệp vụ nằm trong 0003.
+export const vibangDocuments = pgTable(
+  'vibang_documents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id').notNull(),
+    caseId: uuid('case_id').notNull(),
+    kind: text('kind').notNull(),
+    version: integer('version').notNull(),
+    source: text('source').notNull(),
+    objectKey: text('object_key').notNull(),
+    sha256: text('sha256').notNull(),
+    mime: text('mime').notNull(),
+    sizeBytes: bigint('size_bytes', { mode: 'number' }).notNull(),
+    createdBy: uuid('created_by').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('vibang_documents_id_tenant_uq').on(t.id, t.tenantId),
+    unique('vibang_documents_version_uq').on(t.caseId, t.kind, t.version),
+  ],
+);
+
+export const vibangEvidence = pgTable('vibang_evidence', {
+  caseId: uuid('case_id').primaryKey(),
+  tenantId: uuid('tenant_id').notNull(),
+  signedBy: uuid('signed_by'),
+  signedAt: timestamp('signed_at', { withTimezone: true }),
+  stampedBy: uuid('stamped_by'),
+  stampedAt: timestamp('stamped_at', { withTimezone: true }),
+  finalScanDocumentId: uuid('final_scan_document_id'),
+  finalScanSha256: text('final_scan_sha256'),
+  lockedAt: timestamp('locked_at', { withTimezone: true }),
+});

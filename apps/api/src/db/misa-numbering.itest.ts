@@ -365,19 +365,34 @@ describe.skipIf(!ADMIN_URL)(
     });
 
     describe('revoke gate', () => {
-      /** Hồ sơ đã có số và đã ký/đóng dấu, chờ trả. */
+      /** Hồ sơ đã có số, đã ký và đóng dấu, chờ trả. Bằng chứng ghi trực tiếp (hàm nghiệp vụ được test ở file khác). */
       const stamped = async (): Promise<string> => {
         const c = await confirmed();
         expect((await allocate(c, U.clerk, '2037-01-10T03:00:00Z')).ok).toBe(true);
+        await owner.query(
+          `INSERT INTO vibang_evidence (case_id, tenant_id, signed_by, signed_at, stamped_by, stamped_at)
+           VALUES ($1,$2,$3,now(),$4,now())`,
+          [c, T, U.thv, U.clerk],
+        );
         await setStatus(c, 'SIGNED');
         await setStatus(c, 'STAMPED');
         return c;
       };
-      const giveBack = (c: string) =>
-        owner.query(
-          `UPDATE vibang_cases SET status = 'RETURNED', proofs = ARRAY['FINAL_SCAN_WITH_SIGNATURE_AND_STAMP'], version = version + 1 WHERE id = $1`,
+      const giveBack = async (c: string) => {
+        await owner.query(
+          `INSERT INTO vibang_documents (tenant_id, case_id, kind, version, source, object_key, sha256, mime, size_bytes, created_by)
+           VALUES ($1,$2,'FINAL_SCAN',1,'UPLOADED','k/1',$3,'application/pdf',10,$4)
+           ON CONFLICT (case_id, kind, version) DO NOTHING`,
+          [T, c, 'b'.repeat(64), U.clerk],
+        );
+        await owner.query(
+          `UPDATE vibang_evidence e SET final_scan_document_id = d.id, final_scan_sha256 = d.sha256, locked_at = now()
+           FROM vibang_documents d WHERE e.case_id = $1 AND d.case_id = e.case_id AND d.kind = 'FINAL_SCAN'
+             AND d.version = 1 AND e.final_scan_document_id IS NULL`,
           [c],
         );
+        return setStatus(c, 'RETURNED');
+      };
       const statusOf = async (c: string) =>
         (await owner.query(`SELECT status FROM vibang_cases WHERE id = $1`, [c])).rows[0]
           .status as string;
