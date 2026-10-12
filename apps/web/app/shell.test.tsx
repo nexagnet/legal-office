@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from '../components/AppShell';
 import { ModuleState } from '../components/ModuleState';
 import { NAV, OVERVIEW, findNav, visibleNav } from './nav';
-import { getSession } from './session';
+import { loadSession } from './session';
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: ReactNode }) => (
@@ -13,7 +13,10 @@ vi.mock('next/link', () => ({
     </a>
   ),
 }));
-vi.mock('next/navigation', () => ({ usePathname: () => '/vi-bang' }));
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/vi-bang',
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 
 afterEach(cleanup);
 
@@ -37,22 +40,43 @@ describe('navigation', () => {
 });
 
 describe('session', () => {
-  it('fails closed in production and without roles', () => {
-    expect(getSession({ NODE_ENV: 'production', PREVIEW_SYNTHETIC_ROLES: 'ADMIN' }).status).toBe(
-      'unauthenticated',
-    );
-    expect(getSession({ NODE_ENV: 'development' }).status).toBe('unauthenticated');
-    expect(getSession({ NODE_ENV: 'development', PREVIEW_SYNTHETIC_ROLES: 'HACKER' }).status).toBe(
+  const me =
+    (body: unknown, ok = true) =>
+    async () =>
+      ({ ok, json: async () => body }) as Response;
+  const prod = { NODE_ENV: 'production', PREVIEW_SYNTHETIC_ROLES: 'ADMIN' };
+
+  it('fails closed without a cookie, on API errors and on network failures', async () => {
+    expect((await loadSession(null, prod, me({}))).status).toBe('unauthenticated');
+    expect((await loadSession('lo_session=x', prod, me({}, false))).status).toBe('unauthenticated');
+    const boom = async () => {
+      throw new Error('down');
+    };
+    expect((await loadSession('lo_session=x', prod, boom)).status).toBe('unauthenticated');
+    expect((await loadSession('lo_session=x', prod, me({ memberships: [] }))).status).toBe(
       'unauthenticated',
     );
   });
-  it('accepts synthetic roles outside production', () => {
-    expect(
-      getSession({ NODE_ENV: 'development', PREVIEW_SYNTHETIC_ROLES: 'THV, ADMIN' }),
-    ).toMatchObject({
-      status: 'authenticated',
-      roles: ['THV', 'ADMIN'],
+  it('takes roles and branches from the API, ignores unknown roles and never trusts the preview env in production', async () => {
+    const body = {
+      memberships: [
+        { officeId: 'o1', role: 'THV', legalSigner: false },
+        { officeId: 'o1', role: 'HACKER', legalSigner: true },
+      ],
+      branches: [{ id: 'b1', officeId: 'o1', name: 'CN1' }],
+    };
+    const s = await loadSession('lo_session=x', prod, me(body));
+    expect(s).toMatchObject({ status: 'authenticated', roles: ['THV'] });
+    expect(s.status === 'authenticated' && s.branches).toHaveLength(1);
+    expect((await loadSession(null, prod, me(body))).status).toBe('unauthenticated');
+  });
+  it('allows synthetic preview roles only outside production', async () => {
+    const s = await loadSession(null, {
+      NODE_ENV: 'development',
+      PREVIEW_SYNTHETIC_ROLES: 'THV, ADMIN',
     });
+    expect(s).toMatchObject({ status: 'authenticated', roles: ['THV', 'ADMIN'] });
+    expect((await loadSession(null, { NODE_ENV: 'development' })).status).toBe('unauthenticated');
   });
 });
 
@@ -88,7 +112,13 @@ describe('ModuleState', () => {
     render(
       <ModuleState
         item={item}
-        session={{ status: 'authenticated', roles: ['THV'], tenantName: 'x' }}
+        session={{
+          status: 'authenticated',
+          roles: ['THV'],
+          tenantName: 'x',
+          memberships: [],
+          branches: [],
+        }}
       />,
     );
     expect(screen.getByRole('alert').textContent).toContain('Không có quyền truy cập');
@@ -97,7 +127,13 @@ describe('ModuleState', () => {
     render(
       <ModuleState
         item={OVERVIEW}
-        session={{ status: 'authenticated', roles: ['THV'], tenantName: 'x' }}
+        session={{
+          status: 'authenticated',
+          roles: ['THV'],
+          tenantName: 'x',
+          memberships: [],
+          branches: [],
+        }}
       />,
     );
     expect(screen.getByRole('status').textContent).toContain('Chưa có dữ liệu');

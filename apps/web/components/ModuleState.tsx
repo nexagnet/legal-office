@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Session } from '../app/session';
 import type { NavItem } from '../app/nav';
 
@@ -11,11 +12,12 @@ interface Props {
  * Chưa đăng nhập / không đủ vai → thông báo rõ; có quyền → trạng thái rỗng "chưa kết nối".
  */
 export function ModuleState({ item, session }: Props) {
-  let body: { title: string; text: string; role: 'status' | 'alert' };
+  let body: { title: string; text: string; role: 'status' | 'alert'; link?: boolean };
   if (session.status !== 'authenticated') {
     body = {
       title: 'Cần đăng nhập',
       text: 'Phiên làm việc chưa được xác thực nên không thể hiển thị mục này.',
+      link: true,
       role: 'alert',
     };
   } else if (!item.roles.some((r) => session.roles.includes(r))) {
@@ -37,7 +39,9 @@ export function ModuleState({ item, session }: Props) {
       <p className="muted">{item.summary}</p>
       <div className="state" role={body.role} data-state={body.title}>
         <h2>{body.title}</h2>
-        <p>{body.text}</p>
+        <p>
+          {body.text} {body.link ? <Link href="/login">Đăng nhập</Link> : null}
+        </p>
       </div>
     </section>
   );

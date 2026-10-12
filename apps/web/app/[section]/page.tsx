@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { ModuleState } from '../../components/ModuleState';
 import { NAV, findNav } from '../nav';
-import { getSession } from '../session';
+import { currentSession } from '../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,5 +13,5 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
   const { section } = await params;
   const item = findNav(section);
   if (!item) notFound();
-  return <ModuleState item={item} session={getSession()} />;
+  return <ModuleState item={item} session={await currentSession()} />;
 }

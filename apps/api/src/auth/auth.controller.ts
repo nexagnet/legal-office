@@ -97,6 +97,7 @@ export class AuthController {
       userId: a.userId,
       tenantId: a.tenantId,
       memberships: await this.auth.memberships(a.tenantId, a.userId),
+      branches: await this.auth.branches(a.tenantId, a.userId),
     };
   }
 

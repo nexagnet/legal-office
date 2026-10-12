@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import type { NavItem } from '../app/nav';
 
 interface Props {
   readonly items: readonly NavItem[];
   readonly tenantName: string | null;
+  readonly signedIn?: boolean;
   readonly children: ReactNode;
 }
 
@@ -17,7 +18,8 @@ const GROUPS: Record<NavItem['group'], string> = {
   admin: 'Quản trị',
 };
 
-export function AppShell({ items, tenantName, children }: Props) {
+export function AppShell({ items, tenantName, signedIn = false, children }: Props) {
+  const router = useRouter();
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   return (
@@ -43,6 +45,19 @@ export function AppShell({ items, tenantName, children }: Props) {
           />
           <span>{tenantName ?? 'Quản lý văn phòng'}</span>
         </div>
+        {signedIn ? (
+          <button
+            type="button"
+            className="link-btn"
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
+              router.push('/login');
+              router.refresh();
+            }}
+          >
+            Đăng xuất
+          </button>
+        ) : null}
       </header>
       <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
         {(Object.keys(GROUPS) as NavItem['group'][]).map((g) => {

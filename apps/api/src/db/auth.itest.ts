@@ -92,6 +92,10 @@ describe.skipIf(!ADMIN_URL)('email + password sessions over PostgreSQL (syntheti
 
     await owner.query(`INSERT INTO tenants (id, name) VALUES ($1,'A'),($2,'B')`, [T, T2]);
     await owner.query(`INSERT INTO offices (id, tenant_id, name) VALUES ($1,$2,'VP A')`, [OFF, T]);
+    await owner.query(`INSERT INTO branches (tenant_id, office_id, name) VALUES ($1,$2,'CN1')`, [
+      T,
+      OFF,
+    ]);
     const hash = await hashPassword(PW);
     for (const [uid, role, email] of [
       [U.admin, 'ADMIN', 'admin@example.test'],
@@ -154,6 +158,7 @@ describe.skipIf(!ADMIN_URL)('email + password sessions over PostgreSQL (syntheti
       userId: U.admin,
       tenantId: T,
       memberships: [{ officeId: OFF, role: 'ADMIN', legalSigner: true }],
+      branches: [{ officeId: OFF, name: 'CN1' }],
     });
     expect((await call('GET', '/auth/me')).status).toBe(401);
     expect((await call('GET', '/auth/me', { cookie: 'lo_session=nonsense' })).status).toBe(401);
