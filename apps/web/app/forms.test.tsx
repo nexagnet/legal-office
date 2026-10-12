@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LoginForm } from '../components/LoginForm';
 import { AssignThv } from '../components/AssignThv';
+import { CaseSteps } from '../components/CaseSteps';
 import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
 import { NewCaseForm } from '../components/NewCaseForm';
@@ -199,5 +200,58 @@ describe('AssignThv', () => {
     fireEvent.change(screen.getByLabelText('Lý do đổi'), { target: { value: 'Nghỉ phép' } });
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
     expect((await screen.findByRole('alert')).textContent).toBe('Hồ sơ đã giao cho THV này.');
+  });
+});
+
+describe('CaseSteps', () => {
+  const base = {
+    misaStatus: 'NOT_CONFIRMED',
+    misaRevokeStatus: 'NONE',
+    numberLabel: null,
+    signedAt: null,
+    stampedAt: null,
+    hasFinalScan: false,
+  };
+
+  it('lets accounting confirm MISA with a reference', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(<CaseSteps caseId="c1" status="INTAKE" progress={base} roles={['KE_TOAN']} />);
+    expect(screen.queryByRole('button', { name: 'Cấp số' })).toBeNull();
+    fireEvent.change(screen.getByLabelText('Mã tham chiếu MISA'), { target: { value: 'MISA-1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Xác nhận đã thu đủ/ }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/vibang/cases/c1/misa');
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      status: 'CONFIRMED_FULL',
+      reference: 'MISA-1',
+    });
+  });
+
+  it('offers the next step by progress and role, and explains refusals', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      reply(409, { code: 'FINAL_SCAN_MISSING' }),
+    );
+    const done = {
+      ...base,
+      misaStatus: 'CONFIRMED_FULL',
+      numberLabel: '01/2026',
+      signedAt: '2026-10-12T01:00:00Z',
+      stampedAt: '2026-10-12T02:00:00Z',
+    };
+    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={done} roles={['VAN_THU']} />);
+    expect(screen.queryByRole('button', { name: 'Xác nhận đã ký' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Trả khách' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Chưa có bản scan cuối của Vi bằng.',
+    );
+  });
+
+  it('shows no actions for a finished case', () => {
+    render(<CaseSteps caseId="c1" status="RETURNED" progress={base} roles={['ADMIN']} />);
+    expect(screen.queryByRole('button')).toBeNull();
   });
 });

@@ -21,3 +21,7 @@ API: `POST /vibang/customers`, `POST /vibang/customers/:id/contracts`, `POST /vi
 ## Danh sách THV để giao hồ sơ (lát #7)
 
 `GET /vibang/thv` (hàm `vb_list_thv`, migration 0013) trả THV của các văn phòng mà người gọi là Admin; người khác nhận danh sách rỗng để không lộ nhân sự. Nhãn hiển thị là email đăng nhập, hoặc mã tham chiếu nếu chưa có thông tin đăng nhập. Giao diện `/vi-bang/[id]` dùng danh sách này cho Admin giao hoặc đổi THV (đổi bắt buộc có lý do).
+
+## Tiến trình hồ sơ (lát #8)
+
+`GET /vibang/cases/:id/progress` (hàm `vb_case_progress`, migration 0014) trả trạng thái MISA, số Vi bằng, thời điểm ký/đóng dấu và có bản scan cuối hay chưa; chỉ trả cho người được xem hồ sơ (cùng phạm vi `vb_list_cases`), còn lại 404. Giao diện hiện các bước theo thứ tự MISA → cấp số → ký → đóng dấu → scan → trả khách; nút chỉ là gợi ý theo vai, quyền thật do DB kiểm. Tải bản scan cuối chưa có trên giao diện vì chưa có kho tệp (issue #5).
