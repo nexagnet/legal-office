@@ -5,18 +5,19 @@
 > **Phạm vi:** 4 nghiệp vụ pháp lý và quản lý Văn phòng, đa tenant, không triển khai kế toán MISA.
 > **Chưa chứng minh:** code, hợp chuẩn biểu mẫu pháp lý, chữ ký số, CI, triển khai runtime hay quyền Cloud production.
 > **Dữ liệu:** minh họa/chỉ dẫn, không chứa hồ sơ khách hàng thực.
+> **Trạng thái repository hiện hành:** PUBLIC theo quyết định owner 12/10/2026, không được commit hồ sơ/PII/secret/log nhạy cảm. Các mô tả PRIVATE lịch sử được thay thế về visibility; yêu cầu bảo mật hồ sơ không thay đổi.
 
 ---
 
-# CANONICAL PRODUCT & BUSINESS CONTRACT — LEGAL OFFICE (PRIVATE)
+# CANONICAL PRODUCT & BUSINESS CONTRACT — LEGAL OFFICE (PUBLIC CODE REPOSITORY; CUSTOMER DATA PRIVATE)
 
-**Authoritative destination repository:** `nexagnet/legal-office` — PRIVATE; owner decision 2026-10-11. **Do NOT implement any legal-office feature back in public `nexagnet/nexagnet-platform`.**
+**Authoritative destination repository:** `nexagnet/legal-office` — PUBLIC by owner amendment 2026-10-12 (previously PRIVATE on 2026-10-11). **Do NOT implement any legal-office feature back in public `nexagnet/nexagnet-platform`.**
 **Source/traceability:** [legacy business #448](https://github.com/nexagnet/nexagnet-platform/issues/448), [repo separation and architecture #472](https://github.com/nexagnet/nexagnet-platform/issues/472), [Vi bằng detail #426](https://github.com/nexagnet/nexagnet-platform/issues/426), [org R3 onboarding #14](https://github.com/nexagnet/.github/issues/14), [Figma all screens](https://www.figma.com/design/bueSNVniMoYD6lQFHwqeHz?node-id=92-3).
-This Issue is the **canonical product coordinator and business authority** inside the private target. It is **NOT a Builder task**; NO `autopilot:ready`. Source PRs #440/#467/#468 in the old repo remain unmerged/reference-only. Any legacy statement saying code must remain in `nexagnet-platform` is **SUPERSEDED**, but approved business rules remain valid.
+This Issue is the **canonical product coordinator and business authority** inside the target repository. It is **NOT a Builder task**; NO `autopilot:ready`. Source PRs #440/#467/#468 in the old repo remain unmerged/reference-only. Any legacy statement saying code must remain in `nexagnet-platform` is **SUPERSEDED**, but approved business rules remain valid.
 
 ## ĐÃ CHỐT — PRODUCT / TECH ARCHITECTURE
 - Deliver the **entire product**: (1) Vi bằng, (2) Tống đạt, (3) Xác minh điều kiện thi hành án, (4) Tổ chức thi hành án, and complete shared Văn phòng management. No Vi-bang-only scope. Product must be reusable for other legal offices, **not hardcoded** for Hai Bà Trưng.
-- One PRIVATE repository containing a **tenant-aware modular monolith**, Next.js/React frontend, NestJS/TypeScript API, PostgreSQL, pnpm workspace, independent DB/migrations/CI/releases; each legal domain owns its models and rules, shared security/files/audit/contracts as appropriate. No separate microservices/repositories per legal domain.
+- One standalone PUBLIC code repository (no real customer artifacts) containing a **tenant-aware modular monolith**, Next.js/React frontend, NestJS/TypeScript API, PostgreSQL, pnpm workspace, independent DB/migrations/CI/releases; each legal domain owns its models and rules, shared security/files/audit/contracts as appropriate. No separate microservices/repositories per legal domain.
 - Company brand: **tenant logo placeholder in UX; NO Nexagnet logo** in customer-facing UI. Reference Figma is UX proposal/acceptance input, **not functional app and not legal-form authority**.
 - Office Hai Bà Trưng consists of **one legal office with three operational locations** (Trụ sở chính, Đông Anh, Bắc Ninh), one central Admin; not three tenants. Future customers isolated as separate tenants.
 - No live production, real legal-customer records, imported contracts, secrets, GitHub permission changes or Cloud external storage until explicit human/legal authorization. The user's customer has **NOT YET completed external-premises storage approval**. Cloud hosts management scans, paper originals remain stored physically; phase 1 **is not certified legal digital signing**.
@@ -74,7 +75,7 @@ This Issue is the **canonical product coordinator and business authority** insid
 - Specific legal-print conformance needs official original source+verified version; if missing record `NOT_PROVEN`, do not fabricate.
 
 ## OBJECTIVE
-Implement the complete private multi-tenant legal-office platform with four domain capabilities and full shared office, as validated against owner decisions and official legal sources, staged by architecture dependencies not by removing later domains from initial delivery.
+Implement the complete multi-tenant legal-office platform with four domain capabilities and full shared office, as validated against owner decisions and official legal sources, staged by architecture dependencies not by removing later domains from initial delivery.
 
 ## SCOPE
 Requirements/ADR/contracts, secure foundation, four domains, legal documents, official template mapping, shared office, reporting, mobile, synthetic UAT; no production without separate gate.
@@ -93,11 +94,11 @@ MISA accounting ledger, TT06 issuance automation, unapproved real documents, dir
 R2 coordinator (cross-cutting private legal PII and persistent case model); NOT a V4 task. R3 repo/bootstrap delegated to org#14 and local onboarding issue.
 
 ## RUNTIME PROOF
-Real private repo SHA and CI, tenant-isolated synthetic preview (role/branch/PII denial, 48h, MISA confirmation/no amount, number concurrency, sign/stamp/scan/return/Sở incident, Tống đạt multi-doc attempts, Xác minh multi-round, THA many obligations/assets/partial results, office FIFO, legal template snapshots and XLSX/PDF). No real customer data.
+Real legal-office repo SHA and CI, tenant-isolated synthetic preview (role/branch/PII denial, 48h, MISA confirmation/no amount, number concurrency, sign/stamp/scan/return/Sở incident, Tống đạt multi-doc attempts, Xác minh multi-round, THA many obligations/assets/partial results, office FIFO, legal template snapshots and XLSX/PDF). No real customer data.
 
 ## STOP CONDITIONS
 No CI/Claude integration verified; R2/R3 merge; real data/cloud/production; unresolved legal authority; unsafe file or stale unmerged legacy code; all denied until authorized. No `autopilot:ready` on coordinator.
 
 ## REPOSITORY LIVE BOOTSTRAP EVIDENCE (2026-10-11)
-Private `nexagnet/legal-office` repo ID `1414510878`, default `main`, initial SHA `d12157054e196021295744f12b68ecb777d5084f`, only README; 0 Actions runs, no `.github/workflows`; main unprotected in GitHub branch response. **Status = REPO_CREATED, NOT ONBOARDED/ACTIVE.**
+Historical initial bootstrap: repo ID `1414510878`, initial SHA `d12157054e196021295744f12b68ecb777d5084f`, only README and 0 Actions on 2026-10-11. As of 2026-10-12 the repo is PUBLIC by owner decision, and bootstrap CI PR #26 has merged with 2/2 main jobs PASS. Central Builder/Reviewer are merged in `nexagnet/.github`, but **consumer caller/Publisher/Reviewer runtime is NOT PROVEN; Autopilot NOT ACTIVE**.
 
