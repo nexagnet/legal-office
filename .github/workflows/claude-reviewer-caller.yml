@@ -22,7 +22,7 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.pull_requests[0].number != null
-    uses: nexagnet/.github/.github/workflows/claude-reviewer.yml@c98e47e9008cdd5de6e8b68839b64f50bee81ae9
+    uses: nexagnet/.github/.github/workflows/claude-reviewer.yml@6beaadd47d94081960321e54b32169b8a532fa15
     with:
       pr_number: ${{ github.event.workflow_run.pull_requests[0].number }}
       expected_head_sha: ${{ github.event.workflow_run.head_sha }}
