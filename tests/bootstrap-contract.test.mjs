@@ -84,7 +84,7 @@ const reviewerCaller = readFileSync(
 
 describe('V5 consumer callers R3 static security contract (not runtime proof)', () => {
   const builderPinned = 'c98e47e9008cdd5de6e8b68839b64f50bee81ae9';
-  const reviewerPinned = '6beaadd47d94081960321e54b32169b8a532fa15';
+  const reviewerPinned = '7dd9f51531667f7d2e89d87145e028965d4080da';
 
   it('pins independent immutable and reviewed central Builder/Reviewer workflow versions', () => {
     assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + builderPinned));
@@ -116,7 +116,7 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
     assert.match(reviewerCaller, /expected_head_sha: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
     assert.match(reviewerCaller, /ci_run_id: \$\{\{ github\.event\.workflow_run\.id \}\}/);
     assert.match(reviewerCaller, /required_jobs_csv: bootstrap-verify,bootstrap-safety/);
-    assert.match(reviewerCaller, /issues: write/);
+    assert.match(reviewerCaller, /permissions:\n  contents: read\n  actions: read\n  checks: read\n  issues: read\n(?:  # [^\n]+\n)*  pull-requests: write/);
     assert.match(reviewerCaller, /CLAUDE_CODE_OAUTH_TOKEN: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/);
     assert.doesNotMatch(reviewerCaller, /BUILDER_PUBLISHER_APP_|secrets:\s*inherit|contents: write|pull_request_target/);
   });
@@ -127,4 +127,15 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
       assert.doesNotMatch(caller, /secrets:\s*inherit|gh pr merge|deployment:|deployments: write/);
     }
   });
+  it('grants PR-comment write only at Reviewer caller ceiling, never to Builder or Claude', () => {
+    assert.match(reviewerCaller, /pull-requests: write/);
+    assert.match(reviewerCaller, /issues: read/);
+    assert.doesNotMatch(reviewerCaller, /issues: write|contents: write|actions: write|id-token: write/);
+    assert.doesNotMatch(reviewerCaller, /secrets: inherit|BUILDER_PUBLISHER_APP_ID|BUILDER_PUBLISHER_APP_PRIVATE_KEY/);
+    assert.doesNotMatch(builderCaller, /pull-requests: write|issues: write|contents: write/);
+    assert.match(reviewerCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-reviewer\.yml@7dd9f51531667f7d2e89d87145e028965d4080da/);
+    assert.match(builderCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-builder\.yml@c98e47e9008cdd5de6e8b68839b64f50bee81ae9/);
+    assert.doesNotMatch(reviewerCaller, /pull_request_target|workflow_dispatch|gh pr merge|gh api.*merge|deploy/);
+  });
+
 });
