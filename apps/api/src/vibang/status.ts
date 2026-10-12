@@ -20,6 +20,8 @@ const NOT_FOUND = new Set([
   'ROUND_NOT_FOUND',
   'SOURCE_NOT_FOUND',
   'DELEGATION_NOT_FOUND',
+  'OBLIGATION_NOT_FOUND',
+  'PARTY_NOT_FOUND',
 ]);
 const INVALID = new Set([
   'INVALID_STATUS',
@@ -42,6 +44,9 @@ const INVALID = new Set([
   'RESULT_REQUIRED',
   'CONCLUSION_REQUIRED',
   'PURPOSE_REQUIRED',
+  'INVALID_OBLIGATION',
+  'INVALID_EVENT',
+  'IDEMPOTENCY_KEY_REQUIRED',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */
