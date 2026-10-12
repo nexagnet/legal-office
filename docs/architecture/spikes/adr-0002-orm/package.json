@@ -1,0 +1,13 @@
+{
+  "name": "adr-0002-orm-spike",
+  "private": true,
+  "type": "module",
+  "description": "Disposable ORM spike. NOT part of the pnpm workspace; synthetic data only.",
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "drizzle-kit": "0.31.11",
+    "drizzle-orm": "0.45.4",
+    "pg": "8.23.1",
+    "prisma": "6.19.3"
+  }
+}

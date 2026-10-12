@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Counter {
+  tenantId String @map("tenant_id")
+  scope    String
+  year     Int
+  seq      Int
+
+  @@id([tenantId, scope, year])
+  @@map("counters")
+}
+
+model Obligation {
+  id       String @id @default(uuid())
+  tenantId String @map("tenant_id")
+  code     String
+
+  @@unique([tenantId, code])
+  @@map("obligations")
+}
+
+model Audit {
+  id       String @id @default(uuid())
+  tenantId String @map("tenant_id")
+  action   String
+  refId    String @map("ref_id")
+
+  @@map("audit_log")
+}
