@@ -5,6 +5,8 @@ import { AssignThv } from '../components/AssignThv';
 import { CaseSteps } from '../components/CaseSteps';
 import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
+import { NewServiceForm } from '../components/NewServiceForm';
+import { ServiceRowActions } from '../components/ServiceRowActions';
 import { NewCaseForm } from '../components/NewCaseForm';
 import { messageFor } from '../lib/messages';
 
@@ -252,6 +254,46 @@ describe('CaseSteps', () => {
 
   it('shows no actions for a finished case', () => {
     render(<CaseSteps caseId="c1" status="RETURNED" progress={base} roles={['ADMIN']} />);
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe('Service of documents', () => {
+  it('creates a request then its first document with an ISO deadline', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch');
+    spy.mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'r1' }));
+    spy.mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'd1' }));
+    render(<NewServiceForm branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    fireEvent.change(screen.getByLabelText('Mã yêu cầu'), { target: { value: 'N-01/1' } });
+    fireEvent.change(screen.getByLabelText('Người nhận'), { target: { value: 'Người giả lập' } });
+    fireEvent.change(screen.getByLabelText('Địa chỉ'), { target: { value: 'Địa chỉ giả lập' } });
+    fireEvent.change(screen.getByLabelText('Hạn tống đạt'), {
+      target: { value: '2026-12-01T10:00' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo yêu cầu' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/service-of-documents/requests');
+    expect(spy.mock.calls[1]![0]).toBe('/api/service-of-documents/requests/r1/documents');
+    const body = JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string);
+    expect(body.recipientName).toBe('Người giả lập');
+    expect(body.deadlineAt).toMatch(/Z$/);
+  });
+
+  it('records a failed attempt and explains refusals; finished documents have no actions', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(403, { code: 'NOT_ASSIGNED_HANDLER' }));
+    const { unmount } = render(<ServiceRowActions documentId="d1" status="ASSIGNED" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi nhận lần tống đạt' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Bạn không phải người phụ trách hồ sơ này.',
+    );
+    expect(spy.mock.calls[0]![0]).toBe('/api/service-of-documents/documents/d1/attempts');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      outcome: 'ABSENT',
+    });
+    unmount();
+    render(<ServiceRowActions documentId="d1" status="DELIVERED" />);
     expect(screen.queryByRole('button')).toBeNull();
   });
 });
