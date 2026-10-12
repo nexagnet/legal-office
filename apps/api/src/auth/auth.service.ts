@@ -29,6 +29,12 @@ export interface Membership {
   readonly legalSigner: boolean;
 }
 
+export interface BranchInfo {
+  readonly id: string;
+  readonly officeId: string;
+  readonly name: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -109,6 +115,20 @@ export class AuthService {
         role: r.role,
         legalSigner: r.legal_signer,
       }));
+    });
+  }
+
+  /** Chi nhánh của các văn phòng người dùng có vai (để chọn khi tạo hồ sơ); quyền thật vẫn do DB kiểm khi ghi. */
+  async branches(tenantId: string, userId: string): Promise<BranchInfo[]> {
+    return this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ id: string; office_id: string; name: string }>(
+        `SELECT b.id, b.office_id, b.name FROM branches b
+          WHERE b.tenant_id = $1 AND EXISTS (
+            SELECT 1 FROM memberships m WHERE m.tenant_id = $1 AND m.user_id = $2 AND m.office_id = b.office_id)
+          ORDER BY b.name`,
+        [tenantId, userId],
+      );
+      return rows.map((r) => ({ id: r.id, officeId: r.office_id, name: r.name }));
     });
   }
 

@@ -1,7 +1,7 @@
 import { ModuleState } from '../components/ModuleState';
 import { OVERVIEW } from './nav';
-import { getSession } from './session';
+import { currentSession } from '../lib/server';
 
-export default function HomePage() {
-  return <ModuleState item={OVERVIEW} session={getSession()} />;
+export default async function HomePage() {
+  return <ModuleState item={OVERVIEW} session={await currentSession()} />;
 }

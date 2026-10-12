@@ -1,25 +1,33 @@
 :root {
-  --bg: #f7f6f2;
+  /* Màu và bo góc lấy từ bản duyệt Figma (khung 01 · Hướng dẫn duyệt). */
+  --bg: #f3f6fa;
   --surface: #ffffff;
-  --ink: #1b2430;
-  --muted: #5b6573;
-  --line: #d9d6cc;
-  --accent: #1f4e79;
+  --ink: #1d2f45;
+  --muted: #64748b;
+  --line: #d7dfe9;
+  --accent: #2563eb;
+  --on-accent: #ffffff;
   --focus: #b45309;
-  --warn-bg: #fff4e5;
-  --warn-ink: #7a3e00;
+  --warn-bg: #fff4df;
+  --warn-ink: #b45309;
+  --danger: #b42318;
+  --ok: #067647;
+  --radius: 11px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #12171d;
-    --surface: #1b222b;
-    --ink: #e8ebef;
-    --muted: #a3acb8;
-    --line: #2d3742;
-    --accent: #8ab4e0;
+    --bg: #0f1722;
+    --surface: #17212f;
+    --ink: #e6ecf4;
+    --muted: #9fb0c5;
+    --line: #2a3a50;
+    --accent: #7aa7ff;
+    --on-accent: #0b1220;
     --focus: #f5a524;
     --warn-bg: #3a2a12;
     --warn-ink: #ffd699;
+    --danger: #ff8a80;
+    --ok: #6ee7a8;
   }
 }
 * {
@@ -115,7 +123,7 @@ button {
 }
 .nav a[aria-current='page'] {
   background: var(--accent);
-  color: var(--surface);
+  color: var(--on-accent);
   font-weight: 600;
 }
 .nav-title {
@@ -182,4 +190,126 @@ button {
     transition: none !important;
     animation: none !important;
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 24px;
+  max-width: 560px;
+}
+.card h1,
+.card h2 {
+  margin: 0 0 12px;
+}
+.form label {
+  display: block;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.form input,
+.form select,
+.form textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.primary {
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--on-accent);
+  background: var(--accent);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.link-btn {
+  margin-left: auto;
+  padding: 0 12px;
+  font: inherit;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.error {
+  color: var(--danger);
+  margin: 0 0 12px;
+}
+.success {
+  color: var(--ok);
+  margin: 0 0 12px;
+}
+[hidden] {
+  display: none !important;
+}
+.table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+th,
+td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+thead th {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+tbody th {
+  font-weight: 600;
+}
+tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.badge[data-status='RETURNED'] {
+  color: var(--ok);
+}
+.badge[data-status='CANCELLED'] {
+  color: var(--danger);
+}
+.badge[data-status='INTAKE'] {
+  color: var(--warn-ink);
 }

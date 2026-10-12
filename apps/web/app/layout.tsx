@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
 import './globals.css';
 import { visibleNav } from './nav';
-import { getSession } from './session';
+import { currentSession } from '../lib/server';
 
 export const metadata = {
   title: 'Quản lý văn phòng',
@@ -11,8 +11,8 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
-  const session = getSession();
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const session = await currentSession();
   const items = session.status === 'authenticated' ? visibleNav(session.roles) : [];
   return (
     <html lang="vi">
@@ -20,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppShell
           items={items}
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
+          signedIn={session.status === 'authenticated'}
         >
           {children}
         </AppShell>
