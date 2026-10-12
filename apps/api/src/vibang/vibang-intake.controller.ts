@@ -224,6 +224,18 @@ export class VibangIntakeController {
     };
   }
 
+  @Get('thv')
+  async thvList(@CurrentActor() a: AuthenticatedActor) {
+    const rows = await this.repo.rows<{ user_id: string; office_id: string; label: string }>(
+      a.tenantId,
+      'vb_list_thv',
+      [a.tenantId, a.userId],
+    );
+    return {
+      items: rows.map((r) => ({ userId: r.user_id, officeId: r.office_id, label: r.label })),
+    };
+  }
+
   @Get('cases')
   async list(@CurrentActor() a: AuthenticatedActor, @Query('limit') limit?: string) {
     const n = limit === undefined ? 50 : Number(limit);

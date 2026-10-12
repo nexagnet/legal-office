@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LoginForm } from '../components/LoginForm';
+import { AssignThv } from '../components/AssignThv';
 import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
 import { NewCaseForm } from '../components/NewCaseForm';
@@ -168,5 +169,35 @@ describe('ChangeDecision', () => {
     const [url, init] = spy.mock.calls[0]!;
     expect(url).toBe('/api/vibang/change-requests/r1/decision');
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({ accept: false });
+  });
+});
+
+describe('AssignThv', () => {
+  const options = [
+    { userId: 'u1', label: 'thv1@example.test' },
+    { userId: 'u2', label: 'thv2@example.test' },
+  ];
+
+  it('assigns a first THV without a reason', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(<AssignThv caseId="c1" options={options} currentThvId={null} />);
+    expect(screen.queryByLabelText('Lý do đổi')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/vibang/cases/c1/responsible-thv');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ thvUserId: 'u1' });
+  });
+
+  it('requires a reason to change THV and shows server errors', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      reply(409, { code: 'ALREADY_ASSIGNED' }),
+    );
+    render(<AssignThv caseId="c1" options={options} currentThvId="u1" />);
+    fireEvent.change(screen.getByLabelText('Lý do đổi'), { target: { value: 'Nghỉ phép' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Hồ sơ đã giao cho THV này.');
   });
 });
