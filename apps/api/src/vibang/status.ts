@@ -33,6 +33,8 @@ const NOT_FOUND = new Set([
   'PERSON_NOT_FOUND',
   'SUBJECT_NOT_FOUND',
   'USER_NOT_FOUND',
+  'CUSTOMER_NOT_FOUND',
+  'CONTRACT_NOT_FOUND',
 ]);
 const INVALID = new Set([
   'INVALID_STATUS',
@@ -75,6 +77,8 @@ const INVALID = new Set([
   'SEND_PROOF_REQUIRED',
   'INVALID_SUBJECT_KIND',
   'INVALID_CREDENTIAL',
+  'INVALID_CUSTOMER',
+  'TITLE_REQUIRED',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */

@@ -13,6 +13,7 @@ import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
 import { ServiceOfDocumentsController } from './service-of-documents/service-of-documents.controller';
 import { OfficeController } from './office/office.controller';
 import { VerificationController } from './verification/verification.controller';
+import { VibangIntakeController } from './vibang/vibang-intake.controller';
 import { VibangController } from './vibang/vibang.controller';
 import { VibangRepo } from './vibang/vibang.repo';
 
@@ -35,6 +36,7 @@ export class AppModule {
         HealthController,
         AuthController,
         VibangController,
+        VibangIntakeController,
         ServiceOfDocumentsController,
         VerificationController,
         EnforcementCaseController,
