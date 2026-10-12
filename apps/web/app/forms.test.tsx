@@ -9,6 +9,8 @@ import { NewServiceForm } from '../components/NewServiceForm';
 import { ServiceRowActions } from '../components/ServiceRowActions';
 import { NewVerificationForm } from '../components/NewVerificationForm';
 import { VerificationActions } from '../components/VerificationActions';
+import { NewEnforcementForm } from '../components/NewEnforcementForm';
+import { EnforcementActions } from '../components/EnforcementActions';
 import { NewCaseForm } from '../components/NewCaseForm';
 import { messageFor } from '../lib/messages';
 
@@ -343,6 +345,81 @@ describe('Verification', () => {
 
   it('shows no actions for a concluded case', () => {
     render(<VerificationActions caseId="c1" status="CONCLUDED" />);
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe('Enforcement', () => {
+  it('opens an enforcement case with its references', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
+    render(<NewEnforcementForm branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ'), { target: { value: 'THA/1' } });
+    fireEvent.change(screen.getByLabelText('Tham chiếu hợp đồng dịch vụ'), {
+      target: { value: 'HĐ-1' },
+    });
+    fireEvent.change(screen.getByLabelText('Tham chiếu quyết định hoặc bản án'), {
+      target: { value: 'QĐ-1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/enforcement-cases');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      officeId: 'o1',
+      branchId: 'b1',
+      caseRef: 'THA/1',
+      agreementRef: 'HĐ-1',
+      decisionRef: 'QĐ-1',
+    });
+  });
+
+  it('adds a party and sends a note with its own idempotency key', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(
+      <EnforcementActions
+        caseId="c1"
+        status="OPEN"
+        obligations={[{ id: 'o1', seq: 1, description: 'Nghĩa vụ' }]}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Tên đương sự'), {
+      target: { value: 'Đương sự giả lập' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Thêm đương sự' }));
+    await waitFor(() => expect(spy.mock.calls.length).toBe(1));
+    expect(spy.mock.calls[0]![0]).toBe('/api/enforcement-cases/c1/parties');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      displayName: 'Đương sự giả lập',
+      kind: 'PERSON',
+      role: 'DEBTOR',
+    });
+    fireEvent.change(screen.getByLabelText('Ghi chú diễn biến'), {
+      target: { value: 'Đã liên hệ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi chú' }));
+    await waitFor(() => expect(spy.mock.calls.length).toBe(2));
+    const note = JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string);
+    expect(spy.mock.calls[1]![0]).toBe('/api/enforcement-cases/obligations/o1/events');
+    expect(note).toMatchObject({ kind: 'NOTE', note: 'Đã liên hệ' });
+    expect(note.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it('explains server refusals and hides actions on completed cases', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      reply(403, { code: 'NOT_ASSIGNED_HANDLER' }),
+    );
+    const { unmount } = render(<EnforcementActions caseId="c1" status="OPEN" obligations={[]} />);
+    fireEvent.change(screen.getByLabelText('Nghĩa vụ'), { target: { value: 'X' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Thêm nghĩa vụ' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Bạn không phải người phụ trách hồ sơ này.',
+    );
+    expect(screen.queryByLabelText('Ghi chú diễn biến')).toBeNull();
+    unmount();
+    render(<EnforcementActions caseId="c1" status="COMPLETED" obligations={[]} />);
     expect(screen.queryByRole('button')).toBeNull();
   });
 });

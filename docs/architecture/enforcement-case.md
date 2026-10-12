@@ -23,3 +23,7 @@ Quyền kiểm tra trong DB (dùng lại `td_authorize`), mọi kết quả kể
 - "Bằng chứng hoàn tất cấp hồ sơ" là một tệp có hash; loại văn bản pháp lý cụ thể chưa chốt.
 - Đồng thời (concurrency) dùng khoá hàng + khoá idempotency; chưa có `version` lạc quan.
 - Tài sản và chuyển giao THA là #11 (làm sau lát này).
+
+## Đọc danh sách và giao diện (lát #12)
+
+Chủ dự án chọn 12/10/2026: quyền xem **theo phạm vi ghi**. `GET /enforcement-cases` (hàm `th_list_cases`, migration 0017) trả hồ sơ kèm đương sự và nghĩa vụ: Admin/Trưởng VP/Thư ký xem cả văn phòng; Văn thư và Kế toán theo chi nhánh được cấp; THV chỉ hồ sơ mình phụ trách; người khác nhận danh sách rỗng. Không trả khoá bằng chứng, không có số tiền. Trang `/to-chuc-tha`: danh sách, mở hồ sơ, thêm đương sự, thêm nghĩa vụ, ghi chú diễn biến (mỗi ghi chú có khoá chống trùng riêng). Ghi kết quả có bằng chứng và hoàn tất hồ sơ cần tệp, chưa có trên giao diện vì chưa có kho tệp; giao THV chưa làm trên giao diện.
