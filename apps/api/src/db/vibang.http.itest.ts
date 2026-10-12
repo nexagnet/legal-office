@@ -303,4 +303,95 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
     const seqs = labels.map((l) => Number(l.split('/')[0])).sort((a, b) => a - b);
     expect(seqs[9]! - seqs[0]!).toBe(9); // liên tiếp, không trùng
   });
+
+  it('serves multiple documents over HTTP without closing the parent early', async () => {
+    const root = '/service-of-documents';
+    const created = await api('POST', `${root}/requests`, U.clerk, {
+      officeId: OFF,
+      branchId: BR1,
+      requestRef: 'N-01/http',
+    });
+    expect(created.status).toBe(200);
+    const req = created.json.label as string;
+    expect(
+      (
+        await api('POST', `${root}/requests`, U.clerkOther, {
+          officeId: OFF,
+          branchId: BR1,
+          requestRef: 'x',
+        })
+      ).status,
+    ).toBe(403);
+
+    const doc = async (name: string) => {
+      const r = await api('POST', `${root}/requests/${req}/documents`, U.clerk, {
+        recipientName: name,
+        address: 'Địa chỉ giả lập',
+        deadlineAt: '2026-12-01T00:00:00Z',
+      });
+      expect(r.status).toBe(200);
+      return r.json.label as string;
+    };
+    const d1 = await doc('Người nhận 1');
+    const d2 = await doc('Người nhận 2');
+    expect(
+      (await api('PUT', `${root}/documents/${d1}/handler`, U.clerk, { handlerUserId: U.thv }))
+        .status,
+    ).toBe(403);
+    expect(
+      (await api('PUT', `${root}/documents/${d1}/handler`, U.admin, { handlerUserId: U.thv }))
+        .status,
+    ).toBe(200);
+    expect(
+      (await api('PUT', `${root}/documents/${d2}/handler`, U.admin, { handlerUserId: U.thv }))
+        .status,
+    ).toBe(200);
+
+    // Giờ tống đạt do máy chủ ghi; client không được gửi.
+    expect(
+      (
+        await api('POST', `${root}/documents/${d1}/attempts`, U.thv, {
+          outcome: 'ABSENT',
+          at: '2020-01-01T00:00:00Z',
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (await api('POST', `${root}/documents/${d1}/attempts`, U.thv, { outcome: 'SERVED' })).status,
+    ).toBe(422);
+    expect(
+      (
+        await api('POST', `${root}/documents/${d1}/attempts`, U.thv, {
+          outcome: 'SERVED',
+          evidenceKey: 'td/http/1',
+          evidenceSha256: 'e'.repeat(64),
+        })
+      ).status,
+    ).toBe(200);
+    expect((await api('POST', `${root}/requests/${req}/closure`, U.admin)).status).toBe(409);
+    expect(
+      (
+        await api('POST', `${root}/documents/${d2}/undeliverable`, U.thv, {
+          reason: 'NO_RECIPIENT',
+        })
+      ).status,
+    ).toBe(409);
+    expect(
+      (await api('POST', `${root}/documents/${d2}/attempts`, U.thv, { outcome: 'NO_RECIPIENT' }))
+        .status,
+    ).toBe(200);
+    expect(
+      (
+        await api('POST', `${root}/documents/${d2}/undeliverable`, U.thv, {
+          reason: 'NO_RECIPIENT',
+        })
+      ).status,
+    ).toBe(200);
+    expect((await api('POST', `${root}/requests/${req}/closure`, U.clerk)).status).toBe(403);
+    expect((await api('POST', `${root}/requests/${req}/closure`, U.admin)).status).toBe(200);
+    expect(
+      (await api('POST', `${root}/requests/${req}/closure`, U.admin, undefined, T2)).status,
+    ).toBe(404);
+    expect((await api('POST', `${root}/requests/${req}/closure`, null)).status).toBe(401);
+  });
 });

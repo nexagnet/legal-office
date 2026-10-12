@@ -17,7 +17,7 @@ export class VibangRepo {
   constructor(@Inject(PgService) private readonly pg: PgService) {}
 
   call(tenantId: string, fn: string, args: readonly unknown[]): Promise<Op> {
-    if (!/^vibang_[a-z0-9_]+$/.test(fn)) throw new Error(`unsafe function name: ${fn}`);
+    if (!/^(vibang|td)_[a-z0-9_]+$/.test(fn)) throw new Error(`unsafe function name: ${fn}`);
     const placeholders = args.map((_, i) => `$${i + 1}`).join(',');
     return this.pg.withTenant(tenantId, async (client) => {
       const { rows } = await client.query(`SELECT * FROM ${fn}(${placeholders})`, [...args]);
