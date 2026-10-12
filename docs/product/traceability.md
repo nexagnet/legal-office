@@ -5,7 +5,7 @@
 
 | Capability/Owner rule | Nghiệp vụ đã chốt (rút gọn) | Implementation Task Contract(s) | Điều kiện chứng minh |
 |---|---|---|---|
-| Governance / kiến trúc | Private repo, 4 domain, R2/R3 gates | [#1](https://github.com/nexagnet/legal-office/issues/1) [#2](https://github.com/nexagnet/legal-office/issues/2) [#3](https://github.com/nexagnet/legal-office/issues/3) [#4](https://github.com/nexagnet/legal-office/issues/4) | #2 R3 human approval / #3 docs / #4 PoC |
+| Governance / kiến trúc | Repo độc lập PUBLIC theo owner amendment 12/10/2026, 4 domain, R2/R3 gates | [#1](https://github.com/nexagnet/legal-office/issues/1) [#2](https://github.com/nexagnet/legal-office/issues/2) [#3](https://github.com/nexagnet/legal-office/issues/3) [#4](https://github.com/nexagnet/legal-office/issues/4) | #2 R3 human approval / #3 docs / #4 PoC |
 | Tenant / phân quyền | Một văn phòng 3 địa điểm, nhiều tenant; Admin, THV, Thư ký, Văn thư, Kế toán, Trưởng VP | [#5](https://github.com/nexagnet/legal-office/issues/5) | #5 wrong tenant/branch/role HTTP denials |
 | Vi bằng hồ sơ | Admin-only THV assignment, exactly 1 THV, 48h continuous internal edit | [#6](https://github.com/nexagnet/legal-office/issues/6) | #6 role and boundary time test |
 | Vi bằng tài chính | MISA external; only CONFIRMED_FULL flag, accountant revoke request/Admin approve | [#7](https://github.com/nexagnet/legal-office/issues/7) | #7 role and process tests; NO finance ledger |
@@ -27,7 +27,7 @@
 ## Quy trình dependency / cách bắt đầu
 
 1. [#2 R3](https://github.com/nexagnet/legal-office/issues/2): kiểm tra và triển khai **manual control-plane**, rồi xác minh qua *test runner thực*, exact-head CI, independent Reviewer, human R3 merge và exact-main CI. Khi chưa chứng minh, **KHÔNG** gắn `autopilot:ready`.
-2. [#3 R0](https://github.com/nexagnet/legal-office/issues/3): lưu tài liệu nghiệp vụ và ADR này qua PR; PR này là bản chuẩn bị, chưa có CI/Reviewer/runtime. [#4 R1](https://github.com/nexagnet/legal-office/issues/4): so sánh Prisma/Drizzle và thư viện bằng benchmark/PoC thực tế.
+2. [#3 R0](https://github.com/nexagnet/legal-office/issues/3): lưu tài liệu nghiệp vụ và ADR này qua PR; CI bootstrap 2/2 đã chạy ở PR head; Reviewer/Claude runtime vẫn chưa PROVEN. [#4 R1](https://github.com/nexagnet/legal-office/issues/4): so sánh Prisma/Drizzle và thư viện bằng benchmark/PoC thực tế.
 3. [#5 R2](https://github.com/nexagnet/legal-office/issues/5): foundation auth/tenant/office/branch/files/audit, chỉ được merge khi owner cho phép.
 4. Các backend [#6–#14](https://github.com/nexagnet/legal-office/issues) chạy theo dependency/Prisma ownership, tránh hai agent cùng sửa schema. Không bắt ba nghiệp vụ phải chờ hoàn tất Vi bằng; có thể phát triển độc lập sau foundation.
 5. [#15–#23](https://github.com/nexagnet/legal-office/issues): biểu mẫu, UI từng nghiệp vụ, office, báo cáo, mobile trên API đã được review/merge.
@@ -47,8 +47,8 @@
 
 | Item | Trạng thái |
 |---|---|
-| Repo private + initial main | LIVE-VERIFIED |
-| Onboarding Claude + CI trong repo | NOT_PROVEN; #2 |
+| Repo PUBLIC (owner amendment 12/10/2026); initial main historical | LIVE-VERIFIED về visibility, không đồng nghĩa runtime |
+| CI bootstrap đã merge; Claude caller + Publisher + Reviewer runtime | Bootstrap CI 2/2 PASS; Claude chưa PROVEN, #2 |
 | ORM Prisma/Drizzle | ENGINEERING POC, #4 |
 | Bản in pháp lý official-ready | NOT_PROVEN cho đến khi #15 đối chiếu mẫu |
 | Khách đồng ý lưu hồ sơ ngoài trụ sở | CHƯA CÓ, chờ customer/legal gate |
