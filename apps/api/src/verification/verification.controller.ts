@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -55,6 +56,34 @@ export class VerificationController {
     return this.repo
       .call(actor.tenantId, fn, [actor.tenantId, actor.userId, ...args])
       .then(respond);
+  }
+
+  @Get('cases')
+  async list(@CurrentActor() a: AuthenticatedActor) {
+    const rows = await this.repo.rows<{
+      case_id: string;
+      case_ref: string;
+      branch_id: string;
+      status: string;
+      handler_user_id: string | null;
+      conclusion_text: string | null;
+      proposed_by: string | null;
+      created_at: Date;
+      rounds: unknown;
+    }>(a.tenantId, 'vx_list_cases', [a.tenantId, a.userId, 100]);
+    return {
+      items: rows.map((r) => ({
+        caseId: r.case_id,
+        caseRef: r.case_ref,
+        branchId: r.branch_id,
+        status: r.status,
+        handlerUserId: r.handler_user_id,
+        conclusionText: r.conclusion_text,
+        proposedBy: r.proposed_by,
+        createdAt: r.created_at,
+        rounds: r.rounds,
+      })),
+    };
   }
 
   @Post('cases')
