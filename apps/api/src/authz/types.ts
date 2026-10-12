@@ -39,6 +39,9 @@ export const DENY_REASONS = [
   'ROLE_LACKS_PERMISSION',
   'BRANCH_NOT_GRANTED',
   'SIGNING_AUTHORITY_NOT_GRANTED',
+  'ADMIN_ONLY',
+  'NOT_RESPONSIBLE_THV',
+  'RESPONSIBLE_THV_REQUIRED',
 ] as const;
 export type DenyReason = (typeof DENY_REASONS)[number];
 
