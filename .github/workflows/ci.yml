@@ -1,0 +1,67 @@
+name: ci
+
+# R3 source. Docs/bootstrap-only checks, NOT application or runtime proof.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: legal-office-bootstrap-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bootstrap-verify:
+    name: bootstrap-verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # PR: immutable PR HEAD (not GitHub's synthetic merge commit). push: pushed commit.
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+      - name: Assert checkout is the exact expected commit
+        run: |
+          actual="$(git rev-parse HEAD)"
+          echo "expected=${EXPECTED_SHA} actual=${actual}"
+          if [ "${actual}" != "${EXPECTED_SHA}" ]; then
+            echo "::error::Checked-out HEAD ${actual} != expected ${EXPECTED_SHA}"
+            exit 1
+          fi
+      - name: Validate bootstrap contract and tracked files
+        run: node --test tests/bootstrap-contract.test.mjs
+
+  bootstrap-safety:
+    name: bootstrap-safety
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # PR: immutable PR HEAD (not GitHub's synthetic merge commit). push: pushed commit.
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+      - name: Assert checkout is the exact expected commit
+        run: |
+          actual="$(git rev-parse HEAD)"
+          echo "expected=${EXPECTED_SHA} actual=${actual}"
+          if [ "${actual}" != "${EXPECTED_SHA}" ]; then
+            echo "::error::Checked-out HEAD ${actual} != expected ${EXPECTED_SHA}"
+            exit 1
+          fi
+      - name: Verify tracked file restrictions
+        run: node scripts/check-tracked-file-safety.mjs
+
+# Neither check proves package build, auth, migrations, data isolation, nor Claude.
+# Expand CI in a separately reviewed R3 change before real feature implementation.
