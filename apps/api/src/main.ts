@@ -10,7 +10,15 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(
     AppModule.register({
       pool: new pg.Pool({ connectionString: url }),
-      resolver: resolverFromEnv(),
+      resolver: process.env.AUTH_MODE === 'password' ? 'session' : resolverFromEnv(),
+      auth: {
+        sessionTtlMinutes: Number(process.env.SESSION_TTL_MINUTES ?? 720),
+        secureCookie: process.env.NODE_ENV === 'production',
+        allowedOrigins: (process.env.WEB_ORIGIN ?? '')
+          .split(',')
+          .map((o) => o.trim())
+          .filter(Boolean),
+      },
     }),
   );
   app.enableShutdownHooks();

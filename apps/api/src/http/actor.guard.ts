@@ -11,15 +11,15 @@ import type { ActorResolver, AuthenticatedActor } from './actor';
 
 export const ACTOR_RESOLVER = Symbol('ACTOR_RESOLVER');
 const KEY = 'legalOfficeActor';
-type ActorRequest = { headers: IncomingHttpHeaders; [KEY]?: AuthenticatedActor };
+type ActorRequest = { headers: IncomingHttpHeaders; method: string; [KEY]?: AuthenticatedActor };
 
 @Injectable()
 export class ActorGuard implements CanActivate {
   constructor(@Inject(ACTOR_RESOLVER) private readonly resolver: ActorResolver) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<ActorRequest>();
-    const actor = this.resolver.resolve(req.headers);
+    const actor = await this.resolver.resolve(req.headers, req.method);
     if (!actor) throw new UnauthorizedException();
     req[KEY] = actor;
     return true;

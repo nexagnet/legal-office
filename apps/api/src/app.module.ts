@@ -2,6 +2,9 @@ import { type DynamicModule, Module } from '@nestjs/common';
 import type pg from 'pg';
 import { PG_POOL, PgService } from './db/pg.service';
 import { ApprovalController } from './approval/approval.controller';
+import { AuthController } from './auth/auth.controller';
+import { AUTH_CONFIG, AuthService, type AuthConfig } from './auth/auth.service';
+import { SessionResolver } from './auth/session.resolver';
 import { AssetsController } from './assets/assets.controller';
 import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
 import { HealthController } from './health.controller';
@@ -15,8 +18,12 @@ import { VibangRepo } from './vibang/vibang.repo';
 
 export interface AppOptions {
   readonly pool: pg.Pool;
-  readonly resolver: ActorResolver;
+  /** `session` = đăng nhập email + mật khẩu (cookie phiên). */
+  readonly resolver: ActorResolver | 'session';
+  readonly auth?: AuthConfig;
 }
+
+const DEFAULT_AUTH: AuthConfig = { sessionTtlMinutes: 720, secureCookie: true, allowedOrigins: [] };
 
 @Module({})
 export class AppModule {
@@ -26,6 +33,7 @@ export class AppModule {
       module: AppModule,
       controllers: [
         HealthController,
+        AuthController,
         VibangController,
         ServiceOfDocumentsController,
         VerificationController,
@@ -36,7 +44,15 @@ export class AppModule {
       ],
       providers: [
         { provide: PG_POOL, useValue: options.pool },
-        { provide: ACTOR_RESOLVER, useValue: options.resolver },
+        { provide: AUTH_CONFIG, useValue: options.auth ?? DEFAULT_AUTH },
+        AuthService,
+        options.resolver === 'session'
+          ? {
+              provide: ACTOR_RESOLVER,
+              useFactory: (auth: AuthService) => new SessionResolver(auth),
+              inject: [AuthService],
+            }
+          : { provide: ACTOR_RESOLVER, useValue: options.resolver },
         PgService,
         VibangRepo,
         ActorGuard,

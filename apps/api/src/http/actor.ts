@@ -7,7 +7,10 @@ export interface AuthenticatedActor {
 }
 
 export interface ActorResolver {
-  resolve(headers: IncomingHttpHeaders): AuthenticatedActor | null;
+  resolve(
+    headers: IncomingHttpHeaders,
+    method?: string,
+  ): AuthenticatedActor | null | Promise<AuthenticatedActor | null>;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
