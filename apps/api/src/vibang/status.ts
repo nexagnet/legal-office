@@ -10,6 +10,7 @@ const FORBIDDEN = new Set([
   'ADMIN_OR_HEAD_ONLY',
   'NOT_ASSIGNED_HANDLER',
   'SEPARATE_REVIEWER_REQUIRED',
+  'PROPOSER_ONLY',
 ]);
 const NOT_FOUND = new Set([
   'CASE_NOT_FOUND',
@@ -30,6 +31,7 @@ const NOT_FOUND = new Set([
   'BATCH_NOT_FOUND',
   'FORM_NOT_FOUND',
   'PERSON_NOT_FOUND',
+  'SUBJECT_NOT_FOUND',
 ]);
 const INVALID = new Set([
   'INVALID_STATUS',
@@ -70,6 +72,7 @@ const INVALID = new Set([
   'INVALID_PERSONNEL',
   'FINAL_DOCUMENT_REQUIRED',
   'SEND_PROOF_REQUIRED',
+  'INVALID_SUBJECT_KIND',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */
