@@ -9,6 +9,7 @@ const FORBIDDEN = new Set([
   'SIGNING_AUTHORITY_NOT_GRANTED',
   'ADMIN_OR_HEAD_ONLY',
   'NOT_ASSIGNED_HANDLER',
+  'SEPARATE_REVIEWER_REQUIRED',
 ]);
 const NOT_FOUND = new Set([
   'CASE_NOT_FOUND',
@@ -16,6 +17,9 @@ const NOT_FOUND = new Set([
   'REQUEST_NOT_FOUND',
   'DOCUMENT_NOT_FOUND',
   'BRANCH_NOT_FOUND',
+  'ROUND_NOT_FOUND',
+  'SOURCE_NOT_FOUND',
+  'DELEGATION_NOT_FOUND',
 ]);
 const INVALID = new Set([
   'INVALID_STATUS',
@@ -31,6 +35,13 @@ const INVALID = new Set([
   'INVALID_HANDLER',
   'EVIDENCE_REQUIRED',
   'STATUTORY_PROOF_REQUIRED',
+  'INVALID_PARTY',
+  'INVALID_SOURCE',
+  'INVALID_STEP',
+  'INVALID_DECISION',
+  'RESULT_REQUIRED',
+  'CONCLUSION_REQUIRED',
+  'PURPOSE_REQUIRED',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */

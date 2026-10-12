@@ -46,6 +46,8 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
     accOther: id(),
     clerk: id(),
     clerkOther: id(),
+    head: id(),
+    thv2: id(),
     otherTenant: id(),
   };
   const CUST = id();
@@ -128,6 +130,8 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
       [U.accOther, 'KE_TOAN', BR2],
       [U.clerk, 'VAN_THU', BR1],
       [U.clerkOther, 'VAN_THU', BR2],
+      [U.head, 'TRUONG_VP', null],
+      [U.thv2, 'THV', null],
     ];
     for (const [uid, role, branch] of people) {
       await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$3)`, [
@@ -146,6 +150,10 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
         );
       }
     }
+    await owner.query(`UPDATE memberships SET legal_signer = true WHERE user_id IN ($1,$2)`, [
+      U.admin,
+      U.head,
+    ]);
     await owner.query(
       `INSERT INTO customers (id, tenant_id, kind, external_ref) VALUES ($1,$2,'PERSON','c')`,
       [CUST, T],
@@ -393,5 +401,99 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
       (await api('POST', `${root}/requests/${req}/closure`, U.admin, undefined, T2)).status,
     ).toBe(404);
     expect((await api('POST', `${root}/requests/${req}/closure`, null)).status).toBe(401);
+  });
+
+  it('runs a 3-round verification, N-06 conclusion and consented delegation over HTTP', async () => {
+    const root = '/verification';
+    const created = await api('POST', `${root}/cases`, U.clerk, {
+      officeId: OFF,
+      branchId: BR1,
+      caseRef: 'XM/http',
+    });
+    expect(created.status).toBe(200);
+    const cs = created.json.label as string;
+    expect(
+      (await api('POST', `${root}/cases/${cs}/rounds`, U.thv, { partyName: 'Bên A' })).status,
+    ).toBe(403);
+    expect(
+      (await api('PUT', `${root}/cases/${cs}/handler`, U.admin, { handlerUserId: U.thv })).status,
+    ).toBe(200);
+
+    for (const party of ['Bên A', 'Bên B', 'Bên C']) {
+      const r = await api('POST', `${root}/cases/${cs}/rounds`, U.thv, { partyName: party });
+      expect(r.status).toBe(200);
+      const round = r.json.label as string;
+      expect(
+        (await api('POST', `${root}/rounds/${round}/completion`, U.thv, { result: 'xong' })).status,
+      ).toBe(409);
+      const src = await api('POST', `${root}/rounds/${round}/sources`, U.thv, {
+        kind: 'Công văn',
+        confidentiality: 'PII',
+        purpose: 'Xác minh điều kiện',
+        evidenceKey: `vx/http/${party}`,
+        evidenceSha256: 'd'.repeat(64),
+      });
+      expect(src.status).toBe(200);
+      const access = (body: unknown, user = U.thv) =>
+        api('POST', `${root}/sources/${src.json.label}/access`, user, body);
+      expect((await access({})).status).toBe(422);
+      expect((await access({ purpose: 'Đối chiếu' })).status).toBe(200);
+      expect((await access({ purpose: 'Đối chiếu' }, U.thv2)).status).toBe(403);
+      expect(
+        (
+          await api('POST', `${root}/rounds/${round}/completion`, U.thv, {
+            result: 'Đạt (giả lập)',
+          })
+        ).status,
+      ).toBe(200);
+    }
+
+    expect(
+      (
+        await api('POST', `${root}/cases/${cs}/conclusion-proposal`, U.thv, {
+          text: 'Đủ điều kiện',
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (await api('POST', `${root}/cases/${cs}/conclusion-decision`, U.thv, { approve: true }))
+        .status,
+    ).toBe(403);
+    expect(
+      (await api('POST', `${root}/cases/${cs}/conclusion-decision`, U.head, { approve: true }))
+        .status,
+    ).toBe(200);
+
+    // Ủy quyền: thiếu bước → 409 với mã bước; sai persona → 403.
+    const cs2 = (
+      await api('POST', `${root}/cases`, U.clerk, { officeId: OFF, branchId: BR1, caseRef: 'XM/d' })
+    ).json.label as string;
+    await api('PUT', `${root}/cases/${cs2}/handler`, U.admin, { handlerUserId: U.thv });
+    const d = (
+      await api('POST', `${root}/cases/${cs2}/delegations`, U.thv, { delegateUserId: U.thv2 })
+    ).json.label as string;
+    const step = (user: string, s: string) =>
+      api('POST', `${root}/delegations/${d}/steps`, user, {
+        step: s,
+        evidenceKey: `vx/http/${s}`,
+        evidenceSha256: 'f'.repeat(64),
+      });
+    const activate = (user: string = U.admin) =>
+      api('POST', `${root}/delegations/${d}/activation`, user);
+    const missing = await activate();
+    expect(missing.status).toBe(409);
+    expect(missing.json.code).toBe('CONSENT_MISSING');
+    expect((await step(U.thv, 'CONSENT')).status).toBe(200);
+    expect((await step(U.thv, 'APP_APPROVAL')).status).toBe(403);
+    expect((await step(U.admin, 'APP_APPROVAL')).status).toBe(200);
+    expect((await step(U.head, 'LEGAL_SIGNATURE')).status).toBe(200);
+    expect((await activate()).json.code).toBe('HANDOVER_MISSING');
+    expect((await step(U.admin, 'HANDOVER')).status).toBe(200);
+    expect((await activate(U.thv)).status).toBe(403);
+    expect((await activate(U.admin)).status).toBe(200);
+    expect(
+      (await api('POST', `${root}/delegations/${d}/activation`, U.admin, undefined, T2)).status,
+    ).toBe(404);
+    expect((await api('POST', `${root}/delegations/${d}/activation`, null)).status).toBe(401);
   });
 });
