@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AssignThv, type ThvOption } from '../../../components/AssignThv';
+import { CaseSteps, type Progress } from '../../../components/CaseSteps';
 import { CaseActions } from '../../../components/CaseActions';
 import { ChangeDecision } from '../../../components/ChangeRequestRow';
 import { API_URL, currentSession, requestCookie } from '../../../lib/server';
@@ -87,6 +88,10 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
     cookie,
   );
   const items = typeof changes === 'object' ? changes.items : [];
+  const progress = await getJson<Progress>(
+    `/vibang/cases/${encodeURIComponent(id)}/progress`,
+    cookie,
+  );
   const isAdmin = session.roles.includes('ADMIN');
   const thv = isAdmin
     ? await getJson<{ items: ThvOption[] }>('/vibang/thv', cookie)
@@ -110,6 +115,9 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
         </span>
       </p>
       <p>{c.description || <span className="muted">Chưa có nội dung ghi nhận.</span>}</p>
+      {typeof progress === 'object' ? (
+        <CaseSteps caseId={c.id} status={c.status} progress={progress} roles={session.roles} />
+      ) : null}
       {isAdmin && c.status !== 'RETURNED' && c.status !== 'CANCELLED' ? (
         <AssignThv caseId={c.id} options={thvOptions} currentThvId={c.responsibleThvUserId} />
       ) : null}

@@ -23,6 +23,13 @@ const MESSAGES: Record<string, string> = {
   INVALID_HANDLER: 'Người này không phải THV hợp lệ.',
   ALREADY_ASSIGNED: 'Hồ sơ đã giao cho THV này.',
   CASE_NOT_ASSIGNABLE: 'Hồ sơ này không còn giao được.',
+  MISA_NOT_CONFIRMED: 'Kế toán chưa xác nhận thu đủ trên MISA.',
+  NUMBER_NOT_ALLOCATED: 'Hồ sơ chưa được cấp số.',
+  INVALID_CASE_STATUS: 'Trạng thái hồ sơ chưa phù hợp cho bước này.',
+  SIGNATURE_NOT_CONFIRMED: 'Chưa xác nhận đã ký.',
+  STAMP_NOT_CONFIRMED: 'Chưa xác nhận đã đóng dấu.',
+  FINAL_SCAN_MISSING: 'Chưa có bản scan cuối của Vi bằng.',
+  REVOKE_PENDING: 'Đang có đề nghị thu hồi xác nhận MISA chờ xử lý.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 

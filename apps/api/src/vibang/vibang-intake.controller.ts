@@ -224,6 +224,28 @@ export class VibangIntakeController {
     };
   }
 
+  @Get('cases/:id/progress')
+  async progress(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{
+      misa_status: string | null;
+      misa_revoke_status: string | null;
+      number_label: string | null;
+      signed_at: Date | null;
+      stamped_at: Date | null;
+      has_final_scan: boolean;
+    }>(a.tenantId, 'vb_case_progress', [a.tenantId, a.userId, id]);
+    if (!rows[0]) throw new NotFoundException({ code: 'CASE_NOT_FOUND', label: null });
+    const r = rows[0];
+    return {
+      misaStatus: r.misa_status ?? 'NOT_CONFIRMED',
+      misaRevokeStatus: r.misa_revoke_status ?? 'NONE',
+      numberLabel: r.number_label,
+      signedAt: r.signed_at,
+      stampedAt: r.stamped_at,
+      hasFinalScan: r.has_final_scan,
+    };
+  }
+
   @Get('thv')
   async thvList(@CurrentActor() a: AuthenticatedActor) {
     const rows = await this.repo.rows<{ user_id: string; office_id: string; label: string }>(

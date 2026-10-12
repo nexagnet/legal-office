@@ -309,6 +309,35 @@ describe.skipIf(!ADMIN_URL)(
       expect((await api('GET', '/vibang/thv', null)).status).toBe(401);
     });
 
+    it('reports case progress only to people who may see the case', async () => {
+      const c = await newCase();
+      const url = `/vibang/cases/${c}/progress`;
+      const fresh = await api('GET', url, U.thvA);
+      expect(fresh.status).toBe(200);
+      expect(fresh.json).toMatchObject({
+        misaStatus: 'NOT_CONFIRMED',
+        numberLabel: null,
+        signedAt: null,
+        stampedAt: null,
+        hasFinalScan: false,
+      });
+      expect(
+        (
+          await api('PUT', `/vibang/cases/${c}/misa`, U.acc1, {
+            status: 'CONFIRMED_FULL',
+            reference: 'MISA-giả-lập',
+          })
+        ).status,
+      ).toBe(200);
+      expect((await api('GET', url, U.clerk1)).json.misaStatus).toBe('CONFIRMED_FULL');
+      for (const who of [U.thvB, U.clerk2, U.outsider]) {
+        expect((await api('GET', url, who)).status).toBe(404);
+      }
+      expect((await api('GET', url, U.otherTenantAdmin, undefined, T2)).status).toBe(404);
+      expect((await api('GET', `/vibang/cases/${id()}/progress`, U.admin)).status).toBe(404);
+      expect((await api('GET', url, null)).status).toBe(401);
+    });
+
     it('audits every denial', async () => {
       const r = await owner.query(
         `SELECT count(*)::int n FROM audit_log WHERE action IN ('vb.case.edit','vb.change.request','vb.change.decide','vb.case.cancel') AND outcome = 'deny'`,
