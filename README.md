@@ -26,7 +26,7 @@ pnpm format:check
 
 ## Status of verification
 
-The Builder that wrote this skeleton had no shell and **has not run any command**: not
-`pnpm install`, `lint`, `typecheck`, `test`, `build` or `format:check`, and not the Node tests.
-No `pnpm-lock.yaml` is committed. The project coordinator generates the lockfile locally, and CI
-(R3 #37) will run the checks; results belong in the PR/issue.
+The skeleton was written without a shell. The coordinator then added the root `package.json`, bumped
+dependencies to audit-clean versions and committed `pnpm-lock.yaml`, and verified locally: install, lint,
+typecheck, test, build, format check and `pnpm audit --audit-level high` all pass. CI for these checks
+is added separately (R3, Issue #37).
