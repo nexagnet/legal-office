@@ -25,6 +25,10 @@ describe('legal-office R3 bootstrap-only CI contract', () => {
     assert.equal((workflow.match(/persist-credentials: false/g) ?? []).length, 2);
   });
 
+  it('keeps the workflow name "ci" expected by the central Reviewer', () => {
+    assert.match(workflow, /^name: ci\r?$/m);
+  });
+
   it('has dedicated names, timeout, and bounded concurrency', () => {
     assert.match(workflow, /bootstrap-verify:/);
     assert.match(workflow, /bootstrap-safety:/);
