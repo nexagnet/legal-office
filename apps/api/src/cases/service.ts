@@ -25,7 +25,8 @@ export type CaseErrorCode =
   | 'INVALID_TRANSITION'
   | 'RESPONSIBLE_THV_REQUIRED'
   | 'MISSING_PROOF'
-  | 'CHANGE_REQUEST_NOT_PENDING';
+  | 'CHANGE_REQUEST_NOT_PENDING'
+  | 'CHANGE_REQUEST_STALE';
 
 export type Result<T> =
   | { readonly ok: true; readonly value: T }
@@ -259,6 +260,11 @@ export async function decideChange(
   if (TERMINAL.includes(c.status)) return reject(ctx, actor, 'decide_change', c, 'CASE_FINAL');
   if (c.version !== expectedVersion)
     return reject(ctx, actor, 'decide_change', c, 'VERSION_CONFLICT');
+  // Một Change Request cũ không được ghi đè thay đổi đã duyệt sau nó: "trước" phải còn khớp hiện trạng.
+  const stale = Object.entries(request.before).some(
+    ([k, v]) => c.fields[k as keyof InternalFields] !== v,
+  );
+  if (approve && stale) return reject(ctx, actor, 'decide_change', c, 'CHANGE_REQUEST_STALE');
   const decided: ChangeRequest = {
     ...request,
     status: approve ? 'APPROVED' : 'REJECTED',

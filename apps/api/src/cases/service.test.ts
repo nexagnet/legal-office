@@ -288,6 +288,43 @@ describe('edit window and change requests', () => {
   });
 });
 
+describe('stale change requests', () => {
+  it('refuses to approve a request whose "before" no longer matches the case', async () => {
+    const h = harness();
+    const c = await baseCase(h.ctx);
+    const late = h.at(EDIT_WINDOW_MS);
+    const first = await requestChange(
+      late,
+      actor('THU_KY'),
+      c,
+      { title: 'Một' },
+      'lý do 1',
+      'cr-1',
+    );
+    const second = await requestChange(
+      late,
+      actor('THU_KY'),
+      c,
+      { title: 'Hai' },
+      'lý do 2',
+      'cr-2',
+    );
+    if (!first.ok || !second.ok) throw new Error('setup');
+    const approved = await decideChange(late, actor('ADMIN'), c, first.value, true, 1);
+    if (!approved.ok) throw new Error('setup');
+    expect(
+      await decideChange(late, actor('ADMIN'), approved.value.case, second.value, true, 2),
+    ).toMatchObject({
+      ok: false,
+      code: 'CHANGE_REQUEST_STALE',
+    });
+    // Từ chối một yêu cầu cũ vẫn được phép.
+    expect(
+      (await decideChange(late, actor('ADMIN'), approved.value.case, second.value, false, 2)).ok,
+    ).toBe(true);
+  });
+});
+
 describe('lifecycle', () => {
   const ready = async (h: ReturnType<typeof harness>) => {
     const created = await baseCase(h.ctx);

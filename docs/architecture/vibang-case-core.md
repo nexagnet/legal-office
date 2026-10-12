@@ -27,3 +27,12 @@ chuyển trạng thái được bảo vệ. Không có tiền (MISA là sổ duy
 
 HTTP controller/guard Nest và repository Drizzle nối domain với bảng (thuộc phần còn lại của #5/#6); đường N-11;
 tái cấp số khi huỷ (#7); kiểm tra ký/dấu/scan thực tế (#8). Runtime proof qua HTTP chưa có.
+
+## Cập nhật sau review độc lập (PR #44)
+
+- **DB tự chặn, không chỉ service**: trigger `vibang_cases_guard` ép hồ sơ mới ở `INTAKE` version 1, cấm xoá, hồ sơ cuối (RETURNED/CANCELLED) bất biến, tenant/office/branch/created_at bất biến, bảng chuyển trạng thái hợp lệ, và chứng từ bắt buộc cho SIGNED/RETURNED.
+- **Định danh THV theo user id** (`responsible_thv_user_id`, FK `(user, tenant)`), phải là THV của cùng văn phòng.
+- **Chi nhánh gắn văn phòng**: FK ghép `(branch_id, tenant_id, office_id)` → `branches`.
+- **Yêu cầu thay đổi đóng băng** sau khi quyết định (`vibang_cr_guard`): chỉ PENDING → APPROVED/REJECTED, không xoá.
+- **Yêu cầu cũ (stale)**: duyệt bị từ chối `CHANGE_REQUEST_STALE` nếu trường hiện tại không còn khớp `before`; vẫn được từ chối yêu cầu đó.
+- **Giả định chưa xác nhận**: chưa có quy tắc tách vai (Admin vừa lập vừa duyệt yêu cầu thay đổi của chính mình); `decided_by`/`requested_by` còn là text tự do.

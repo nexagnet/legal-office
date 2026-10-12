@@ -39,6 +39,7 @@ export const branches = pgTable(
   },
   (t) => [
     unique('branches_id_tenant_uq').on(t.id, t.tenantId),
+    unique('branches_id_tenant_office_uq').on(t.id, t.tenantId, t.officeId),
     foreignKey({
       name: 'branches_office_tenant_fk',
       columns: [t.officeId, t.tenantId],
@@ -162,7 +163,7 @@ export const vibangCases = pgTable(
     customerId: uuid('customer_id').notNull(),
     contractId: uuid('contract_id'),
     status: text('status').notNull().default('INTAKE'),
-    responsibleThvMembershipId: uuid('responsible_thv_membership_id'),
+    responsibleThvUserId: uuid('responsible_thv_user_id'),
     title: text('title').notNull(),
     description: text('description').notNull().default(''),
     contactNote: text('contact_note').notNull().default(''),
@@ -176,8 +177,8 @@ export const vibangCases = pgTable(
     index('vibang_cases_tenant_status_idx').on(t.tenantId, t.status),
     foreignKey({
       name: 'vibang_cases_branch_tenant_fk',
-      columns: [t.branchId, t.tenantId],
-      foreignColumns: [branches.id, branches.tenantId],
+      columns: [t.branchId, t.tenantId, t.officeId],
+      foreignColumns: [branches.id, branches.tenantId, branches.officeId],
     }),
     foreignKey({
       name: 'vibang_cases_office_tenant_fk',
@@ -196,8 +197,8 @@ export const vibangCases = pgTable(
     }),
     foreignKey({
       name: 'vibang_cases_thv_tenant_fk',
-      columns: [t.responsibleThvMembershipId, t.tenantId],
-      foreignColumns: [memberships.id, memberships.tenantId],
+      columns: [t.responsibleThvUserId, t.tenantId],
+      foreignColumns: [users.id, users.tenantId],
     }),
   ],
 );

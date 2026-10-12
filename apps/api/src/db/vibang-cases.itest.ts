@@ -51,7 +51,7 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
     };
     return pool
       .query(
-        `INSERT INTO vibang_cases (id, tenant_id, office_id, branch_id, customer_id, contract_id, responsible_thv_membership_id, status, cancel_reason, title)
+        `INSERT INTO vibang_cases (id, tenant_id, office_id, branch_id, customer_id, contract_id, responsible_thv_user_id, status, cancel_reason, title)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'Hồ sơ giả lập') RETURNING id`,
         [v.id, v.tenant, v.office, v.branch, v.customer, v.contract, v.thv, v.status, v.cancel],
       )
@@ -94,8 +94,8 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
           [A.tenant, user, A.office, role],
         )
         .then((r) => r.rows[0].id as string);
-    (A as Record<string, string>).thvMembership = await m(A.thv, 'THV');
-    (A as Record<string, string>).clerkMembership = await m(A.clerk, 'THU_KY');
+    await m(A.thv, 'THV');
+    await m(A.clerk, 'THU_KY');
     await owner.query(
       `INSERT INTO customers (id, tenant_id, kind, external_ref) VALUES ($1,$2,'PERSON','c-a'),($3,$4,'ORGANIZATION','c-b')`,
       [A.customer, A.tenant, B.customer, B.tenant],
@@ -113,8 +113,16 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
     await admin.end();
   });
 
-  const thvMembership = () => (A as unknown as Record<string, string>).thvMembership;
-  const clerkMembership = () => (A as unknown as Record<string, string>).clerkMembership;
+  const update = (caseId: string, set: string, params: unknown[] = []) =>
+    owner.query(`UPDATE vibang_cases SET ${set}, version = version + 1 WHERE id = $1`, [
+      caseId,
+      ...params,
+    ]);
+  const assigned = async () => {
+    const caseId = await insertCase();
+    await update(caseId, `status = 'ASSIGNED', responsible_thv_user_id = $2`, [A.thv]);
+    return caseId;
+  };
 
   it('lets one contract relate to many cases and a case exist without a contract', async () => {
     await insertCase({ contract: A.contract });
@@ -127,26 +135,68 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
     expect(rows[0].n).toBe(2);
   });
 
-  it('refuses cross-tenant references (customer or branch of another tenant)', async () => {
+  it('refuses cross-tenant references and a branch that belongs to another office', async () => {
     await expect(insertCase({ customer: B.customer })).rejects.toThrow(
       /vibang_cases_customer_tenant_fk/,
     );
     await expect(insertCase({ branch: B.branch })).rejects.toThrow(/vibang_cases_branch_tenant_fk/);
+    const office2 = id();
+    const branch2 = id();
+    await owner.query(`INSERT INTO offices (id, tenant_id, name) VALUES ($1,$2,'VP A2')`, [
+      office2,
+      A.tenant,
+    ]);
+    await owner.query(
+      `INSERT INTO branches (id, tenant_id, office_id, name) VALUES ($1,$2,$3,'CN A2')`,
+      [branch2, A.tenant, office2],
+    );
+    // Cùng tenant nhưng chi nhánh thuộc văn phòng khác: bị từ chối.
+    await expect(insertCase({ branch: branch2 })).rejects.toThrow(/vibang_cases_branch_tenant_fk/);
   });
 
-  it('requires a responsible THV before legal steps and a reason for cancellation', async () => {
-    await expect(insertCase({ status: 'SIGNED' })).rejects.toThrow(/vibang_cases_assigned_chk/);
-    await expect(insertCase({ status: 'CANCELLED' })).rejects.toThrow(
+  it('starts every case as INTAKE and requires a responsible THV before legal steps', async () => {
+    await expect(insertCase({ status: 'SIGNED' })).rejects.toThrow(/must start as INTAKE/);
+    const c = await insertCase();
+    await expect(update(c, `status = 'SIGNED'`)).rejects.toThrow(/invalid vibang transition/);
+    await expect(update(c, `status = 'ASSIGNED'`)).rejects.toThrow(/vibang_cases_assigned_chk/);
+  });
+
+  it('accepts only a THV member of the same office as responsible', async () => {
+    const c = await insertCase();
+    await expect(
+      update(c, `status = 'ASSIGNED', responsible_thv_user_id = $2`, [A.clerk]),
+    ).rejects.toThrow(/responsible THV must be a THV member/);
+    await expect(
+      update(c, `status = 'ASSIGNED', responsible_thv_user_id = $2`, [A.thv]),
+    ).resolves.toBeTruthy();
+  });
+
+  it('enforces the lifecycle path and legal proofs inside the database', async () => {
+    const c = await assigned();
+    await expect(update(c, `status = 'SIGNED'`)).rejects.toThrow(/missing legal proof for SIGNED/);
+    await update(c, `status = 'SIGNED', proofs = ARRAY['NUMBER_ALLOCATED']`);
+    await expect(update(c, `status = 'RETURNED'`)).rejects.toThrow(/invalid vibang transition/);
+    await update(c, `status = 'STAMPED'`);
+    await expect(update(c, `status = 'RETURNED'`)).rejects.toThrow(
+      /missing legal proof for RETURNED/,
+    );
+    await expect(
+      update(c, `status = 'RETURNED', proofs = ARRAY['NUMBER_ALLOCATED','MISA_CONFIRMED_FULL']`),
+    ).rejects.toThrow(/missing legal proof for RETURNED/);
+    await update(
+      c,
+      `status = 'RETURNED', proofs = ARRAY['NUMBER_ALLOCATED','MISA_CONFIRMED_FULL','FINAL_SCAN_WITH_SIGNATURE_AND_STAMP']`,
+    );
+  });
+
+  it('requires a reason for cancellation', async () => {
+    const c = await insertCase();
+    await expect(update(c, `status = 'CANCELLED'`)).rejects.toThrow(
       /vibang_cases_cancel_reason_chk/,
     );
-    await expect(insertCase({ status: 'CANCELLED', cancel: 'khách huỷ' })).resolves.toBeTruthy();
-  });
-
-  it('accepts only a THV membership of the same office as responsible', async () => {
-    await expect(insertCase({ status: 'ASSIGNED', thv: clerkMembership() })).rejects.toThrow(
-      /responsible THV must be a THV/,
-    );
-    await expect(insertCase({ status: 'ASSIGNED', thv: thvMembership() })).resolves.toBeTruthy();
+    await expect(
+      update(c, `status = 'CANCELLED', cancel_reason = 'khách huỷ'`),
+    ).resolves.toBeTruthy();
   });
 
   it('serialises optimistic updates: only one writer wins a version', async () => {
@@ -162,10 +212,11 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
     expect(rows[0].version).toBe(2);
   });
 
-  it('makes returned and cancelled cases immutable and never hard-deletes', async () => {
-    const returned = await insertCase({ status: 'RETURNED', thv: thvMembership() });
+  it('makes returned and cancelled cases immutable and never hard-deletes or moves a case', async () => {
+    const cancelled = await insertCase();
+    await update(cancelled, `status = 'CANCELLED', cancel_reason = 'huỷ'`);
     await expect(
-      owner.query(`UPDATE vibang_cases SET title = 'sửa' WHERE id = $1`, [returned]),
+      owner.query(`UPDATE vibang_cases SET title = 'sửa' WHERE id = $1`, [cancelled]),
     ).rejects.toThrow(/final/);
     const open = await insertCase();
     await expect(owner.query('DELETE FROM vibang_cases WHERE id = $1', [open])).rejects.toThrow(
@@ -174,19 +225,40 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
     await expect(
       owner.query('UPDATE vibang_cases SET tenant_id = $2 WHERE id = $1', [open, B.tenant]),
     ).rejects.toThrow(/immutable/);
+    await expect(
+      owner.query('UPDATE vibang_cases SET branch_id = $2 WHERE id = $1', [open, id()]),
+    ).rejects.toThrow();
   });
 
-  it('stores change requests with before/after/reason and a consistent decision state', async () => {
+  it('stores change requests with before/after/reason and freezes them once decided', async () => {
     const caseId = await insertCase();
-    const ins = (over: string) =>
+    const insert = (status: string, decidedBy: string | null) =>
       owner.query(
-        `INSERT INTO vibang_case_change_requests (tenant_id, case_id, requested_by, reason, before, after, ${over ? 'status, decided_by, decided_at' : 'status'})
-         VALUES ($1,$2,'u1',$3,'{"title":"a"}','{"title":"b"}', ${over || "'PENDING'"})`,
-        [A.tenant, caseId, over === 'BAD' ? ' ' : 'khách đổi'],
+        `INSERT INTO vibang_case_change_requests (tenant_id, case_id, requested_by, reason, before, after, status, decided_by, decided_at)
+         VALUES ($1,$2,'u1','khách đổi','{"title":"a"}','{"title":"b"}',$3,$4,$5) RETURNING id`,
+        [A.tenant, caseId, status, decidedBy, decidedBy ? new Date() : null],
       );
-    await expect(ins('')).resolves.toBeTruthy();
-    await expect(ins("'APPROVED', NULL, NULL")).rejects.toThrow(/vibang_cr_decided_chk/);
-    await expect(ins("'APPROVED', 'admin-1', now()")).resolves.toBeTruthy();
+    await expect(insert('APPROVED', null)).rejects.toThrow(/vibang_cr_decided_chk/);
+    const pending = (await insert('PENDING', null)).rows[0].id as string;
+    await expect(
+      owner.query(
+        `UPDATE vibang_case_change_requests SET after = '{"title":"zzz"}' WHERE id = $1`,
+        [pending],
+      ),
+    ).rejects.toThrow(/frozen/);
+    await owner.query(
+      `UPDATE vibang_case_change_requests SET status = 'APPROVED', decided_by = 'admin-1', decided_at = now() WHERE id = $1`,
+      [pending],
+    );
+    await expect(
+      owner.query(
+        `UPDATE vibang_case_change_requests SET status = 'PENDING', decided_by = NULL, decided_at = NULL WHERE id = $1`,
+        [pending],
+      ),
+    ).rejects.toThrow(/immutable/);
+    await expect(
+      owner.query('DELETE FROM vibang_case_change_requests WHERE id = $1', [pending]),
+    ).rejects.toThrow(/never deleted/);
     await expect(
       owner.query(
         `INSERT INTO vibang_case_change_requests (tenant_id, case_id, requested_by, reason, before, after) VALUES ($1,$2,'u1','  ','{}','{}')`,
