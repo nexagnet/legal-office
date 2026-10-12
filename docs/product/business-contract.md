@@ -13,7 +13,7 @@
 
 **Authoritative destination repository:** `nexagnet/legal-office` — PUBLIC by owner amendment 2026-10-12 (previously PRIVATE on 2026-10-11). **Do NOT implement any legal-office feature back in public `nexagnet/nexagnet-platform`.**
 **Source/traceability:** [legacy business #448](https://github.com/nexagnet/nexagnet-platform/issues/448), [repo separation and architecture #472](https://github.com/nexagnet/nexagnet-platform/issues/472), [Vi bằng detail #426](https://github.com/nexagnet/nexagnet-platform/issues/426), [org R3 onboarding #14](https://github.com/nexagnet/.github/issues/14), [Figma all screens](https://www.figma.com/design/bueSNVniMoYD6lQFHwqeHz?node-id=92-3).
-This Issue is the **canonical product coordinator and business authority** inside the target repository. It is **NOT a Builder task**; NO `autopilot:ready`. Source PRs #440/#467/#468 in the old repo remain unmerged/reference-only. Any legacy statement saying code must remain in `nexagnet-platform` is **SUPERSEDED**, but approved business rules remain valid.
+[Canonical Issue #1](https://github.com/nexagnet/legal-office/issues/1) is the **product coordinator and business authority**. This Markdown file is a synchronized reference, **NOT a Builder Task Contract**; NO `autopilot:ready`. Source PRs #440/#467/#468 in the old repo remain unmerged/reference-only. Any legacy statement saying code must remain in `nexagnet-platform` is **SUPERSEDED**, but approved business rules remain valid.
 
 ## ĐÃ CHỐT — PRODUCT / TECH ARCHITECTURE
 - Deliver the **entire product**: (1) Vi bằng, (2) Tống đạt, (3) Xác minh điều kiện thi hành án, (4) Tổ chức thi hành án, and complete shared Văn phòng management. No Vi-bang-only scope. Product must be reusable for other legal offices, **not hardcoded** for Hai Bà Trưng.
@@ -97,7 +97,7 @@ R2 coordinator (cross-cutting private legal PII and persistent case model); NOT 
 Real legal-office repo SHA and CI, tenant-isolated synthetic preview (role/branch/PII denial, 48h, MISA confirmation/no amount, number concurrency, sign/stamp/scan/return/Sở incident, Tống đạt multi-doc attempts, Xác minh multi-round, THA many obligations/assets/partial results, office FIFO, legal template snapshots and XLSX/PDF). No real customer data.
 
 ## STOP CONDITIONS
-No CI/Claude integration verified; R2/R3 merge; real data/cloud/production; unresolved legal authority; unsafe file or stale unmerged legacy code; all denied until authorized. No `autopilot:ready` on coordinator.
+Claude Builder/Reviewer consumer runtime not verified (bootstrap CI only); R2/R3 merge; real data/cloud/production; unresolved legal authority; unsafe file or stale unmerged legacy code; all denied until authorized. No `autopilot:ready` on coordinator.
 
 ## REPOSITORY LIVE BOOTSTRAP EVIDENCE (2026-10-11)
 Historical initial bootstrap: repo ID `1414510878`, initial SHA `d12157054e196021295744f12b68ecb777d5084f`, only README and 0 Actions on 2026-10-11. As of 2026-10-12 the repo is PUBLIC by owner decision, and bootstrap CI PR #26 has merged with 2/2 main jobs PASS. Central Builder/Reviewer are merged in `nexagnet/.github`, but **consumer caller/Publisher/Reviewer runtime is NOT PROVEN; Autopilot NOT ACTIVE**.
