@@ -55,6 +55,6 @@ Repo PUBLIC `nexagnet/nexagnet-platform` đang bao gồm Vận tải/AI và mộ
 ## Amendment 2026-10-12 — repository visibility (OWNER DECISION)
 
 - Chủ sở hữu (Phùng Việt) đã chuyển `nexagnet/legal-office` từ PRIVATE sang **PUBLIC** vào 2026-10-12 để dùng ruleset bảo vệ `main` mà không cần gói GitHub trả phí. Nguồn: quyết định của owner trong project thread; GitHub live ghi nhận `private: false`.
-- Các chữ "PRIVATE/private repo" ở các mục phía trên và trong `business-contract.md`, `traceability.md` phản ánh quyết định ngày 2026-10-11 và **được thay thế bởi amendment này** về mặt hiển thị repo; các quyết định kiến trúc khác không đổi.
+- Các chữ "PRIVATE/private repo" còn ở các mục lịch sử phía trên hoặc Issues cũ phản ánh quyết định ngày 2026-10-11 và **được thay thế bởi amendment này** về mặt hiển thị repo; tài liệu business-contract và traceability hiện đã đồng bộ visibility PUBLIC; các quyết định kiến trúc khác không đổi.
 - Hệ quả bắt buộc: source, Issues, PR và workflow logs đều công khai. **Tuyệt đối không** đưa hồ sơ khách hàng thật, PII, scan, secrets, khóa hay biểu mẫu có dữ liệu cá nhân vào repo, Issue, PR, artifact hay log; dữ liệu thử nghiệm chỉ là dữ liệu tổng hợp giả. Cloud/production/customer data vẫn bị chặn bởi owner/legal gate.
 - Việc có nên đưa lại repo về PRIVATE (cần gói trả phí để dùng ruleset) là quyết định riêng của owner.
