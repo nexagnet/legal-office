@@ -17,12 +17,27 @@ export class VibangRepo {
   constructor(@Inject(PgService) private readonly pg: PgService) {}
 
   call(tenantId: string, fn: string, args: readonly unknown[]): Promise<Op> {
-    if (!/^(vibang|td|vx|th|as)_[a-z0-9_]+$/.test(fn))
+    if (!/^(vibang|td|vx|th|as|of)_[a-z0-9_]+$/.test(fn))
       throw new Error(`unsafe function name: ${fn}`);
     const placeholders = args.map((_, i) => `$${i + 1}`).join(',');
     return this.pg.withTenant(tenantId, async (client) => {
       const { rows } = await client.query(`SELECT * FROM ${fn}(${placeholders})`, [...args]);
       return rows[0] as Op;
+    });
+  }
+
+  /** Như `call` nhưng cho hàm trả nhiều dòng (tìm kiếm/đọc sổ). Quyền đọc do DB quyết định và audit. */
+  rows<T = Record<string, unknown>>(
+    tenantId: string,
+    fn: string,
+    args: readonly unknown[],
+  ): Promise<T[]> {
+    if (!/^of_(search|s06)_[a-z0-9_]+$|^of_s06_read$/.test(fn))
+      throw new Error(`unsafe function name: ${fn}`);
+    const placeholders = args.map((_, i) => `$${i + 1}`).join(',');
+    return this.pg.withTenant(tenantId, async (client) => {
+      const { rows } = await client.query(`SELECT * FROM ${fn}(${placeholders})`, [...args]);
+      return rows as T[];
     });
   }
 }

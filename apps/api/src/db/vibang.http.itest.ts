@@ -674,4 +674,167 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
     ).toBe(404);
     expect((await api('POST', `${root}/transfers/${t}/completion`, null)).status).toBe(401);
   });
+
+  it('runs office correspondence, decisions, TT06 download, FIFO stock and S-06 over HTTP', async () => {
+    const root = '/office';
+    const post = (path: string, user: string | null, body?: unknown, tenant: string = T) =>
+      api('POST', `${root}${path}`, user, body, tenant);
+    const corr = await post('/correspondence', U.clerk, {
+      officeId: OFF,
+      branchId: BR1,
+      direction: 'INBOUND',
+      docType: 'Công văn',
+      counterparty: 'Cơ quan giả lập',
+      subject: 'Trích yếu HTTP',
+      receivedOn: '2026-10-02',
+      handlerUserId: U.thv,
+    });
+    expect(corr.status).toBe(200);
+    const c = corr.json.label as string;
+    expect(
+      (
+        await post('/correspondence', U.thv, {
+          officeId: OFF,
+          branchId: BR1,
+          direction: 'INBOUND',
+          docType: 'x',
+          counterparty: 'y',
+          subject: 'z',
+          receivedOn: '2026-10-02',
+        })
+      ).status,
+    ).toBe(403);
+    expect((await post(`/correspondence/${c}/result`, U.thv2, { result: 'xong' })).status).toBe(
+      403,
+    );
+    expect((await post(`/correspondence/${c}/result`, U.thv, { result: 'Đã xử lý' })).status).toBe(
+      200,
+    );
+    expect((await post(`/correspondence/${c}/result`, U.thv, { result: 'Lại' })).status).toBe(409);
+    const found = await api('GET', `${root}/correspondence?officeId=${OFF}&q=HTTP`, U.thv);
+    expect(found.status).toBe(200);
+    expect(JSON.stringify(found.json)).toContain('Trích yếu HTTP');
+    const none = await api('GET', `${root}/correspondence?officeId=${OFF}&q=HTTP`, U.thv2);
+    expect(none.status).toBe(200);
+    expect(JSON.stringify(none.json)).not.toContain('Trích yếu HTTP');
+    expect((await api('GET', `${root}/correspondence?officeId=${OFF}`, null)).status).toBe(401);
+    expect((await api('GET', `${root}/correspondence?officeId=not-a-uuid`, U.admin)).status).toBe(
+      400,
+    );
+
+    const dec = (user: string, docType: string) =>
+      post('/decisions', user, {
+        officeId: OFF,
+        branchId: BR1,
+        decisionNo: 'QĐ-HTTP',
+        docType,
+        title: 'Quyết định giả lập',
+        signerUserId: U.head,
+        signedOn: '2026-10-03',
+        evidenceKey: 'of/http/dec',
+        evidenceSha256: '4'.repeat(64),
+      });
+    expect(
+      (
+        await post('/tt06-forms', U.clerk, {
+          officeId: OFF,
+          code: 'II',
+          title: 'Mẫu TT06 HTTP',
+          evidenceKey: 'of/http/tt06',
+          evidenceSha256: '5'.repeat(64),
+        })
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await post('/tt06-forms', U.admin, {
+          officeId: OFF,
+          code: 'II',
+          title: 'Mẫu TT06 HTTP',
+          evidenceKey: 'of/http/tt06',
+          evidenceSha256: '5'.repeat(64),
+        })
+      ).status,
+    ).toBe(200);
+    expect((await dec(U.clerk, 'II')).status).toBe(422);
+    expect((await dec(U.clerk, 'Quyết định nội bộ')).status).toBe(200);
+    expect((await dec(U.clerk, 'Quyết định nội bộ')).status).toBe(409);
+    const decs = await api(
+      'GET',
+      `${root}/decisions?officeId=${OFF}&q=HTTP&signer=${U.head}`,
+      U.admin,
+    );
+    expect(JSON.stringify(decs.json)).toContain('QĐ-HTTP');
+    const dl = await post('/tt06-forms/II/download', U.clerk, { officeId: OFF });
+    expect(dl.status).toBe(200);
+    expect(dl.json.label).toBe('of/http/tt06');
+    expect((await post('/tt06-forms/IX/download', U.clerk, { officeId: OFF })).status).toBe(404);
+
+    const item = (await post('/items', U.admin, { officeId: OFF, name: 'Mực HTTP', unit: 'hộp' }))
+      .json.label as string;
+    expect(
+      (
+        await post(`/items/${item}/receipts`, U.clerk, {
+          branchId: BR1,
+          quantity: 3,
+          receiptRef: 'PN-H1',
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await post(`/items/${item}/receipts`, U.clerk, {
+          branchId: BR1,
+          quantity: 0,
+          receiptRef: 'PN-H0',
+        })
+      ).status,
+    ).toBe(422);
+    expect(
+      (
+        await post(`/items/${item}/receipts`, U.clerkOther, {
+          branchId: BR1,
+          quantity: 1,
+          receiptRef: 'PN-H2',
+        })
+      ).status,
+    ).toBe(403);
+    const issues = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        post(`/items/${item}/issues`, U.clerk, { branchId: BR1, quantity: 1, purpose: 'In ấn' }),
+      ),
+    );
+    expect(issues.filter((r) => r.status === 200)).toHaveLength(3);
+    expect(issues.filter((r) => r.status === 409)).toHaveLength(2);
+    expect(
+      (await post(`/items/${item}/issues`, U.thv, { branchId: BR1, quantity: 1, purpose: 'x' }))
+        .status,
+    ).toBe(403);
+
+    const save = await api('PUT', `${root}/personnel`, U.admin, {
+      officeId: OFF,
+      branchId: BR1,
+      fullName: 'Nhân sự HTTP',
+      gender: 'F',
+      workStatus: 'ACTIVE',
+    });
+    expect(save.status).toBe(200);
+    expect(
+      JSON.stringify((await api('GET', `${root}/personnel?officeId=${OFF}`, U.admin)).json),
+    ).toContain('Nhân sự HTTP');
+    expect(
+      JSON.stringify((await api('GET', `${root}/personnel?officeId=${OFF}`, U.clerk)).json),
+    ).not.toContain('Nhân sự HTTP');
+    expect(
+      (
+        await api('PUT', `${root}/personnel`, U.clerk, {
+          officeId: OFF,
+          branchId: BR1,
+          fullName: 'x',
+          gender: 'F',
+          workStatus: 'ACTIVE',
+        })
+      ).status,
+    ).toBe(403);
+  });
 });

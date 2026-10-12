@@ -25,6 +25,11 @@ const NOT_FOUND = new Set([
   'ASSET_NOT_FOUND',
   'PROPOSAL_NOT_FOUND',
   'TRANSFER_NOT_FOUND',
+  'CORRESPONDENCE_NOT_FOUND',
+  'ITEM_NOT_FOUND',
+  'BATCH_NOT_FOUND',
+  'FORM_NOT_FOUND',
+  'PERSON_NOT_FOUND',
 ]);
 const INVALID = new Set([
   'INVALID_STATUS',
@@ -55,6 +60,16 @@ const INVALID = new Set([
   'INVALID_PROPOSAL',
   'INVALID_ORDER',
   'SIGNED_ORDER_REQUIRED',
+  'INVALID_CORRESPONDENCE',
+  'CASE_LINK_NOT_FOUND',
+  'INVALID_DECISION',
+  'AGENCY_ONLY_FORM',
+  'INVALID_FORM',
+  'INVALID_ITEM',
+  'INVALID_QUANTITY',
+  'INVALID_PERSONNEL',
+  'FINAL_DOCUMENT_REQUIRED',
+  'SEND_PROOF_REQUIRED',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */
