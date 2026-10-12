@@ -1,0 +1,29 @@
+name: Nexagnet V5 Legal Office Builder Caller
+
+# R3 onboarding contract: https://github.com/nexagnet/legal-office/issues/2
+# Event belongs to this consumer repository. No org-wide event listener.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  builder:
+    # Issue-only, owner-authored comments. Central preflight re-fetches the
+    # live Issue/Task Contract, exactly one R0/R1/R2 risk and autopilot:ready.
+    if: >-
+      github.repository == 'nexagnet/legal-office' &&
+      github.actor == 'phungtienviet14-sketch' &&
+      github.event.issue.pull_request == null &&
+      contains(github.event.comment.body, '@claude')
+    uses: nexagnet/.github/.github/workflows/claude-builder.yml@f165e9adf8c727e4b6e87981bacc36f1933110ad
+    with:
+      issue_number: ${{ github.event.issue.number }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      BUILDER_PUBLISHER_APP_ID: ${{ secrets.BUILDER_PUBLISHER_APP_ID }}
+      BUILDER_PUBLISHER_APP_PRIVATE_KEY: ${{ secrets.BUILDER_PUBLISHER_APP_PRIVATE_KEY }}
