@@ -20,6 +20,9 @@ const MESSAGES: Record<string, string> = {
   REQUEST_NOT_PENDING: 'Đề nghị này đã được xử lý.',
   CANCEL_NOT_ALLOWED: 'Hồ sơ đã qua bước pháp lý, không huỷ được ở đây.',
   CASE_NOT_FOUND: 'Không tìm thấy hồ sơ.',
+  INVALID_HANDLER: 'Người này không phải THV hợp lệ.',
+  ALREADY_ASSIGNED: 'Hồ sơ đã giao cho THV này.',
+  CASE_NOT_ASSIGNABLE: 'Hồ sơ này không còn giao được.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 

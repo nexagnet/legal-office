@@ -295,6 +295,20 @@ describe.skipIf(!ADMIN_URL)(
       expect((await api('POST', url, U.otherTenantAdmin, { reason: 'x' }, T2)).status).toBe(404);
     });
 
+    it('lists THV only to an Admin of the office', async () => {
+      const ok = await api('GET', '/vibang/thv', U.admin);
+      expect(ok.status).toBe(200);
+      const ids = (ok.json.items as { userId: string }[]).map((i) => i.userId).sort();
+      expect(ids).toEqual([U.thvA, U.thvB].sort());
+      for (const who of [U.head, U.clerk1, U.thvA, U.outsider]) {
+        expect((await api('GET', '/vibang/thv', who)).json.items).toEqual([]);
+      }
+      expect(
+        (await api('GET', '/vibang/thv', U.otherTenantAdmin, undefined, T2)).json.items,
+      ).toEqual([]);
+      expect((await api('GET', '/vibang/thv', null)).status).toBe(401);
+    });
+
     it('audits every denial', async () => {
       const r = await owner.query(
         `SELECT count(*)::int n FROM audit_log WHERE action IN ('vb.case.edit','vb.change.request','vb.change.decide','vb.case.cancel') AND outcome = 'deny'`,

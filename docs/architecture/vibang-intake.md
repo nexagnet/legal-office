@@ -17,3 +17,7 @@ API: `POST /vibang/customers`, `POST /vibang/customers/:id/contracts`, `POST /vi
 2. THV tạo hồ sơ mới được ở mọi chi nhánh của văn phòng; chỉ xem lại hồ sơ mình phụ trách.
 3. Chưa có: sửa nội bộ trong 48 giờ, đề nghị thay đổi sau 48 giờ, huỷ hồ sơ, từ chối yêu cầu không hợp lệ, người tham gia/địa điểm/thời gian dự kiến. Đây là lát tiếp theo.
 4. Đọc danh sách/chi tiết chưa ghi audit đọc.
+
+## Danh sách THV để giao hồ sơ (lát #7)
+
+`GET /vibang/thv` (hàm `vb_list_thv`, migration 0013) trả THV của các văn phòng mà người gọi là Admin; người khác nhận danh sách rỗng để không lộ nhân sự. Nhãn hiển thị là email đăng nhập, hoặc mã tham chiếu nếu chưa có thông tin đăng nhập. Giao diện `/vi-bang/[id]` dùng danh sách này cho Admin giao hoặc đổi THV (đổi bắt buộc có lý do).
