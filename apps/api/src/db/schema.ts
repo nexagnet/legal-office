@@ -6,6 +6,7 @@ import {
   jsonb,
   foreignKey,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -224,5 +225,60 @@ export const vibangCaseChangeRequests = pgTable(
       columns: [t.caseId, t.tenantId],
       foreignColumns: [vibangCases.id, vibangCases.tenantId],
     }),
+  ],
+);
+
+// Lát #7. Hàm nghiệp vụ (vibang_record_misa, vibang_allocate_number, ...) nằm trong 0002; gọi bằng
+// `SELECT * FROM fn(...)` (KHÔNG `(fn(...)).*`, vì Postgres sẽ chạy hàm một lần cho mỗi cột).
+export const vibangMisaConfirmations = pgTable(
+  'vibang_misa_confirmations',
+  {
+    caseId: uuid('case_id').primaryKey(),
+    tenantId: uuid('tenant_id').notNull(),
+    status: text('status').notNull(),
+    reference: text('reference'),
+    confirmedBy: uuid('confirmed_by'),
+    confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+    revokeStatus: text('revoke_status').notNull().default('NONE'),
+    revokeReason: text('revoke_reason'),
+    revokeProposedBy: uuid('revoke_proposed_by'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'vibang_misa_case_tenant_fk',
+      columns: [t.caseId, t.tenantId],
+      foreignColumns: [vibangCases.id, vibangCases.tenantId],
+    }),
+  ],
+);
+
+export const vibangNumberCounters = pgTable(
+  'vibang_number_counters',
+  {
+    tenantId: uuid('tenant_id').notNull(),
+    officeId: uuid('office_id').notNull(),
+    year: integer('year').notNull(),
+    lastSeq: integer('last_seq').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.tenantId, t.officeId, t.year] })],
+);
+
+export const vibangNumbers = pgTable(
+  'vibang_numbers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id').notNull(),
+    officeId: uuid('office_id').notNull(),
+    caseId: uuid('case_id').notNull(),
+    year: integer('year').notNull(),
+    seq: integer('seq').notNull(),
+    label: text('label').notNull(),
+    allocatedBy: uuid('allocated_by').notNull(),
+    allocatedAt: timestamp('allocated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('vibang_numbers_case_uq').on(t.caseId),
+    unique('vibang_numbers_seq_uq').on(t.tenantId, t.officeId, t.year, t.seq),
   ],
 );
