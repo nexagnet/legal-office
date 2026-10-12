@@ -1,0 +1,23 @@
+{
+  "name": "legal-office",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "build": "pnpm -r run build",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "9.18.0",
+    "eslint": "9.18.0",
+    "prettier": "3.4.2",
+    "typescript": "5.7.3",
+    "typescript-eslint": "8.21.0"
+  }
+}
