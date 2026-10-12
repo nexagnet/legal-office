@@ -7,7 +7,9 @@ const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta
 const guard = readFileSync(new URL('../scripts/check-tracked-file-safety.mjs', import.meta.url), 'utf8');
 const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
 
-describe('legal-office R3 bootstrap-only CI contract', () => {
+const JOBS = ['bootstrap-verify', 'bootstrap-safety', 'app-verify', 'audit', 'db-integration'];
+
+describe('legal-office R3 application CI contract', () => {
   it('runs on PR HEAD and on main push without privileged PR-target events', () => {
     assert.match(workflow, /on:\n  pull_request:\n    branches: \[main\]/);
     assert.match(workflow, /  push:\n    branches: \[main\]/);
@@ -22,13 +24,13 @@ describe('legal-office R3 bootstrap-only CI contract', () => {
 
   it('pins checkout to a full commit and scrubs checkout credentials', () => {
     const shas = [...workflow.matchAll(/uses:\s*actions\/checkout@([a-f0-9]{40})/g)];
-    assert.equal(shas.length, 2);
-    assert.equal((workflow.match(/persist-credentials: false/g) ?? []).length, 2);
+    assert.equal(shas.length, JOBS.length);
+    assert.equal((workflow.match(/persist-credentials: false/g) ?? []).length, JOBS.length);
   });
 
-  it('pins both checkouts to the exact PR HEAD (pull_request) or pushed SHA (push)', () => {
-    const jobs = workflow.split(/^jobs:\n/m)[1].split(/^  (?=bootstrap-)/m).filter(Boolean);
-    assert.equal(jobs.length, 2);
+  it('pins every checkout to the exact PR HEAD (pull_request) or pushed SHA (push)', () => {
+    const jobs = workflow.split(/^jobs:\n/m)[1].split(/^  (?=[a-z-]+:\n    name: )/m).filter(Boolean);
+    assert.equal(jobs.length, JOBS.length);
     for (const job of jobs) {
       assert.match(job, /EXPECTED_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
       assert.match(
@@ -39,9 +41,9 @@ describe('legal-office R3 bootstrap-only CI contract', () => {
     assert.doesNotMatch(workflow, /refs\/pull\/|pull\/\d+\/merge/);
   });
 
-  it('fails closed in both jobs when git rev-parse HEAD differs from the expected SHA', () => {
+  it('fails closed in every job when git rev-parse HEAD differs from the expected SHA', () => {
     const asserts = [...workflow.matchAll(/actual="\$\(git rev-parse HEAD\)"[\s\S]*?exit 1/g)];
-    assert.equal(asserts.length, 2);
+    assert.equal(asserts.length, JOBS.length);
     for (const [block] of asserts) {
       assert.match(block, /"\$\{actual\}" != "\$\{EXPECTED_SHA\}"/);
     }
@@ -53,16 +55,26 @@ describe('legal-office R3 bootstrap-only CI contract', () => {
   });
 
   it('has dedicated names, timeout, and bounded concurrency', () => {
-    assert.match(workflow, /bootstrap-verify:/);
-    assert.match(workflow, /bootstrap-safety:/);
+    for (const name of JOBS) assert.match(workflow, new RegExp(`  ${name}:\\n    name: ${name}\\n`));
     assert.match(workflow, /timeout-minutes: 10/);
     assert.match(workflow, /cancel-in-progress: true/);
   });
 
-  it('does not falsely declare application, domain or runtime proof', () => {
-    assert.match(workflow, /bootstrap-only checks/);
-    assert.match(workflow, /Neither check proves package build/);
+  it('does not falsely declare deployment or preview-runtime proof', () => {
+    assert.match(workflow, /It does not prove\n# deployment, preview runtime, or the Claude pipeline/);
     assert.match(readme, /legal-office/i);
+  });
+
+  it('runs the application, audit and PostgreSQL jobs from the frozen lockfile with pinned inputs', () => {
+    assert.match(workflow, /uses: actions\/setup-node@[a-f0-9]{40}/);
+    assert.equal((workflow.match(/pnpm install --frozen-lockfile/g) ?? []).length, 3);
+    for (const cmd of ['pnpm -r run lint', 'pnpm -r run typecheck', 'pnpm -r run test', 'pnpm -r run build', 'pnpm audit --audit-level high']) {
+      assert.ok(workflow.includes(`run: ${cmd}`), cmd);
+    }
+    assert.match(workflow, /image: postgres:\d+\.\d+\n/);
+    assert.match(workflow, /DATABASE_URL: postgresql:\/\/postgres@127\.0\.0\.1:5432\/postgres/);
+    assert.match(workflow, /pnpm -r --if-present run test:integration/);
+    assert.doesNotMatch(workflow, /secrets\./);
   });
 
   it('guards common sensitive tracked files and does not suppress checks', () => {
@@ -115,7 +127,7 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
     assert.match(reviewerCaller, /github\.event\.workflow_run\.pull_requests\[0\]\.number != null/);
     assert.match(reviewerCaller, /expected_head_sha: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
     assert.match(reviewerCaller, /ci_run_id: \$\{\{ github\.event\.workflow_run\.id \}\}/);
-    assert.match(reviewerCaller, /required_jobs_csv: bootstrap-verify,bootstrap-safety/);
+    assert.match(reviewerCaller, new RegExp(`required_jobs_csv: ${JOBS.join(',')}\\n`));
     assert.match(reviewerCaller, /permissions:\n  contents: read\n  actions: read\n  checks: read\n  issues: read\n(?:  # [^\n]+\n)*  pull-requests: write/);
     assert.match(reviewerCaller, /CLAUDE_CODE_OAUTH_TOKEN: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/);
     assert.doesNotMatch(reviewerCaller, /BUILDER_PUBLISHER_APP_|secrets:\s*inherit|contents: write|pull_request_target/);
