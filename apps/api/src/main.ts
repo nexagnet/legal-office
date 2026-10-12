@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import pg from 'pg';
 import { AppModule } from './app.module';
 import { resolverFromEnv } from './http/actor';
+import { DEFAULT_RATE_RULES, rateLimit, securityHeaders } from './http/hardening';
 
 async function bootstrap(): Promise<void> {
   const url = process.env.DATABASE_URL;
@@ -21,6 +22,15 @@ async function bootstrap(): Promise<void> {
       },
     }),
   );
+  const proxy = process.env.TRUST_PROXY;
+  if (proxy) {
+    // Số = số tầng proxy tin cậy; chuỗi khác (vd "loopback") chuyển nguyên cho Express.
+    app
+      .getHttpAdapter()
+      .getInstance()
+      .set('trust proxy', /^\d+$/.test(proxy) ? Number(proxy) : proxy);
+  }
+  app.use(securityHeaders(), rateLimit(DEFAULT_RATE_RULES));
   app.enableShutdownHooks();
   await app.listen(Number(process.env.PORT ?? 3001));
 }
