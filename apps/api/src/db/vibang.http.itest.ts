@@ -573,4 +573,105 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
     expect((await api('POST', `${root}/${cs}/completion`, U.admin, fin)).status).toBe(200);
     expect((await api('POST', `${root}/${cs}/completion`, null, fin)).status).toBe(401);
   });
+
+  it('records assets, a signed agency order and an N-08 transfer over HTTP', async () => {
+    const root = '/enforcement';
+    const cs = (
+      await api('POST', '/enforcement-cases', U.clerk, {
+        officeId: OFF,
+        branchId: BR1,
+        caseRef: 'THA/as',
+        agreementRef: 'HĐDV-giả-lập',
+        decisionRef: 'QĐ-giả-lập',
+      })
+    ).json.label as string;
+    await api('PUT', `/enforcement-cases/${cs}/handler`, U.admin, { handlerUserId: U.thv });
+    const asset = await api('POST', `${root}/cases/${cs}/assets`, U.thv, {
+      category: 'Loại giả lập',
+      label: 'Tài sản giả lập',
+      sensitivity: 'SENSITIVE',
+    });
+    expect(asset.status).toBe(200);
+    const a = asset.json.label as string;
+    expect(
+      (
+        await api('POST', `${root}/cases/${cs}/assets`, U.thv2, {
+          category: 'c',
+          label: 'l',
+          sensitivity: 'NORMAL',
+        })
+      ).status,
+    ).toBe(403);
+    expect((await api('POST', `${root}/assets/${a}/access`, U.thv, {})).status).toBe(422);
+    const seen = await api('POST', `${root}/assets/${a}/access`, U.thv, { purpose: 'Đối chiếu' });
+    expect(seen.status).toBe(200);
+    expect(seen.json.label).toBe('Tài sản giả lập');
+    expect(
+      (
+        await api('POST', `${root}/assets/${a}/events`, U.thv, {
+          kind: 'DISCOVERY',
+          note: 'Phát hiện',
+          evidenceKey: 'as/http/1',
+          evidenceSha256: '1'.repeat(64),
+          idempotencyKey: 'e1',
+        })
+      ).status,
+    ).toBe(200);
+
+    const prop = (
+      await api('POST', `${root}/assets/${a}/measure-proposals`, U.thv, {
+        measure: 'Biện pháp bảo đảm',
+        rationale: 'Lý do giả lập',
+      })
+    ).json.label as string;
+    const order = {
+      agencyName: 'Cơ quan giả lập',
+      orderRef: 'LỆNH-HTTP',
+      evidenceKey: 'as/http/order',
+      evidenceSha256: '2'.repeat(64),
+    };
+    expect(
+      (await api('POST', `${root}/measure-proposals/${prop}/order`, U.thv, order)).status,
+    ).toBe(403);
+    expect(
+      (
+        await api('POST', `${root}/measure-proposals/${prop}/order`, U.admin, {
+          ...order,
+          evidenceKey: null,
+          evidenceSha256: null,
+        })
+      ).status,
+    ).toBe(422);
+    expect(
+      (await api('POST', `${root}/measure-proposals/${prop}/order`, U.admin, order)).status,
+    ).toBe(200);
+    expect(
+      (await api('POST', `${root}/measure-proposals/${prop}/order`, U.admin, order)).status,
+    ).toBe(409);
+
+    const t = (await api('POST', `${root}/cases/${cs}/transfers`, U.thv, { toUserId: U.thv2 })).json
+      .label as string;
+    const step = (user: string, s: string) =>
+      api('POST', `${root}/transfers/${t}/steps`, user, {
+        step: s,
+        evidenceKey: `as/http/${s}`,
+        evidenceSha256: '3'.repeat(64),
+      });
+    const done = (user: string = U.admin) => api('POST', `${root}/transfers/${t}/completion`, user);
+    const miss = await done();
+    expect(miss.status).toBe(409);
+    expect(miss.json.code).toBe('APP_APPROVAL_MISSING');
+    expect((await step(U.thv, 'APP_APPROVAL')).status).toBe(403);
+    expect((await step(U.admin, 'APP_APPROVAL')).status).toBe(200);
+    expect((await done()).json.code).toBe('LEGAL_DECISION_MISSING');
+    expect((await step(U.head, 'LEGAL_DECISION')).status).toBe(200);
+    expect((await done()).json.code).toBe('HANDOVER_N08_MISSING');
+    expect((await step(U.admin, 'HANDOVER_N08')).status).toBe(200);
+    expect((await done(U.thv)).status).toBe(403);
+    expect((await done(U.admin)).status).toBe(200);
+    expect(
+      (await api('POST', `${root}/transfers/${t}/completion`, U.admin, undefined, T2)).status,
+    ).toBe(404);
+    expect((await api('POST', `${root}/transfers/${t}/completion`, null)).status).toBe(401);
+  });
 });
