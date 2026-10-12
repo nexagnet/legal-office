@@ -1,0 +1,27 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { PgService } from '../db/pg.service';
+
+/** Kết quả một hàm nghiệp vụ trong DB (kiểu `vibang_op`). Từ chối là kết quả, không phải lỗi. */
+export interface Op {
+  readonly ok: boolean;
+  readonly code: string;
+  readonly label: string | null;
+}
+
+/**
+ * Gọi các hàm `vibang_*` (0002/0003). Quyền (vai, chi nhánh, THV phụ trách) do DB quyết định và audit.
+ * Luôn dùng `SELECT * FROM fn(...)`: `SELECT (fn(...)).*` chạy hàm một lần cho mỗi cột.
+ */
+@Injectable()
+export class VibangRepo {
+  constructor(@Inject(PgService) private readonly pg: PgService) {}
+
+  call(tenantId: string, fn: string, args: readonly unknown[]): Promise<Op> {
+    if (!/^vibang_[a-z0-9_]+$/.test(fn)) throw new Error(`unsafe function name: ${fn}`);
+    const placeholders = args.map((_, i) => `$${i + 1}`).join(',');
+    return this.pg.withTenant(tenantId, async (client) => {
+      const { rows } = await client.query(`SELECT * FROM ${fn}(${placeholders})`, [...args]);
+      return rows[0] as Op;
+    });
+  }
+}
