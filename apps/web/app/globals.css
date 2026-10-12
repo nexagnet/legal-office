@@ -313,3 +313,8 @@ tbody tr:last-child > * {
 .badge[data-status='INTAKE'] {
   color: var(--warn-ink);
 }
+.stack {
+  display: grid;
+  gap: 16px;
+  margin: 16px 0;
+}
