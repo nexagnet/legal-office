@@ -1,6 +1,7 @@
 import { type DynamicModule, Module } from '@nestjs/common';
 import type pg from 'pg';
 import { PG_POOL, PgService } from './db/pg.service';
+import { ApprovalController } from './approval/approval.controller';
 import { AssetsController } from './assets/assets.controller';
 import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
 import { HealthController } from './health.controller';
@@ -30,6 +31,7 @@ export class AppModule {
         VerificationController,
         EnforcementCaseController,
         AssetsController,
+        ApprovalController,
         OfficeController,
       ],
       providers: [

@@ -675,6 +675,39 @@ describe.skipIf(!ADMIN_URL)('Vi bằng HTTP API over PostgreSQL (synthetic)', ()
     expect((await api('POST', `${root}/transfers/${t}/completion`, null)).status).toBe(401);
   });
 
+  it('rejects, returns and resubmits an approval over HTTP', async () => {
+    const root = '/approvals';
+    const cs = (
+      await api('POST', '/enforcement-cases', U.clerk, {
+        officeId: OFF,
+        branchId: BR1,
+        caseRef: 'THA/ap-' + randomUUID().slice(0, 8),
+        agreementRef: 'HĐDV-giả-lập',
+        decisionRef: 'QĐ-giả-lập',
+      })
+    ).json.label as string;
+    await api('PUT', `/enforcement-cases/${cs}/handler`, U.admin, { handlerUserId: U.thv });
+    const t = (await api('POST', `/enforcement/cases/${cs}/transfers`, U.thv, { toUserId: U.thv2 }))
+      .json.label as string;
+    const dec = (user: string | null, decision: string, reason = 'lý do giả lập', tenant = T) =>
+      api('POST', `${root}/transfers/${t}/decisions`, user, { decision, reason }, tenant);
+    expect((await dec(U.thv, 'RETURN')).status).toBe(403);
+    expect((await dec(U.admin, 'RETURN', '')).status).toBe(400);
+    expect((await dec(U.admin, 'BAD')).status).toBe(400);
+    expect((await dec(null, 'RETURN')).status).toBe(401);
+    expect((await dec(U.admin, 'RETURN', 'x', T2)).status).toBe(404);
+    expect((await dec(U.admin, 'RETURN')).status).toBe(200);
+    expect((await dec(U.admin, 'RETURN')).status).toBe(409);
+    expect((await api('POST', `/enforcement/transfers/${t}/completion`, U.admin)).json.code).toBe(
+      'APPROVAL_RETURNED',
+    );
+    expect((await dec(U.thv, 'RESUBMIT')).status).toBe(200);
+    expect((await dec(U.head, 'REJECT')).status).toBe(200);
+    expect((await api('POST', `/enforcement/transfers/${t}/completion`, U.admin)).json.code).toBe(
+      'APPROVAL_REJECTED',
+    );
+  });
+
   it('runs office correspondence, decisions, TT06 download, FIFO stock and S-06 over HTTP', async () => {
     const root = '/office';
     const post = (path: string, user: string | null, body?: unknown, tenant: string = T) =>
