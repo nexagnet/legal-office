@@ -174,7 +174,7 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
   it('enforces the lifecycle path and legal proofs inside the database', async () => {
     const c = await assigned();
     await expect(update(c, `status = 'SIGNED'`)).rejects.toThrow(/missing legal proof for SIGNED/);
-    // Số pháp lý thật nằm ở vibang_numbers (lát #7); mảng proofs không còn đủ để qua cổng.
+    // Số pháp lý và xác nhận ký là dữ liệu thật (lát #7/#8); mảng proofs không còn đủ để qua cổng.
     await expect(
       update(c, `status = 'SIGNED', proofs = ARRAY['NUMBER_ALLOCATED']`),
     ).rejects.toThrow(/missing legal proof for SIGNED/);
@@ -183,24 +183,36 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
        VALUES ($1,$2,$3,2026,$4,'x/2026/VB-THV',$5)`,
       [A.tenant, A.office, c, Math.floor(Math.random() * 1e9) + 1, A.thv],
     );
+    await expect(update(c, `status = 'SIGNED'`)).rejects.toThrow(/missing legal proof for SIGNED/);
+    await owner.query(
+      `INSERT INTO vibang_evidence (case_id, tenant_id, signed_by, signed_at) VALUES ($1,$2,$3,now())`,
+      [c, A.tenant, A.thv],
+    );
     await update(c, `status = 'SIGNED'`);
     await expect(update(c, `status = 'RETURNED'`)).rejects.toThrow(/invalid vibang transition/);
     await update(c, `status = 'STAMPED'`);
     await expect(update(c, `status = 'RETURNED'`)).rejects.toThrow(
       /missing legal proof for RETURNED/,
     );
-    await expect(
-      update(
-        c,
-        `status = 'RETURNED', proofs = ARRAY['MISA_CONFIRMED_FULL','FINAL_SCAN_WITH_SIGNATURE_AND_STAMP']`,
-      ),
-    ).rejects.toThrow(/missing legal proof for RETURNED/);
     await owner.query(
       `INSERT INTO vibang_misa_confirmations (case_id, tenant_id, status, reference, confirmed_by, confirmed_at)
        VALUES ($1,$2,'CONFIRMED_FULL','ref-1',$3,now())`,
       [c, A.tenant, A.thv],
     );
-    await update(c, `status = 'RETURNED', proofs = ARRAY['FINAL_SCAN_WITH_SIGNATURE_AND_STAMP']`);
+    await expect(
+      update(c, `status = 'RETURNED', proofs = ARRAY['FINAL_SCAN_WITH_SIGNATURE_AND_STAMP']`),
+    ).rejects.toThrow(/missing legal proof for RETURNED/);
+    const doc = await owner.query(
+      `INSERT INTO vibang_documents (tenant_id, case_id, kind, version, source, object_key, sha256, mime, size_bytes, created_by)
+       VALUES ($1,$2,'FINAL_SCAN',1,'UPLOADED','k/1',$3,'application/pdf',10,$4) RETURNING id`,
+      [A.tenant, c, 'a'.repeat(64), A.thv],
+    );
+    await owner.query(
+      `UPDATE vibang_evidence SET stamped_by = $2, stamped_at = now(), final_scan_document_id = $3,
+         final_scan_sha256 = $4, locked_at = now() WHERE case_id = $1`,
+      [c, A.thv, doc.rows[0].id, 'a'.repeat(64)],
+    );
+    await update(c, `status = 'RETURNED'`);
   });
 
   it('requires a reason for cancellation', async () => {
