@@ -174,19 +174,33 @@ describe.skipIf(!ADMIN_URL)('vibang case schema on PostgreSQL', () => {
   it('enforces the lifecycle path and legal proofs inside the database', async () => {
     const c = await assigned();
     await expect(update(c, `status = 'SIGNED'`)).rejects.toThrow(/missing legal proof for SIGNED/);
-    await update(c, `status = 'SIGNED', proofs = ARRAY['NUMBER_ALLOCATED']`);
+    // Số pháp lý thật nằm ở vibang_numbers (lát #7); mảng proofs không còn đủ để qua cổng.
+    await expect(
+      update(c, `status = 'SIGNED', proofs = ARRAY['NUMBER_ALLOCATED']`),
+    ).rejects.toThrow(/missing legal proof for SIGNED/);
+    await owner.query(
+      `INSERT INTO vibang_numbers (tenant_id, office_id, case_id, year, seq, label, allocated_by)
+       VALUES ($1,$2,$3,2026,$4,'x/2026/VB-THV',$5)`,
+      [A.tenant, A.office, c, Math.floor(Math.random() * 1e9) + 1, A.thv],
+    );
+    await update(c, `status = 'SIGNED'`);
     await expect(update(c, `status = 'RETURNED'`)).rejects.toThrow(/invalid vibang transition/);
     await update(c, `status = 'STAMPED'`);
     await expect(update(c, `status = 'RETURNED'`)).rejects.toThrow(
       /missing legal proof for RETURNED/,
     );
     await expect(
-      update(c, `status = 'RETURNED', proofs = ARRAY['NUMBER_ALLOCATED','MISA_CONFIRMED_FULL']`),
+      update(
+        c,
+        `status = 'RETURNED', proofs = ARRAY['MISA_CONFIRMED_FULL','FINAL_SCAN_WITH_SIGNATURE_AND_STAMP']`,
+      ),
     ).rejects.toThrow(/missing legal proof for RETURNED/);
-    await update(
-      c,
-      `status = 'RETURNED', proofs = ARRAY['NUMBER_ALLOCATED','MISA_CONFIRMED_FULL','FINAL_SCAN_WITH_SIGNATURE_AND_STAMP']`,
+    await owner.query(
+      `INSERT INTO vibang_misa_confirmations (case_id, tenant_id, status, reference, confirmed_by, confirmed_at)
+       VALUES ($1,$2,'CONFIRMED_FULL','ref-1',$3,now())`,
+      [c, A.tenant, A.thv],
     );
+    await update(c, `status = 'RETURNED', proofs = ARRAY['FINAL_SCAN_WITH_SIGNATURE_AND_STAMP']`);
   });
 
   it('requires a reason for cancellation', async () => {
