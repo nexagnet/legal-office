@@ -83,11 +83,12 @@ const reviewerCaller = readFileSync(
 ).replaceAll('\r\n', '\n');
 
 describe('V5 consumer callers R3 static security contract (not runtime proof)', () => {
-  const pinned = 'c98e47e9008cdd5de6e8b68839b64f50bee81ae9';
+  const builderPinned = 'c98e47e9008cdd5de6e8b68839b64f50bee81ae9';
+  const reviewerPinned = '6beaadd47d94081960321e54b32169b8a532fa15';
 
-  it('calls only immutable, reviewed central Builder/Reviewer workflow versions', () => {
-    assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + pinned));
-    assert.match(reviewerCaller, new RegExp('claude-reviewer\\.yml@' + pinned));
+  it('pins independent immutable and reviewed central Builder/Reviewer workflow versions', () => {
+    assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + builderPinned));
+    assert.match(reviewerCaller, new RegExp('claude-reviewer\\.yml@' + reviewerPinned));
     assert.doesNotMatch(builderCaller + reviewerCaller, /@(?:main|master|HEAD|v\d+)\b/);
   });
 
