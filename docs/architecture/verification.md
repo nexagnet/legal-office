@@ -31,3 +31,7 @@ Quyền kiểm tra **trong DB** (dùng lại `td_authorize`), mọi kết quả 
 - Ai được ghi nhận văn bản đồng ý / biên bản bàn giao (bảng trên) và việc chỉ THV phụ trách đọc được nguồn.
 - Từ chối kết luận đưa hồ sơ về OPEN để làm tiếp, không có trạng thái "bị từ chối" riêng.
 - Việc đọc/ghi tệp nguồn thật (kho riêng) và xác thực thật chưa làm — thuộc #5.
+
+## Đọc danh sách và giao diện (lát #11)
+
+Chủ dự án chọn 12/10/2026: quyền xem **theo phạm vi ghi**. `GET /verification/cases` (hàm `vx_list_cases`, migration 0016) trả hồ sơ kèm các vòng: Admin/Trưởng VP/Thư ký xem cả văn phòng; Văn thư và Kế toán theo chi nhánh được cấp; THV chỉ hồ sơ mình phụ trách; người khác nhận danh sách rỗng. Không trả nguồn, khoá bằng chứng hay ủy quyền. Trang `/xac-minh`: danh sách, mở hồ sơ, bắt đầu vòng, đề xuất và quyết định kết luận. Hoàn thành vòng và ghi nguồn cần tệp bằng chứng, chưa có trên giao diện vì chưa có kho tệp; giao THV và ủy quyền chưa làm trên giao diện.

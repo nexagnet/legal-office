@@ -7,6 +7,8 @@ import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
 import { NewServiceForm } from '../components/NewServiceForm';
 import { ServiceRowActions } from '../components/ServiceRowActions';
+import { NewVerificationForm } from '../components/NewVerificationForm';
+import { VerificationActions } from '../components/VerificationActions';
 import { NewCaseForm } from '../components/NewCaseForm';
 import { messageFor } from '../lib/messages';
 
@@ -294,6 +296,53 @@ describe('Service of documents', () => {
     });
     unmount();
     render(<ServiceRowActions documentId="d1" status="DELIVERED" />);
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe('Verification', () => {
+  it('opens a verification case in the chosen branch', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
+    render(<NewVerificationForm branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ'), { target: { value: 'XM/1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/verification/cases');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      officeId: 'o1',
+      branchId: 'b1',
+      caseRef: 'XM/1',
+    });
+  });
+
+  it('offers round and proposal while open, decision while proposed, and explains refusals', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(409, { code: 'ROUNDS_INCOMPLETE' }));
+    const { unmount } = render(<VerificationActions caseId="c1" status="OPEN" />);
+    expect(screen.queryByRole('button', { name: 'Chấp nhận kết luận' })).toBeNull();
+    fireEvent.change(screen.getByLabelText('Đề xuất kết luận'), {
+      target: { value: 'Đủ điều kiện' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi đề xuất kết luận' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Còn vòng xác minh chưa hoàn thành.',
+    );
+    expect(spy.mock.calls[0]![0]).toBe('/api/verification/cases/c1/conclusion-proposal');
+    unmount();
+    render(<VerificationActions caseId="c1" status="CONCLUSION_PROPOSED" />);
+    expect(screen.queryByRole('button', { name: 'Bắt đầu vòng xác minh' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Trả về để xác minh tiếp' }));
+    await waitFor(() => expect(spy.mock.calls.length).toBe(2));
+    expect(JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string)).toEqual({
+      approve: false,
+    });
+  });
+
+  it('shows no actions for a concluded case', () => {
+    render(<VerificationActions caseId="c1" status="CONCLUDED" />);
     expect(screen.queryByRole('button')).toBeNull();
   });
 });

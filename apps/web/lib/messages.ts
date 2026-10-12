@@ -33,6 +33,15 @@ const MESSAGES: Record<string, string> = {
   DOCUMENT_NOT_FOUND: 'Không tìm thấy văn bản.',
   REQUEST_NOT_FOUND: 'Không tìm thấy yêu cầu tống đạt.',
   DEADLINE_REQUIRED: 'Cần nhập hạn tống đạt.',
+  CASE_NOT_OPEN: 'Hồ sơ xác minh không còn ở trạng thái đang mở.',
+  HANDLER_REQUIRED: 'Hồ sơ cần được giao THV phụ trách trước.',
+  INVALID_PARTY: 'Cần nhập tên bên liên quan.',
+  CONCLUSION_REQUIRED: 'Cần nhập nội dung kết luận.',
+  ROUNDS_INCOMPLETE: 'Còn vòng xác minh chưa hoàn thành.',
+  ADMIN_OR_HEAD_ONLY: 'Chỉ Admin hoặc Trưởng văn phòng được thực hiện thao tác này.',
+  SIGNING_AUTHORITY_NOT_GRANTED: 'Bạn chưa được cấp quyền ký pháp lý.',
+  NO_PROPOSAL: 'Chưa có đề xuất kết luận.',
+  SEPARATE_REVIEWER_REQUIRED: 'Người quyết định phải khác người đề xuất.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
@@ -67,4 +76,14 @@ export const UNDELIVERABLE_LABEL: Record<string, string> = {
   NO_RECIPIENT: 'Không có người nhận',
   ADDRESS_NOT_FOUND: 'Không tìm thấy địa chỉ',
   RECIPIENT_REFUSED: 'Người nhận từ chối',
+};
+
+export const VERIFICATION_STATUS_LABEL: Record<string, string> = {
+  OPEN: 'Đang xác minh',
+  CONCLUSION_PROPOSED: 'Chờ quyết định kết luận',
+  CONCLUDED: 'Đã kết luận',
+};
+export const ROUND_STATUS_LABEL: Record<string, string> = {
+  IN_PROGRESS: 'Đang thực hiện',
+  COMPLETED: 'Đã hoàn thành',
 };
