@@ -1,6 +1,6 @@
 name: ci
 
-# R3 source. Docs/bootstrap-only checks, NOT application or runtime proof.
+# R3 source. Exact-head CI for application code (#37). Not deployment or preview-runtime proof.
 on:
   pull_request:
     branches: [main]
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: legal-office-bootstrap-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: legal-office-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -63,5 +63,124 @@ jobs:
       - name: Verify tracked file restrictions
         run: node scripts/check-tracked-file-safety.mjs
 
-# Neither check proves package build, auth, migrations, data isolation, nor Claude.
-# Expand CI in a separately reviewed R3 change before real feature implementation.
+  app-verify:
+    name: app-verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # PR: immutable PR HEAD (not GitHub's synthetic merge commit). push: pushed commit.
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+      - name: Assert checkout is the exact expected commit
+        run: |
+          actual="$(git rev-parse HEAD)"
+          echo "expected=${EXPECTED_SHA} actual=${actual}"
+          if [ "${actual}" != "${EXPECTED_SHA}" ]; then
+            echo "::error::Checked-out HEAD ${actual} != expected ${EXPECTED_SHA}"
+            exit 1
+          fi
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+      - name: Enable pnpm pinned by packageManager
+        run: corepack enable
+      - name: Install with frozen lockfile
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm -r run lint
+      - name: Typecheck
+        run: pnpm -r run typecheck
+      - name: Unit tests
+        run: pnpm -r run test
+      - name: Build
+        run: pnpm -r run build
+      - name: Format check
+        run: pnpm run format:check
+
+  audit:
+    name: audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # PR: immutable PR HEAD (not GitHub's synthetic merge commit). push: pushed commit.
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+      - name: Assert checkout is the exact expected commit
+        run: |
+          actual="$(git rev-parse HEAD)"
+          echo "expected=${EXPECTED_SHA} actual=${actual}"
+          if [ "${actual}" != "${EXPECTED_SHA}" ]; then
+            echo "::error::Checked-out HEAD ${actual} != expected ${EXPECTED_SHA}"
+            exit 1
+          fi
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+      - name: Enable pnpm pinned by packageManager
+        run: corepack enable
+      - name: Install with frozen lockfile
+        run: pnpm install --frozen-lockfile
+      - name: Audit dependencies (high and above)
+        run: pnpm audit --audit-level high
+
+  db-integration:
+    name: db-integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # PR: immutable PR HEAD (not GitHub's synthetic merge commit). push: pushed commit.
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          # Throwaway container reachable only from this job; no real data or credentials.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+      - name: Assert checkout is the exact expected commit
+        run: |
+          actual="$(git rev-parse HEAD)"
+          echo "expected=${EXPECTED_SHA} actual=${actual}"
+          if [ "${actual}" != "${EXPECTED_SHA}" ]; then
+            echo "::error::Checked-out HEAD ${actual} != expected ${EXPECTED_SHA}"
+            exit 1
+          fi
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+      - name: Enable pnpm pinned by packageManager
+        run: corepack enable
+      - name: Install with frozen lockfile
+        run: pnpm install --frozen-lockfile
+      - name: PostgreSQL integration tests
+        env:
+          DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres
+        run: pnpm -r --if-present run test:integration
+
+# Proves lint/typecheck/test/build/audit and DB integration on the exact head. It does not prove
+# deployment, preview runtime, or the Claude pipeline. Required-check ruleset changes are a separate R3 step.
