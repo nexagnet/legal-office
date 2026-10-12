@@ -13,6 +13,18 @@ This staged workflow adds only **bootstrap-level** GitHub Actions on PRs targeti
 - No cross-repo event processing or remote calls; no automatic `@claude` response.
 - No business rules, customer files, database migrations, production deployment or existing transport V4 workflows are imported.
 
+## Exact-head checkout: PR HEAD vs synthetic merge commit
+
+For `pull_request` events, `actions/checkout` without `ref` checks out `refs/remotes/pull/<n>/merge`, a **synthetic merge commit** GitHub creates from the PR HEAD and the current base branch. Its SHA differs from the PR HEAD and changes when `main` moves. A green run on it, even with `run.head_sha == PR.head_sha`, does **not** prove the tests ran on the exact PR HEAD under review.
+
+This workflow therefore:
+
+- sets `EXPECTED_SHA` per job to `github.event.pull_request.head.sha || github.sha` (PR HEAD on `pull_request`, the pushed commit on `push` to `main`);
+- passes it as `ref:` to both `actions/checkout` steps (SHA-pinned, `persist-credentials: false`);
+- right after checkout, compares `git rev-parse HEAD` with `EXPECTED_SHA` and **fails the job** on any mismatch (fail closed; no `continue-on-error`).
+
+The job log prints `expected=<sha> actual=<sha>`; reviewers must read it rather than rely on `run.head_sha`. Mergeability against the latest `main` is a separate concern covered by branch/merge rules and the exact-`main` run after merge.
+
 ## Proof and limits
 
 1. Verify Draft PR exact HEAD and that its new bootstrap workflow is actually scheduled on `pull_request`; success requires **both** named bootstrap jobs green at the same HEAD.
