@@ -30,6 +30,9 @@ const MESSAGES: Record<string, string> = {
   STAMP_NOT_CONFIRMED: 'Chưa xác nhận đã đóng dấu.',
   FINAL_SCAN_MISSING: 'Chưa có bản scan cuối của Vi bằng.',
   REVOKE_PENDING: 'Đang có đề nghị thu hồi xác nhận MISA chờ xử lý.',
+  DOCUMENT_NOT_FOUND: 'Không tìm thấy văn bản.',
+  REQUEST_NOT_FOUND: 'Không tìm thấy yêu cầu tống đạt.',
+  DEADLINE_REQUIRED: 'Cần nhập hạn tống đạt.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
@@ -45,4 +48,23 @@ export const CASE_STATUS_LABEL: Record<string, string> = {
   STAMPED: 'Đã đóng dấu',
   RETURNED: 'Đã trả khách',
   CANCELLED: 'Đã huỷ',
+};
+
+export const SERVICE_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Chưa giao người xử lý',
+  ASSIGNED: 'Đang xử lý',
+  DELIVERED: 'Đã tống đạt',
+  UNDELIVERABLE: 'Không tống đạt được',
+};
+export const ATTEMPT_OUTCOME_LABEL: Record<string, string> = {
+  REFUSED: 'Người nhận từ chối',
+  ABSENT: 'Vắng mặt',
+  NO_RECIPIENT: 'Không có người nhận',
+  WRONG_ADDRESS: 'Sai địa chỉ',
+  OTHER_FAILURE: 'Lý do khác',
+};
+export const UNDELIVERABLE_LABEL: Record<string, string> = {
+  NO_RECIPIENT: 'Không có người nhận',
+  ADDRESS_NOT_FOUND: 'Không tìm thấy địa chỉ',
+  RECIPIENT_REFUSED: 'Người nhận từ chối',
 };

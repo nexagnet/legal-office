@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -44,7 +45,7 @@ function respond(op: Op): Reply {
 
 /**
  * Tống đạt. Quyền do hàm `td_*` trong DB quyết định và audit. Thời điểm của một lần tống đạt luôn là giờ máy chủ
- * (không nhận từ client). Chưa có endpoint đọc: sổ S-01 là view `td_s01_book`, cần chốt quyền đọc trước.
+ * (không nhận từ client). Đọc: `GET documents` theo phạm vi ghi (hàm `td_list_documents`).
  */
 @Controller('service-of-documents')
 @UseGuards(ActorGuard)
@@ -55,6 +56,42 @@ export class ServiceOfDocumentsController {
     return this.repo
       .call(actor.tenantId, fn, [actor.tenantId, actor.userId, ...args])
       .then(respond);
+  }
+
+  @Get('documents')
+  async list(@CurrentActor() a: AuthenticatedActor) {
+    const rows = await this.repo.rows<{
+      document_id: string;
+      request_id: string;
+      request_ref: string;
+      request_status: string;
+      branch_id: string;
+      recipient_name: string;
+      address: string;
+      deadline_at: Date;
+      status: string;
+      undeliverable_reason: string | null;
+      handler_user_id: string | null;
+      attempts: number;
+      last_attempt_at: Date | null;
+    }>(a.tenantId, 'td_list_documents', [a.tenantId, a.userId, 100]);
+    return {
+      items: rows.map((r) => ({
+        documentId: r.document_id,
+        requestId: r.request_id,
+        requestRef: r.request_ref,
+        requestStatus: r.request_status,
+        branchId: r.branch_id,
+        recipientName: r.recipient_name,
+        address: r.address,
+        deadlineAt: r.deadline_at,
+        status: r.status,
+        undeliverableReason: r.undeliverable_reason,
+        handlerUserId: r.handler_user_id,
+        attempts: r.attempts,
+        lastAttemptAt: r.last_attempt_at,
+      })),
+    };
   }
 
   @Post('requests')
