@@ -1,5 +1,7 @@
 # ADR-0001: Độc lập hóa sản phẩm Legal Office trong GitHub Organization `nexagnet`
 
+> **Hiện hành 12/10/2026:** repo `nexagnet/legal-office` là PUBLIC theo owner amendment ở cuối ADR. Những tham chiếu PRIVATE phía dưới ghi lại quyết định lịch sử 11/10, không còn là trạng thái repository hiện tại. Không đưa hồ sơ khách, PII, secrets hoặc tài liệu nhạy cảm vào GitHub.
+
 - **Trạng thái:** OWNER-APPROVED về ranh giới sản phẩm; quyết định thư viện chi tiết đang chờ PoC
 - **Ngày quyết định:** 2026-10-11
 - **Nguồn:** [Legal Office #1](https://github.com/nexagnet/legal-office/issues/1), [migration #472](https://github.com/nexagnet/nexagnet-platform/issues/472), [business #448](https://github.com/nexagnet/nexagnet-platform/issues/448)
