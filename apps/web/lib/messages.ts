@@ -46,6 +46,9 @@ const MESSAGES: Record<string, string> = {
   OBLIGATION_NOT_FOUND: 'Không tìm thấy nghĩa vụ.',
   OBLIGATION_FINAL: 'Nghĩa vụ đã hoàn tất, không ghi thêm được.',
   ALREADY_RECORDED: 'Nội dung này đã được ghi nhận trước đó.',
+  INVALID_DOCUMENT: 'Tệp không hợp lệ: chỉ nhận PDF.',
+  FILE_TOO_LARGE: 'Tệp quá lớn (tối đa 25 MB).',
+  FILE_STORE_NOT_CONFIGURED: 'Hệ thống chưa cấu hình kho lưu tệp. Liên hệ quản trị.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 

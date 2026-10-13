@@ -14,7 +14,9 @@ import { ServiceOfDocumentsController } from './service-of-documents/service-of-
 import { OfficeController } from './office/office.controller';
 import { VerificationController } from './verification/verification.controller';
 import { VibangIntakeController } from './vibang/vibang-intake.controller';
+import { FILE_STORE, type FileStore } from './storage/file-store';
 import { VibangController } from './vibang/vibang.controller';
+import { VibangFilesController } from './vibang/vibang-files.controller';
 import { VibangRepo } from './vibang/vibang.repo';
 
 export interface AppOptions {
@@ -22,6 +24,8 @@ export interface AppOptions {
   /** `session` = đăng nhập email + mật khẩu (cookie phiên). */
   readonly resolver: ActorResolver | 'session';
   readonly auth?: AuthConfig;
+  /** Kho tệp (R2/đĩa). Không đặt = các thao tác cần tệp trả 503. */
+  readonly fileStore?: FileStore | null;
 }
 
 const DEFAULT_AUTH: AuthConfig = { sessionTtlMinutes: 720, secureCookie: true, allowedOrigins: [] };
@@ -37,6 +41,7 @@ export class AppModule {
         AuthController,
         VibangController,
         VibangIntakeController,
+        VibangFilesController,
         ServiceOfDocumentsController,
         VerificationController,
         EnforcementCaseController,
@@ -55,6 +60,7 @@ export class AppModule {
               inject: [AuthService],
             }
           : { provide: ACTOR_RESOLVER, useValue: options.resolver },
+        { provide: FILE_STORE, useValue: options.fileStore ?? null },
         PgService,
         VibangRepo,
         ActorGuard,

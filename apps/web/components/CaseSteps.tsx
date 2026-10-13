@@ -59,6 +59,29 @@ export function CaseSteps({ caseId, status, progress, roles }: Props) {
     void call('PUT', 'misa', { status: 'CONFIRMED_FULL', reference });
   }
 
+  async function uploadScan(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const input = e.currentTarget.elements.namedItem('scan') as HTMLInputElement | null;
+    const file = input?.files?.[0];
+    if (!file || file.size === 0) return setError(messageFor('INVALID_DOCUMENT'));
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/vibang/cases/${caseId}/final-scan`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/pdf' },
+        body: file,
+      });
+      const json = (await res.json().catch(() => ({}))) as { code?: string };
+      if (!res.ok) return setError(messageFor(json.code));
+      router.refresh();
+    } catch {
+      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const finished = status === 'RETURNED' || status === 'CANCELLED';
   const steps: { label: string; done: boolean; detail?: string }[] = [
     { label: 'Kế toán xác nhận MISA', done: misaOk },
@@ -96,8 +119,19 @@ export function CaseSteps({ caseId, status, progress, roles }: Props) {
       {progress.misaRevokeStatus !== 'NONE' ? (
         <p className="muted">Có đề nghị thu hồi xác nhận MISA đang xử lý.</p>
       ) : null}
-      {!progress.hasFinalScan && !finished ? (
-        <p className="muted">Tải bản scan cuối chưa khả dụng trên giao diện (cần kho tệp).</p>
+      {!progress.hasFinalScan && !finished && progress.stampedAt && has('VAN_THU', 'THV') ? (
+        <form className="form" onSubmit={uploadScan}>
+          <label>
+            Bản scan cuối (PDF, tối đa 25 MB)
+            <input name="scan" type="file" accept="application/pdf" required />
+          </label>
+          <button type="submit" className="primary" disabled={busy}>
+            Tải bản scan cuối
+          </button>
+        </form>
+      ) : null}
+      {!progress.hasFinalScan && !finished && !progress.stampedAt ? (
+        <p className="muted">Bản scan cuối tải lên được sau khi xác nhận đã đóng dấu.</p>
       ) : null}
       {finished ? null : (
         <div className="stack">
