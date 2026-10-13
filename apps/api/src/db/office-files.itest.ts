@@ -436,7 +436,7 @@ describe.skipIf(!ADMIN_URL)(
       const list = async (u: string) =>
         (await api('GET', `/office/members?officeId=${OFF}`, u)).json as unknown as {
           userId: string;
-          role: string;
+          role: string | null;
           branches: string[];
           legalSigner: boolean;
         }[];

@@ -5,6 +5,8 @@ import { AssignThv } from '../components/AssignThv';
 import { AssignHandler } from '../components/AssignHandler';
 import { CorrespondenceActions } from '../components/CorrespondenceActions';
 import { AdjustBatchForm, NewItemForm, StockMovementForm } from '../components/StockForms';
+import { AccessRequestActions } from '../components/AccessRequestActions';
+import { AccessRequestForm } from '../components/AccessRequestForm';
 import { ReportExport } from '../components/ReportExport';
 import { reportStatusLabel } from '../lib/messages';
 import { ApprovalActions } from '../components/ApprovalActions';
@@ -938,5 +940,70 @@ describe('Report helpers', () => {
       '﻿"Nghiệp vụ","Số lượng"\r\n"Vi ""bằng""","3"',
     );
     vi.unstubAllGlobals();
+  });
+});
+
+describe('Access requests', () => {
+  const branches = [{ id: 'b1', name: 'CN1', officeId: 'o1' }] as never;
+  const people = [{ userId: 'u1', label: 'a@example.test' }];
+
+  it('proposes a role grant and a branch grant with the right payload', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'r1' }));
+    render(<AccessRequestForm officeId="o1" people={people} branches={branches} />);
+    fireEvent.change(screen.getByLabelText('Vai trò'), { target: { value: 'KE_TOAN' } });
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'nhân sự mới' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi đề xuất' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/admin/access-requests');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      officeId: 'o1',
+      targetUserId: 'u1',
+      kind: 'GRANT_ROLE',
+      reason: 'nhân sự mới',
+      role: 'KE_TOAN',
+    });
+    fireEvent.change(screen.getByLabelText('Nội dung'), { target: { value: 'GRANT_BRANCH' } });
+    expect(screen.queryByLabelText('Vai trò')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'cấp CN1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi đề xuất' }));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+    expect(JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string)).toMatchObject({
+      kind: 'GRANT_BRANCH',
+      branchId: 'b1',
+    });
+  });
+
+  it('shows the separate-approver error and requires a note to reject', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(403, { code: 'SEPARATE_APPROVER_REQUIRED' }));
+    render(<AccessRequestActions id="r1" roles={['TRUONG_VP']} />);
+    expect(screen.queryByRole('button', { name: 'Rút đề xuất' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Từ chối' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Cần nhập lý do.');
+    expect(spy).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Duyệt' }));
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe('Người duyệt phải khác người đề xuất.'),
+    );
+    expect(spy.mock.calls[0]![0]).toBe('/api/admin/access-requests/r1/decision');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      approve: true,
+    });
+  });
+
+  it('lets an Admin withdraw and hides actions from other roles', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: null }));
+    const { unmount } = render(<AccessRequestActions id="r1" roles={['THU_KY']} />);
+    expect(screen.queryByRole('button')).toBeNull();
+    unmount();
+    render(<AccessRequestActions id="r1" roles={['ADMIN']} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Rút đề xuất' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/admin/access-requests/r1/withdrawal');
   });
 });

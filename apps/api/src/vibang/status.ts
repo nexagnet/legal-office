@@ -11,6 +11,7 @@ const FORBIDDEN = new Set([
   'NOT_ASSIGNED_HANDLER',
   'SEPARATE_REVIEWER_REQUIRED',
   'PROPOSER_ONLY',
+  'HEAD_ONLY',
 ]);
 const NOT_FOUND = new Set([
   'CASE_NOT_FOUND',
@@ -82,6 +83,9 @@ const INVALID = new Set([
   'INVALID_FIELD',
   'INVALID_VALUE',
   'NOTHING_TO_CHANGE',
+  'INVALID_REQUEST',
+  'SIGNER_ROLE_INVALID',
+  'BRANCH_ROLE_INVALID',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */
