@@ -4,6 +4,7 @@ import { LoginForm } from '../components/LoginForm';
 import { AssignThv } from '../components/AssignThv';
 import { AssignHandler } from '../components/AssignHandler';
 import { CorrespondenceActions } from '../components/CorrespondenceActions';
+import { AdjustBatchForm, NewItemForm, StockMovementForm } from '../components/StockForms';
 import { NewDecisionForm } from '../components/NewDecisionForm';
 import { NewCorrespondenceForm } from '../components/NewCorrespondenceForm';
 import { CaseSteps } from '../components/CaseSteps';
@@ -748,5 +749,67 @@ describe('NewDecisionForm', () => {
   it('explains when nobody holds signing authority', () => {
     render(<NewDecisionForm branches={branches} signers={[]} />);
     expect(screen.getByText(/Chưa có người được cấp quyền ký/)).toBeTruthy();
+  });
+});
+
+describe('Stock forms', () => {
+  const branches = [{ id: 'b1', name: 'CN1', officeId: 'o1' }] as never;
+  const items = [{ itemId: 'i1', name: 'Giấy A4' }];
+
+  it('adds an item', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'i1' }));
+    render(<NewItemForm officeId="o1" />);
+    fireEvent.change(screen.getByLabelText('Tên vật tư'), { target: { value: 'Giấy A4' } });
+    fireEvent.change(screen.getByLabelText('Đơn vị tính'), { target: { value: 'ram' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Thêm' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/office/items');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      officeId: 'o1',
+      name: 'Giấy A4',
+      unit: 'ram',
+    });
+  });
+
+  it('receives then issues with the right payload and shows stock errors', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'b1' }))
+      .mockImplementationOnce(() => reply(409, { code: 'INSUFFICIENT_STOCK' }));
+    render(<StockMovementForm items={items} branches={branches} />);
+    fireEvent.change(screen.getByLabelText('Số lượng'), { target: { value: '5' } });
+    fireEvent.change(screen.getByLabelText('Số phiếu nhập'), { target: { value: 'PN-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Nhập kho' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/office/items/i1/receipts');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      branchId: 'b1',
+      quantity: 5,
+      receiptRef: 'PN-1',
+    });
+    fireEvent.change(screen.getByLabelText('Thao tác'), { target: { value: 'issues' } });
+    fireEvent.change(screen.getByLabelText('Số lượng'), { target: { value: '9' } });
+    fireEvent.change(screen.getByLabelText('Mục đích xuất'), { target: { value: 'Dùng' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Xuất kho' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Tồn kho không đủ để xuất.');
+    expect(spy.mock.calls[1]![0]).toBe('/api/office/items/i1/issues');
+  });
+
+  it('adjusts a batch with a reason', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: '-1' }));
+    render(<AdjustBatchForm batchId="bt1" remaining={4} received={10} />);
+    fireEvent.change(screen.getByLabelText('Số còn lại mới'), { target: { value: '3' } });
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Kiểm kê' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kiểm kê' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/office/batches/bt1/adjustment');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      newRemaining: 3,
+      reason: 'Kiểm kê',
+    });
   });
 });

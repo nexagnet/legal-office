@@ -404,6 +404,56 @@ export class OfficeController {
     return this.run(a, 'of_tt06_download', [b.officeId, code]);
   }
 
+  @Get('stock')
+  async stock(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{
+      item_id: string;
+      name: string;
+      unit: string;
+      branch_id: string | null;
+      branch_name: string | null;
+      on_hand: number | null;
+      batches: number | null;
+    }>(a, 'of_search_stock', [officeId]);
+    return rows.map((r) => ({
+      itemId: r.item_id,
+      name: r.name,
+      unit: r.unit,
+      branchId: r.branch_id,
+      branchName: r.branch_name,
+      onHand: r.on_hand,
+      batches: r.batches,
+    }));
+  }
+
+  @Get('batches')
+  async batches(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{
+      batch_id: string;
+      item_name: string;
+      branch_id: string;
+      receipt_ref: string;
+      qty_received: number;
+      qty_remaining: number;
+      received_at: Date;
+    }>(a, 'of_search_batches', [officeId]);
+    return rows.map((r) => ({
+      batchId: r.batch_id,
+      itemName: r.item_name,
+      branchId: r.branch_id,
+      receiptRef: r.receipt_ref,
+      qtyReceived: r.qty_received,
+      qtyRemaining: r.qty_remaining,
+      receivedAt: r.received_at,
+    }));
+  }
+
   @Post('items')
   @HttpCode(HttpStatus.OK)
   addItem(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {

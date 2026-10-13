@@ -66,3 +66,7 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 
 - `GET /office/signers?officeId` liệt kê người có quyền ký pháp lý (Admin/Trưởng VP có `legal_signer`) để chọn người ký; chỉ trả cho thành viên Admin, Trưởng VP, Thư ký, Văn thư của văn phòng.
 - `POST /office/decision-files` vào sổ một quyết định kèm bản đã ký (PDF/JPEG/PNG ≤25 MB); các trường đi theo query, máy chủ tự tính hash và khoá `t/<tenant>/of/decisions/…`. Từ chối (trùng số, người ký không có quyền…) thì không để lại tệp.
+
+## Vật tư (đọc tồn kho)
+
+`GET /office/stock?officeId` và `GET /office/batches?officeId` đọc tồn và lô còn hàng qua `of_search_stock`/`of_search_batches` (migration 0019). Phạm vi đọc như công văn: Admin/Trưởng VP/Thư ký thấy cả văn phòng, Văn thư/Kế toán thấy chi nhánh được cấp, THV không thấy dòng tồn. Màn hình `/vat-tu` có bảng tồn, thêm vật tư, nhập/xuất FIFO và kiểm kê lô (Admin/Trưởng VP). Menu hiện mục Vật tư thêm cho Văn thư vì DB cho phép nhập/xuất.
