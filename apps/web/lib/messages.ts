@@ -49,6 +49,13 @@ const MESSAGES: Record<string, string> = {
   INVALID_DOCUMENT: 'Tệp không hợp lệ hoặc sai định dạng cho phép.',
   FILE_TOO_LARGE: 'Tệp quá lớn (tối đa 25 MB).',
   FILE_STORE_NOT_CONFIGURED: 'Hệ thống chưa cấu hình kho lưu tệp. Liên hệ quản trị.',
+  SOURCE_REQUIRED: 'Vòng này chưa có nguồn kèm tệp, chưa hoàn thành được.',
+  RESULT_REQUIRED: 'Cần nhập kết quả của vòng.',
+  ROUND_NOT_OPEN: 'Vòng xác minh này không còn đang thực hiện.',
+  INVALID_SOURCE: 'Thông tin nguồn chưa hợp lệ.',
+  OBLIGATIONS_NOT_COMPLETE: 'Còn nghĩa vụ chưa hoàn tất, chưa hoàn tất hồ sơ được.',
+  EVIDENCE_REQUIRED: 'Cần đính kèm tệp bằng chứng.',
+  INVALID_EVIDENCE: 'Tệp bằng chứng không hợp lệ.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
@@ -89,6 +96,15 @@ export const VERIFICATION_STATUS_LABEL: Record<string, string> = {
   OPEN: 'Đang xác minh',
   CONCLUSION_PROPOSED: 'Chờ quyết định kết luận',
   CONCLUDED: 'Đã kết luận',
+};
+export const SOURCE_CONFIDENTIALITY_LABEL: Record<string, string> = {
+  PUBLIC: 'Công khai',
+  CONFIDENTIAL: 'Mật',
+  PII: 'Có dữ liệu cá nhân',
+};
+export const RESULT_KIND_LABEL: Record<string, string> = {
+  PARTIAL_RESULT: 'Kết quả một phần',
+  COMPLETION: 'Hoàn tất nghĩa vụ',
 };
 export const ROUND_STATUS_LABEL: Record<string, string> = {
   IN_PROGRESS: 'Đang thực hiện',

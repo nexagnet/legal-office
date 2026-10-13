@@ -31,6 +31,20 @@ ghi tệp rồi gọi `td_record_attempt(SERVED, ...)`; DB từ chối (không p
 **Giả định cần xác nhận:** định dạng bằng chứng cho phép (PDF/JPEG/PNG) là lựa chọn kỹ thuật của tôi vì chưa có quy định nghiệp vụ.
 Đường cũ `documents/:id/attempts` vẫn nhận `evidenceKey` do client gửi (dùng cho các kết quả không thành công); chỉ `served` đi qua kho tệp.
 
+## Xác minh và thi hành án
+
+Cùng bộ nhận tệp và cùng quy tắc dọn tệp mồ côi (`storage/evidence.ts`, PDF/JPEG/PNG, tối đa 25 MB):
+
+| Đường | Ghi vào | Hàm DB quyết định |
+|---|---|---|
+| `POST /verification/rounds/:id/source-files?kind&confidentiality&purpose` | `vx_sources` | `vx_add_source` (THV phụ trách, Admin, Trưởng VP) |
+| `POST /enforcement-cases/obligations/:id/event-files?kind&note&idempotencyKey` | `th_obligation_events` | `th_record_event` (THV phụ trách, Admin, Trưởng VP) |
+| `POST /enforcement-cases/:id/completion-file` | `th_cases.completion_evidence_*` | `th_complete_case` (chỉ Admin, Trưởng VP; mọi nghĩa vụ đã hoàn tất) |
+
+Mô tả (loại nguồn, mục đích, ghi chú) đi theo query vì thân yêu cầu là chính tệp. Hoàn thành vòng xác minh vẫn dùng
+`rounds/:id/completion` (cần đã có ít nhất một nguồn). Ghi lại kết quả với cùng `idempotencyKey` vẫn trả thành công
+và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị bỏ lại trong kho (tệp mồ côi nhỏ, chưa có việc dọn định kỳ).
+
 ## Giới hạn đã biết (chưa làm)
 
 - **Chưa có tải xuống/xem tệp**: cần hàm đọc có kiểm tra quyền theo phạm vi ghi trước, không mở đường đọc không có kiểm soát.

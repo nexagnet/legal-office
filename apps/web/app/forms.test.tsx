@@ -377,7 +377,7 @@ describe('Verification', () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(409, { code: 'ROUNDS_INCOMPLETE' }));
-    const { unmount } = render(<VerificationActions caseId="c1" status="OPEN" />);
+    const { unmount } = render(<VerificationActions caseId="c1" status="OPEN" rounds={[]} />);
     expect(screen.queryByRole('button', { name: 'Chấp nhận kết luận' })).toBeNull();
     fireEvent.change(screen.getByLabelText('Đề xuất kết luận'), {
       target: { value: 'Đủ điều kiện' },
@@ -388,7 +388,7 @@ describe('Verification', () => {
     );
     expect(spy.mock.calls[0]![0]).toBe('/api/verification/cases/c1/conclusion-proposal');
     unmount();
-    render(<VerificationActions caseId="c1" status="CONCLUSION_PROPOSED" />);
+    render(<VerificationActions caseId="c1" status="CONCLUSION_PROPOSED" rounds={[]} />);
     expect(screen.queryByRole('button', { name: 'Bắt đầu vòng xác minh' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Trả về để xác minh tiếp' }));
     await waitFor(() => expect(spy.mock.calls.length).toBe(2));
@@ -398,7 +398,7 @@ describe('Verification', () => {
   });
 
   it('shows no actions for a concluded case', () => {
-    render(<VerificationActions caseId="c1" status="CONCLUDED" />);
+    render(<VerificationActions caseId="c1" status="CONCLUDED" rounds={[]} />);
     expect(screen.queryByRole('button')).toBeNull();
   });
 });
@@ -475,5 +475,87 @@ describe('Enforcement', () => {
     unmount();
     render(<EnforcementActions caseId="c1" status="COMPLETED" obligations={[]} />);
     expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe('Evidence uploads', () => {
+  const file = new File(['x'], 'bang-chung.png', { type: 'image/png' });
+  // jsdom không phản ánh `files` gán bằng fireEvent vào kiểm tra `required`, nên gửi form trực tiếp.
+  const submit = (name: string) =>
+    fireEvent.submit(screen.getByRole('button', { name }).closest('form')!);
+
+  it('verification: records a source file for the chosen round, then completes the round', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    const rounds = [
+      { id: 'r1', seq: 1, partyName: 'Bên A', status: 'COMPLETED' },
+      { id: 'r2', seq: 2, partyName: 'Bên B', status: 'IN_PROGRESS' },
+    ];
+    render(<VerificationActions caseId="c1" status="OPEN" rounds={rounds} />);
+    fireEvent.change(screen.getByLabelText('Loại nguồn'), { target: { value: 'Biên bản' } });
+    fireEvent.change(screen.getByLabelText('Mục đích sử dụng'), { target: { value: 'Đối chiếu' } });
+    fireEvent.change(screen.getByLabelText(/Tệp nguồn/), { target: { files: [file] } });
+    submit('Ghi nguồn kèm tệp');
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(String(url).startsWith('/api/verification/rounds/r2/source-files?')).toBe(true);
+    expect(new URL(String(url), 'http://x').searchParams.get('confidentiality')).toBe(
+      'CONFIDENTIAL',
+    );
+    expect((init as RequestInit).body).toBe(file);
+
+    fireEvent.change(screen.getByLabelText('Kết quả của vòng'), {
+      target: { value: 'Đã đối chiếu' },
+    });
+    submit('Hoàn thành vòng');
+    await waitFor(() => expect(spy.mock.calls.length).toBe(2));
+    expect(spy.mock.calls[1]![0]).toBe('/api/verification/rounds/r2/completion');
+    expect(JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string)).toEqual({
+      result: 'Đã đối chiếu',
+    });
+  });
+
+  it('verification: offers no round actions when every round is done', () => {
+    const rounds = [{ id: 'r1', seq: 1, partyName: 'Bên A', status: 'COMPLETED' }];
+    render(<VerificationActions caseId="c1" status="OPEN" rounds={rounds} />);
+    expect(screen.queryByRole('button', { name: 'Hoàn thành vòng' })).toBeNull();
+  });
+
+  it('enforcement: sends a result with its file and an idempotency key', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(
+      <EnforcementActions
+        caseId="c1"
+        status="OPEN"
+        obligations={[{ id: 'o1', seq: 1, description: 'Trả tiền' }]}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Nội dung kết quả'), { target: { value: 'Đã thu' } });
+    fireEvent.change(screen.getByLabelText(/Tệp chứng cứ \(PDF/), { target: { files: [file] } });
+    submit('Ghi kết quả kèm chứng cứ');
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    const u = new URL(String(url), 'http://x');
+    expect(u.pathname).toBe('/api/enforcement-cases/obligations/o1/event-files');
+    expect(u.searchParams.get('kind')).toBe('PARTIAL_RESULT');
+    expect(u.searchParams.get('note')).toBe('Đã thu');
+    expect(u.searchParams.get('idempotencyKey')).toBeTruthy();
+    expect((init as RequestInit).body).toBe(file);
+  });
+
+  it('enforcement: completes the case with a file and explains a refusal', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(409, { code: 'OBLIGATIONS_NOT_COMPLETE' }));
+    render(<EnforcementActions caseId="c1" status="OPEN" obligations={[]} />);
+    fireEvent.change(screen.getByLabelText(/Tệp chứng cứ hoàn tất/), { target: { files: [file] } });
+    submit('Hoàn tất hồ sơ');
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Còn nghĩa vụ chưa hoàn tất, chưa hoàn tất hồ sơ được.',
+    );
+    expect(spy.mock.calls[0]![0]).toBe('/api/enforcement-cases/c1/completion-file');
   });
 });

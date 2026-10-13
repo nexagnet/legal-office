@@ -1,21 +1,29 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
   Inject,
+  Optional,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { recordWithUpload } from '../storage/evidence';
+import { FILE_STORE, type FileStore } from '../storage/file-store';
+import type { RawBody } from '../storage/upload';
 import { statusFor } from '../vibang/status';
 import { VibangRepo, type Op } from '../vibang/vibang.repo';
 
@@ -49,7 +57,10 @@ function respond(op: Op): Reply {
 @Controller('enforcement-cases')
 @UseGuards(ActorGuard)
 export class EnforcementCaseController {
-  constructor(@Inject(VibangRepo) private readonly repo: VibangRepo) {}
+  constructor(
+    @Inject(VibangRepo) private readonly repo: VibangRepo,
+    @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
+  ) {}
 
   private run(actor: AuthenticatedActor, fn: string, args: readonly unknown[]): Promise<Reply> {
     return this.repo
@@ -190,5 +201,53 @@ export class EnforcementCaseController {
       body,
     );
     return this.run(a, 'th_complete_case', [id, b.evidenceKey, b.evidenceSha256]);
+  }
+
+  /** Ghi kết quả thực hiện kèm tệp chứng cứ (PDF/JPEG/PNG); ghi chú và khoá chống trùng đi theo query. */
+  @Post('obligations/:id/event-files')
+  @HttpCode(HttpStatus.OK)
+  recordEventFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z
+        .object({
+          kind: z.string(),
+          note: z.string().max(4000),
+          idempotencyKey: z.string().max(200),
+        })
+        .strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/th/obligations/${id}/events/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.run(a, 'th_record_event', [id, q.kind, q.note, key, f.sha256, q.idempotencyKey]),
+    );
+  }
+
+  /** Hoàn tất hồ sơ thi hành án kèm tệp chứng cứ hoàn tất. */
+  @Post(':id/completion-file')
+  @HttpCode(HttpStatus.OK)
+  completeWithFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/th/cases/${id}/completion/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'th_complete_case', [id, key, f.sha256]),
+    );
   }
 }

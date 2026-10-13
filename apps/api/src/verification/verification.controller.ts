@@ -1,21 +1,29 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
   Inject,
+  Optional,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { recordWithUpload } from '../storage/evidence';
+import { FILE_STORE, type FileStore } from '../storage/file-store';
+import type { RawBody } from '../storage/upload';
 import { statusFor } from '../vibang/status';
 import { VibangRepo, type Op } from '../vibang/vibang.repo';
 
@@ -50,7 +58,10 @@ function respond(op: Op): Reply {
 @Controller('verification')
 @UseGuards(ActorGuard)
 export class VerificationController {
-  constructor(@Inject(VibangRepo) private readonly repo: VibangRepo) {}
+  constructor(
+    @Inject(VibangRepo) private readonly repo: VibangRepo,
+    @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
+  ) {}
 
   private run(actor: AuthenticatedActor, fn: string, args: readonly unknown[]): Promise<Reply> {
     return this.repo
@@ -143,6 +154,38 @@ export class VerificationController {
       b.evidenceKey,
       b.evidenceSha256,
     ]);
+  }
+
+  /**
+   * Ghi nguồn kèm tệp (PDF/JPEG/PNG): thân yêu cầu là chính tệp, mô tả nguồn đi theo query. Máy chủ tự tính hash và khoá.
+   */
+  @Post('rounds/:id/source-files')
+  @HttpCode(HttpStatus.OK)
+  addSourceFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z
+        .object({
+          kind: z.string().max(200),
+          confidentiality: z.string(),
+          purpose: z.string().max(500),
+        })
+        .strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/vx/rounds/${id}/sources/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.run(a, 'vx_add_source', [id, q.kind, q.confidentiality, q.purpose, key, f.sha256]),
+    );
   }
 
   @Post('sources/:id/access')

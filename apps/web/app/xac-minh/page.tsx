@@ -101,7 +101,7 @@ export default async function VerificationPage() {
                     )}
                   </td>
                   <td>
-                    <VerificationActions caseId={c.caseId} status={c.status} />
+                    <VerificationActions caseId={c.caseId} status={c.status} rounds={c.rounds} />
                   </td>
                 </tr>
               ))}

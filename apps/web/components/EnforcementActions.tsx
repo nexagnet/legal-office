@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
-import { PARTY_KIND_LABEL, PARTY_ROLE_LABEL, messageFor } from '../lib/messages';
+import { PARTY_KIND_LABEL, PARTY_ROLE_LABEL, RESULT_KIND_LABEL, messageFor } from '../lib/messages';
+import { pickedFile, postFile } from '../lib/upload';
 
 interface Props {
   readonly caseId: string;
@@ -25,8 +26,8 @@ async function post(path: string, body: unknown) {
 }
 
 /**
- * Thêm đương sự, thêm nghĩa vụ và ghi chú diễn biến cho nghĩa vụ. Ghi kết quả có bằng chứng và hoàn tất hồ sơ cần tệp
- * nên chưa có trên giao diện (chờ kho tệp). Mỗi ghi chú mang khoá chống trùng riêng để bấm lại không tạo bản sao.
+ * Thêm đương sự, nghĩa vụ, ghi chú diễn biến, ghi kết quả kèm tệp chứng cứ và hoàn tất hồ sơ (Admin/Trưởng VP, kèm tệp).
+ * Mỗi lần ghi mang khoá chống trùng riêng để bấm lại không tạo bản sao.
  */
 export function EnforcementActions({ caseId, status, obligations }: Props) {
   const router = useRouter();
@@ -158,6 +159,86 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
           </button>
         </form>
       ) : null}
+      {obligations.length > 0 ? (
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const file = pickedFile(form, 'file');
+            if (!file) return setError(messageFor('INVALID_DOCUMENT'));
+            const f = new FormData(form);
+            void run(
+              () =>
+                postFile(
+                  `enforcement-cases/obligations/${String(f.get('obligationId'))}/event-files`,
+                  file,
+                  {
+                    kind: String(f.get('kind')),
+                    note: String(f.get('note') ?? ''),
+                    idempotencyKey: crypto.randomUUID(),
+                  },
+                ),
+              form,
+            );
+          }}
+        >
+          <label>
+            Nghĩa vụ có kết quả
+            <select name="obligationId" defaultValue={obligations[0]?.id}>
+              {obligations.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.seq}. {o.description}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Loại kết quả
+            <select name="kind" defaultValue="PARTIAL_RESULT">
+              {Object.entries(RESULT_KIND_LABEL).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Nội dung kết quả
+            <input name="note" required maxLength={4000} />
+          </label>
+          <label>
+            Tệp chứng cứ (PDF, JPEG, PNG; tối đa 25 MB)
+            <input name="file" type="file" accept="application/pdf,image/jpeg,image/png" required />
+          </label>
+          <button type="submit" disabled={busy}>
+            Ghi kết quả kèm chứng cứ
+          </button>
+        </form>
+      ) : null}
+      <form
+        className="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const form = e.currentTarget;
+          const file = pickedFile(form, 'completion');
+          if (!file) return setError(messageFor('INVALID_DOCUMENT'));
+          void run(() => postFile(`enforcement-cases/${caseId}/completion-file`, file));
+        }}
+      >
+        <label>
+          Tệp chứng cứ hoàn tất hồ sơ (PDF, JPEG, PNG; tối đa 25 MB)
+          <input
+            name="completion"
+            type="file"
+            accept="application/pdf,image/jpeg,image/png"
+            required
+          />
+        </label>
+        <button type="submit" disabled={busy}>
+          Hoàn tất hồ sơ
+        </button>
+      </form>
       <p role="alert" className="error" hidden={!error}>
         {error}
       </p>

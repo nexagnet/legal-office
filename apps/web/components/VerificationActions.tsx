@@ -2,11 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
-import { messageFor } from '../lib/messages';
+import { SOURCE_CONFIDENTIALITY_LABEL, messageFor } from '../lib/messages';
+import { pickedFile, postFile } from '../lib/upload';
 
 interface Props {
   readonly caseId: string;
   readonly status: string;
+  readonly rounds: readonly {
+    readonly id: string;
+    readonly seq: number;
+    readonly partyName: string;
+    readonly status: string;
+  }[];
 }
 
 async function post(path: string, body: unknown) {
@@ -21,9 +28,9 @@ async function post(path: string, body: unknown) {
 
 /**
  * Thao tác trên một hồ sơ xác minh: bắt đầu vòng, đề xuất kết luận (THV), quyết định kết luận (Admin/Trưởng VP có quyền ký,
- * khác người đề xuất). Hoàn thành vòng cần nguồn kèm tệp bằng chứng nên chưa có trên giao diện (chờ kho tệp).
+ * khác người đề xuất). Mỗi vòng cần ít nhất một nguồn kèm tệp (PDF/JPEG/PNG) trước khi hoàn thành.
  */
-export function VerificationActions({ caseId, status }: Props) {
+export function VerificationActions({ caseId, status, rounds }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -42,6 +49,7 @@ export function VerificationActions({ caseId, status }: Props) {
       setBusy(false);
     }
   }
+  const open = rounds.filter((r) => r.status === 'IN_PROGRESS');
   const value = (e: FormEvent<HTMLFormElement>, name: string) => {
     e.preventDefault();
     return String(new FormData(e.currentTarget).get(name) ?? '');
@@ -66,6 +74,80 @@ export function VerificationActions({ caseId, status }: Props) {
               Bắt đầu vòng xác minh
             </button>
           </form>
+          {open.length > 0 ? (
+            <>
+              <form
+                className="form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const file = pickedFile(form, 'file');
+                  if (!file) return setError(messageFor('INVALID_DOCUMENT'));
+                  const f = new FormData(form);
+                  void run(() =>
+                    postFile(`verification/rounds/${String(f.get('roundId'))}/source-files`, file, {
+                      kind: String(f.get('kind') ?? ''),
+                      confidentiality: String(f.get('confidentiality')),
+                      purpose: String(f.get('purpose') ?? ''),
+                    }),
+                  );
+                }}
+              >
+                <RoundSelect rounds={open} />
+                <label>
+                  Loại nguồn
+                  <input name="kind" required maxLength={200} />
+                </label>
+                <label>
+                  Mức bảo mật
+                  <select name="confidentiality" defaultValue="CONFIDENTIAL">
+                    {Object.entries(SOURCE_CONFIDENTIALITY_LABEL).map(([k, v]) => (
+                      <option key={k} value={k}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Mục đích sử dụng
+                  <input name="purpose" required maxLength={500} />
+                </label>
+                <label>
+                  Tệp nguồn (PDF, JPEG, PNG; tối đa 25 MB)
+                  <input
+                    name="file"
+                    type="file"
+                    accept="application/pdf,image/jpeg,image/png"
+                    required
+                  />
+                </label>
+                <button type="submit" disabled={busy}>
+                  Ghi nguồn kèm tệp
+                </button>
+              </form>
+              <form
+                className="form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const f = new FormData(e.currentTarget);
+                  void run(() =>
+                    post(`rounds/${String(f.get('roundId'))}/completion`, {
+                      result: String(f.get('result') ?? ''),
+                    }),
+                  );
+                }}
+              >
+                <RoundSelect rounds={open} />
+                <label>
+                  Kết quả của vòng
+                  <textarea name="result" required rows={2} maxLength={4000} />
+                </label>
+                <button type="submit" disabled={busy}>
+                  Hoàn thành vòng
+                </button>
+              </form>
+            </>
+          ) : null}
           <form
             className="form"
             onSubmit={(e) => {
@@ -109,5 +191,20 @@ export function VerificationActions({ caseId, status }: Props) {
         {error}
       </p>
     </div>
+  );
+}
+
+function RoundSelect({ rounds }: { readonly rounds: Props['rounds'] }) {
+  return (
+    <label>
+      Vòng xác minh
+      <select name="roundId" defaultValue={rounds[0]?.id}>
+        {rounds.map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.seq}. {r.partyName}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
