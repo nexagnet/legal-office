@@ -336,6 +336,24 @@ describe('Service of documents', () => {
     render(<ServiceRowActions documentId="d1" status="DELIVERED" />);
     expect(screen.queryByRole('button')).toBeNull();
   });
+
+  it('sends the evidence file as the raw body with its own content type', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(<ServiceRowActions documentId="d1" status="ASSIGNED" />);
+    const file = new File(['x'], 'bien-ban.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText(/Bằng chứng đã tống đạt/), {
+      target: { files: [file] },
+    });
+    // jsdom không phản ánh `files` gán bằng fireEvent vào kiểm tra `required`, nên gửi form trực tiếp.
+    fireEvent.submit(screen.getByRole('button', { name: 'Ghi nhận đã tống đạt' }).closest('form')!);
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/service-of-documents/documents/d1/served');
+    expect((init as RequestInit).headers).toEqual({ 'content-type': 'image/png' });
+    expect((init as RequestInit).body).toBe(file);
+  });
 });
 
 describe('Verification', () => {

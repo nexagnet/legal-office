@@ -1,21 +1,27 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
   Inject,
+  Optional,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { FILE_STORE, type FileStore } from '../storage/file-store';
+import { receiveFile, type RawBody } from '../storage/upload';
 import { statusFor } from '../vibang/status';
 import { VibangRepo, type Op } from '../vibang/vibang.repo';
 
@@ -50,7 +56,10 @@ function respond(op: Op): Reply {
 @Controller('service-of-documents')
 @UseGuards(ActorGuard)
 export class ServiceOfDocumentsController {
-  constructor(@Inject(VibangRepo) private readonly repo: VibangRepo) {}
+  constructor(
+    @Inject(VibangRepo) private readonly repo: VibangRepo,
+    @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
+  ) {}
 
   private run(actor: AuthenticatedActor, fn: string, args: readonly unknown[]): Promise<Reply> {
     return this.repo
@@ -165,6 +174,39 @@ export class ServiceOfDocumentsController {
       b.evidenceSha256 ?? null,
       b.statutoryRef ?? null,
     ]);
+  }
+
+  /**
+   * Ghi nhận ĐÃ TỐNG ĐẠT kèm tệp bằng chứng N-02 (PDF/JPEG/PNG, thân yêu cầu là chính tệp). Máy chủ tự tính
+   * sha256 và khoá đối tượng. Quyền và điều kiện do `td_record_attempt` quyết định; bị từ chối thì xoá tệp vừa ghi.
+   */
+  @Post('documents/:id/served')
+  @HttpCode(HttpStatus.OK)
+  async recordServed(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ): Promise<Reply> {
+    if (!this.store)
+      throw new HttpException(
+        { code: 'FILE_STORE_NOT_CONFIGURED', label: null },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    const file = await receiveFile(req, contentType, contentLength, [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+    ]);
+    const key = `t/${a.tenantId}/td/${id}/evidence/${randomUUID()}.${file.extension}`;
+    await this.store.put(key, file.bytes, file.mime);
+    try {
+      return await this.run(a, 'td_record_attempt', [id, 'SERVED', key, file.sha256, null]);
+    } catch (e) {
+      await this.store.delete(key).catch(() => undefined);
+      throw e;
+    }
   }
 
   @Post('documents/:id/undeliverable')

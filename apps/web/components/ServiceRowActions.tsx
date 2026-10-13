@@ -21,7 +21,7 @@ async function post(path: string, body?: unknown) {
 
 /**
  * Thao tác trên một văn bản: nhắc, ghi nhận lần chưa thành công, đánh dấu không tống đạt được.
- * Ghi nhận "đã tống đạt" cần tệp bằng chứng N-02, chưa làm được trên giao diện vì chưa có kho tệp.
+ * "Đã tống đạt" cần tệp bằng chứng N-02 (PDF/JPEG/PNG): gửi chính tệp, máy chủ tự tính hash và khoá lưu.
  */
 export function ServiceRowActions({ documentId, status }: Props) {
   const router = useRouter();
@@ -48,6 +48,21 @@ export function ServiceRowActions({ documentId, status }: Props) {
     e.preventDefault();
     const outcome = String(new FormData(e.currentTarget).get('outcome'));
     void run(() => post(`documents/${documentId}/attempts`, { outcome }));
+  }
+  function served(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const input = e.currentTarget.elements.namedItem('evidence') as HTMLInputElement | null;
+    const file = input?.files?.[0];
+    if (!file || file.size === 0) return setError(messageFor('INVALID_DOCUMENT'));
+    void run(async () => {
+      const res = await fetch(`/api/service-of-documents/documents/${documentId}/served`, {
+        method: 'POST',
+        headers: { 'content-type': file.type },
+        body: file,
+      });
+      const json = (await res.json().catch(() => ({}))) as { code?: string };
+      return { ok: res.ok, code: json.code };
+    });
   }
   function undeliverable(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -77,6 +92,20 @@ export function ServiceRowActions({ documentId, status }: Props) {
         </label>
         <button type="submit" disabled={busy}>
           Ghi nhận lần tống đạt
+        </button>
+      </form>
+      <form className="form" onSubmit={served}>
+        <label>
+          Bằng chứng đã tống đạt (PDF, JPEG, PNG; tối đa 25 MB)
+          <input
+            name="evidence"
+            type="file"
+            accept="application/pdf,image/jpeg,image/png"
+            required
+          />
+        </label>
+        <button type="submit" disabled={busy}>
+          Ghi nhận đã tống đạt
         </button>
       </form>
       <form className="form" onSubmit={undeliverable}>

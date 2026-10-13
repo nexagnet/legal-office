@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import {
   Controller,
   Headers,
@@ -16,35 +16,9 @@ import {
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
+import { receiveFile, type RawBody } from '../storage/upload';
 import { respond, type Reply } from './vibang.controller';
 import { VibangRepo } from './vibang.repo';
-
-/** Bản scan cuối giấy thường vài MB; 25 MB đủ cho bản scan nhiều trang và chặn tải khổng lồ. */
-export const MAX_SCAN_BYTES = 25 * 1024 * 1024;
-const PDF_MAGIC = Buffer.from('%PDF-');
-
-/** Phần của Express request mà ta dùng: một luồng byte. Không kéo kiểu Express vào chỉ vì một luồng. */
-interface RawBody {
-  [Symbol.asyncIterator](): AsyncIterator<Buffer | string>;
-}
-
-async function readCapped(req: RawBody, declared: number | undefined): Promise<Buffer> {
-  if (declared !== undefined && declared > MAX_SCAN_BYTES)
-    throw new HttpException({ code: 'FILE_TOO_LARGE', label: null }, HttpStatus.PAYLOAD_TOO_LARGE);
-  const chunks: Buffer[] = [];
-  let total = 0;
-  for await (const chunk of req) {
-    const buf = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
-    total += buf.length;
-    if (total > MAX_SCAN_BYTES)
-      throw new HttpException(
-        { code: 'FILE_TOO_LARGE', label: null },
-        HttpStatus.PAYLOAD_TOO_LARGE,
-      );
-    chunks.push(buf);
-  }
-  return Buffer.concat(chunks);
-}
 
 @Controller('vibang')
 @UseGuards(ActorGuard)
@@ -73,22 +47,9 @@ export class VibangFilesController {
         { code: 'FILE_STORE_NOT_CONFIGURED', label: null },
         HttpStatus.SERVICE_UNAVAILABLE,
       );
-    if (contentType?.split(';')[0]?.trim().toLowerCase() !== 'application/pdf')
-      throw new HttpException(
-        { code: 'INVALID_DOCUMENT', label: null },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    const declared =
-      contentLength && /^\d+$/.test(contentLength) ? Number(contentLength) : undefined;
-    const bytes = await readCapped(req, declared);
-    if (bytes.length === 0 || !bytes.subarray(0, PDF_MAGIC.length).equals(PDF_MAGIC))
-      throw new HttpException(
-        { code: 'INVALID_DOCUMENT', label: null },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    const sha256 = createHash('sha256').update(bytes).digest('hex');
-    const key = `t/${a.tenantId}/vibang/${id}/final-scan/${randomUUID()}.pdf`;
-    await this.store.put(key, bytes, 'application/pdf');
+    const file = await receiveFile(req, contentType, contentLength, ['application/pdf']);
+    const key = `t/${a.tenantId}/vibang/${id}/final-scan/${randomUUID()}.${file.extension}`;
+    await this.store.put(key, file.bytes, file.mime);
     try {
       const op = await this.repo.call(a.tenantId, 'vibang_add_document', [
         a.tenantId,
@@ -97,9 +58,9 @@ export class VibangFilesController {
         'FINAL_SCAN',
         'UPLOADED',
         key,
-        sha256,
-        'application/pdf',
-        bytes.length,
+        file.sha256,
+        file.mime,
+        file.bytes.length,
       ]);
       return respond(op);
     } catch (e) {
