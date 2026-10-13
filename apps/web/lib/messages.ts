@@ -183,3 +183,40 @@ export const APPROVAL_STATE_LABEL: Record<string, string> = {
   RETURNED: 'Đã trả lại, chờ bổ sung',
   REJECTED: 'Đã từ chối',
 };
+
+export const REPORT_DOMAIN_LABEL: Record<string, string> = {
+  VIBANG: 'Vi bằng',
+  TONG_DAT: 'Tống đạt',
+  XAC_MINH: 'Xác minh',
+  THI_HANH_AN: 'Tổ chức thi hành án',
+};
+export const REPORT_UNIT_LABEL: Record<string, string> = {
+  CASE: 'Hồ sơ',
+  NUMBER: 'Số Vi bằng đã cấp',
+  REQUEST: 'Yêu cầu tống đạt',
+  DOCUMENT: 'Văn bản tống đạt',
+  ROUND: 'Đợt xác minh',
+  OBLIGATION: 'Nghĩa vụ thi hành án',
+};
+const REQUEST_STATUS_LABEL: Record<string, string> = { OPEN: 'Đang mở', CLOSED: 'Đã đóng' };
+
+/** Nhãn trạng thái theo đúng miền và đơn vị đếm; mã lạ giữ nguyên. */
+export function reportStatusLabel(domain: string, unit: string, status: string): string {
+  const map =
+    domain === 'VIBANG' && unit === 'CASE'
+      ? CASE_STATUS_LABEL
+      : domain === 'VIBANG'
+        ? { ALLOCATED: 'Đã cấp' }
+        : domain === 'TONG_DAT' && unit === 'REQUEST'
+          ? REQUEST_STATUS_LABEL
+          : domain === 'TONG_DAT'
+            ? SERVICE_STATUS_LABEL
+            : domain === 'XAC_MINH' && unit === 'ROUND'
+              ? ROUND_STATUS_LABEL
+              : domain === 'XAC_MINH'
+                ? VERIFICATION_STATUS_LABEL
+                : unit === 'OBLIGATION'
+                  ? OBLIGATION_STATUS_LABEL
+                  : ENFORCEMENT_STATUS_LABEL;
+  return map[status] ?? status;
+}

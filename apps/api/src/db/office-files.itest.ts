@@ -355,5 +355,82 @@ describe.skipIf(!ADMIN_URL)(
       expect((await api('GET', `/approvals/pending?officeId=${OFF}`, null)).status).toBe(401);
       expect((await api('GET', '/approvals/pending?officeId=nope', U.admin)).status).toBe(400);
     });
+    it('reports each unit separately, never double counts, and respects the reading scope', async () => {
+      const ok = (r: { status: number }) => expect(r.status).toBe(200);
+      const tha = async (br: string, user: string) =>
+        (
+          await api('POST', '/enforcement-cases', user, {
+            officeId: OFF,
+            branchId: br,
+            caseRef: 'THA/' + id().slice(0, 8),
+            agreementRef: 'HĐ',
+            decisionRef: 'QĐ',
+          })
+        ).json.label as string;
+      const c1 = await tha(BR1, U.clerk1);
+      ok(await api('PUT', `/enforcement-cases/${c1}/handler`, U.admin, { handlerUserId: U.thvA }));
+      for (const d of ['Nghĩa vụ 1', 'Nghĩa vụ 2']) {
+        ok(await api('POST', `/enforcement-cases/${c1}/obligations`, U.thvA, { description: d }));
+      }
+      await tha(BR2, U.clerk2);
+      const req = (
+        await api('POST', '/service-of-documents/requests', U.clerk1, {
+          officeId: OFF,
+          branchId: BR1,
+          requestRef: 'N-01/' + id().slice(0, 8),
+        })
+      ).json.label as string;
+      for (let i = 0; i < 3; i++) {
+        ok(
+          await api('POST', `/service-of-documents/requests/${req}/documents`, U.clerk1, {
+            recipientName: 'Người nhận giả lập',
+            address: 'Địa chỉ giả lập',
+            deadlineAt: '2026-12-01T00:00:00Z',
+          }),
+        );
+      }
+      const vx = (
+        await api('POST', '/verification/cases', U.clerk1, {
+          officeId: OFF,
+          branchId: BR1,
+          caseRef: 'XM/' + id().slice(0, 8),
+        })
+      ).json.label as string;
+      ok(await api('PUT', `/verification/cases/${vx}/handler`, U.admin, { handlerUserId: U.thvA }));
+      for (const p of ['Bên A', 'Bên B']) {
+        ok(await api('POST', `/verification/cases/${vx}/rounds`, U.thvA, { partyName: p }));
+      }
+      const report = async (u: string, extra = '') =>
+        (
+          await api(
+            'GET',
+            `/office/report?officeId=${OFF}&from=2000-01-01&to=2999-12-31${extra}`,
+            u,
+          )
+        ).json as unknown as { domain: string; unit: string; status: string; total: number }[];
+      const pick = (r: { domain: string; unit: string; total: number }[], d: string, u: string) =>
+        r.filter((x) => x.domain === d && x.unit === u).reduce((n, x) => n + x.total, 0);
+      const all = await report(U.admin);
+      expect(pick(all, 'THI_HANH_AN', 'CASE')).toBe(2);
+      expect(pick(all, 'THI_HANH_AN', 'OBLIGATION')).toBe(2);
+      expect(pick(all, 'TONG_DAT', 'REQUEST')).toBe(1);
+      expect(pick(all, 'TONG_DAT', 'DOCUMENT')).toBe(3);
+      expect(pick(all, 'XAC_MINH', 'CASE')).toBe(1);
+      expect(pick(all, 'XAC_MINH', 'ROUND')).toBe(2);
+      expect(pick(await report(U.admin, `&branchId=${BR2}`), 'THI_HANH_AN', 'CASE')).toBe(1);
+      expect(pick(await report(U.clerk1), 'THI_HANH_AN', 'CASE')).toBe(1);
+      expect(pick(await report(U.thvA), 'THI_HANH_AN', 'OBLIGATION')).toBe(2);
+      expect(pick(await report(U.thvB), 'THI_HANH_AN', 'CASE')).toBe(0);
+      expect(await report(U.outsider)).toEqual([]);
+      const future = await api(
+        'GET',
+        `/office/report?officeId=${OFF}&from=2999-01-01&to=2999-12-31`,
+        U.admin,
+      );
+      expect(future.json).toEqual([]);
+      expect(
+        (await api('GET', `/office/report?officeId=${OFF}&from=bad&to=2999-12-31`, U.admin)).status,
+      ).toBe(400);
+    });
   },
 );

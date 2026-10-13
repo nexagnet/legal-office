@@ -475,6 +475,28 @@ export class OfficeController {
     return new StreamableFile(bytes);
   }
 
+  /** Báo cáo tổng hợp theo kỳ (ngày tạo, giờ Việt Nam). Mỗi dòng là một đơn vị đếm riêng; không có số tiền. */
+  @Get('report')
+  async report(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    const rows = await this.read<{ domain: string; unit: string; status: string; total: number }>(
+      a,
+      'of_search_report',
+      [
+        officeId,
+        parse(isoDate, from),
+        parse(isoDate, to),
+        branchId === undefined || branchId === '' ? null : parse(uuid, branchId),
+      ],
+    );
+    return rows.map((r) => ({ domain: r.domain, unit: r.unit, status: r.status, total: r.total }));
+  }
+
   @Get('stock')
   async stock(
     @CurrentActor() a: AuthenticatedActor,
