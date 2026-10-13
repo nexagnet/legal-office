@@ -318,5 +318,35 @@ describe.skipIf(!ADMIN_URL)(
       expect(await batches(U.clerk2)).toHaveLength(1);
       expect(await batches(U.thvB)).toEqual([]);
     });
+    it('registers a TT06 form with a file, lists it and downloads the latest version', async () => {
+      const reg = (code: string, user: string, body: Buffer) =>
+        upload(
+          `/office/tt06-form-files${q({ officeId: OFF, code, title: 'Mẫu giả lập' })}`,
+          user,
+          body,
+        );
+      expect((await reg('I', U.clerk1, PNG)).status).toBe(403);
+      expect((await reg('X', U.admin, PNG)).status).toBe(422);
+      const v2 = Buffer.concat([PNG, Buffer.from(' v2')]);
+      expect((await reg('I', U.admin, PNG)).status).toBe(200);
+      expect((await reg('I', U.head, v2)).status).toBe(200);
+      const list = (await api('GET', `/office/tt06-forms?officeId=${OFF}`, U.clerk1))
+        .json as unknown as { code: string; version: number }[];
+      expect(list).toMatchObject([{ code: 'I', version: 2 }]);
+      expect((await api('GET', `/office/tt06-forms?officeId=${OFF}`, U.outsider)).json).toEqual([]);
+      const get = (user: string) =>
+        fetch(`${base}/office/tt06-forms/I/file?officeId=${OFF}`, {
+          headers: { 'x-synthetic-user': user, 'x-synthetic-tenant': T },
+        });
+      const ok = await get(U.thvA);
+      expect(ok.status).toBe(200);
+      expect(ok.headers.get('content-disposition')).toContain('attachment');
+      expect(Buffer.from(await ok.arrayBuffer())).toEqual(v2);
+      expect((await get(U.outsider)).status).toBe(403);
+      const missing = await fetch(`${base}/office/tt06-forms/II/file?officeId=${OFF}`, {
+        headers: { 'x-synthetic-user': U.admin, 'x-synthetic-tenant': T },
+      });
+      expect(missing.status).toBe(404);
+    });
   },
 );

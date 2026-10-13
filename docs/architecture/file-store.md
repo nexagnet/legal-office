@@ -70,3 +70,10 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 ## Vật tư (đọc tồn kho)
 
 `GET /office/stock?officeId` và `GET /office/batches?officeId` đọc tồn và lô còn hàng qua `of_search_stock`/`of_search_batches` (migration 0019). Phạm vi đọc như công văn: Admin/Trưởng VP/Thư ký thấy cả văn phòng, Văn thư/Kế toán thấy chi nhánh được cấp, THV không thấy dòng tồn. Màn hình `/vat-tu` có bảng tồn, thêm vật tư, nhập/xuất FIFO và kiểm kê lô (Admin/Trưởng VP). Menu hiện mục Vật tư thêm cho Văn thư vì DB cho phép nhập/xuất.
+
+## Biểu mẫu TT06 (tải lên và tải về)
+
+- `GET /office/tt06-forms?officeId` liệt kê bản mới nhất mỗi phụ lục (migration 0020, không trả khoá tệp).
+- `POST /office/tt06-form-files?officeId&code&title` đăng ký bản mới kèm tệp (Admin/Trưởng VP; PDF/JPEG/PNG ≤25 MB), khoá do máy chủ dựng.
+- `GET /office/tt06-forms/:code/file?officeId` tải bản mới nhất: DB kiểm quyền và ghi audit, máy chủ đọc tệp từ kho (khoá phải thuộc tenant) và trả `attachment`. Đây cũng là mẫu để thêm tải/xem cho các tệp chứng cứ khác.
+- Định dạng PDF/JPEG/PNG là lựa chọn kỹ thuật của tôi; nếu cần tải DOCX/XLSX thì mở rộng danh sách loại tệp cho riêng biểu mẫu.

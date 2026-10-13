@@ -5,6 +5,7 @@ import { AssignThv } from '../components/AssignThv';
 import { AssignHandler } from '../components/AssignHandler';
 import { CorrespondenceActions } from '../components/CorrespondenceActions';
 import { AdjustBatchForm, NewItemForm, StockMovementForm } from '../components/StockForms';
+import { NewFormUpload } from '../components/NewFormUpload';
 import { NewDecisionForm } from '../components/NewDecisionForm';
 import { NewCorrespondenceForm } from '../components/NewCorrespondenceForm';
 import { CaseSteps } from '../components/CaseSteps';
@@ -811,5 +812,44 @@ describe('Stock forms', () => {
       newRemaining: 3,
       reason: 'Kiểm kê',
     });
+  });
+});
+
+describe('NewFormUpload', () => {
+  it('uploads a TT06 form with the code and title in the query', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'I v1' }));
+    const { container } = render(<NewFormUpload officeId="o1" />);
+    fireEvent.change(screen.getByLabelText('Phụ lục'), { target: { value: 'III' } });
+    fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Mẫu giả lập' } });
+    const file = new File(['x'], 'm.pdf', { type: 'application/pdf' });
+    fireEvent.change(screen.getByLabelText(/Tệp biểu mẫu/), { target: { files: [file] } });
+    fireEvent.submit(container.querySelector('form')!);
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const url = new URL(String(spy.mock.calls[0]![0]), 'http://x');
+    expect(url.pathname).toBe('/api/office/tt06-form-files');
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      officeId: 'o1',
+      code: 'III',
+      title: 'Mẫu giả lập',
+    });
+  });
+
+  it('refuses without a file and shows the API error', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(403, { code: 'ADMIN_OR_HEAD_ONLY' }));
+    const { container } = render(<NewFormUpload officeId="o1" />);
+    fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'x' } });
+    fireEvent.submit(container.querySelector('form')!);
+    expect((await screen.findByRole('alert')).textContent).toBe(messageFor('INVALID_DOCUMENT'));
+    expect(spy).not.toHaveBeenCalled();
+    const file = new File(['x'], 'm.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText(/Tệp biểu mẫu/), { target: { files: [file] } });
+    fireEvent.submit(container.querySelector('form')!);
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe(messageFor('ADMIN_OR_HEAD_ONLY')),
+    );
   });
 });

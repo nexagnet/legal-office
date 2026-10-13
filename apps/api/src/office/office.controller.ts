@@ -16,6 +16,8 @@ import {
   Put,
   Query,
   Req,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
@@ -402,6 +404,75 @@ export class OfficeController {
   ) {
     const b = parse(z.object({ officeId: uuid }).strict(), body);
     return this.run(a, 'of_tt06_download', [b.officeId, code]);
+  }
+
+  @Get('tt06-forms')
+  async tt06List(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{
+      code: string;
+      version: number;
+      title: string;
+      registered_at: Date;
+    }>(a, 'of_search_tt06', [officeId]);
+    return rows.map((r) => ({
+      code: r.code,
+      version: r.version,
+      title: r.title,
+      registeredAt: r.registered_at,
+    }));
+  }
+
+  /** Đăng ký bản mới của một biểu mẫu TT06 kèm tệp (Admin/Trưởng VP). Tiêu đề và mã đi theo query. */
+  @Post('tt06-form-files')
+  @HttpCode(HttpStatus.OK)
+  registerFormFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z.object({ officeId: uuid, code: z.string().max(10), title: z.string().max(500) }).strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/of/tt06/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'of_tt06_register', [q.officeId, q.code, q.title, key, f.sha256]),
+    );
+  }
+
+  /** Tải bản mới nhất của một biểu mẫu: DB kiểm quyền, audit và trả khoá; máy chủ đọc tệp từ kho. */
+  @Get('tt06-forms/:code/file')
+  async downloadFormFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('code') code: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+  ) {
+    if (!this.store)
+      throw new HttpException(
+        { code: 'FILE_STORE_NOT_CONFIGURED', label: null },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    const reply = await this.run(a, 'of_tt06_download', [officeId, code]);
+    const key = reply.label ?? '';
+    const bytes = key.startsWith(`t/${a.tenantId}/`) ? await this.store.get(key) : null;
+    if (!bytes)
+      throw new HttpException({ code: 'FILE_NOT_FOUND', label: null }, HttpStatus.NOT_FOUND);
+    const ext = key.split('.').pop() ?? '';
+    const type = ext === 'pdf' ? 'application/pdf' : ext === 'png' ? 'image/png' : 'image/jpeg';
+    res.set({
+      'content-type': type,
+      'content-disposition': `attachment; filename="tt06-${code.replace(/[^A-Z]/g, '')}.${ext}"`,
+      'cache-control': 'private, no-store',
+    });
+    return new StreamableFile(bytes);
   }
 
   @Get('stock')
