@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { CorrespondenceActions } from '../../components/CorrespondenceActions';
 import { NewCorrespondenceForm } from '../../components/NewCorrespondenceForm';
-import { API_URL, currentSession, requestCookie } from '../../lib/server';
+import { NewDecisionForm } from '../../components/NewDecisionForm';
+import { API_URL, currentSession, loadSignerOptions, requestCookie } from '../../lib/server';
 import { CORRESPONDENCE_DIRECTION_LABEL, CORRESPONDENCE_STATUS_LABEL } from '../../lib/messages';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,35 @@ interface Row {
   readonly counterparty: string;
   readonly subject: string;
 }
+
+interface Decision {
+  readonly id: string;
+  readonly decision_no: string;
+  readonly doc_type: string;
+  readonly title: string;
+  readonly signed_on: string;
+}
+
+async function loadDecisions(
+  cookie: string | null,
+  officeId: string,
+): Promise<Decision[] | 'error'> {
+  try {
+    const res = await fetch(
+      `${API_URL}/office/decisions?officeId=${encodeURIComponent(officeId)}`,
+      {
+        headers: cookie ? { cookie } : {},
+        cache: 'no-store',
+      },
+    );
+    if (!res.ok) return 'error';
+    return (await res.json()) as Decision[];
+  } catch {
+    return 'error';
+  }
+}
+
+const day = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' });
 
 async function load(
   cookie: string | null,
@@ -58,9 +88,10 @@ export default async function CorrespondencePage({
     );
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
-  const items = officeId
-    ? await load(await requestCookie(), officeId, q.slice(0, 200), direction)
-    : ([] as Row[]);
+  const cookie = await requestCookie();
+  const items = officeId ? await load(cookie, officeId, q.slice(0, 200), direction) : ([] as Row[]);
+  const decisions = officeId ? await loadDecisions(cookie, officeId) : ([] as Decision[]);
+  const signers = officeId ? await loadSignerOptions(cookie, officeId) : [];
   return (
     <section aria-labelledby="t">
       <h1 id="t">Công văn</h1>
@@ -127,6 +158,42 @@ export default async function CorrespondencePage({
         </div>
       )}
       <NewCorrespondenceForm branches={session.branches} />
+      <h2 id="dec-t">Sổ quyết định</h2>
+      {decisions === 'error' ? (
+        <div className="state" role="alert">
+          <h3>Không tải được sổ quyết định</h3>
+          <p>Vui lòng thử lại sau.</p>
+        </div>
+      ) : decisions.length === 0 ? (
+        <div className="state" role="status">
+          <h3>Chưa có quyết định</h3>
+          <p>Chưa có quyết định nào trong phạm vi quyền của bạn.</p>
+        </div>
+      ) : (
+        <div className="table-wrap">
+          <table aria-labelledby="dec-t">
+            <thead>
+              <tr>
+                <th scope="col">Số</th>
+                <th scope="col">Loại</th>
+                <th scope="col">Trích yếu</th>
+                <th scope="col">Ngày ký</th>
+              </tr>
+            </thead>
+            <tbody>
+              {decisions.map((d) => (
+                <tr key={d.id}>
+                  <th scope="row">{d.decision_no}</th>
+                  <td>{d.doc_type}</td>
+                  <td>{d.title}</td>
+                  <td>{day.format(new Date(d.signed_on))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <NewDecisionForm branches={session.branches} signers={signers} />
     </section>
   );
 }

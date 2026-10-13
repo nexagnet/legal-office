@@ -61,3 +61,8 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 - Chỉ nhận PDF. Quét mã độc/kiểm tra sâu cấu trúc PDF chưa có; tệp khác PDF cần review bảo mật tệp riêng.
 - Tệp tải lên chưa mã hoá ở tầng ứng dụng (dựa vào mã hoá lưu trữ của R2).
 - Chứng cứ cho Tống đạt (N-02), nguồn của vòng Xác minh và kết quả THA sẽ dùng cùng cổng này ở các lát sau.
+
+## Sổ quyết định
+
+- `GET /office/signers?officeId` liệt kê người có quyền ký pháp lý (Admin/Trưởng VP có `legal_signer`) để chọn người ký; chỉ trả cho thành viên Admin, Trưởng VP, Thư ký, Văn thư của văn phòng.
+- `POST /office/decision-files` vào sổ một quyết định kèm bản đã ký (PDF/JPEG/PNG ≤25 MB); các trường đi theo query, máy chủ tự tính hash và khoá `t/<tenant>/of/decisions/…`. Từ chối (trùng số, người ký không có quyền…) thì không để lại tệp.

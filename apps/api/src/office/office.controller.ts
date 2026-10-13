@@ -76,8 +76,12 @@ export class OfficeController {
       .then(respond);
   }
 
-  private read(actor: AuthenticatedActor, fn: string, args: readonly unknown[]) {
-    return this.repo.rows(actor.tenantId, fn, [actor.tenantId, actor.userId, ...args]);
+  private read<T = Record<string, unknown>>(
+    actor: AuthenticatedActor,
+    fn: string,
+    args: readonly unknown[],
+  ) {
+    return this.repo.rows<T>(actor.tenantId, fn, [actor.tenantId, actor.userId, ...args]);
   }
 
   @Post('correspondence')
@@ -309,6 +313,66 @@ export class OfficeController {
       signer === undefined ? null : parse(uuid, signer),
       caseId === undefined ? null : parse(uuid, caseId),
     ]);
+  }
+
+  /** Người có quyền ký pháp lý của văn phòng (để chọn người ký khi vào sổ quyết định). */
+  @Get('signers')
+  async signers(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{ user_id: string; label: string }>(a, 'of_list_signers', [
+      officeId,
+    ]);
+    return { items: rows.map((r) => ({ userId: r.user_id, label: r.label })) };
+  }
+
+  /**
+   * Vào sổ một quyết định kèm tệp bản đã ký (PDF/JPEG/PNG; DB đòi có chứng cứ). Các trường đi theo query vì thân yêu cầu
+   * là chính tệp. Máy chủ tự tính hash và khoá.
+   */
+  @Post('decision-files')
+  @HttpCode(HttpStatus.OK)
+  recordDecisionFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z
+        .object({
+          officeId: uuid,
+          branchId: uuid,
+          decisionNo: z.string().max(200),
+          docType: z.string().max(200),
+          title: z.string().max(1000),
+          signerUserId: uuid,
+          signedOn: isoDate,
+        })
+        .strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/of/decisions/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.run(a, 'of_decision_record', [
+          q.officeId,
+          q.branchId,
+          q.decisionNo,
+          q.docType,
+          q.title,
+          q.signerUserId,
+          q.signedOn,
+          null,
+          null,
+          key,
+          f.sha256,
+        ]),
+    );
   }
 
   @Post('tt06-forms')
