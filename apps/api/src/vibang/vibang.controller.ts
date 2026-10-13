@@ -31,14 +31,14 @@ function parse<S extends z.ZodType>(schema: S, body: unknown): z.infer<S> {
   return result.data;
 }
 
-interface Reply {
+export interface Reply {
   readonly code: string;
   readonly label: string | null;
 }
 const toReply = (op: Op): Reply => ({ code: op.code, label: op.label });
 
 /** Mọi lỗi nghiệp vụ trả JSON `{code, label}` cùng mã HTTP phù hợp; quyết định quyền nằm trong DB. */
-function respond(op: Op): Reply {
+export function respond(op: Op): Reply {
   const status = statusFor(op);
   if (status >= 400) throw new HttpException(toReply(op), status);
   return toReply(op);

@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import pg from 'pg';
 import { AppModule } from './app.module';
 import { resolverFromEnv } from './http/actor';
+import { fileStoreFromEnv } from './storage/file-store';
 import { DEFAULT_RATE_RULES, rateLimit, securityHeaders } from './http/hardening';
 
 async function bootstrap(): Promise<void> {
@@ -10,6 +11,7 @@ async function bootstrap(): Promise<void> {
   if (!url) throw new Error('DATABASE_URL is required');
   const app = await NestFactory.create(
     AppModule.register({
+      fileStore: fileStoreFromEnv(),
       pool: new pg.Pool({ connectionString: url }),
       resolver: process.env.AUTH_MODE === 'password' ? 'session' : resolverFromEnv(),
       auth: {

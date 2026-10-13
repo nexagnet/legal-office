@@ -237,6 +237,42 @@ describe('CaseSteps', () => {
     });
   });
 
+  it('uploads the final scan as a raw PDF once the stamp is confirmed', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    const stamped = {
+      ...base,
+      numberLabel: '1/2026',
+      signedAt: '2026-10-01T00:00:00Z',
+      stampedAt: '2026-10-01T00:00:00Z',
+    };
+    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={stamped} roles={['VAN_THU']} />);
+    const file = new File(['%PDF-1.4'], 'scan.pdf', { type: 'application/pdf' });
+    fireEvent.change(screen.getByLabelText(/Bản scan cuối \(PDF/), { target: { files: [file] } });
+    // jsdom không phản ánh `files` gán bằng fireEvent vào kiểm tra `required`, nên gửi form trực tiếp.
+    fireEvent.submit(screen.getByRole('button', { name: 'Tải bản scan cuối' }).closest('form')!);
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/vibang/cases/c1/final-scan');
+    expect((init as RequestInit).headers).toEqual({ 'content-type': 'application/pdf' });
+    expect((init as RequestInit).body).toBe(file);
+  });
+
+  it('hides the upload before the stamp and for roles that cannot upload', () => {
+    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={base} roles={['VAN_THU']} />);
+    expect(screen.queryByRole('button', { name: 'Tải bản scan cuối' })).toBeNull();
+    cleanup();
+    const stamped = {
+      ...base,
+      numberLabel: '1/2026',
+      signedAt: '2026-10-01T00:00:00Z',
+      stampedAt: '2026-10-01T00:00:00Z',
+    };
+    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={stamped} roles={['KE_TOAN']} />);
+    expect(screen.queryByRole('button', { name: 'Tải bản scan cuối' })).toBeNull();
+  });
+
   it('offers the next step by progress and role, and explains refusals', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       reply(409, { code: 'FINAL_SCAN_MISSING' }),
