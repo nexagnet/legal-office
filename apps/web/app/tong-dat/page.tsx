@@ -115,9 +115,6 @@ export default async function ServicePage() {
           </table>
         </div>
       )}
-      <p className="muted">
-        Ghi nhận “đã tống đạt” cần tệp bằng chứng, chưa khả dụng trên giao diện (cần kho tệp).
-      </p>
       <NewServiceForm branches={session.branches} />
     </section>
   );

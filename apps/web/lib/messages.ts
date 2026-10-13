@@ -56,6 +56,13 @@ const MESSAGES: Record<string, string> = {
   OBLIGATIONS_NOT_COMPLETE: 'Còn nghĩa vụ chưa hoàn tất, chưa hoàn tất hồ sơ được.',
   EVIDENCE_REQUIRED: 'Cần đính kèm tệp bằng chứng.',
   INVALID_EVIDENCE: 'Tệp bằng chứng không hợp lệ.',
+  INVALID_CORRESPONDENCE:
+    'Thông tin công văn chưa đủ hoặc không hợp lệ (công văn đến cần ngày nhận).',
+  CORRESPONDENCE_NOT_FOUND: 'Không tìm thấy công văn.',
+  CORRESPONDENCE_FINAL: 'Công văn đã kết thúc, không thay đổi được.',
+  INVALID_STATUS: 'Trạng thái công văn chưa phù hợp cho bước này.',
+  FINAL_DOCUMENT_REQUIRED: 'Cần đính kèm bản cuối của công văn trước khi trình duyệt.',
+  SEND_PROOF_REQUIRED: 'Cần chứng từ gửi đi trước khi ban hành.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
@@ -129,4 +136,17 @@ export const PARTY_ROLE_LABEL: Record<string, string> = {
 export const PARTY_KIND_LABEL: Record<string, string> = {
   PERSON: 'Cá nhân',
   ORGANIZATION: 'Tổ chức',
+};
+
+export const CORRESPONDENCE_STATUS_LABEL: Record<string, string> = {
+  RECEIVED: 'Đã nhận',
+  HANDLED: 'Đã xử lý',
+  DRAFT: 'Bản nháp',
+  SUBMITTED: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  ISSUED: 'Đã ban hành',
+};
+export const CORRESPONDENCE_DIRECTION_LABEL: Record<string, string> = {
+  INBOUND: 'Công văn đến',
+  OUTBOUND: 'Công văn đi',
 };

@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LoginForm } from '../components/LoginForm';
 import { AssignThv } from '../components/AssignThv';
 import { AssignHandler } from '../components/AssignHandler';
+import { CorrespondenceActions } from '../components/CorrespondenceActions';
+import { NewCorrespondenceForm } from '../components/NewCorrespondenceForm';
 import { CaseSteps } from '../components/CaseSteps';
 import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
@@ -592,5 +594,103 @@ describe('AssignHandler', () => {
     expect(screen.getByLabelText('Giao THV phụ trách')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
     expect((await screen.findByRole('alert')).textContent).toBe('Người này không phải THV hợp lệ.');
+  });
+});
+
+describe('Correspondence', () => {
+  const branches = [{ id: 'b1', officeId: 'o1', name: 'CN1' }];
+
+  it('registers an inbound letter with its received date', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
+    render(<NewCorrespondenceForm branches={branches} />);
+    fireEvent.change(screen.getByLabelText('Loại văn bản'), { target: { value: 'Công văn' } });
+    fireEvent.change(screen.getByLabelText('Nơi gửi'), { target: { value: 'Tòa án' } });
+    fireEvent.change(screen.getByLabelText('Trích yếu'), { target: { value: 'Yêu cầu' } });
+    fireEvent.change(screen.getByLabelText('Ngày nhận'), { target: { value: '2026-10-13' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Vào sổ' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/office/correspondence');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      officeId: 'o1',
+      branchId: 'b1',
+      direction: 'INBOUND',
+      docType: 'Công văn',
+      counterparty: 'Tòa án',
+      subject: 'Yêu cầu',
+      receivedOn: '2026-10-13',
+    });
+  });
+
+  it('drafts an outbound letter without a received date or number', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
+    render(<NewCorrespondenceForm branches={branches} />);
+    fireEvent.change(screen.getByLabelText('Loại'), { target: { value: 'OUTBOUND' } });
+    expect(screen.queryByLabelText('Ngày nhận')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Loại văn bản'), { target: { value: 'Công văn' } });
+    fireEvent.change(screen.getByLabelText('Nơi nhận'), { target: { value: 'Cơ quan A' } });
+    fireEvent.change(screen.getByLabelText('Trích yếu'), { target: { value: 'Trả lời' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Vào sổ' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const body = JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string);
+    expect(body.direction).toBe('OUTBOUND');
+    expect(body.receivedOn).toBeUndefined();
+  });
+
+  it('shows only the next step for each status', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(409, { code: 'INVALID_STATUS' }));
+    const { unmount } = render(
+      <CorrespondenceActions id="c1" direction="OUTBOUND" status="DRAFT" />,
+    );
+    expect(screen.queryByRole('button', { name: 'Duyệt' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Trình duyệt' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Trạng thái công văn chưa phù hợp cho bước này.',
+    );
+    expect(spy.mock.calls[0]![0]).toBe('/api/office/correspondence/c1/submission');
+    unmount();
+    render(<CorrespondenceActions id="c1" direction="OUTBOUND" status="SUBMITTED" />);
+    expect(screen.getByRole('button', { name: 'Duyệt' })).toBeTruthy();
+    cleanup();
+    render(<CorrespondenceActions id="c1" direction="OUTBOUND" status="ISSUED" />);
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('attaches the final document and issues with a proof file', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    const file = new File(['x'], 'ban-cuoi.pdf', { type: 'application/pdf' });
+    const { unmount } = render(
+      <CorrespondenceActions id="c1" direction="OUTBOUND" status="DRAFT" />,
+    );
+    fireEvent.change(screen.getByLabelText(/Bản cuối của công văn/), { target: { files: [file] } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Đính kèm bản cuối' }).closest('form')!);
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    expect(String(spy.mock.calls[0]![0])).toBe(
+      '/api/office/correspondence/c1/attachment-files?role=FINAL_DOCUMENT',
+    );
+    unmount();
+    render(<CorrespondenceActions id="c1" direction="OUTBOUND" status="APPROVED" />);
+    fireEvent.change(screen.getByLabelText('Số, ký hiệu'), { target: { value: '12/CV' } });
+    fireEvent.change(screen.getByLabelText('Ngày ban hành'), { target: { value: '2026-10-13' } });
+    fireEvent.change(screen.getByLabelText('Hình thức gửi'), { target: { value: 'Bưu điện' } });
+    fireEvent.change(screen.getByLabelText(/Chứng từ gửi đi/), { target: { files: [file] } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Ban hành' }).closest('form')!);
+    await waitFor(() => expect(spy.mock.calls.length).toBe(2));
+    const u = new URL(String(spy.mock.calls[1]![0]), 'http://x');
+    expect(u.pathname).toBe('/api/office/correspondence/c1/issuance-file');
+    expect(Object.fromEntries(u.searchParams)).toEqual({
+      refNo: '12/CV',
+      issuedOn: '2026-10-13',
+      sendMethod: 'Bưu điện',
+    });
+    expect((spy.mock.calls[1]![1] as RequestInit).body).toBe(file);
   });
 });

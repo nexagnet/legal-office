@@ -1,22 +1,29 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
   Controller,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
   Inject,
+  Optional,
   Param,
   ParseUUIDPipe,
   Get,
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { recordWithUpload } from '../storage/evidence';
+import { FILE_STORE, type FileStore } from '../storage/file-store';
+import type { RawBody } from '../storage/upload';
 import { statusFor } from '../vibang/status';
 import { VibangRepo, type Op } from '../vibang/vibang.repo';
 
@@ -58,7 +65,10 @@ const caseLink = {
 @Controller('office')
 @UseGuards(ActorGuard)
 export class OfficeController {
-  constructor(@Inject(VibangRepo) private readonly repo: VibangRepo) {}
+  constructor(
+    @Inject(VibangRepo) private readonly repo: VibangRepo,
+    @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
+  ) {}
 
   private run(actor: AuthenticatedActor, fn: string, args: readonly unknown[]): Promise<Reply> {
     return this.repo
@@ -135,6 +145,56 @@ export class OfficeController {
   ) {
     const b = parse(z.object({ role: z.string(), ...evidence }).strict(), body);
     return this.run(a, 'of_corr_attach', [id, b.role, b.evidenceKey, b.evidenceSha256]);
+  }
+
+  /** Đính kèm tệp (PDF/JPEG/PNG) vào công văn; vai trò đính kèm đi theo query. Máy chủ tự tính hash và khoá. */
+  @Post('correspondence/:id/attachment-files')
+  @HttpCode(HttpStatus.OK)
+  attachFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(z.object({ role: z.string() }).strict(), query);
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/of/correspondence/${id}/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'of_corr_attach', [id, q.role, key, f.sha256]),
+    );
+  }
+
+  /** Ban hành công văn đi kèm chứng từ gửi đi (tệp). Số, ngày và hình thức gửi đi theo query. */
+  @Post('correspondence/:id/issuance-file')
+  @HttpCode(HttpStatus.OK)
+  issueWithProof(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z
+        .object({
+          refNo: z.string().max(200),
+          issuedOn: isoDate,
+          sendMethod: z.string().max(200),
+        })
+        .strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/of/correspondence/${id}/proof/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.run(a, 'of_corr_issue', [id, q.refNo, q.issuedOn, q.sendMethod, key, f.sha256]),
+    );
   }
 
   @Post('correspondence/:id/result')

@@ -151,10 +151,6 @@ export default async function EnforcementPage() {
           </table>
         </div>
       )}
-      <p className="muted">
-        Ghi kết quả có bằng chứng và hoàn tất hồ sơ cần tệp bằng chứng, chưa khả dụng trên giao diện
-        (cần kho tệp).
-      </p>
       <NewEnforcementForm branches={session.branches} />
     </section>
   );

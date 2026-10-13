@@ -119,10 +119,6 @@ export default async function VerificationPage() {
           </table>
         </div>
       )}
-      <p className="muted">
-        Hoàn thành vòng xác minh cần nguồn kèm tệp bằng chứng, chưa khả dụng trên giao diện (cần kho
-        tệp).
-      </p>
       <NewVerificationForm branches={session.branches} />
     </section>
   );
