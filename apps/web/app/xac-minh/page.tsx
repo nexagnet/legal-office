@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { NewVerificationForm } from '../../components/NewVerificationForm';
 import { VerificationActions } from '../../components/VerificationActions';
-import { API_URL, currentSession, requestCookie } from '../../lib/server';
+import { AssignHandler } from '../../components/AssignHandler';
+import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
 import { ROUND_STATUS_LABEL, VERIFICATION_STATUS_LABEL } from '../../lib/messages';
 
 export const dynamic = 'force-dynamic';
@@ -50,7 +51,9 @@ export default async function VerificationPage() {
       </section>
     );
   }
-  const items = await load(await requestCookie());
+  const cookie = await requestCookie();
+  const items = await load(cookie);
+  const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
       <h1 id="t">Xác minh</h1>
@@ -101,6 +104,13 @@ export default async function VerificationPage() {
                     )}
                   </td>
                   <td>
+                    {c.status === 'CONCLUDED' ? null : (
+                      <AssignHandler
+                        path={`verification/cases/${c.caseId}/handler`}
+                        options={handlers}
+                        currentId={c.handlerUserId}
+                      />
+                    )}
                     <VerificationActions caseId={c.caseId} status={c.status} rounds={c.rounds} />
                   </td>
                 </tr>
