@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { NewServiceForm } from '../../components/NewServiceForm';
 import { ServiceRowActions } from '../../components/ServiceRowActions';
-import { API_URL, currentSession, requestCookie } from '../../lib/server';
+import { AssignHandler } from '../../components/AssignHandler';
+import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
 import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../lib/messages';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ interface Item {
   readonly deadlineAt: string;
   readonly status: string;
   readonly undeliverableReason: string | null;
+  readonly handlerUserId: string | null;
   readonly attempts: number;
 }
 
@@ -50,7 +52,9 @@ export default async function ServicePage() {
       </section>
     );
   }
-  const items = await load(await requestCookie());
+  const cookie = await requestCookie();
+  const items = await load(cookie);
+  const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
       <h1 id="t">Tống đạt</h1>
@@ -96,6 +100,13 @@ export default async function ServicePage() {
                   </td>
                   <td>{d.attempts}</td>
                   <td>
+                    {d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE' ? null : (
+                      <AssignHandler
+                        path={`service-of-documents/documents/${d.documentId}/handler`}
+                        options={handlers}
+                        currentId={d.handlerUserId}
+                      />
+                    )}
                     <ServiceRowActions documentId={d.documentId} status={d.status} />
                   </td>
                 </tr>

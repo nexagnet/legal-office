@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { EnforcementActions } from '../../components/EnforcementActions';
 import { NewEnforcementForm } from '../../components/NewEnforcementForm';
-import { API_URL, currentSession, requestCookie } from '../../lib/server';
+import { AssignHandler } from '../../components/AssignHandler';
+import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
 import {
   ENFORCEMENT_STATUS_LABEL,
   OBLIGATION_STATUS_LABEL,
@@ -60,7 +61,9 @@ export default async function EnforcementPage() {
       </section>
     );
   }
-  const items = await load(await requestCookie());
+  const cookie = await requestCookie();
+  const items = await load(cookie);
+  const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
       <h1 id="t">Tổ chức THA</h1>
@@ -129,6 +132,13 @@ export default async function EnforcementPage() {
                     )}
                   </td>
                   <td>
+                    {c.status === 'COMPLETED' ? null : (
+                      <AssignHandler
+                        path={`enforcement-cases/${c.caseId}/handler`}
+                        options={handlers}
+                        currentId={c.handlerUserId}
+                      />
+                    )}
                     <EnforcementActions
                       caseId={c.caseId}
                       status={c.status}

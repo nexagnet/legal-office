@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LoginForm } from '../components/LoginForm';
 import { AssignThv } from '../components/AssignThv';
+import { AssignHandler } from '../components/AssignHandler';
 import { CaseSteps } from '../components/CaseSteps';
 import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
@@ -557,5 +558,39 @@ describe('Evidence uploads', () => {
       'Còn nghĩa vụ chưa hoàn tất, chưa hoàn tất hồ sơ được.',
     );
     expect(spy.mock.calls[0]![0]).toBe('/api/enforcement-cases/c1/completion-file');
+  });
+});
+
+describe('AssignHandler', () => {
+  const options = [
+    { userId: 'u1', label: 'thv1@example.test' },
+    { userId: 'u2', label: 'thv2@example.test' },
+  ];
+
+  it('renders nothing without options (non-admin)', () => {
+    const { container } = render(<AssignHandler path="x/handler" options={[]} currentId={null} />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('PUTs the chosen THV to the given path and refreshes', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(<AssignHandler path="verification/cases/c1/handler" options={options} currentId="u1" />);
+    fireEvent.change(screen.getByLabelText('Đổi THV phụ trách'), { target: { value: 'u2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/verification/cases/c1/handler');
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ handlerUserId: 'u2' });
+  });
+
+  it('explains a refusal', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(409, { code: 'INVALID_HANDLER' }));
+    render(<AssignHandler path="x/handler" options={options} currentId={null} />);
+    expect(screen.getByLabelText('Giao THV phụ trách')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Người này không phải THV hợp lệ.');
   });
 });
