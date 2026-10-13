@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -9,6 +10,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
@@ -77,5 +79,33 @@ export class ApprovalController {
     @Body() b: unknown,
   ) {
     return this.decide(a, 'DELEGATION', id, b);
+  }
+
+  /** Hộp duyệt: đề xuất chưa hoàn tất trong phạm vi đọc của người gọi, kèm trạng thái duyệt hiện tại. */
+  @Get('pending')
+  async pending(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.repo.rows<{
+      kind: string;
+      subject_id: string;
+      case_id: string;
+      branch_id: string;
+      approval_state: string;
+      last_reason: string | null;
+      proposed_by: string;
+      created_at: Date;
+    }>(a.tenantId, 'of_search_approvals', [a.tenantId, a.userId, officeId]);
+    return rows.map((r) => ({
+      kind: r.kind,
+      subjectId: r.subject_id,
+      caseId: r.case_id,
+      branchId: r.branch_id,
+      state: r.approval_state,
+      lastReason: r.last_reason,
+      proposedBy: r.proposed_by,
+      createdAt: r.created_at,
+    }));
   }
 }

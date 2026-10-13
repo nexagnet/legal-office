@@ -50,6 +50,13 @@ export const NAV: readonly NavItem[] = [
     summary: 'Hồ sơ tổ chức thi hành án, tài sản và chuyển giao.',
   },
   {
+    slug: 'hop-duyet',
+    label: 'Hộp duyệt',
+    group: 'office',
+    roles: ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV'],
+    summary: 'Đề xuất chuyển giao và uỷ quyền chờ duyệt, trả lại, nộp lại.',
+  },
+  {
     slug: 'hop-dong',
     label: 'Hợp đồng',
     group: 'office',

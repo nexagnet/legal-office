@@ -77,3 +77,7 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 - `POST /office/tt06-form-files?officeId&code&title` đăng ký bản mới kèm tệp (Admin/Trưởng VP; PDF/JPEG/PNG ≤25 MB), khoá do máy chủ dựng.
 - `GET /office/tt06-forms/:code/file?officeId` tải bản mới nhất: DB kiểm quyền và ghi audit, máy chủ đọc tệp từ kho (khoá phải thuộc tenant) và trả `attachment`. Đây cũng là mẫu để thêm tải/xem cho các tệp chứng cứ khác.
 - Định dạng PDF/JPEG/PNG là lựa chọn kỹ thuật của tôi; nếu cần tải DOCX/XLSX thì mở rộng danh sách loại tệp cho riêng biểu mẫu.
+
+## Hộp duyệt
+
+`GET /approvals/pending?officeId` (migration 0021, `of_search_approvals`) liệt kê đề xuất chuyển giao hồ sơ và uỷ quyền xác minh chưa hoàn tất, kèm trạng thái duyệt (OPEN/RETURNED/REJECTED) và lý do gần nhất, trong phạm vi đọc của hồ sơ gốc. Màn hình `/hop-duyet` cho Admin/Trưởng VP trả lại hoặc từ chối đề xuất đang mở, và người đề xuất nộp lại đề xuất bị trả lại; quyền thật do `ap_decide` quyết định. Giả định cần chủ xác nhận: Thư ký chỉ xem, không quyết định.

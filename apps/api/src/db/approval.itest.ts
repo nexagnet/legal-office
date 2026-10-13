@@ -441,5 +441,36 @@ describe.skipIf(!ADMIN_URL)(
       );
       expect(audit.n).toBeGreaterThan(0);
     });
+    it('lists pending proposals with their approval state within the reading scope', async () => {
+      const cs = await newCase();
+      const t = await transfer(cs);
+      await decide(U.admin, 'TRANSFER', t, 'RETURN', 'thiếu biên bản');
+      const pending = async (who: string) => {
+        const cl = await app.connect();
+        try {
+          await cl.query('BEGIN');
+          await cl.query(`SELECT set_config('app.tenant_id', $1, true)`, [T]);
+          const r = await cl.query(`SELECT * FROM of_search_approvals($1,$2,$3)`, [T, who, OFF]);
+          await cl.query('COMMIT');
+          return r.rows as {
+            subject_id: string;
+            approval_state: string;
+            last_reason: string | null;
+          }[];
+        } finally {
+          cl.release();
+        }
+      };
+      const mine = (await pending(U.admin)).find((r) => r.subject_id === t);
+      expect(mine).toMatchObject({ approval_state: 'RETURNED', last_reason: 'thiếu biên bản' });
+      expect((await pending(U.thvA)).map((r) => r.subject_id)).toContain(t);
+      expect((await pending(U.thvC)).map((r) => r.subject_id)).not.toContain(t);
+      expect(await pending(U.outsider)).toEqual([]);
+      await decide(U.thvA, 'TRANSFER', t, 'RESUBMIT', 'đã bổ sung');
+      expect((await pending(U.admin)).find((r) => r.subject_id === t)?.approval_state).toBe('OPEN');
+      await flow(t);
+      await fn('as_transfer_complete', U.admin, t);
+      expect((await pending(U.admin)).map((r) => r.subject_id)).not.toContain(t);
+    });
   },
 );
