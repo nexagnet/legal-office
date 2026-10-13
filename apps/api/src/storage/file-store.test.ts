@@ -10,14 +10,14 @@ describe('LocalFileStore', () => {
   const store = new LocalFileStore(dir);
 
   it('round-trips bytes and returns null for a missing key', async () => {
-    await store.put('t/a/b.pdf', Buffer.from('abc'), 'application/pdf');
+    await store.put('t/a/b.pdf', Buffer.from('abc'));
     expect(await store.get('t/a/b.pdf')).toEqual(Buffer.from('abc'));
     await store.delete('t/a/b.pdf');
     expect(await store.get('t/a/b.pdf')).toBeNull();
   });
 
   it.each(['../x', '/abs', 'a/../../x', '', ' '])('refuses unsafe key %j', async (key) => {
-    await expect(store.put(key, Buffer.from('x'), 'application/pdf')).rejects.toThrow('unsafe');
+    await expect(store.put(key, Buffer.from('x'))).rejects.toThrow('unsafe');
     await expect(store.get(key)).rejects.toThrow('unsafe');
   });
 });
