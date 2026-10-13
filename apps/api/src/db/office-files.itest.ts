@@ -348,5 +348,12 @@ describe.skipIf(!ADMIN_URL)(
       });
       expect(missing.status).toBe(404);
     });
+    it('serves the approvals inbox over HTTP (empty and scoped)', async () => {
+      const inbox = async (u: string) => api('GET', `/approvals/pending?officeId=${OFF}`, u);
+      expect((await inbox(U.admin)).json).toEqual([]);
+      expect((await inbox(U.outsider)).json).toEqual([]);
+      expect((await api('GET', `/approvals/pending?officeId=${OFF}`, null)).status).toBe(401);
+      expect((await api('GET', '/approvals/pending?officeId=nope', U.admin)).status).toBe(400);
+    });
   },
 );

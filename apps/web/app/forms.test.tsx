@@ -5,6 +5,7 @@ import { AssignThv } from '../components/AssignThv';
 import { AssignHandler } from '../components/AssignHandler';
 import { CorrespondenceActions } from '../components/CorrespondenceActions';
 import { AdjustBatchForm, NewItemForm, StockMovementForm } from '../components/StockForms';
+import { ApprovalActions } from '../components/ApprovalActions';
 import { NewFormUpload } from '../components/NewFormUpload';
 import { NewDecisionForm } from '../components/NewDecisionForm';
 import { NewCorrespondenceForm } from '../components/NewCorrespondenceForm';
@@ -850,6 +851,44 @@ describe('NewFormUpload', () => {
     fireEvent.submit(container.querySelector('form')!);
     await waitFor(() =>
       expect(screen.getByRole('alert').textContent).toBe(messageFor('ADMIN_OR_HEAD_ONLY')),
+    );
+  });
+});
+
+describe('ApprovalActions', () => {
+  it('shows decisions only to Admin/Head on open items and resubmit on returned items', () => {
+    const { unmount } = render(
+      <ApprovalActions kind="TRANSFER" subjectId="t1" state="OPEN" roles={['THV']} />,
+    );
+    expect(screen.queryByRole('button')).toBeNull();
+    unmount();
+    const second = render(
+      <ApprovalActions kind="TRANSFER" subjectId="t1" state="OPEN" roles={['ADMIN']} />,
+    );
+    expect(screen.getByRole('button', { name: 'Từ chối' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Nộp lại' })).toBeNull();
+    second.unmount();
+    render(<ApprovalActions kind="TRANSFER" subjectId="t1" state="RETURNED" roles={['THV']} />);
+    expect(screen.getByRole('button', { name: 'Nộp lại' })).toBeTruthy();
+  });
+
+  it('sends the decision with the reason and surfaces API errors', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'RETURN' }))
+      .mockImplementationOnce(() => reply(409, { code: 'ALREADY_REJECTED' }));
+    render(<ApprovalActions kind="DELEGATION" subjectId="d1" state="OPEN" roles={['TRUONG_VP']} />);
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'thiếu biên bản' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Trả lại bổ sung' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls[0]![0]).toBe('/api/approvals/delegations/d1/decisions');
+    expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
+      decision: 'RETURN',
+      reason: 'thiếu biên bản',
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Từ chối' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Đề xuất này đã bị từ chối, cần tạo đề xuất mới.',
     );
   });
 });

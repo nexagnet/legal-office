@@ -53,6 +53,14 @@ const MESSAGES: Record<string, string> = {
   INVALID_FORM: 'Mã biểu mẫu hoặc tiêu đề chưa hợp lệ.',
   FORM_NOT_FOUND: 'Chưa có bản nào của biểu mẫu này.',
   FILE_NOT_FOUND: 'Không tìm thấy tệp của biểu mẫu.',
+  ALREADY_REJECTED: 'Đề xuất này đã bị từ chối, cần tạo đề xuất mới.',
+  ALREADY_RETURNED: 'Đề xuất này đã được trả lại để bổ sung.',
+  NOT_RETURNED: 'Đề xuất này không ở trạng thái trả lại nên chưa nộp lại được.',
+  SUBJECT_FINAL: 'Đề xuất này đã hoàn tất, không quyết định thêm được.',
+  PROPOSER_ONLY: 'Chỉ người đề xuất hoặc Trưởng văn phòng nộp lại được.',
+  SUBJECT_NOT_FOUND: 'Không tìm thấy đề xuất.',
+  APPROVAL_RETURNED: 'Đề xuất đang bị trả lại, cần nộp lại trước.',
+  APPROVAL_REJECTED: 'Đề xuất đã bị từ chối.',
   SIGNING_AUTHORITY_NOT_GRANTED: 'Bạn chưa được cấp quyền ký pháp lý.',
   NO_PROPOSAL: 'Chưa có đề xuất kết luận.',
   SEPARATE_REVIEWER_REQUIRED: 'Người quyết định phải khác người đề xuất.',
@@ -163,4 +171,15 @@ export const CORRESPONDENCE_STATUS_LABEL: Record<string, string> = {
 export const CORRESPONDENCE_DIRECTION_LABEL: Record<string, string> = {
   INBOUND: 'Công văn đến',
   OUTBOUND: 'Công văn đi',
+};
+
+export const APPROVAL_KIND_LABEL: Record<string, string> = {
+  TRANSFER: 'Chuyển giao hồ sơ',
+  DELEGATION: 'Uỷ quyền xác minh',
+};
+
+export const APPROVAL_STATE_LABEL: Record<string, string> = {
+  OPEN: 'Chờ duyệt',
+  RETURNED: 'Đã trả lại, chờ bổ sung',
+  REJECTED: 'Đã từ chối',
 };
