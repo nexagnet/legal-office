@@ -41,6 +41,16 @@ Cùng bộ nhận tệp và cùng quy tắc dọn tệp mồ côi (`storage/evid
 | `POST /enforcement-cases/obligations/:id/event-files?kind&note&idempotencyKey` | `th_obligation_events` | `th_record_event` (THV phụ trách, Admin, Trưởng VP) |
 | `POST /enforcement-cases/:id/completion-file` | `th_cases.completion_evidence_*` | `th_complete_case` (chỉ Admin, Trưởng VP; mọi nghĩa vụ đã hoàn tất) |
 
+Công văn (module Văn phòng) dùng cùng cơ chế:
+
+| Đường | Ghi vào | Hàm DB quyết định |
+|---|---|---|
+| `POST /office/correspondence/:id/attachment-files?role` | `of_attachments` (`ATTACHMENT`, `FINAL_DOCUMENT`, `SEND_PROOF`) | `of_corr_attach` |
+| `POST /office/correspondence/:id/issuance-file?refNo&issuedOn&sendMethod` | chứng từ gửi đi + ban hành | `of_corr_issue` (Admin/Trưởng VP có quyền ký) |
+
+Màn `/cong-van` dùng `FINAL_DOCUMENT` (bắt buộc trước khi trình duyệt) và chứng từ gửi khi ban hành. Bản cuối chỉ nhận PDF/JPEG/PNG
+như mọi chứng cứ khác; nếu chủ cần Word cho bản cuối thì phải thêm kiểm tra tệp riêng.
+
 Mô tả (loại nguồn, mục đích, ghi chú) đi theo query vì thân yêu cầu là chính tệp. Hoàn thành vòng xác minh vẫn dùng
 `rounds/:id/completion` (cần đã có ít nhất một nguồn). Ghi lại kết quả với cùng `idempotencyKey` vẫn trả thành công
 và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị bỏ lại trong kho (tệp mồ côi nhỏ, chưa có việc dọn định kỳ).
