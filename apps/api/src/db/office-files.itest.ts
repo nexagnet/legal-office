@@ -432,5 +432,25 @@ describe.skipIf(!ADMIN_URL)(
         (await api('GET', `/office/report?officeId=${OFF}&from=bad&to=2999-12-31`, U.admin)).status,
       ).toBe(400);
     });
+    it('lists office members to the Admin only, without credentials', async () => {
+      const list = async (u: string) =>
+        (await api('GET', `/office/members?officeId=${OFF}`, u)).json as unknown as {
+          userId: string;
+          role: string;
+          branches: string[];
+          legalSigner: boolean;
+        }[];
+      const rows = await list(U.admin);
+      expect(rows.map((r) => r.userId)).toEqual(
+        expect.arrayContaining([U.admin, U.clerk1, U.thvA]),
+      );
+      expect(JSON.stringify(rows)).not.toMatch(/password|hash/i);
+      expect(rows.find((r) => r.userId === U.clerk1)?.branches).toHaveLength(1);
+      expect(rows.find((r) => r.userId === U.admin)?.legalSigner).toBe(true);
+      for (const u of [U.head, U.secretary, U.clerk1, U.thvA, U.outsider]) {
+        expect(await list(u)).toEqual([]);
+      }
+      expect((await api('GET', `/office/members?officeId=${OFF}`, null)).status).toBe(401);
+    });
   },
 );

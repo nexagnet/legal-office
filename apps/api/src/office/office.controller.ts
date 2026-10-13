@@ -497,6 +497,30 @@ export class OfficeController {
     return rows.map((r) => ({ domain: r.domain, unit: r.unit, status: r.status, total: r.total }));
   }
 
+  /** Danh bạ thành viên văn phòng (chỉ đọc, chỉ Admin). Không trả băm mật khẩu. */
+  @Get('members')
+  async members(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{
+      user_id: string;
+      label: string;
+      role: string;
+      legal_signer: boolean;
+      has_login: boolean;
+      branches: string[];
+    }>(a, 'of_search_members', [officeId]);
+    return rows.map((r) => ({
+      userId: r.user_id,
+      label: r.label,
+      role: r.role,
+      legalSigner: r.legal_signer,
+      hasLogin: r.has_login,
+      branches: r.branches,
+    }));
+  }
+
   @Get('stock')
   async stock(
     @CurrentActor() a: AuthenticatedActor,
