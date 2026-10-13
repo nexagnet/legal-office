@@ -23,6 +23,14 @@ Thiếu biến của `r2` thì API **không khởi động** và nêu rõ biến
   tệp vừa ghi bị xoá để không để lại tệp mồ côi.
 - Siêu dữ liệu ở `vibang_documents` bất biến (append-only); bản scan cuối khoá hash như đã mô tả ở `legal-evidence.md`.
 
+## Bằng chứng tống đạt (N-02)
+
+`POST /service-of-documents/documents/:id/served`, thân yêu cầu là chính tệp (PDF, JPEG hoặc PNG; tối đa 25 MB).
+Cùng cách làm với bản scan cuối: máy chủ kiểm tra chữ ký đầu tệp, tự tính sha256 và khoá `t/<tenant>/td/<văn bản>/evidence/<uuid>.<đuôi>`,
+ghi tệp rồi gọi `td_record_attempt(SERVED, ...)`; DB từ chối (không phải THV phụ trách, chưa giao THV, văn bản đã kết thúc) thì xoá tệp.
+**Giả định cần xác nhận:** định dạng bằng chứng cho phép (PDF/JPEG/PNG) là lựa chọn kỹ thuật của tôi vì chưa có quy định nghiệp vụ.
+Đường cũ `documents/:id/attempts` vẫn nhận `evidenceKey` do client gửi (dùng cho các kết quả không thành công); chỉ `served` đi qua kho tệp.
+
 ## Giới hạn đã biết (chưa làm)
 
 - **Chưa có tải xuống/xem tệp**: cần hàm đọc có kiểm tra quyền theo phạm vi ghi trước, không mở đường đọc không có kiểm soát.
