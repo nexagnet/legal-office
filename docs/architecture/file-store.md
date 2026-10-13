@@ -81,3 +81,7 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 ## Hộp duyệt
 
 `GET /approvals/pending?officeId` (migration 0021, `of_search_approvals`) liệt kê đề xuất chuyển giao hồ sơ và uỷ quyền xác minh chưa hoàn tất, kèm trạng thái duyệt (OPEN/RETURNED/REJECTED) và lý do gần nhất, trong phạm vi đọc của hồ sơ gốc. Màn hình `/hop-duyet` cho Admin/Trưởng VP trả lại hoặc từ chối đề xuất đang mở, và người đề xuất nộp lại đề xuất bị trả lại; quyền thật do `ap_decide` quyết định. Giả định cần chủ xác nhận: Thư ký chỉ xem, không quyết định.
+
+## Báo cáo tổng hợp
+
+`GET /office/report?officeId&from&to[&branchId]` (migration 0022, `of_search_report`) đếm theo kỳ (ngày tạo, giờ Việt Nam; số Vi bằng theo ngày cấp), mỗi dòng một đơn vị riêng: hồ sơ Vi bằng, số Vi bằng, yêu cầu và văn bản tống đạt, hồ sơ và đợt xác minh, hồ sơ và nghĩa vụ thi hành án; không cộng chéo, không có số tiền, phạm vi đọc như hồ sơ gốc. Màn hình `/bao-cao` có bộ lọc kỳ/chi nhánh và xuất CSV. Chưa làm: sổ S-01/02/04/05/06, N-09/N-10 và XLSX/PDF, vì chờ biểu mẫu chính thức (issue #15). Giả định cần xác nhận: kỳ tính theo ngày tạo chứ chưa theo ngày hoàn tất.

@@ -5,6 +5,8 @@ import { AssignThv } from '../components/AssignThv';
 import { AssignHandler } from '../components/AssignHandler';
 import { CorrespondenceActions } from '../components/CorrespondenceActions';
 import { AdjustBatchForm, NewItemForm, StockMovementForm } from '../components/StockForms';
+import { ReportExport } from '../components/ReportExport';
+import { reportStatusLabel } from '../lib/messages';
 import { ApprovalActions } from '../components/ApprovalActions';
 import { NewFormUpload } from '../components/NewFormUpload';
 import { NewDecisionForm } from '../components/NewDecisionForm';
@@ -890,5 +892,51 @@ describe('ApprovalActions', () => {
     expect((await screen.findByRole('alert')).textContent).toBe(
       'Đề xuất này đã bị từ chối, cần tạo đề xuất mới.',
     );
+  });
+});
+
+describe('Report helpers', () => {
+  it('labels statuses by domain and unit', () => {
+    expect(reportStatusLabel('TONG_DAT', 'REQUEST', 'OPEN')).toBe('Đang mở');
+    expect(reportStatusLabel('TONG_DAT', 'DOCUMENT', 'DELIVERED')).toBe('Đã tống đạt');
+    expect(reportStatusLabel('XAC_MINH', 'ROUND', 'COMPLETED')).toBe('Đã hoàn thành');
+    expect(reportStatusLabel('THI_HANH_AN', 'OBLIGATION', 'PARTIAL')).not.toBe('PARTIAL');
+    expect(reportStatusLabel('VIBANG', 'NUMBER', 'ALLOCATED')).toBe('Đã cấp');
+    expect(reportStatusLabel('VIBANG', 'CASE', 'LẠ')).toBe('LẠ');
+  });
+
+  it('exports the visible table as quoted CSV with a BOM', async () => {
+    const blobs: Blob[] = [];
+    vi.stubGlobal('URL', {
+      createObjectURL: (b: Blob) => {
+        blobs.push(b);
+        return 'blob:x';
+      },
+      revokeObjectURL: () => undefined,
+    });
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    render(
+      <ReportExport
+        filename="r.csv"
+        rows={[
+          ['Nghiệp vụ', 'Số lượng'],
+          ['Vi "bằng"', '3'],
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Tải CSV' }));
+    expect(click).toHaveBeenCalled();
+    const bytes = await new Promise<Uint8Array>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer));
+      reader.readAsArrayBuffer(blobs[0]!);
+    });
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+    expect(new TextDecoder('utf-8', { ignoreBOM: true }).decode(bytes)).toBe(
+      '﻿"Nghiệp vụ","Số lượng"\r\n"Vi ""bằng""","3"',
+    );
+    vi.unstubAllGlobals();
   });
 });
