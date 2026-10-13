@@ -4,6 +4,7 @@ import { LoginForm } from '../components/LoginForm';
 import { AssignThv } from '../components/AssignThv';
 import { AssignHandler } from '../components/AssignHandler';
 import { CorrespondenceActions } from '../components/CorrespondenceActions';
+import { NewDecisionForm } from '../components/NewDecisionForm';
 import { NewCorrespondenceForm } from '../components/NewCorrespondenceForm';
 import { CaseSteps } from '../components/CaseSteps';
 import { CaseActions } from '../components/CaseActions';
@@ -692,5 +693,60 @@ describe('Correspondence', () => {
       sendMethod: 'Bưu điện',
     });
     expect((spy.mock.calls[1]![1] as RequestInit).body).toBe(file);
+  });
+});
+
+describe('NewDecisionForm', () => {
+  const branches = [{ id: 'b1', name: 'CN1', officeId: 'o1' }] as never;
+  const signers = [{ userId: 'u1', label: 'ky@example.test' }];
+  const fill = () => {
+    fireEvent.change(screen.getByLabelText('Số quyết định'), { target: { value: 'QD-01' } });
+    fireEvent.change(screen.getByLabelText('Loại văn bản'), { target: { value: 'Quyết định' } });
+    fireEvent.change(screen.getByLabelText('Trích yếu'), { target: { value: 'Giả lập' } });
+    fireEvent.change(screen.getByLabelText('Người ký'), { target: { value: 'u1' } });
+    fireEvent.change(screen.getByLabelText('Ngày ký'), { target: { value: '2026-10-13' } });
+  };
+
+  it('uploads the signed file with the fields in the query', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'd1' }));
+    const { container } = render(<NewDecisionForm branches={branches} signers={signers} />);
+    fill();
+    const file = new File(['x'], 'qd.pdf', { type: 'application/pdf' });
+    fireEvent.change(screen.getByLabelText(/Bản đã ký/), { target: { files: [file] } });
+    fireEvent.submit(container.querySelector('form')!);
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const url = new URL(String(spy.mock.calls[0]![0]), 'http://x');
+    expect(url.pathname).toBe('/api/office/decision-files');
+    expect(Object.fromEntries(url.searchParams)).toMatchObject({
+      officeId: 'o1',
+      branchId: 'b1',
+      decisionNo: 'QD-01',
+      signerUserId: 'u1',
+      signedOn: '2026-10-13',
+    });
+  });
+
+  it('refuses without a file and shows the duplicate-number message', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(409, { code: 'DUPLICATE_DECISION_NO' }));
+    const { container } = render(<NewDecisionForm branches={branches} signers={signers} />);
+    fill();
+    fireEvent.submit(container.querySelector('form')!);
+    expect((await screen.findByRole('alert')).textContent).toBe(messageFor('INVALID_DOCUMENT'));
+    expect(spy).not.toHaveBeenCalled();
+    const file = new File(['x'], 'qd.png', { type: 'image/png' });
+    fireEvent.change(screen.getByLabelText(/Bản đã ký/), { target: { files: [file] } });
+    fireEvent.submit(container.querySelector('form')!);
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe('Số quyết định này đã có trong sổ.'),
+    );
+  });
+
+  it('explains when nobody holds signing authority', () => {
+    render(<NewDecisionForm branches={branches} signers={[]} />);
+    expect(screen.getByText(/Chưa có người được cấp quyền ký/)).toBeTruthy();
   });
 });

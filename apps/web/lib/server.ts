@@ -31,3 +31,20 @@ export async function loadHandlerOptions(cookie: string | null): Promise<Handler
     return [];
   }
 }
+
+/** Người có quyền ký pháp lý của văn phòng, để chọn khi vào sổ quyết định. Lỗi hoặc không có quyền thì rỗng. */
+export async function loadSignerOptions(
+  cookie: string | null,
+  officeId: string,
+): Promise<HandlerOption[]> {
+  try {
+    const res = await fetch(`${API_URL}/office/signers?officeId=${encodeURIComponent(officeId)}`, {
+      headers: cookie ? { cookie } : {},
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    return ((await res.json()) as { items: HandlerOption[] }).items;
+  } catch {
+    return [];
+  }
+}

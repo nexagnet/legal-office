@@ -249,5 +249,41 @@ describe.skipIf(!ADMIN_URL)(
       expect((await list(U.admin)).map((r) => r.id)).toContain(c);
       expect((await list(U.clerk2)).map((r) => r.id)).not.toContain(c);
     });
+    it('lists signers and records a decision with a hash; refuses duplicates and non-signers without orphan files', async () => {
+      await owner.query(`UPDATE memberships SET legal_signer = true WHERE user_id = $1`, [U.admin]);
+      const signers = async (u: string) =>
+        (await api('GET', `/office/signers?officeId=${OFF}`, u)).json as unknown as {
+          items: { userId: string }[];
+        };
+      expect((await signers(U.clerk1)).items.map((i) => i.userId)).toEqual([U.admin]);
+      expect((await signers(U.outsider)).items).toEqual([]);
+      const dec = (no: string, signer: string) =>
+        q({
+          officeId: OFF,
+          branchId: BR1,
+          decisionNo: no,
+          docType: 'Quyết định',
+          title: 'Quyết định giả lập',
+          signerUserId: signer,
+          signedOn: '2026-10-13',
+        });
+      const ok = await upload(`/office/decision-files${dec('QD-01', U.admin)}`, U.clerk1, PNG);
+      expect(ok.status).toBe(200);
+      const row = (
+        await owner.query(
+          `SELECT evidence_key, evidence_sha256 FROM of_decisions WHERE decision_no = 'QD-01'`,
+        )
+      ).rows[0];
+      expect(row.evidence_sha256).toBe(createHash('sha256').update(PNG).digest('hex'));
+      expect(await store.get(row.evidence_key)).toEqual(PNG);
+      const before = countFiles();
+      expect(
+        (await upload(`/office/decision-files${dec('QD-01', U.admin)}`, U.clerk1, PNG)).status,
+      ).toBe(409);
+      expect(
+        (await upload(`/office/decision-files${dec('QD-02', U.thvA)}`, U.clerk1, PNG)).status,
+      ).toBe(403);
+      expect(countFiles()).toBe(before);
+    });
   },
 );
