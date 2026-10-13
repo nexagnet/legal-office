@@ -220,3 +220,12 @@ export function reportStatusLabel(domain: string, unit: string, status: string):
                   : ENFORCEMENT_STATUS_LABEL;
   return map[status] ?? status;
 }
+
+export const ROLE_LABEL: Record<string, string> = {
+  ADMIN: 'Admin',
+  TRUONG_VP: 'Trưởng văn phòng',
+  THU_KY: 'Thư ký',
+  THV: 'Thừa phát lại',
+  VAN_THU: 'Văn thư',
+  KE_TOAN: 'Kế toán',
+};

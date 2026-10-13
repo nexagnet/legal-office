@@ -85,3 +85,7 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 ## Báo cáo tổng hợp
 
 `GET /office/report?officeId&from&to[&branchId]` (migration 0022, `of_search_report`) đếm theo kỳ (ngày tạo, giờ Việt Nam; số Vi bằng theo ngày cấp), mỗi dòng một đơn vị riêng: hồ sơ Vi bằng, số Vi bằng, yêu cầu và văn bản tống đạt, hồ sơ và đợt xác minh, hồ sơ và nghĩa vụ thi hành án; không cộng chéo, không có số tiền, phạm vi đọc như hồ sơ gốc. Màn hình `/bao-cao` có bộ lọc kỳ/chi nhánh và xuất CSV. Chưa làm: sổ S-01/02/04/05/06, N-09/N-10 và XLSX/PDF, vì chờ biểu mẫu chính thức (issue #15). Giả định cần xác nhận: kỳ tính theo ngày tạo chứ chưa theo ngày hoàn tất.
+
+## Quản trị (danh bạ thành viên, chỉ đọc)
+
+`GET /office/members?officeId` (migration 0023, `of_search_members`) chỉ Admin của văn phòng đọc được: vai, cờ quyền ký pháp lý, chi nhánh được cấp, đã có tài khoản hay chưa; không trả băm mật khẩu. Màn hình `/quan-tri` chỉ xem. Cấp hoặc đổi vai, cấp quyền ký, cấp chi nhánh là mở rộng quyền nên chưa làm: cần chủ quyết cách làm (ai được cấp, có cần hai người duyệt không).
