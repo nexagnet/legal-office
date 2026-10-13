@@ -86,6 +86,11 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 
 `GET /office/report?officeId&from&to[&branchId]` (migration 0022, `of_search_report`) đếm theo kỳ (ngày tạo, giờ Việt Nam; số Vi bằng theo ngày cấp), mỗi dòng một đơn vị riêng: hồ sơ Vi bằng, số Vi bằng, yêu cầu và văn bản tống đạt, hồ sơ và đợt xác minh, hồ sơ và nghĩa vụ thi hành án; không cộng chéo, không có số tiền, phạm vi đọc như hồ sơ gốc. Màn hình `/bao-cao` có bộ lọc kỳ/chi nhánh và xuất CSV. Chưa làm: sổ S-01/02/04/05/06, N-09/N-10 và XLSX/PDF, vì chờ biểu mẫu chính thức (issue #15). Giả định cần xác nhận: kỳ tính theo ngày tạo chứ chưa theo ngày hoàn tất.
 
-## Quản trị (danh bạ thành viên, chỉ đọc)
+## Quản trị: danh bạ và cấp quyền hai người
 
-`GET /office/members?officeId` (migration 0023, `of_search_members`) chỉ Admin của văn phòng đọc được: vai, cờ quyền ký pháp lý, chi nhánh được cấp, đã có tài khoản hay chưa; không trả băm mật khẩu. Màn hình `/quan-tri` chỉ xem. Cấp hoặc đổi vai, cấp quyền ký, cấp chi nhánh là mở rộng quyền nên chưa làm: cần chủ quyết cách làm (ai được cấp, có cần hai người duyệt không).
+Chủ đã chọn (13/10/2026): Admin đề xuất, Trưởng văn phòng duyệt, hai người phải khác nhau.
+
+- `GET /office/members?officeId` (migration 0023, thay bản ở 0024) chỉ Admin đọc: vai, cờ quyền ký pháp lý, chi nhánh được cấp, đã có tài khoản hay chưa, kèm người dùng của tenant chưa có vai nào ở văn phòng; không trả băm mật khẩu.
+- `POST /admin/access-requests` (Admin) đề xuất một trong: cấp vai, gỡ vai, bật/tắt quyền ký pháp lý, cấp/thu hồi chi nhánh. `POST .../:id/decision` (Trưởng VP, khác người đề xuất; từ chối cần ghi chú) và `POST .../:id/withdrawal` (người đề xuất). `GET /admin/access-requests?officeId` cho Admin và Trưởng VP.
+- Chỉ khi duyệt thay đổi mới áp vào memberships/branch_grants, trong cùng giao dịch, và kiểm tra lại lúc áp. Không gỡ được Admin cuối cùng; quyền ký chỉ cho vai Admin/Trưởng VP; chi nhánh chỉ cho Văn thư/Kế toán. Đề xuất chỉ ghi thêm (không xoá, không sửa nội dung), mọi từ chối đều có audit.
+- Giả định cần xác nhận: người duyệt phải có vai Trưởng văn phòng (Admin không tự duyệt kể cả khi đồng thời là Trưởng VP của người khác đề xuất); không có hạn chót tự hết hạn cho đề xuất chờ.

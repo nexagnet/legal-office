@@ -506,7 +506,7 @@ export class OfficeController {
     const rows = await this.read<{
       user_id: string;
       label: string;
-      role: string;
+      role: string | null;
       legal_signer: boolean;
       has_login: boolean;
       branches: string[];

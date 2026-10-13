@@ -31,7 +31,7 @@ const MESSAGES: Record<string, string> = {
   FINAL_SCAN_MISSING: 'Chưa có bản scan cuối của Vi bằng.',
   REVOKE_PENDING: 'Đang có đề nghị thu hồi xác nhận MISA chờ xử lý.',
   DOCUMENT_NOT_FOUND: 'Không tìm thấy văn bản.',
-  REQUEST_NOT_FOUND: 'Không tìm thấy yêu cầu tống đạt.',
+  REQUEST_NOT_FOUND: 'Không tìm thấy yêu cầu hoặc đề xuất.',
   DEADLINE_REQUIRED: 'Cần nhập hạn tống đạt.',
   CASE_NOT_OPEN: 'Hồ sơ xác minh không còn ở trạng thái đang mở.',
   HANDLER_REQUIRED: 'Hồ sơ cần được giao THV phụ trách trước.',
@@ -61,6 +61,17 @@ const MESSAGES: Record<string, string> = {
   SUBJECT_NOT_FOUND: 'Không tìm thấy đề xuất.',
   APPROVAL_RETURNED: 'Đề xuất đang bị trả lại, cần nộp lại trước.',
   APPROVAL_REJECTED: 'Đề xuất đã bị từ chối.',
+  HEAD_ONLY: 'Chỉ Trưởng văn phòng được duyệt đề xuất quyền.',
+  SEPARATE_APPROVER_REQUIRED: 'Người duyệt phải khác người đề xuất.',
+  REQUEST_FINAL: 'Đề xuất này đã được xử lý, không thay đổi thêm được.',
+  ROLE_ALREADY_GRANTED: 'Người này đã có vai trò đó.',
+  ROLE_NOT_HELD: 'Người này không có vai trò đó.',
+  LAST_ADMIN: 'Không thể gỡ Admin cuối cùng của văn phòng.',
+  DUPLICATE_PENDING: 'Đã có đề xuất giống hệt đang chờ duyệt.',
+  SIGNER_ROLE_INVALID: 'Quyền ký pháp lý chỉ dành cho Admin hoặc Trưởng văn phòng.',
+  BRANCH_ROLE_INVALID: 'Chi nhánh chỉ cấp cho vai Văn thư hoặc Kế toán.',
+  USER_NOT_FOUND: 'Không tìm thấy người dùng.',
+  INVALID_REQUEST: 'Nội dung đề xuất chưa hợp lệ.',
   SIGNING_AUTHORITY_NOT_GRANTED: 'Bạn chưa được cấp quyền ký pháp lý.',
   NO_PROPOSAL: 'Chưa có đề xuất kết luận.',
   SEPARATE_REVIEWER_REQUIRED: 'Người quyết định phải khác người đề xuất.',
@@ -228,4 +239,18 @@ export const ROLE_LABEL: Record<string, string> = {
   THV: 'Thừa phát lại',
   VAN_THU: 'Văn thư',
   KE_TOAN: 'Kế toán',
+};
+
+export const ACCESS_KIND_LABEL: Record<string, string> = {
+  GRANT_ROLE: 'Cấp vai trò',
+  REVOKE_ROLE: 'Gỡ vai trò',
+  SET_LEGAL_SIGNER: 'Quyền ký pháp lý',
+  GRANT_BRANCH: 'Cấp chi nhánh',
+  REVOKE_BRANCH: 'Thu hồi chi nhánh',
+};
+export const ACCESS_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Bị từ chối',
+  WITHDRAWN: 'Đã rút',
 };
