@@ -21,7 +21,8 @@ import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
-import { receiveFile, type RawBody } from '../storage/upload';
+import { recordWithUpload } from '../storage/evidence';
+import type { RawBody } from '../storage/upload';
 import { statusFor } from '../vibang/status';
 import { VibangRepo, type Op } from '../vibang/vibang.repo';
 
@@ -189,24 +190,12 @@ export class ServiceOfDocumentsController {
     @Headers('content-length') contentLength: string | undefined,
     @Req() req: RawBody,
   ): Promise<Reply> {
-    if (!this.store)
-      throw new HttpException(
-        { code: 'FILE_STORE_NOT_CONFIGURED', label: null },
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    const file = await receiveFile(req, contentType, contentLength, [
-      'application/pdf',
-      'image/jpeg',
-      'image/png',
-    ]);
-    const key = `t/${a.tenantId}/td/${id}/evidence/${randomUUID()}.${file.extension}`;
-    await this.store.put(key, file.bytes, file.mime);
-    try {
-      return await this.run(a, 'td_record_attempt', [id, 'SERVED', key, file.sha256, null]);
-    } catch (e) {
-      await this.store.delete(key).catch(() => undefined);
-      throw e;
-    }
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/td/${id}/evidence/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'td_record_attempt', [id, 'SERVED', key, f.sha256, null]),
+    );
   }
 
   @Post('documents/:id/undeliverable')
