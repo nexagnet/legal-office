@@ -30,7 +30,7 @@ importers:
   apps/api:
     dependencies:
       '@aws-sdk/client-s3':
-        specifier: '3'
+        specifier: 3.1150.0
         version: 3.1150.0
       '@nestjs/common':
         specifier: 11.2.7
