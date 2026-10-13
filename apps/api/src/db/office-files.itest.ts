@@ -285,5 +285,38 @@ describe.skipIf(!ADMIN_URL)(
       ).toBe(403);
       expect(countFiles()).toBe(before);
     });
+    it('lists stock and batches only within the writing scope', async () => {
+      const item = (
+        await api('POST', '/office/items', U.admin, { officeId: OFF, name: 'Giấy A4', unit: 'ram' })
+      ).json.label as string;
+      for (const [u, br, n] of [
+        [U.clerk1, BR1, 10],
+        [U.clerk2, BR2, 5],
+      ] as const) {
+        expect(
+          (
+            await api('POST', `/office/items/${item}/receipts`, u, {
+              branchId: br,
+              quantity: n,
+              receiptRef: 'PN-' + n,
+            })
+          ).status,
+        ).toBe(200);
+      }
+      const stock = async (u: string) =>
+        (await api('GET', `/office/stock?officeId=${OFF}`, u)).json as unknown as {
+          branchId: string | null;
+          onHand: number | null;
+        }[];
+      expect((await stock(U.admin)).map((r) => r.onHand).sort()).toEqual([10, 5]);
+      expect((await stock(U.clerk1)).filter((r) => r.branchId).map((r) => r.onHand)).toEqual([10]);
+      expect((await stock(U.thvA)).filter((r) => r.branchId)).toEqual([]);
+      expect(await stock(U.outsider)).toEqual([]);
+      const batches = async (u: string) =>
+        (await api('GET', `/office/batches?officeId=${OFF}`, u)).json as unknown as unknown[];
+      expect(await batches(U.admin)).toHaveLength(2);
+      expect(await batches(U.clerk2)).toHaveLength(1);
+      expect(await batches(U.thvB)).toEqual([]);
+    });
   },
 );

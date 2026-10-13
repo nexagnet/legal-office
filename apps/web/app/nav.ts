@@ -81,7 +81,7 @@ export const NAV: readonly NavItem[] = [
     slug: 'vat-tu',
     label: 'Vật tư',
     group: 'office',
-    roles: MANAGE,
+    roles: [...MANAGE, 'VAN_THU'],
     summary: 'Nhập, xuất, điều chỉnh vật tư theo lô (không có giá).',
   },
   {
