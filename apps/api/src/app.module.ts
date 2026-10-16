@@ -8,6 +8,7 @@ import { AUTH_CONFIG, AuthService, type AuthConfig } from './auth/auth.service';
 import { SessionResolver } from './auth/session.resolver';
 import { AssetsController } from './assets/assets.controller';
 import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
+import { FormsController } from './forms/forms.controller';
 import { HealthController } from './health.controller';
 import { type ActorResolver } from './http/actor';
 import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
@@ -50,6 +51,7 @@ export class AppModule {
         ApprovalController,
         AccessController,
         OfficeController,
+        FormsController,
       ],
       providers: [
         { provide: PG_POOL, useValue: options.pool },

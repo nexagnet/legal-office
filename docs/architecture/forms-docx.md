@@ -1,7 +1,7 @@
 # ADR: Bản nháp biểu mẫu DOCX N-01…N-11 — lát đầu (issue #85)
 
 - Trạng thái: **Đề xuất, chờ merge PR**
-- Mã: `apps/api/src/forms/` — hàm thuần `renderFormDocx(code, input)`; **chưa** có endpoint, migration, UI, lưu tệp.
+- Mã: `apps/api/src/forms/` — hàm thuần `renderFormDocx(code, input)`; endpoint `POST /office/forms/:code/draft` (body `{officeId, input}`, trả DOCX; quyền do `of_form_authorize`, migration 0029, audit mọi lần xin). **Chưa** có UI, lưu tệp, tự điền từ hồ sơ.
 - Nguồn văn bản: Phụ lục III, Thông tư 08/2026/TT-BTP (`bieu-mau-nghiep-vu-thua-hanh-vien.docx`), phiên bản mẫu `TT08/2026-PL3`.
 
 ## Phạm vi
