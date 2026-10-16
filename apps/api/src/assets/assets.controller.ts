@@ -2,10 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpException,
   HttpStatus,
   Inject,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -198,5 +200,57 @@ export class AssetsController {
   @HttpCode(HttpStatus.OK)
   completeTransfer(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
     return this.run(a, 'as_transfer_complete', [id]);
+  }
+
+  /** Chi tiết các lần bàn giao của một hồ sơ (mới nhất trước). Ngoài phạm vi xem thì rỗng (cùng quy tắc `th_list_cases`). */
+  @Get('cases/:id/transfers')
+  async caseTransfers(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return { items: await this.loadTransfers(a, id, null) };
+  }
+
+  /** Một lần bàn giao. Không phân biệt "không có" và "không được xem". */
+  @Get('transfers/:id')
+  async transfer(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const [t] = await this.loadTransfers(a, null, id);
+    if (!t) throw new NotFoundException({ code: 'TRANSFER_NOT_FOUND', label: null });
+    return t;
+  }
+
+  private async loadTransfers(
+    a: AuthenticatedActor,
+    caseId: string | null,
+    transferId: string | null,
+  ) {
+    const rows = await this.repo.rows<{
+      id: string;
+      case_id: string;
+      case_ref: string;
+      to_user_id: string;
+      proposed_by: string;
+      current_handler_user_id: string | null;
+      status: string;
+      approval_state: string | null;
+      created_at: Date;
+      completed_at: Date | null;
+      steps: unknown;
+      decisions: unknown;
+    }>(a.tenantId, 'as_list_transfers', [a.tenantId, a.userId, caseId, transferId]);
+    return rows.map((r) => ({
+      id: r.id,
+      caseId: r.case_id,
+      caseRef: r.case_ref,
+      toUserId: r.to_user_id,
+      proposedBy: r.proposed_by,
+      currentHandlerUserId: r.current_handler_user_id,
+      status: r.status,
+      approvalState: r.approval_state ?? 'OPEN',
+      createdAt: r.created_at,
+      completedAt: r.completed_at,
+      steps: r.steps,
+      decisions: r.decisions,
+    }));
   }
 }

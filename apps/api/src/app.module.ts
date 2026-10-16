@@ -18,6 +18,7 @@ import { VerificationController } from './verification/verification.controller';
 import { VibangIntakeController } from './vibang/vibang-intake.controller';
 import { FILE_STORE, type FileStore } from './storage/file-store';
 import { VibangController } from './vibang/vibang.controller';
+import { VibangReadController } from './vibang/vibang-read.controller';
 import { VibangFilesController } from './vibang/vibang-files.controller';
 import { VibangRepo } from './vibang/vibang.repo';
 
@@ -44,6 +45,7 @@ export class AppModule {
         VibangController,
         VibangIntakeController,
         VibangFilesController,
+        VibangReadController,
         ServiceOfDocumentsController,
         VerificationController,
         EnforcementCaseController,
