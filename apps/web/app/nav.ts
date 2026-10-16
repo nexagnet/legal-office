@@ -107,6 +107,13 @@ export const NAV: readonly NavItem[] = [
     roles: ['ADMIN'],
     summary: 'Người dùng, vai trò, chi nhánh và quyền ký.',
   },
+  {
+    slug: 'cai-dat',
+    label: 'Cài đặt',
+    group: 'admin',
+    roles: MANAGE,
+    summary: 'Thông tin pháp lý và thiết lập toàn văn phòng.',
+  },
 ];
 
 export function visibleNav(roles: readonly Role[]): readonly NavItem[] {
