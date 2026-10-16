@@ -46,12 +46,20 @@ const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Ký, đóng dấu và bản scan',
     sub: 'Hoàn tất Vi bằng trên bản giấy và lưu bản scan',
   },
+  'thu-hoi-misa': {
+    title: 'Thu hồi xác nhận thanh toán trên MISA',
+    sub: 'Giữ nguyên số Vi bằng đã cấp; tạm chặn trả nếu xác nhận thanh toán bị thu hồi.',
+  },
+  'sua-loi-n11': {
+    title: 'Sửa lỗi kỹ thuật Vi bằng · N-11',
+    sub: 'Áp dụng quy trình pháp lý riêng; không dùng quyền sửa hồ sơ nội bộ 48 giờ.',
+  },
   'tra-ket-qua': {
     title: 'Trả kết quả và liên hệ khách',
     sub: 'Ghi nhận liên hệ, bàn giao Vi bằng cho khách',
   },
 };
-const STAGE_PATH = /^\/vi-bang\/[^/]+\/([a-z-]+)$/;
+const STAGE_PATH = /^\/vi-bang\/[^/]+\/([a-z0-9-]+)$/;
 const CASE_HEAD = { title: 'Chi tiết và tiến độ Vi bằng', sub: 'Theo dõi tiến độ và xử lý hồ sơ' };
 
 const hrefOf = (i: NavItem) => `/${i.slug}`;
