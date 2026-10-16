@@ -317,9 +317,10 @@ describe.skipIf(!ADMIN_URL)(
       expect(await ids(U.acc1)).toContain(c1);
       expect(await ids(U.acc1)).not.toContain(c2);
       const thvA = await ids(U.thvA);
+      // Chủ dự án chốt 16/10/2026: THV xem được mọi hồ sơ của văn phòng (chỉ thao tác khi được giao).
       expect(thvA).toContain(c1);
-      expect(thvA).not.toContain(c2);
-      expect(await ids(U.thvB)).not.toContain(c1);
+      expect(thvA).toContain(c2);
+      expect(await ids(U.thvB)).toContain(c1);
       expect(await ids(U.outsider)).toEqual([]);
       expect(await ids(U.otherTenantAdmin, T2)).toEqual([]);
 
@@ -331,7 +332,7 @@ describe.skipIf(!ADMIN_URL)(
         responsibleThvUserId: U.thvA,
         branchId: BR1,
       });
-      expect((await api('GET', `/vibang/cases/${c1}`, U.thvB)).status).toBe(404);
+      expect((await api('GET', `/vibang/cases/${c1}`, U.thvB)).status).toBe(200);
       expect((await api('GET', `/vibang/cases/${c2}`, U.clerk1)).status).toBe(404);
       expect(
         (await api('GET', `/vibang/cases/${c1}`, U.otherTenantAdmin, undefined, T2)).status,

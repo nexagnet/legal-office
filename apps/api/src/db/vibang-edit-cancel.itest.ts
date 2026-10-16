@@ -229,7 +229,8 @@ describe.skipIf(!ADMIN_URL)(
         before: { title: 'Hồ sơ giả lập' },
         after: { title: 'Tiêu đề mới' },
       });
-      expect(((await api('GET', req, U.thvB)).json.items as unknown[]).length).toBe(0);
+      // THV xem được mọi hồ sơ của văn phòng (chủ dự án chốt 16/10/2026) nên cũng thấy đề nghị này.
+      expect(((await api('GET', req, U.thvB)).json.items as unknown[]).length).toBe(1);
 
       const dec = `/vibang/change-requests/${rid}/decision`;
       for (const who of [U.head, U.secretary, U.clerk1, U.thvA, U.outsider]) {
@@ -330,7 +331,8 @@ describe.skipIf(!ADMIN_URL)(
         ).status,
       ).toBe(200);
       expect((await api('GET', url, U.clerk1)).json.misaStatus).toBe('CONFIRMED_FULL');
-      for (const who of [U.thvB, U.clerk2, U.outsider]) {
+      expect((await api('GET', url, U.thvB)).status).toBe(200);
+      for (const who of [U.clerk2, U.outsider]) {
         expect((await api('GET', url, who)).status).toBe(404);
       }
       expect((await api('GET', url, U.otherTenantAdmin, undefined, T2)).status).toBe(404);
