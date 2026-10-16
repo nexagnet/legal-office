@@ -5,7 +5,8 @@ const MON_FRI = { workingWeekdays: [1, 2, 3, 4, 5], holidays: [] as string[] };
 
 // Ngày lịch Asia/Ho_Chi_Minh -> thời điểm 00:00 (UTC+7) của ngày đó.
 const ict = (isoDate: string, time = '00:00:00'): Date => new Date(`${isoDate}T${time}+07:00`);
-const ymd = (d: Date): string => new Date(d.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const ymd = (d: Date): string =>
+  new Date(d.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 describe('addWorkingDays', () => {
   it('skips the weekend (Fri 2026-10-16 + 1 = Mon 2026-10-19)', () => {
@@ -65,9 +66,9 @@ describe('addWorkingDays', () => {
   });
 
   it('rejects an empty or out-of-range workingWeekdays', () => {
-    expect(() => addWorkingDays(ict('2026-10-16'), 1, { workingWeekdays: [], holidays: [] })).toThrow(
-      RangeError,
-    );
+    expect(() =>
+      addWorkingDays(ict('2026-10-16'), 1, { workingWeekdays: [], holidays: [] }),
+    ).toThrow(RangeError);
     expect(() =>
       addWorkingDays(ict('2026-10-16'), 1, { workingWeekdays: [0, 8], holidays: [] }),
     ).toThrow(RangeError);

@@ -19,7 +19,7 @@ const fromDayNumber = (day: number): Date => new Date(day * DAY_MS - OFFSET_MS);
 const toIsoDate = (day: number): string => new Date(day * DAY_MS).toISOString().slice(0, 10);
 
 /** 1 = thứ Hai … 7 = Chủ nhật. 1970-01-01 (day 0) là thứ Năm. */
-const weekdayOf = (day: number): number => (((day + 3) % 7) + 7) % 7 + 1;
+const weekdayOf = (day: number): number => ((((day + 3) % 7) + 7) % 7) + 1;
 
 /**
  * Hạn dự kiến sau `days` ngày làm việc kể từ `start`. Ngày bắt đầu không được tính và ngày kết quả
