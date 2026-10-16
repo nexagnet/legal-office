@@ -57,27 +57,6 @@ describe.skipIf(!ADMIN_URL)(
       otherTenantAdmin: id(),
     };
 
-    const api = async (
-      method: string,
-      path: string,
-      user: string | null,
-      body?: unknown,
-      tenant = T,
-    ) => {
-      const headers: Record<string, string> = { 'content-type': 'application/json' };
-      if (user) {
-        headers['x-synthetic-user'] = user;
-        headers['x-synthetic-tenant'] = tenant;
-      }
-      const res = await fetch(`${base}${path}`, {
-        method,
-        headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
-      });
-      const t = await res.text();
-      return { status: res.status, json: t ? (JSON.parse(t) as Record<string, unknown>) : {} };
-    };
-
     beforeAll(async () => {
       await admin.query(`CREATE DATABASE ${DB}`);
       await admin.query(
@@ -167,7 +146,7 @@ describe.skipIf(!ADMIN_URL)(
     };
     const sheet = async (buf: Buffer) => {
       const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(buf);
+      await wb.xlsx.load(buf as unknown as ArrayBuffer);
       const ws = wb.worksheets[0]!;
       const rows: unknown[][] = [];
       ws.eachRow((r) => rows.push((r.values as unknown[]).slice(1)));
