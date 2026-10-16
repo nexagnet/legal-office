@@ -158,6 +158,25 @@ export class VibangController {
     return this.run(a, 'vibang_return_case', [id, a.userId]);
   }
 
+  @Post('cases/:id/handover')
+  @HttpCode(HttpStatus.OK)
+  recordHandover(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          recipientName: z.string().max(200),
+          handedOverOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'vb_record_handover', [a.userId, id, b.recipientName, b.handedOverOn]);
+  }
+
   @Put('cases/:id/registration')
   setRegistration(
     @CurrentActor() a: AuthenticatedActor,
