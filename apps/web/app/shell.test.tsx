@@ -13,12 +13,16 @@ vi.mock('next/link', () => ({
     </a>
   ),
 }));
+const path = vi.hoisted(() => ({ current: '/vi-bang' }));
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/vi-bang',
+  usePathname: () => path.current,
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  path.current = '/vi-bang';
+});
 
 describe('navigation', () => {
   it('shows all four domains to every role and hides admin from non-admins', () => {
@@ -102,6 +106,22 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Đóng menu' }).getAttribute('aria-expanded')).toBe(
       'true',
     );
+  });
+});
+
+describe('AppShell subpage head', () => {
+  it('shows the intake header from Figma 3:54 while keeping Vi bằng as the current menu item', () => {
+    path.current = '/vi-bang/tao-moi';
+    render(
+      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    expect(document.querySelector('.topbar-h')?.textContent).toBe('Tạo hồ sơ Vi bằng');
+    expect(document.querySelector('.topbar-sub')?.textContent).toBe(
+      'Tiếp nhận yêu cầu lập Vi bằng',
+    );
+    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
   });
 });
 

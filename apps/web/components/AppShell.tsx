@@ -22,6 +22,11 @@ const initials = (label: string) =>
     .slice(0, 2)
     .toUpperCase();
 
+/** Trang con có đầu trang riêng trong Figma (3:54). */
+const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
+  '/vi-bang/tao-moi': { title: 'Tạo hồ sơ Vi bằng', sub: 'Tiếp nhận yêu cầu lập Vi bằng' },
+};
+
 const hrefOf = (i: NavItem) => `/${i.slug}`;
 
 /** Mục đang mở: khớp chính xác, hoặc trang con (`/vi-bang/123`) của một mục không phải Tổng quan. */
@@ -46,6 +51,7 @@ export function AppShell({
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const current = currentItem(items, pathname);
+  const head = SUBPAGE_HEAD[pathname];
   return (
     <div className="shell">
       <a className="skip" href="#main">
@@ -69,7 +75,7 @@ export function AppShell({
               <li key={i.slug}>
                 <Link
                   href={hrefOf(i)}
-                  aria-current={pathname === hrefOf(i) ? 'page' : undefined}
+                  aria-current={current === i ? 'page' : undefined}
                   onClick={() => setOpen(false)}
                 >
                   {i.label}
@@ -113,8 +119,10 @@ export function AppShell({
             {open ? 'Đóng menu' : 'Menu'}
           </button>
           <div className="topbar-title">
-            <p className="topbar-h">{current?.label ?? tenantName ?? 'Quản lý văn phòng'}</p>
-            {current ? <p className="topbar-sub">{current.summary}</p> : null}
+            <p className="topbar-h">
+              {head?.title ?? current?.label ?? tenantName ?? 'Quản lý văn phòng'}
+            </p>
+            {head || current ? <p className="topbar-sub">{head?.sub ?? current?.summary}</p> : null}
           </div>
         </header>
         <main id="main" className="main" tabIndex={-1}>
