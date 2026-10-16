@@ -66,7 +66,7 @@ export function NewCaseForm({ branches }: Props) {
     return <p className="muted">Bạn chưa có chi nhánh nào để tiếp nhận hồ sơ.</p>;
   }
   return (
-    <form className="card form" onSubmit={submit} aria-labelledby="new-case-title">
+    <form id="tao-ho-so" className="card form" onSubmit={submit} aria-labelledby="new-case-title">
       <h2 id="new-case-title">Tiếp nhận hồ sơ mới</h2>
       <label>
         Chi nhánh
