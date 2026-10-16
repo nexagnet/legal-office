@@ -388,6 +388,7 @@ describe('ReturnPanel', () => {
         progress={stampedProgress}
         roles={[]}
         contacts={[]}
+        handover={{ recipient: null, on: null }}
       />,
     );
     expect(screen.getByText('CHƯA ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
@@ -405,6 +406,7 @@ describe('ReturnPanel', () => {
         progress={{ ...stampedProgress, hasFinalScan: true }}
         roles={[]}
         contacts={[]}
+        handover={{ recipient: null, on: null }}
       />,
     );
     expect(screen.getByText('ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
@@ -416,9 +418,51 @@ describe('ReturnPanel', () => {
         progress={progressBase}
         roles={[]}
         contacts={[]}
+        handover={{ recipient: null, on: null }}
       />,
     );
     expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe('Handover record', () => {
+  it('posts recipient and date, and shows a recorded handover read-only', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(200, {}));
+    render(
+      <ReturnPanel
+        caseId="c1"
+        status="STAMPED"
+        progress={stampedProgress}
+        roles={['VAN_THU']}
+        contacts={[]}
+        handover={{ recipient: null, on: null }}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Người nhận kết quả'), {
+      target: { value: 'Nguyễn An' },
+    });
+    fireEvent.change(screen.getByLabelText('Ngày bàn giao'), { target: { value: '2026-10-16' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu người nhận' }));
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(String(url)).toBe('/api/vibang/cases/c1/handover');
+    expect(JSON.parse(String((init as RequestInit).body))).toEqual({
+      recipientName: 'Nguyễn An',
+      handedOverOn: '2026-10-16',
+    });
+    cleanup();
+    render(
+      <ReturnPanel
+        caseId="c1"
+        status="RETURNED"
+        progress={stampedProgress}
+        roles={['VAN_THU']}
+        contacts={[]}
+        handover={{ recipient: 'Nguyễn An', on: '2026-10-16' }}
+      />,
+    );
+    expect(screen.getByText('Nguyễn An')).toBeTruthy();
+    expect(screen.queryByLabelText('Ngày bàn giao')).toBeNull();
   });
 });
 

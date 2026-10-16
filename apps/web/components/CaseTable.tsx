@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { CaseItem } from '../lib/cases';
-import { CASE_STATUS_LABEL } from '../lib/messages';
+import { CASE_STATUS_LABEL, NEXT_STEP_LABEL } from '../lib/messages';
 
 const fmt = new Intl.DateTimeFormat('vi-VN', {
   dateStyle: 'short',
@@ -20,7 +20,9 @@ export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
     const needle = q.trim().toLowerCase();
     return cases.filter(
       (c) =>
-        (needle === '' || c.title.toLowerCase().includes(needle)) &&
+        (needle === '' ||
+          c.title.toLowerCase().includes(needle) ||
+          (c.customerName ?? '').toLowerCase().includes(needle)) &&
         (status === '' || c.status === status) &&
         (thv === '' || (thv === 'assigned') === (c.responsibleThvUserId !== null)),
     );
@@ -29,10 +31,10 @@ export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
     <>
       <div className="filters" role="search">
         <label className="filter-search">
-          <span className="sr-only">Tìm theo tiêu đề hồ sơ</span>
+          <span className="sr-only">Tìm theo hồ sơ hoặc khách hàng</span>
           <input
             type="search"
-            placeholder="Tìm theo tiêu đề hồ sơ..."
+            placeholder="Tìm theo hồ sơ hoặc khách hàng..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -69,8 +71,11 @@ export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
             <thead>
               <tr>
                 <th scope="col">Hồ sơ</th>
+                <th scope="col">Khách hàng</th>
+                <th scope="col">Địa điểm</th>
                 <th scope="col">Trạng thái</th>
                 <th scope="col">THV phụ trách</th>
+                <th scope="col">Bước tiếp theo</th>
                 <th scope="col">Ngày tạo</th>
               </tr>
             </thead>
@@ -80,12 +85,17 @@ export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
                   <th scope="row">
                     <Link href={`/vi-bang/${c.id}`}>{c.title}</Link>
                   </th>
+                  <td>{c.customerName ?? <span className="muted">—</span>}</td>
+                  <td>{c.branchName ?? <span className="muted">—</span>}</td>
                   <td>
                     <span className="badge" data-status={c.status}>
                       {CASE_STATUS_LABEL[c.status] ?? c.status}
                     </span>
                   </td>
-                  <td>{c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công'}</td>
+                  <td>
+                    {c.thvLabel ?? (c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công')}
+                  </td>
+                  <td>{c.nextStep ? (NEXT_STEP_LABEL[c.nextStep] ?? c.nextStep) : '—'}</td>
                   <td>{fmt.format(new Date(c.createdAt))}</td>
                 </tr>
               ))}
