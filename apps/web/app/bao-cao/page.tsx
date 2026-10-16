@@ -11,7 +11,14 @@ interface Row {
   readonly unit: string;
   readonly status: string;
   readonly total: number;
+  readonly groupLabel?: string;
 }
+
+type GroupBy = '' | 'thv' | 'branch';
+const GROUP_LABEL: Record<Exclude<GroupBy, ''>, string> = {
+  thv: 'Thừa hành viên',
+  branch: 'Chi nhánh',
+};
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -27,11 +34,13 @@ async function load(
   from: string,
   to: string,
   branchId: string,
+  groupBy: GroupBy,
 ): Promise<Row[] | 'error'> {
   const qs = new URLSearchParams({ officeId, from, to });
+  if (groupBy) qs.set('groupBy', groupBy);
   if (branchId) qs.set('branchId', branchId);
   try {
-    const res = await fetch(`${API_URL}/office/report?${qs.toString()}`, {
+    const res = await fetch(`${API_URL}/office/report${groupBy ? '/by' : ''}?${qs.toString()}`, {
       headers: cookie ? { cookie } : {},
       cache: 'no-store',
     });
@@ -45,7 +54,7 @@ async function load(
 export default async function ReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; branchId?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; branchId?: string; groupBy?: string }>;
 }) {
   const sp = await searchParams;
   const def = defaultPeriod();
@@ -67,13 +76,23 @@ export default async function ReportPage({
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
   const branchId = session.branches.some((b) => b.id === sp.branchId) ? (sp.branchId ?? '') : '';
-  const rows = officeId ? await load(await requestCookie(), officeId, from, to, branchId) : [];
+  const groupBy: GroupBy = sp.groupBy === 'thv' || sp.groupBy === 'branch' ? sp.groupBy : '';
+  const rows = officeId
+    ? await load(await requestCookie(), officeId, from, to, branchId, groupBy)
+    : [];
   const table: string[][] =
     rows === 'error'
       ? []
       : [
-          ['Nghiệp vụ', 'Đơn vị đếm', 'Trạng thái', 'Số lượng'],
+          [
+            ...(groupBy ? [GROUP_LABEL[groupBy]] : []),
+            'Nghiệp vụ',
+            'Đơn vị đếm',
+            'Trạng thái',
+            'Số lượng',
+          ],
           ...rows.map((r) => [
+            ...(groupBy ? [r.groupLabel ?? 'Chưa phân công'] : []),
             REPORT_DOMAIN_LABEL[r.domain] ?? r.domain,
             REPORT_UNIT_LABEL[r.unit] ?? r.unit,
             reportStatusLabel(r.domain, r.unit, r.status),
@@ -168,9 +187,9 @@ export default async function ReportPage({
                     {table.slice(1).map((r, i) => (
                       <tr key={i}>
                         <th scope="row">{r[0]}</th>
-                        <td>{r[1]}</td>
-                        <td>{r[2]}</td>
-                        <td>{r[3]}</td>
+                        {r.slice(1).map((c, j) => (
+                          <td key={j}>{c}</td>
+                        ))}
                       </tr>
                     ))}
                   </tbody>
@@ -198,6 +217,14 @@ export default async function ReportPage({
                   {b.name}
                 </option>
               ))}
+            </select>
+          </label>
+          <label>
+            Chia theo
+            <select name="groupBy" defaultValue={groupBy}>
+              <option value="">Không chia</option>
+              <option value="thv">Thừa hành viên</option>
+              <option value="branch">Chi nhánh</option>
             </select>
           </label>
           <button type="submit" className="primary">
