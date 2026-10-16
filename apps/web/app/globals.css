@@ -812,3 +812,40 @@ th a:hover {
 .ready p {
   margin: 0;
 }
+
+/* Khách hàng và hợp đồng (Figma 3:184) */
+.filters-single {
+  grid-template-columns: 1fr auto;
+}
+.small-ref {
+  font-weight: 400;
+  font-size: 11px;
+}
+.row-btn {
+  margin: 0;
+  min-height: 32px;
+}
+tr[data-selected='true'] > th,
+tr[data-selected='true'] > td {
+  background: var(--head);
+}
+.customer-detail {
+  margin: 16px 0;
+}
+.form-grid {
+  display: grid;
+  gap: 0 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.contract-block {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.note-panel {
+  margin-top: 16px;
+  font-size: 15px;
+}
+.note-panel p {
+  margin: 0 0 8px;
+}

@@ -9,14 +9,17 @@ export function useCaseApi(caseId: string) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
 
   async function send(path: string, init: RequestInit) {
     setBusy(true);
     setError(null);
+    setDone(false);
     try {
       const res = await fetch(`/api/vibang/cases/${caseId}/${path}`, init);
       const json = (await res.json().catch(() => ({}))) as { code?: string };
       if (!res.ok) return setError(messageFor(json.code));
+      setDone(true);
       router.refresh();
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
@@ -50,5 +53,5 @@ export function useCaseApi(caseId: string) {
     });
   }
 
-  return { busy, error, call, recordMisa, uploadScan };
+  return { busy, done, error, call, recordMisa, uploadScan };
 }
