@@ -48,15 +48,12 @@ export default async function CustomersPage({
   ]);
   return (
     <section aria-labelledby="t">
-      <h1 id="t">{ITEM.label}</h1>
-      <p className="muted">
-        Quản lý khách hàng và hồ sơ hợp đồng dịch vụ (không có số tiền kế toán).
-      </p>
-      <p>
+      <div className="page-head">
+        <h1 id="t">{ITEM.label}</h1>
         <Link className="primary btn-link" href="/hop-dong/n-03">
           Soạn hợp đồng N-03
         </Link>
-      </p>
+      </div>
       <form className="filters filters-single" method="get" role="search">
         <label className="filter-search">
           <span className="sr-only">Tìm khách hàng</span>
