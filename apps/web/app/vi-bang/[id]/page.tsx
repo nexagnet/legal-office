@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AssignThv, type ThvOption } from '../../../components/AssignThv';
 import { CaseSteps, type Progress } from '../../../components/CaseSteps';
 import { CaseActions } from '../../../components/CaseActions';
 import { IssueCopyForm, RejectCaseForm } from '../../../components/CaseRejectCopy';
@@ -73,10 +72,6 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
     cookie,
   );
   const isAdmin = session.roles.includes('ADMIN');
-  const thv = isAdmin
-    ? await getJson<{ items: ThvOption[] }>('/vibang/thv', cookie)
-    : { items: [] as ThvOption[] };
-  const thvOptions = typeof thv === 'object' ? thv.items : [];
   const isFinal = c.status === 'RETURNED' || c.status === 'CANCELLED';
   const windowOpen = Date.now() < new Date(c.createdAt).getTime() + WINDOW_MS;
   return (
@@ -115,7 +110,11 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
         </section>
       </div>
       {isAdmin && c.status !== 'RETURNED' && c.status !== 'CANCELLED' ? (
-        <AssignThv caseId={c.id} options={thvOptions} currentThvId={c.responsibleThvUserId} />
+        <p>
+          <Link className="primary btn-link" href={`/vi-bang/${c.id}/phan-cong`}>
+            {c.responsibleThvUserId ? 'Đổi THV phụ trách' : 'Phân công THV'}
+          </Link>
+        </p>
       ) : null}
       <CaseActions
         caseId={c.id}
@@ -154,7 +153,11 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
                     <td>{r.reason}</td>
                     <td>
                       {r.status === 'PENDING' ? (
-                        <ChangeDecision requestId={r.id} canDecide={isAdmin} />
+                        isAdmin ? (
+                          <Link href={`/vi-bang/${c.id}/duyet-sua`}>Xem và duyệt</Link>
+                        ) : (
+                          <ChangeDecision requestId={r.id} canDecide={false} />
+                        )
                       ) : (
                         (REQUEST_LABEL[r.status] ?? r.status)
                       )}

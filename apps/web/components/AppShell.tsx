@@ -24,11 +24,20 @@ const initials = (label: string) =>
 
 /** Trang con có đầu trang riêng trong Figma (3:54). */
 const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
+  '/quan-tri': { title: 'Nhân sự và phân quyền', sub: 'Vai trò, chi nhánh và quyền xử lý hồ sơ' },
   '/vi-bang/tao-moi': { title: 'Tạo hồ sơ Vi bằng', sub: 'Tiếp nhận yêu cầu lập Vi bằng' },
 };
 
 const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
 const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
+  'duyet-sua': {
+    title: 'Yêu cầu sửa hồ sơ sau 48 giờ',
+    sub: 'Sửa dữ liệu nội bộ phải duyệt; không áp dụng cho Vi bằng đã phát hành.',
+  },
+  'phan-cong': {
+    title: 'Admin phân công Thừa hành viên',
+    sub: 'Chỉ Admin phân công, mỗi Vi bằng có một THV phụ trách.',
+  },
   'cap-so': {
     title: 'Xác nhận MISA và cấp số',
     sub: 'Kiểm tra điều kiện cấp số và cấp số Vi bằng',

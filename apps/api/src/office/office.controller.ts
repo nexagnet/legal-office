@@ -10,6 +10,7 @@ import {
   Inject,
   Optional,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Get,
   Post,
@@ -142,6 +143,145 @@ export class OfficeController {
       direction ?? null,
       parsedCase,
     ]);
+  }
+
+  /** Danh sách công văn đầy đủ cột (hạn, người xử lý, ngày nhận/ban hành, kết quả, nơi lưu) + cờ quá hạn, có bộ lọc. */
+  @Get('correspondence/list')
+  async listCorrespondence(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query() query: Record<string, string | undefined>,
+  ) {
+    const q = parse(
+      z.object({
+        direction: z.enum(['INBOUND', 'OUTBOUND']).optional(),
+        status: z
+          .enum(['RECEIVED', 'HANDLED', 'DRAFT', 'SUBMITTED', 'APPROVED', 'ISSUED'])
+          .optional(),
+        overdue: z.enum(['true', 'false']).optional(),
+        handler: uuid.optional(),
+        from: isoDate.optional(),
+        to: isoDate.optional(),
+        limit: z.coerce.number().int().min(1).max(500).optional(),
+      }),
+      { ...query, officeId: undefined },
+    );
+    const rows = await this.read<Record<string, unknown>>(a, 'of_list_correspondence', [
+      officeId,
+      q.direction ?? null,
+      q.status ?? null,
+      q.overdue === 'true',
+      q.handler ?? null,
+      q.from ?? null,
+      q.to ?? null,
+      q.limit ?? null,
+    ]);
+    return rows.map((r) => ({
+      id: r.id,
+      direction: r.direction,
+      status: r.status,
+      refNo: r.ref_no,
+      docType: r.doc_type,
+      counterparty: r.counterparty,
+      subject: r.subject,
+      branchId: r.branch_id,
+      caseKind: r.case_kind,
+      caseId: r.case_id,
+      receivedOn: r.received_on,
+      issuedOn: r.issued_on,
+      dueAt: r.due_at,
+      handlerUserId: r.handler_user_id,
+      resultNote: r.result_note,
+      archiveRef: r.archive_ref,
+      overdue: r.overdue,
+      createdAt: r.created_at,
+    }));
+  }
+
+  private async getCorrespondence(a: AuthenticatedActor, id: string) {
+    const [r] = await this.read<Record<string, unknown>>(a, 'of_get_correspondence', [id]);
+    if (!r)
+      throw new HttpException(
+        { code: 'CORRESPONDENCE_NOT_FOUND', label: null },
+        HttpStatus.NOT_FOUND,
+      );
+    return r;
+  }
+
+  /** Chi tiết một công văn + tệp đính kèm + lịch sử. Không đọc được thì 404. */
+  @Get('correspondence/:id')
+  async correspondenceDetail(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const r = await this.getCorrespondence(a, id);
+    return {
+      id: r.id,
+      officeId: r.office_id,
+      direction: r.direction,
+      status: r.status,
+      refNo: r.ref_no,
+      docType: r.doc_type,
+      counterparty: r.counterparty,
+      subject: r.subject,
+      branchId: r.branch_id,
+      caseKind: r.case_kind,
+      caseId: r.case_id,
+      receivedOn: r.received_on,
+      issuedOn: r.issued_on,
+      dueAt: r.due_at,
+      handlerUserId: r.handler_user_id,
+      resultNote: r.result_note,
+      archiveRef: r.archive_ref,
+      sendMethod: r.send_method,
+      overdue: r.overdue,
+      createdAt: r.created_at,
+      attachments: r.attachments,
+      events: r.events,
+    };
+  }
+
+  /** Tải một tệp đính kèm: DB kiểm quyền đọc công văn và audit; máy chủ đọc tệp từ kho. */
+  @Get('correspondence/:id/files/:attId')
+  async correspondenceFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('attId', ParseIntPipe) attId: number,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+  ) {
+    if (!this.store)
+      throw new HttpException(
+        { code: 'FILE_STORE_NOT_CONFIGURED', label: null },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    const r = await this.getCorrespondence(a, id);
+    const att = (r.attachments as { id: number; key: string; name: string }[]).find(
+      (x) => x.id === attId,
+    );
+    const bytes =
+      att && att.key.startsWith(`t/${a.tenantId}/`) ? await this.store.get(att.key) : null;
+    if (!att || !bytes)
+      throw new HttpException({ code: 'FILE_NOT_FOUND', label: null }, HttpStatus.NOT_FOUND);
+    const ext = (att.key.split('.').pop() ?? '').toLowerCase();
+    const type = ext === 'pdf' ? 'application/pdf' : ext === 'png' ? 'image/png' : 'image/jpeg';
+    res.set({
+      'content-type': type,
+      'content-disposition': `attachment; filename="${att.name.replace(/[^A-Za-z0-9._-]/g, '_')}"`,
+      'cache-control': 'private, no-store',
+    });
+    return new StreamableFile(bytes);
+  }
+
+  /** Giao/đổi người xử lý công văn đến (Admin/Trưởng VP/Thư ký), chỉ khi chưa xử lý. */
+  @Post('correspondence/:id/assign')
+  @HttpCode(HttpStatus.OK)
+  assign(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ handlerUserId: uuid }).strict(), body);
+    return this.run(a, 'of_corr_assign', [id, b.handlerUserId]);
   }
 
   @Post('correspondence/:id/attachments')
@@ -650,6 +790,48 @@ export class OfficeController {
       branchName: r.branch_name,
       onHand: r.on_hand,
       batches: r.batches,
+    }));
+  }
+
+  /** Lịch sử nhập/xuất/kiểm kê vật tư kèm nguồn lô; cùng phạm vi đọc với tồn kho. Không có giá. */
+  @Get('movements')
+  async movements(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query() query: Record<string, string | undefined>,
+  ) {
+    const q = parse(
+      z.object({
+        itemId: uuid.optional(),
+        branchId: uuid.optional(),
+        from: isoDate.optional(),
+        to: isoDate.optional(),
+        limit: z.coerce.number().int().min(1).max(1000).optional(),
+      }),
+      { ...query, officeId: undefined },
+    );
+    const rows = await this.read<Record<string, unknown>>(a, 'of_search_movements', [
+      officeId,
+      q.itemId ?? null,
+      q.branchId ?? null,
+      q.from ?? null,
+      q.to ?? null,
+      q.limit ?? null,
+    ]);
+    return rows.map((r) => ({
+      movementId: r.movement_id,
+      at: r.at,
+      kind: r.kind,
+      delta: r.delta,
+      purpose: r.purpose,
+      actorUserId: r.actor_user_id,
+      itemId: r.item_id,
+      itemName: r.item_name,
+      unit: r.unit,
+      branchId: r.branch_id,
+      batchId: r.batch_id,
+      receiptRef: r.receipt_ref,
+      batchReceivedAt: r.batch_received_at,
     }));
   }
 

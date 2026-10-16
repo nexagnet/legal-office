@@ -92,12 +92,21 @@ export default async function AdminPage() {
       : [...new Map(members.map((m) => [m.userId, { userId: m.userId, label: m.label }])).values()];
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Quản trị</h1>
-      <p className="muted">
-        Danh bạ thành viên, vai trò, chi nhánh được cấp và quyền ký pháp lý. Chỉ xem: việc cấp hoặc
-        đổi vai và quyền ký chưa mở trên giao diện vì là quyết định mở rộng quyền, cần chủ xác nhận
-        cách làm.
-      </p>
+      <div className="page-head">
+        <div>
+          <h1 id="t">Nhân sự và phân quyền</h1>
+          <p className="muted">
+            Danh bạ thành viên, vai trò, chi nhánh được cấp và quyền ký pháp lý. Chỉ xem: việc cấp
+            hoặc đổi vai và quyền ký chưa mở trên giao diện vì là quyết định mở rộng quyền, cần chủ
+            xác nhận cách làm.
+          </p>
+        </div>
+        {officeId && isAdmin ? (
+          <a className="primary btn-link" href="#de-xuat-quyen">
+            + Đề xuất cấp quyền
+          </a>
+        ) : null}
+      </div>
       {members === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được danh bạ</h2>
@@ -113,10 +122,10 @@ export default async function AdminPage() {
             <caption className="sr-only">Thành viên văn phòng</caption>
             <thead>
               <tr>
-                <th scope="col">Thành viên</th>
+                <th scope="col">Nhân viên</th>
                 <th scope="col">Vai trò</th>
                 <th scope="col">Quyền ký pháp lý</th>
-                <th scope="col">Chi nhánh được cấp</th>
+                <th scope="col">Phạm vi địa điểm</th>
                 <th scope="col">Đăng nhập</th>
               </tr>
             </thead>
@@ -190,8 +199,16 @@ export default async function AdminPage() {
           </table>
         </div>
       )}
+      <aside className="panel">
+        <p className="muted">
+          Phân quyền theo vai trò, địa điểm và hồ sơ; quyền hành nghề pháp lý không thể thay bằng
+          quyền Admin ứng dụng.
+        </p>
+      </aside>
       {officeId && isAdmin ? (
-        <AccessRequestForm officeId={officeId} people={people} branches={session.branches} />
+        <div id="de-xuat-quyen">
+          <AccessRequestForm officeId={officeId} people={people} branches={session.branches} />
+        </div>
       ) : null}
       {officeId && calendar !== null && calendar === 'error' ? (
         <section className="calendar-settings" aria-labelledby="cal-t">
