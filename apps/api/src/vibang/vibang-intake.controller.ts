@@ -57,6 +57,14 @@ interface CaseRow {
   readonly responsible_thv_user_id: string | null;
   readonly created_at: Date;
   readonly version: number;
+  readonly branch_name: string;
+  readonly customer_name: string | null;
+  readonly thv_label: string | null;
+  readonly number_label: string | null;
+  readonly number_allocated_at: Date | null;
+  readonly next_step: string | null;
+  readonly handover_recipient: string | null;
+  readonly handover_on: string | null;
 }
 const toCase = (r: CaseRow) => ({
   id: r.id,
@@ -70,6 +78,14 @@ const toCase = (r: CaseRow) => ({
   responsibleThvUserId: r.responsible_thv_user_id,
   createdAt: r.created_at,
   version: r.version,
+  branchName: r.branch_name,
+  customerName: r.customer_name,
+  thvLabel: r.thv_label,
+  numberLabel: r.number_label,
+  numberAllocatedAt: r.number_allocated_at,
+  nextStep: r.next_step,
+  handoverRecipient: r.handover_recipient,
+  handoverOn: r.handover_on,
 });
 
 /**
@@ -415,7 +431,7 @@ export class VibangIntakeController {
   async list(@CurrentActor() a: AuthenticatedActor, @Query('limit') limit?: string) {
     const n = limit === undefined ? 50 : Number(limit);
     if (!Number.isInteger(n) || n < 1 || n > 200) throw new BadRequestException('limit: 1-200');
-    const rows = await this.repo.rows<CaseRow>(a.tenantId, 'vb_list_cases', [
+    const rows = await this.repo.rows<CaseRow>(a.tenantId, 'vb_list_case_view', [
       a.tenantId,
       a.userId,
       null,
@@ -426,7 +442,7 @@ export class VibangIntakeController {
 
   @Get('cases/:id')
   async get(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
-    const rows = await this.repo.rows<CaseRow>(a.tenantId, 'vb_list_cases', [
+    const rows = await this.repo.rows<CaseRow>(a.tenantId, 'vb_list_case_view', [
       a.tenantId,
       a.userId,
       id,
