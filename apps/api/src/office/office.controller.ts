@@ -1144,6 +1144,113 @@ export class OfficeController {
     return this.run(a, 'of_adjust', [id, b.newRemaining, b.reason]);
   }
 
+  @Get('stocktakes')
+  async stocktakes(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<Record<string, unknown>>(a, 'of_search_stocktakes', [officeId]);
+    return rows.map((r) => ({
+      id: r.id,
+      branchId: r.branch_id,
+      branchName: r.branch_name,
+      note: r.note,
+      status: r.status,
+      createdBy: r.created_by,
+      createdAt: r.created_at,
+      decidedBy: r.decided_by,
+      decidedAt: r.decided_at,
+      lines: r.lines,
+      varianceLines: r.variance_lines,
+    }));
+  }
+
+  @Get('stocktakes/:id/lines')
+  async stocktakeLines(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<Record<string, unknown>>(a, 'of_search_stocktake_lines', [
+      officeId,
+      id,
+    ]);
+    return rows.map((r) => ({
+      batchId: r.batch_id,
+      itemId: r.item_id,
+      itemName: r.item_name,
+      receiptRef: r.receipt_ref,
+      systemQty: r.system_qty,
+      countedQty: r.counted_qty,
+      diff: r.diff,
+      reason: r.reason,
+    }));
+  }
+
+  @Post('stocktakes')
+  @HttpCode(HttpStatus.OK)
+  openStocktake(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z.object({ officeId: uuid, branchId: uuid, note: z.string().max(500).nullish() }).strict(),
+      body,
+    );
+    return this.run(a, 'of_stocktake_open', [b.officeId, b.branchId, b.note ?? null]);
+  }
+
+  @Post('stocktakes/:id/counts')
+  @HttpCode(HttpStatus.OK)
+  countStocktake(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          batchId: uuid,
+          countedQty: z.number().int(),
+          reason: z.string().max(500).nullish(),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'of_stocktake_count', [id, b.batchId, b.countedQty, b.reason ?? null]);
+  }
+
+  @Post('stocktakes/:id/decision')
+  @HttpCode(HttpStatus.OK)
+  decideStocktake(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ approve: z.boolean() }).strict(), body);
+    return this.run(a, 'of_stocktake_decide', [id, b.approve]);
+  }
+
+  @Get('item-categories')
+  async itemCategories(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{ item_id: string; category: string }>(
+      a,
+      'of_search_item_categories',
+      [officeId],
+    );
+    return rows.map((r) => ({ itemId: r.item_id, category: r.category }));
+  }
+
+  @Put('items/:id/category')
+  setItemCategory(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ category: z.string().max(100) }).strict(), body);
+    return this.run(a, 'of_set_item_category', [id, b.category]);
+  }
+
   @Put('personnel')
   savePersonnel(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
     const b = parse(
