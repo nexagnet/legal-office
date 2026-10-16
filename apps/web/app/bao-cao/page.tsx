@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StatCard } from '../../components/StatCard';
 import { ReportExport } from '../../components/ReportExport';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { REPORT_DOMAIN_LABEL, REPORT_UNIT_LABEL, reportStatusLabel } from '../../lib/messages';
@@ -79,6 +80,15 @@ export default async function ReportPage({
             String(r.total),
           ]),
         ];
+  const cases =
+    rows === 'error' ? [] : rows.filter((r) => r.domain === 'VIBANG' && r.unit === 'CASE');
+  const caseTotal = cases.reduce((n, r) => n + r.total, 0);
+  const caseReturned = cases
+    .filter((r) => r.status === 'RETURNED')
+    .reduce((n, r) => n + r.total, 0);
+  const caseCancelled = cases
+    .filter((r) => r.status === 'CANCELLED')
+    .reduce((n, r) => n + r.total, 0);
   const max = rows === 'error' ? 0 : Math.max(1, ...rows.map((r) => r.total));
   return (
     <section aria-labelledby="t">
@@ -94,7 +104,24 @@ export default async function ReportPage({
           <ReportExport rows={table} filename={`bao-cao-${from}-${to}.csv`} />
         ) : null}
       </div>
-      <div className="panels">
+      {rows !== 'error' && cases.length > 0 ? (
+        <div className="stats">
+          <StatCard label="Vi bằng đã lập" value={caseTotal} note="Hồ sơ tạo trong kỳ đã chọn" />
+          <StatCard
+            label="Đã trả kết quả"
+            value={caseReturned}
+            note="Không tính đã thông báo"
+            tone="green"
+          />
+          <StatCard
+            label="Chưa hoàn tất"
+            value={caseTotal - caseReturned - caseCancelled}
+            note="Chờ ký, scan hoặc bàn giao"
+            tone="amber"
+          />
+        </div>
+      ) : null}
+      <div className="panels report-grid">
         <div className="panel">
           <h2>Số lượng theo nghiệp vụ</h2>
           {rows === 'error' ? (
@@ -173,7 +200,9 @@ export default async function ReportPage({
               ))}
             </select>
           </label>
-          <button type="submit">Xem</button>
+          <button type="submit" className="primary">
+            Xem
+          </button>
         </form>
       </div>
     </section>

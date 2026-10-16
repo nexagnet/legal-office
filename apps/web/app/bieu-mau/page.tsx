@@ -60,9 +60,6 @@ export default async function FormsPage({
       <div className="page-head">
         <div>
           <h1 id="t">Thư viện biểu mẫu</h1>
-          <p className="muted">
-            Phụ lục Thông tư 06 chỉ để tải về; hệ thống không điền, ký hay phát hành.
-          </p>
         </div>
         {officeId && canRegister ? (
           <a className="primary btn-link" href="#dang-ky">

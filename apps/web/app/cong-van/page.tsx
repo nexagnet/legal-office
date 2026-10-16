@@ -100,8 +100,7 @@ export default async function CorrespondencePage({
     <section aria-labelledby="t">
       <div className="page-head">
         <div>
-          <h1 id="t">Công văn</h1>
-          <p className="muted">Công văn đến và đi trong phạm vi quyền của bạn.</p>
+          <h1 id="t">Công văn đi / đến</h1>
         </div>
         <a className="primary btn-link" href="#tao-van-ban">
           + Tạo văn bản
