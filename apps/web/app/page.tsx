@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { StatCard } from '../components/StatCard';
 import { ModuleState } from '../components/ModuleState';
 import { isOpenCase, loadCases, summarizeCases } from '../lib/cases';
+import { DeadlineReminders } from '../components/DeadlineReminders';
+import { loadDeadlines } from '../lib/deadlines-api';
 import { CASE_STATUS_LABEL } from '../lib/messages';
 import { currentSession, requestCookie } from '../lib/server';
 import { NAV, OVERVIEW } from './nav';
@@ -16,7 +18,8 @@ export default async function HomePage() {
   if (session.status !== 'authenticated' || !canSeeCases(session.roles)) {
     return <ModuleState item={OVERVIEW} session={session} />;
   }
-  const cases = await loadCases(await requestCookie());
+  const cookie = await requestCookie();
+  const cases = await loadCases(cookie);
   if (cases === 'error') {
     return (
       <section aria-labelledby="t">
@@ -28,6 +31,8 @@ export default async function HomePage() {
       </section>
     );
   }
+  const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
+  const deadlines = officeId ? await loadDeadlines(cookie, officeId) : 'error';
   const sum = summarizeCases(cases);
   const today = cases.filter(isOpenCase).slice(0, 4);
   const reminders: string[] = [
@@ -91,6 +96,7 @@ export default async function HomePage() {
           )}
         </div>
       </div>
+      <DeadlineReminders items={deadlines} />
     </section>
   );
 }
