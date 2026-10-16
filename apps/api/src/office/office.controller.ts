@@ -884,6 +884,41 @@ export class OfficeController {
     return this.loadReport(a, officeId, from, to, branchId);
   }
 
+  /** Báo cáo tổng hợp theo kỳ CHIA THEO Thừa hành viên (`groupBy=thv`) hoặc chi nhánh/địa điểm (`groupBy=branch`). */
+  @Get('report/by')
+  async reportBy(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('groupBy') groupBy: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    const g = parse(z.enum(['thv', 'branch']), (groupBy ?? '').toLowerCase());
+    const rows = await this.read<{
+      group_id: string | null;
+      group_label: string;
+      domain: string;
+      unit: string;
+      status: string;
+      total: number;
+    }>(a, 'of_search_report_by', [
+      officeId,
+      parse(isoDate, from),
+      parse(isoDate, to),
+      branchId === undefined || branchId === '' ? null : parse(uuid, branchId),
+      g.toUpperCase(),
+    ]);
+    return rows.map((r) => ({
+      groupId: r.group_id,
+      groupLabel: r.group_label,
+      domain: r.domain,
+      unit: r.unit,
+      status: r.status,
+      total: r.total,
+    }));
+  }
+
   /** Xuất báo cáo tổng hợp theo kỳ ra Excel. Cùng phạm vi quyền với `GET report`; không số tiền. */
   @Get('report/export')
   async reportExport(

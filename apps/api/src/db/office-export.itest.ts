@@ -190,5 +190,44 @@ describe.skipIf(!ADMIN_URL)(
       expect((await sheet(out.buf)).length).toBe(3);
       expect((await get(`${rep}&from=bad`, U.admin)).status).toBe(400);
     });
+
+    it('breaks the report down by THV or branch with the same scope', async () => {
+      const rid = id();
+      await owner.query(
+        `INSERT INTO td_requests (id, tenant_id, office_id, branch_id, request_ref, created_by) VALUES ($1,$2,$3,$4,'YC-BY',$5)`,
+        [rid, T, OFF, BR2, U.admin],
+      );
+      await owner.query(
+        `INSERT INTO td_documents (tenant_id, request_id, recipient_name, address, deadline_at, handler_user_id, status) VALUES
+          ($1,$2,'G1','đ', now() + interval '2 days', $3, 'ASSIGNED'), ($1,$2,'G2','đ', now() + interval '2 days', $3, 'ASSIGNED')`,
+        [T, rid, U.thvA],
+      );
+      const q = (g: string, user: string | null) =>
+        get(`/office/report/by?officeId=${OFF}&from=2020-01-01&to=${today}&groupBy=${g}`, user);
+      const byThv = JSON.parse((await q('thv', U.admin)).buf.toString()) as Record<
+        string,
+        unknown
+      >[];
+      const a = byThv.find(
+        (r) => r.groupId === U.thvA && r.unit === 'DOCUMENT' && r.status === 'ASSIGNED',
+      );
+      expect(a?.total).toBe(2);
+      expect(byThv.some((r) => r.groupLabel === 'Chưa giao')).toBe(true);
+      const byBranch = JSON.parse((await q('branch', U.admin)).buf.toString()) as Record<
+        string,
+        unknown
+      >[];
+      expect(byBranch.find((r) => r.groupLabel === 'CN2' && r.unit === 'DOCUMENT')?.total).toBe(2);
+      // Văn thư chi nhánh 1 không thấy số của chi nhánh 2; THV chỉ thấy phần của mình
+      const clerk1 = JSON.parse((await q('branch', U.clerk1)).buf.toString()) as Record<
+        string,
+        unknown
+      >[];
+      expect(clerk1.some((r) => r.groupLabel === 'CN2')).toBe(false);
+      const own = JSON.parse((await q('thv', U.thvB)).buf.toString()) as Record<string, unknown>[];
+      expect(own.some((r) => r.groupId === U.thvA)).toBe(false);
+      expect((await q('x', U.admin)).status).toBe(400);
+      expect((await q('thv', null)).status).toBe(401);
+    });
   },
 );
