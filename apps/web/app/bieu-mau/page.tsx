@@ -70,6 +70,11 @@ export default async function FormsPage({
           </a>
         ) : null}
       </div>
+      <p>
+        <Link className="btn-link" href="/bieu-mau/n-04">
+          Soạn nội dung Vi bằng N-04
+        </Link>
+      </p>
       <form className="filters filters-single" method="get" role="search">
         <label className="filter-search">
           <span className="sr-only">Tìm biểu mẫu</span>

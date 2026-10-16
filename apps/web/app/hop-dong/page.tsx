@@ -52,6 +52,11 @@ export default async function CustomersPage({
       <p className="muted">
         Quản lý khách hàng và hồ sơ hợp đồng dịch vụ (không có số tiền kế toán).
       </p>
+      <p>
+        <Link className="primary btn-link" href="/hop-dong/n-03">
+          Soạn hợp đồng N-03
+        </Link>
+      </p>
       <form className="filters filters-single" method="get" role="search">
         <label className="filter-search">
           <span className="sr-only">Tìm khách hàng</span>
