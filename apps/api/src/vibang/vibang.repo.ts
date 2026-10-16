@@ -33,7 +33,7 @@ export class VibangRepo {
     args: readonly unknown[],
   ): Promise<T[]> {
     if (
-      !/^of_(search|s06)_[a-z0-9_]+$|^of_s06_read$|^of_list_signers$|^vb_list_(cases|changes|thv|customers|contracts)$|^vb_case_progress$|^td_list_documents$|^vx_list_cases$|^th_list_cases$/.test(
+      !/^of_(search|s06)_[a-z0-9_]+$|^of_list_correspondence$|^of_get_correspondence$|^of_s06_read$|^of_list_signers$|^vb_list_(cases|changes|thv|customers|contracts)$|^vb_case_progress$|^td_list_documents$|^vx_list_cases$|^th_list_cases$/.test(
         fn,
       )
     )
