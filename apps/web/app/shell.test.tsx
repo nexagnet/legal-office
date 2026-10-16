@@ -24,11 +24,11 @@ describe('navigation', () => {
   it('shows all four domains to every role and hides admin from non-admins', () => {
     for (const role of ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU'] as const) {
       const labels = visibleNav([role]).map((n) => n.label);
-      for (const d of ['Vi bằng', 'Tống đạt', 'Xác minh', 'Tổ chức THA'])
+      for (const d of ['Vi bằng', 'Tống đạt', 'Xác minh điều kiện THA', 'Tổ chức thi hành án'])
         expect(labels).toContain(d);
     }
-    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Quản trị');
-    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Quản trị');
+    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Nhân sự & chi nhánh');
+    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Nhân sự & chi nhánh');
     expect(visibleNav([])).toEqual([]);
   });
 

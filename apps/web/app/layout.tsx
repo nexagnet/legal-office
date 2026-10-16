@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
+import '@fontsource-variable/inter';
 import './globals.css';
-import { visibleNav } from './nav';
+import { ROLE_LABEL, visibleNav } from './nav';
 import { currentSession } from '../lib/server';
 
 export const metadata = {
@@ -21,6 +22,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           items={items}
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
           signedIn={session.status === 'authenticated'}
+          roleLabel={
+            session.status === 'authenticated' ? (ROLE_LABEL[session.roles[0]!] ?? null) : null
+          }
         >
           {children}
         </AppShell>

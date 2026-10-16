@@ -9,83 +9,118 @@ interface Props {
   readonly items: readonly NavItem[];
   readonly tenantName: string | null;
   readonly signedIn?: boolean;
+  /** Vai hiển thị ở thẻ người dùng cuối thanh bên (không phải nguồn quyền). */
+  readonly roleLabel?: string | null;
   readonly children: ReactNode;
 }
 
-const GROUPS: Record<NavItem['group'], string> = {
-  domain: 'Nghiệp vụ',
-  office: 'Văn phòng',
-  admin: 'Quản trị',
-};
+const initials = (label: string) =>
+  label
+    .split(/\s+/)
+    .map((w) => w.charAt(0))
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
-export function AppShell({ items, tenantName, signedIn = false, children }: Props) {
+const hrefOf = (i: NavItem) => `/${i.slug}`;
+
+/** Mục đang mở: khớp chính xác, hoặc trang con (`/vi-bang/123`) của một mục không phải Tổng quan. */
+function currentItem(items: readonly NavItem[], pathname: string): NavItem | undefined {
+  return items.find(
+    (i) => pathname === hrefOf(i) || (i.slug !== '' && pathname.startsWith(`${hrefOf(i)}/`)),
+  );
+}
+
+/**
+ * Khung chung theo Figma "Full UX": thanh bên tối 248px (logo chờ, nhãn không gian làm việc, menu, thẻ người dùng)
+ * và đầu trang trắng 92px (tên trang + mô tả). Dưới 900px thanh bên thu thành menu bật/tắt.
+ */
+export function AppShell({
+  items,
+  tenantName,
+  signedIn = false,
+  roleLabel = null,
+  children,
+}: Props) {
   const router = useRouter();
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
+  const current = currentItem(items, pathname);
   return (
     <div className="shell">
       <a className="skip" href="#main">
         Bỏ qua điều hướng
       </a>
-      <header className="topbar">
-        <button
-          type="button"
-          className="menu-btn"
-          aria-expanded={open}
-          aria-controls="primary-nav"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? 'Đóng menu' : 'Menu'}
-        </button>
+      <aside className="side" data-open={open}>
         <div className="brand">
           <div
             data-testid="tenant-logo-slot"
             className="logo-slot"
             aria-label="Chỗ đặt logo văn phòng"
-          />
-          <span>{tenantName ?? 'Quản lý văn phòng'}</span>
+          >
+            Vị trí logo của văn phòng
+          </div>
+          <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
         </div>
+        <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
+          <h2 className="nav-title">Không gian làm việc</h2>
+          <ul>
+            {items.map((i) => (
+              <li key={i.slug}>
+                <Link
+                  href={hrefOf(i)}
+                  aria-current={pathname === hrefOf(i) ? 'page' : undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  {i.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
         {signedIn ? (
+          <div className="profile">
+            <span className="avatar" aria-hidden="true">
+              {initials(roleLabel ?? 'Nhân viên')}
+            </span>
+            <span className="profile-text">
+              <strong>{roleLabel ?? 'Nhân viên văn phòng'}</strong>
+              <small>Xem quyền theo tài khoản</small>
+            </span>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={async () => {
+                await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
+                router.push('/login');
+                router.refresh();
+              }}
+            >
+              Đăng xuất
+            </button>
+          </div>
+        ) : null}
+      </aside>
+      <div className="content">
+        <header className="topbar">
           <button
             type="button"
-            className="link-btn"
-            onClick={async () => {
-              await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
-              router.push('/login');
-              router.refresh();
-            }}
+            className="menu-btn"
+            aria-expanded={open}
+            aria-controls="primary-nav"
+            onClick={() => setOpen((v) => !v)}
           >
-            Đăng xuất
+            {open ? 'Đóng menu' : 'Menu'}
           </button>
-        ) : null}
-      </header>
-      <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
-        {(Object.keys(GROUPS) as NavItem['group'][]).map((g) => {
-          const list = items.filter((i) => i.group === g);
-          if (list.length === 0) return null;
-          return (
-            <section key={g} aria-label={GROUPS[g]}>
-              <h2 className="nav-title">{GROUPS[g]}</h2>
-              <ul>
-                {list.map((i) => (
-                  <li key={i.slug}>
-                    <Link
-                      href={`/${i.slug}`}
-                      aria-current={pathname === `/${i.slug}` ? 'page' : undefined}
-                      onClick={() => setOpen(false)}
-                    >
-                      {i.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          );
-        })}
-      </nav>
-      <main id="main" className="main" tabIndex={-1}>
-        {children}
-      </main>
+          <div className="topbar-title">
+            <p className="topbar-h">{current?.label ?? tenantName ?? 'Quản lý văn phòng'}</p>
+            {current ? <p className="topbar-sub">{current.summary}</p> : null}
+          </div>
+        </header>
+        <main id="main" className="main" tabIndex={-1}>
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
