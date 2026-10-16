@@ -27,6 +27,9 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   '/vi-bang/tao-moi': { title: 'Tạo hồ sơ Vi bằng', sub: 'Tiếp nhận yêu cầu lập Vi bằng' },
 };
 
+const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
+const CASE_HEAD = { title: 'Chi tiết và tiến độ Vi bằng', sub: 'Theo dõi tiến độ và xử lý hồ sơ' };
+
 const hrefOf = (i: NavItem) => `/${i.slug}`;
 
 /** Mục đang mở: khớp chính xác, hoặc trang con (`/vi-bang/123`) của một mục không phải Tổng quan. */
@@ -51,7 +54,7 @@ export function AppShell({
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const current = currentItem(items, pathname);
-  const head = SUBPAGE_HEAD[pathname];
+  const head = SUBPAGE_HEAD[pathname] ?? (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
   return (
     <div className="shell">
       <a className="skip" href="#main">
