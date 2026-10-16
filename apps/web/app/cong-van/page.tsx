@@ -1,9 +1,13 @@
 import Link from 'next/link';
 import { CorrespondenceActions } from '../../components/CorrespondenceActions';
 import { NewCorrespondenceForm } from '../../components/NewCorrespondenceForm';
+import { StatCard } from '../../components/StatCard';
 import { NewDecisionForm } from '../../components/NewDecisionForm';
 import { API_URL, currentSession, loadSignerOptions, requestCookie } from '../../lib/server';
 import { CORRESPONDENCE_DIRECTION_LABEL, CORRESPONDENCE_STATUS_LABEL } from '../../lib/messages';
+
+/** Trạng thái đã khép lại: công văn đến đã xử lý, công văn đi đã ban hành. */
+const PROCESSED = new Set(['HANDLED', 'ISSUED']);
 
 export const dynamic = 'force-dynamic';
 
@@ -94,15 +98,49 @@ export default async function CorrespondencePage({
   const signers = officeId ? await loadSignerOptions(cookie, officeId) : [];
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Công văn</h1>
-      <p className="muted">Công văn đến và đi trong phạm vi quyền của bạn.</p>
-      <form className="form" method="get" role="search">
-        <label>
-          Tìm theo trích yếu, số hoặc nơi gửi/nhận
-          <input name="q" defaultValue={q} maxLength={200} />
+      <div className="page-head">
+        <div>
+          <h1 id="t">Công văn</h1>
+          <p className="muted">Công văn đến và đi trong phạm vi quyền của bạn.</p>
+        </div>
+        <a className="primary btn-link" href="#tao-van-ban">
+          + Tạo văn bản
+        </a>
+      </div>
+      {items !== 'error' ? (
+        <div className="stats">
+          <StatCard
+            label="Văn bản đến"
+            value={items.filter((c) => c.direction === 'INBOUND').length}
+            note="Trong danh sách đang xem"
+          />
+          <StatCard
+            label="Văn bản đi"
+            value={items.filter((c) => c.direction === 'OUTBOUND').length}
+            note="Trong danh sách đang xem"
+            tone="green"
+          />
+          <StatCard
+            label="Chờ xử lý"
+            value={items.filter((c) => !PROCESSED.has(c.status)).length}
+            note="Chưa xử lý xong hoặc chưa ban hành"
+            tone="amber"
+          />
+        </div>
+      ) : null}
+      <form className="filters" method="get" role="search">
+        <label className="filter-search">
+          <span className="sr-only">Tìm theo trích yếu, số hoặc nơi gửi/nhận</span>
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            maxLength={200}
+            placeholder="Tìm theo trích yếu, số hoặc nơi gửi/nhận..."
+          />
         </label>
         <label>
-          Loại
+          <span className="sr-only">Loại</span>
           <select name="direction" defaultValue={direction}>
             <option value="">Tất cả</option>
             {Object.entries(CORRESPONDENCE_DIRECTION_LABEL).map(([k, v]) => (
@@ -112,7 +150,9 @@ export default async function CorrespondencePage({
             ))}
           </select>
         </label>
-        <button type="submit">Tìm</button>
+        <button type="submit" className="primary">
+          Tìm
+        </button>
       </form>
       {items === 'error' ? (
         <div className="state" role="alert">
@@ -157,7 +197,9 @@ export default async function CorrespondencePage({
           </table>
         </div>
       )}
-      <NewCorrespondenceForm branches={session.branches} />
+      <div id="tao-van-ban">
+        <NewCorrespondenceForm branches={session.branches} />
+      </div>
       <h2 id="dec-t">Sổ quyết định</h2>
       {decisions === 'error' ? (
         <div className="state" role="alert">

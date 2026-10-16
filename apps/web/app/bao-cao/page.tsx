@@ -79,76 +79,103 @@ export default async function ReportPage({
             String(r.total),
           ]),
         ];
+  const max = rows === 'error' ? 0 : Math.max(1, ...rows.map((r) => r.total));
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Báo cáo</h1>
-      <p className="muted">
-        Số liệu theo ngày tạo (giờ Việt Nam), trong phạm vi quyền của bạn. Mỗi dòng đếm một đơn vị
-        riêng, không cộng chéo, không có số tiền.
-      </p>
-      <form className="form" method="get" role="search">
-        <label>
-          Từ ngày
-          <input name="from" type="date" defaultValue={from} required />
-        </label>
-        <label>
-          Đến ngày
-          <input name="to" type="date" defaultValue={to} required />
-        </label>
-        <label>
-          Chi nhánh
-          <select name="branchId" defaultValue={branchId}>
-            <option value="">Tất cả</option>
-            {session.branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit">Xem</button>
-      </form>
-      {rows === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được báo cáo</h2>
-          <p>Vui lòng kiểm tra kỳ báo cáo và thử lại.</p>
+      <div className="page-head">
+        <div>
+          <h1 id="t">Báo cáo hoạt động</h1>
+          <p className="muted">
+            Số liệu theo ngày tạo (giờ Việt Nam), trong phạm vi quyền của bạn. Mỗi dòng đếm một đơn
+            vị riêng, không cộng chéo, không có số tiền.
+          </p>
         </div>
-      ) : rows.length === 0 ? (
-        <div className="state" role="status">
-          <h2>Không có số liệu</h2>
-          <p>Không có dữ liệu nào trong kỳ và phạm vi đã chọn.</p>
-        </div>
-      ) : (
-        <>
-          <div className="table-wrap">
-            <table>
-              <caption className="sr-only">
-                Báo cáo từ {from} đến {to}
-              </caption>
-              <thead>
-                <tr>
-                  {table[0]!.map((h) => (
-                    <th key={h} scope="col">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {table.slice(1).map((r, i) => (
-                  <tr key={i}>
-                    <th scope="row">{r[0]}</th>
-                    <td>{r[1]}</td>
-                    <td>{r[2]}</td>
-                    <td>{r[3]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {rows !== 'error' && rows.length > 0 ? (
           <ReportExport rows={table} filename={`bao-cao-${from}-${to}.csv`} />
-        </>
-      )}
+        ) : null}
+      </div>
+      <div className="panels">
+        <div className="panel">
+          <h2>Số lượng theo nghiệp vụ</h2>
+          {rows === 'error' ? (
+            <div className="state" role="alert">
+              <h3>Không tải được báo cáo</h3>
+              <p>Vui lòng kiểm tra kỳ báo cáo và thử lại.</p>
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="state" role="status">
+              <h3>Không có số liệu</h3>
+              <p>Không có dữ liệu nào trong kỳ và phạm vi đã chọn.</p>
+            </div>
+          ) : (
+            <>
+              <ul className="bars" aria-hidden="true">
+                {rows.map((r, i) => (
+                  <li key={i} title={`${REPORT_DOMAIN_LABEL[r.domain] ?? r.domain}: ${r.total}`}>
+                    <span className="bar-value">{r.total}</span>
+                    <span
+                      className="bar"
+                      style={{ height: `${Math.round((r.total / max) * 100)}%` }}
+                    />
+                    <span className="bar-label">
+                      {reportStatusLabel(r.domain, r.unit, r.status)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="table-wrap">
+                <table>
+                  <caption className="sr-only">
+                    Báo cáo từ {from} đến {to}
+                  </caption>
+                  <thead>
+                    <tr>
+                      {table[0]!.map((h) => (
+                        <th key={h} scope="col">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {table.slice(1).map((r, i) => (
+                      <tr key={i}>
+                        <th scope="row">{r[0]}</th>
+                        <td>{r[1]}</td>
+                        <td>{r[2]}</td>
+                        <td>{r[3]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+        <form className="panel form" method="get" role="search">
+          <h2>Bộ lọc báo cáo</h2>
+          <label>
+            Từ ngày
+            <input name="from" type="date" defaultValue={from} required />
+          </label>
+          <label>
+            Đến ngày
+            <input name="to" type="date" defaultValue={to} required />
+          </label>
+          <label>
+            Chi nhánh
+            <select name="branchId" defaultValue={branchId}>
+              <option value="">Tất cả</option>
+              {session.branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit">Xem</button>
+        </form>
+      </div>
     </section>
   );
 }
