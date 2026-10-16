@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { ACCESS_KIND_LABEL, ROLE_LABEL, messageFor } from '../lib/messages';
 import type { Branch } from '../app/session';
+import { CheckPanel } from './CheckPanel';
 
 export interface Person {
   readonly userId: string;
@@ -66,75 +67,90 @@ export function AccessRequestForm({
 
   if (people.length === 0) return null;
   return (
-    <form className="card form" onSubmit={submit} aria-labelledby="access-t">
-      <h2 id="access-t">Đề xuất cấp quyền</h2>
-      <p className="muted">Đề xuất chỉ có hiệu lực sau khi Trưởng văn phòng duyệt.</p>
-      <label>
-        Thành viên
-        <select name="targetUserId" required defaultValue={people[0]?.userId}>
-          {people.map((p) => (
-            <option key={p.userId} value={p.userId}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Nội dung
-        <select name="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
-          {Object.entries(ACCESS_KIND_LABEL).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
-            </option>
-          ))}
-        </select>
-      </label>
-      {kind === 'GRANT_ROLE' || kind === 'REVOKE_ROLE' ? (
+    <form className="panels assign-grid" onSubmit={submit} aria-labelledby="access-t">
+      <section className="panel form">
+        <h2 id="access-t">Đề xuất cấp quyền</h2>
+        <p className="muted">Đề xuất chỉ có hiệu lực sau khi Trưởng văn phòng duyệt.</p>
         <label>
-          Vai trò
-          <select name="role" required defaultValue="THU_KY">
-            {Object.entries(ROLE_LABEL).map(([k, v]) => (
+          Thành viên
+          <select name="targetUserId" required defaultValue={people[0]?.userId}>
+            {people.map((p) => (
+              <option key={p.userId} value={p.userId}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Nội dung
+          <select name="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
+            {Object.entries(ACCESS_KIND_LABEL).map(([k, v]) => (
               <option key={k} value={k}>
                 {v}
               </option>
             ))}
           </select>
         </label>
-      ) : null}
-      {kind === 'SET_LEGAL_SIGNER' ? (
+        {kind === 'GRANT_ROLE' || kind === 'REVOKE_ROLE' ? (
+          <label>
+            Vai trò
+            <select name="role" required defaultValue="THU_KY">
+              {Object.entries(ROLE_LABEL).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {kind === 'SET_LEGAL_SIGNER' ? (
+          <label>
+            Quyền ký pháp lý
+            <select name="flag" defaultValue="true">
+              <option value="true">Cấp</option>
+              <option value="false">Thu hồi</option>
+            </select>
+          </label>
+        ) : null}
+        {kind === 'GRANT_BRANCH' || kind === 'REVOKE_BRANCH' ? (
+          <label>
+            Chi nhánh
+            <select name="branchId" required defaultValue={branches[0]?.id}>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label>
-          Quyền ký pháp lý
-          <select name="flag" defaultValue="true">
-            <option value="true">Cấp</option>
-            <option value="false">Thu hồi</option>
-          </select>
+          Lý do
+          <input name="reason" required maxLength={1000} />
         </label>
-      ) : null}
-      {kind === 'GRANT_BRANCH' || kind === 'REVOKE_BRANCH' ? (
-        <label>
-          Chi nhánh
-          <select name="branchId" required defaultValue={branches[0]?.id}>
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      <label>
-        Lý do
-        <input name="reason" required maxLength={1000} />
-      </label>
-      <p role="alert" className="error" hidden={!error}>
-        {error}
-      </p>
-      <p role="status" className="success" hidden={!done}>
-        Đã gửi đề xuất, chờ Trưởng văn phòng duyệt.
-      </p>
-      <button type="submit" className="primary" disabled={busy}>
-        Gửi đề xuất
-      </button>
+      </section>
+      <CheckPanel
+        notice="Hệ thống kiểm tra điều kiện và quyền trước khi cho phép thao tác."
+        note="Lưu dấu thời gian • người thực hiện • bằng chứng • trạng thái."
+        title="Ma trận quyền cần giữ"
+        checks={[
+          'Admin quản trị toàn bộ, chỉ Admin phân THV',
+          'THV xem mọi chi nhánh, chỉ xử lý hồ sơ được giao',
+          'Thư ký xem/xử lý mọi hồ sơ',
+          'Văn thư có thể quản lý nhiều chi nhánh',
+          'Kế toán chỉ xác nhận MISA trong phạm vi cấu hình',
+        ]}
+      >
+        <p role="alert" className="error" hidden={!error}>
+          {error}
+        </p>
+        <p role="status" className="success" hidden={!done}>
+          Đã gửi đề xuất, chờ Trưởng văn phòng duyệt.
+        </p>
+        <button type="submit" className="primary wide" disabled={busy}>
+          Gửi đề xuất
+        </button>
+      </CheckPanel>
     </form>
   );
 }
