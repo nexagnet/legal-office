@@ -45,7 +45,7 @@ export async function renderStage(
   }
   return (
     <section aria-label={title}>
-      <p>
+      <p className="stage-back">
         <Link href={`/vi-bang/${id}`}>← Hồ sơ {c.title}</Link>
       </p>
       <h1 className="sr-only">{title}</h1>
