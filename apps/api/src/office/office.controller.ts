@@ -26,6 +26,7 @@ import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { addWorkingDays } from '../deadlines/working-days';
 import { LEDGER_BY_CODE, shapeLedgerRow } from './ledgers';
+import { buildXlsx, XLSX_MIME } from './xlsx-export';
 import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
@@ -33,6 +34,7 @@ import { statusFor } from '../vibang/status';
 import { VibangRepo, type Op } from '../vibang/vibang.repo';
 
 const uuid = z.string().uuid();
+const LEDGER_NOTICE = 'Bản điện tử hỗ trợ theo dõi, không phải biểu mẫu chính thức.';
 
 function parse<S extends z.ZodType>(schema: S, body: unknown): z.infer<S> {
   const result = schema.safeParse(body);
@@ -850,14 +852,12 @@ export class OfficeController {
     return this.run(a, 'of_notifications_read', [b.officeId, b.id ?? null]);
   }
 
-  /** Báo cáo tổng hợp theo kỳ (ngày tạo, giờ Việt Nam). Mỗi dòng là một đơn vị đếm riêng; không có số tiền. */
-  @Get('report')
-  async report(
-    @CurrentActor() a: AuthenticatedActor,
-    @Query('officeId', ParseUUIDPipe) officeId: string,
-    @Query('from') from: string,
-    @Query('to') to: string,
-    @Query('branchId') branchId?: string,
+  private async loadReport(
+    a: AuthenticatedActor,
+    officeId: string,
+    from: string,
+    to: string,
+    branchId?: string,
   ) {
     const rows = await this.read<{ domain: string; unit: string; status: string; total: number }>(
       a,
@@ -870,6 +870,44 @@ export class OfficeController {
       ],
     );
     return rows.map((r) => ({ domain: r.domain, unit: r.unit, status: r.status, total: r.total }));
+  }
+
+  /** Báo cáo tổng hợp theo kỳ (ngày tạo, giờ Việt Nam). Mỗi dòng là một đơn vị đếm riêng; không có số tiền. */
+  @Get('report')
+  report(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.loadReport(a, officeId, from, to, branchId);
+  }
+
+  /** Xuất báo cáo tổng hợp theo kỳ ra Excel. Cùng phạm vi quyền với `GET report`; không số tiền. */
+  @Get('report/export')
+  async reportExport(
+    @CurrentActor() a: AuthenticatedActor,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    const rows = await this.loadReport(a, officeId, from, to, branchId);
+    const buf = await buildXlsx({
+      name: 'Báo cáo',
+      title: `Báo cáo tổng hợp từ ${from} đến ${to}`,
+      notice:
+        'Bản điện tử hỗ trợ theo dõi, không phải biểu mẫu chính thức. Mỗi dòng là một đơn vị đếm riêng; không có số tiền.',
+      columns: ['Nghiệp vụ', 'Đơn vị đếm', 'Trạng thái', 'Số lượng'],
+      rows: rows.map((r) => [r.domain, r.unit, r.status, r.total]),
+    });
+    res.set({
+      'Content-Type': XLSX_MIME,
+      'Content-Disposition': `attachment; filename="bao-cao-${from}_${to}.xlsx"`,
+    });
+    return new StreamableFile(buf);
   }
 
   /** Danh bạ thành viên văn phòng (chỉ đọc, chỉ Admin). Không trả băm mật khẩu. */
@@ -1111,6 +1149,53 @@ export class OfficeController {
     @Query('year') year?: string,
     @Query('limit') limit?: string,
   ) {
+    const { def, rows } = await this.loadLedger(a, code, officeId, year, limit);
+    return {
+      code: def.code,
+      title: def.title,
+      notice: LEDGER_NOTICE,
+      columns: def.columns.map((c) => ({ no: c.no, key: c.key, label: c.label })),
+      rows,
+    };
+  }
+
+  /** Xuất sổ ra Excel đúng thứ tự cột mẫu (chỉ các cột của mẫu, không cột truy vết). Cùng phạm vi quyền với `GET ledgers/:code`. */
+  @Get('ledgers/:code/export')
+  async ledgerExport(
+    @CurrentActor() a: AuthenticatedActor,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+    @Param('code') code: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('year') year?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const { def, rows } = await this.loadLedger(a, code, officeId, year, limit);
+    const buf = await buildXlsx({
+      name: def.code,
+      title: `${def.title} (${def.code})`,
+      notice: LEDGER_NOTICE,
+      columns: def.columns.map((c) => c.label),
+      rows: rows.map((r) =>
+        def.columns.map((c) => {
+          const v = r[c.key];
+          return typeof v === 'string' || typeof v === 'number' ? v : null;
+        }),
+      ),
+    });
+    res.set({
+      'Content-Type': XLSX_MIME,
+      'Content-Disposition': `attachment; filename="so-${def.code.toLowerCase()}.xlsx"`,
+    });
+    return new StreamableFile(buf);
+  }
+
+  private async loadLedger(
+    a: AuthenticatedActor,
+    code: string,
+    officeId: string,
+    year?: string,
+    limit?: string,
+  ) {
     const def = LEDGER_BY_CODE.get(code.toLowerCase());
     if (!def) throw new HttpException({ code: 'LEDGER_NOT_FOUND', label: null }, 404);
     const y =
@@ -1119,12 +1204,6 @@ export class OfficeController {
         : parse(z.coerce.number().int().min(2000).max(2200), year);
     const l = parse(z.coerce.number().int().min(1).max(1000), limit ?? '500');
     const rows = await this.read(a, def.fn, [officeId, y, l]);
-    return {
-      code: def.code,
-      title: def.title,
-      notice: 'Bản điện tử hỗ trợ theo dõi, không phải biểu mẫu chính thức.',
-      columns: def.columns.map((c) => ({ no: c.no, key: c.key, label: c.label })),
-      rows: rows.map((r) => shapeLedgerRow(def, r)),
-    };
+    return { def, rows: rows.map((r) => shapeLedgerRow(def, r)) };
   }
 }
