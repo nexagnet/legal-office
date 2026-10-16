@@ -25,3 +25,7 @@
 
 - **Lưu trữ ngoài trụ sở** cần văn bản đồng ý của Sở Tư pháp (NĐ 151 Điều 50.1). Chưa có: không dùng dữ liệu thật trên cloud; bản Northflank chỉ dùng dữ liệu giả.
 - Chấp nhận của khách/pháp lý đối với bản in chính thức vẫn là trạng thái riêng.
+
+## Thừa hành viên xem hồ sơ Vi bằng (chốt 16/10/2026)
+
+Chủ dự án chốt "Cho xem mọi hồ sơ": vai THV xem được mọi hồ sơ Vi bằng của văn phòng (khớp Business Contract #1). Chỉ thao tác khi được giao; các hàm ghi tự kiểm tra người phụ trách. Cài đặt: migration 0028 (`vb_list_cases`). Phạm vi này cũng áp cho đề nghị thay đổi và tiến độ hồ sơ vì chúng dùng chung `vb_list_cases`.
