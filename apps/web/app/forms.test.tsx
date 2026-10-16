@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LoginForm } from '../components/LoginForm';
 import { AssignThv } from '../components/AssignThv';
@@ -14,6 +15,7 @@ import { NewFormUpload } from '../components/NewFormUpload';
 import { NewDecisionForm } from '../components/NewDecisionForm';
 import { NewCorrespondenceForm } from '../components/NewCorrespondenceForm';
 import { CaseSteps } from '../components/CaseSteps';
+import { MisaNumberPanels, ReturnPanel, SignStampPanels } from '../components/CaseStagePanels';
 import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
 import { NewServiceForm } from '../components/NewServiceForm';
@@ -28,6 +30,13 @@ import { messageFor } from '../lib/messages';
 const push = vi.fn();
 const refresh = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push, refresh }) }));
+vi.mock('next/link', () => ({
+  default: ({ href, children, ...rest }: { href: string; children: ReactNode }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
 
 afterEach(() => {
   cleanup();
@@ -220,21 +229,66 @@ describe('AssignThv', () => {
   });
 });
 
-describe('CaseSteps', () => {
-  const base = {
-    misaStatus: 'NOT_CONFIRMED',
-    misaRevokeStatus: 'NONE',
-    numberLabel: null,
-    signedAt: null,
-    stampedAt: null,
-    hasFinalScan: false,
-  };
+const progressBase = {
+  misaStatus: 'NOT_CONFIRMED',
+  misaRevokeStatus: 'NONE',
+  numberLabel: null,
+  signedAt: null,
+  stampedAt: null,
+  hasFinalScan: false,
+};
+const stampedProgress = {
+  ...progressBase,
+  misaStatus: 'CONFIRMED_FULL',
+  numberLabel: '1/2026',
+  signedAt: '2026-10-01T00:00:00Z',
+  stampedAt: '2026-10-01T00:00:00Z',
+};
 
+describe('CaseSteps', () => {
+  it('lists the steps and links to the screen of the next one', () => {
+    render(<CaseSteps caseId="c1" status="INTAKE" progress={progressBase} />);
+    expect(screen.getByRole('link', { name: /Xác nhận MISA và cấp số/ }).getAttribute('href')).toBe(
+      '/vi-bang/c1/cap-so',
+    );
+    cleanup();
+    render(
+      <CaseSteps
+        caseId="c1"
+        status="ASSIGNED"
+        progress={{ ...stampedProgress, hasFinalScan: false }}
+      />,
+    );
+    expect(screen.getByRole('link', { name: /Ký, đóng dấu/ }).getAttribute('href')).toBe(
+      '/vi-bang/c1/ky-dong-dau',
+    );
+    cleanup();
+    render(
+      <CaseSteps
+        caseId="c1"
+        status="ASSIGNED"
+        progress={{ ...stampedProgress, hasFinalScan: true }}
+      />,
+    );
+    expect(screen.getByRole('link', { name: /Trả kết quả/ }).getAttribute('href')).toBe(
+      '/vi-bang/c1/tra-ket-qua',
+    );
+  });
+
+  it('offers no next screen for a finished case', () => {
+    render(<CaseSteps caseId="c1" status="RETURNED" progress={progressBase} />);
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+});
+
+describe('MisaNumberPanels', () => {
   it('lets accounting confirm MISA with a reference', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
-    render(<CaseSteps caseId="c1" status="INTAKE" progress={base} roles={['KE_TOAN']} />);
+    render(
+      <MisaNumberPanels caseId="c1" status="INTAKE" progress={progressBase} roles={['KE_TOAN']} />,
+    );
     expect(screen.queryByRole('button', { name: 'Cấp số' })).toBeNull();
     fireEvent.change(screen.getByLabelText('Mã tham chiếu MISA'), { target: { value: 'MISA-1' } });
     fireEvent.click(screen.getByRole('button', { name: /Xác nhận đã thu đủ/ }));
@@ -248,17 +302,32 @@ describe('CaseSteps', () => {
     });
   });
 
+  it('offers numbering only after MISA, to the roles that may number', () => {
+    const misaDone = { ...progressBase, misaStatus: 'CONFIRMED_FULL' };
+    render(
+      <MisaNumberPanels caseId="c1" status="INTAKE" progress={misaDone} roles={['VAN_THU']} />,
+    );
+    expect(screen.getByRole('button', { name: 'Cấp số' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Xác nhận đã thu đủ/ })).toBeNull();
+    cleanup();
+    render(<MisaNumberPanels caseId="c1" status="INTAKE" progress={misaDone} roles={['THV']} />);
+    expect(screen.queryByRole('button', { name: 'Cấp số' })).toBeNull();
+  });
+});
+
+describe('SignStampPanels', () => {
   it('uploads the final scan as a raw PDF once the stamp is confirmed', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
-    const stamped = {
-      ...base,
-      numberLabel: '1/2026',
-      signedAt: '2026-10-01T00:00:00Z',
-      stampedAt: '2026-10-01T00:00:00Z',
-    };
-    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={stamped} roles={['VAN_THU']} />);
+    render(
+      <SignStampPanels
+        caseId="c1"
+        status="ASSIGNED"
+        progress={stampedProgress}
+        roles={['VAN_THU']}
+      />,
+    );
     const file = new File(['%PDF-1.4'], 'scan.pdf', { type: 'application/pdf' });
     fireEvent.change(screen.getByLabelText(/Bản scan cuối \(PDF/), { target: { files: [file] } });
     // jsdom không phản ánh `files` gán bằng fireEvent vào kiểm tra `required`, nên gửi form trực tiếp.
@@ -271,40 +340,66 @@ describe('CaseSteps', () => {
   });
 
   it('hides the upload before the stamp and for roles that cannot upload', () => {
-    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={base} roles={['VAN_THU']} />);
+    render(
+      <SignStampPanels caseId="c1" status="ASSIGNED" progress={progressBase} roles={['VAN_THU']} />,
+    );
     expect(screen.queryByRole('button', { name: 'Tải bản scan cuối' })).toBeNull();
     cleanup();
-    const stamped = {
-      ...base,
-      numberLabel: '1/2026',
-      signedAt: '2026-10-01T00:00:00Z',
-      stampedAt: '2026-10-01T00:00:00Z',
-    };
-    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={stamped} roles={['KE_TOAN']} />);
+    render(
+      <SignStampPanels
+        caseId="c1"
+        status="ASSIGNED"
+        progress={stampedProgress}
+        roles={['KE_TOAN']}
+      />,
+    );
     expect(screen.queryByRole('button', { name: 'Tải bản scan cuối' })).toBeNull();
   });
 
-  it('offers the next step by progress and role, and explains refusals', async () => {
+  it('offers signing to the THV and stamping to the clerk by progress', () => {
+    const numbered = { ...progressBase, numberLabel: '1/2026' };
+    render(<SignStampPanels caseId="c1" status="ASSIGNED" progress={numbered} roles={['THV']} />);
+    expect(screen.getByRole('button', { name: 'Xác nhận đã ký' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Xác nhận đã đóng dấu' })).toBeNull();
+    cleanup();
+    const signed = { ...numbered, signedAt: '2026-10-12T01:00:00Z' };
+    render(<SignStampPanels caseId="c1" status="ASSIGNED" progress={signed} roles={['VAN_THU']} />);
+    expect(screen.queryByRole('button', { name: 'Xác nhận đã ký' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Xác nhận đã đóng dấu' })).toBeTruthy();
+  });
+
+  it('shows no actions for a finished case', () => {
+    render(
+      <SignStampPanels caseId="c1" status="RETURNED" progress={progressBase} roles={['ADMIN']} />,
+    );
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+describe('ReturnPanel', () => {
+  it('explains refusals when returning the result', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       reply(409, { code: 'FINAL_SCAN_MISSING' }),
     );
-    const done = {
-      ...base,
-      misaStatus: 'CONFIRMED_FULL',
-      numberLabel: '01/2026',
-      signedAt: '2026-10-12T01:00:00Z',
-      stampedAt: '2026-10-12T02:00:00Z',
-    };
-    render(<CaseSteps caseId="c1" status="ASSIGNED" progress={done} roles={['VAN_THU']} />);
-    expect(screen.queryByRole('button', { name: 'Xác nhận đã ký' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Trả khách' }));
+    render(<ReturnPanel caseId="c1" status="ASSIGNED" progress={stampedProgress} />);
+    expect(screen.getByText('CHƯA ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã trả kết quả' }));
     expect((await screen.findByRole('alert')).textContent).toBe(
       'Chưa có bản scan cuối của Vi bằng.',
     );
   });
 
-  it('shows no actions for a finished case', () => {
-    render(<CaseSteps caseId="c1" status="RETURNED" progress={base} roles={['ADMIN']} />);
+  it('says the case is ready once stamped and scanned, and offers nothing when finished', () => {
+    render(
+      <ReturnPanel
+        caseId="c1"
+        status="ASSIGNED"
+        progress={{ ...stampedProgress, hasFinalScan: true }}
+      />,
+    );
+    expect(screen.getByText('ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
+    cleanup();
+    render(<ReturnPanel caseId="c1" status="RETURNED" progress={progressBase} />);
     expect(screen.queryByRole('button')).toBeNull();
   });
 });

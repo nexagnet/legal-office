@@ -28,6 +28,21 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
 };
 
 const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
+const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
+  'cap-so': {
+    title: 'Xác nhận MISA và cấp số',
+    sub: 'Kiểm tra điều kiện cấp số và cấp số Vi bằng',
+  },
+  'ky-dong-dau': {
+    title: 'Ký, đóng dấu và bản scan',
+    sub: 'Hoàn tất Vi bằng trên bản giấy và lưu bản scan',
+  },
+  'tra-ket-qua': {
+    title: 'Trả kết quả và liên hệ khách',
+    sub: 'Ghi nhận liên hệ, bàn giao Vi bằng cho khách',
+  },
+};
+const STAGE_PATH = /^\/vi-bang\/[^/]+\/([a-z-]+)$/;
 const CASE_HEAD = { title: 'Chi tiết và tiến độ Vi bằng', sub: 'Theo dõi tiến độ và xử lý hồ sơ' };
 
 const hrefOf = (i: NavItem) => `/${i.slug}`;
@@ -54,7 +69,10 @@ export function AppShell({
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const current = currentItem(items, pathname);
-  const head = SUBPAGE_HEAD[pathname] ?? (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
+  const head =
+    SUBPAGE_HEAD[pathname] ??
+    STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
+    (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
   return (
     <div className="shell">
       <a className="skip" href="#main">

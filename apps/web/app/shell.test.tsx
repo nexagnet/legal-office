@@ -138,6 +138,23 @@ describe('AppShell case detail head', () => {
   });
 });
 
+describe('AppShell stage heads', () => {
+  it.each([
+    ['cap-so', 'Xác nhận MISA và cấp số'],
+    ['ky-dong-dau', 'Ký, đóng dấu và bản scan'],
+    ['tra-ket-qua', 'Trả kết quả và liên hệ khách'],
+  ])('shows the Figma header for /vi-bang/<id>/%s', (stage, title) => {
+    path.current = `/vi-bang/abc/${stage}`;
+    render(
+      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    expect(document.querySelector('.topbar-h')?.textContent).toBe(title);
+    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+  });
+});
+
 describe('ModuleState', () => {
   const item = findNav('quan-tri')!;
   it('asks to sign in when unauthenticated and never offers actions', () => {
