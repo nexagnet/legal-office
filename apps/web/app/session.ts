@@ -21,7 +21,7 @@ export type Session =
       readonly branches: readonly Branch[];
     };
 
-const ROLES: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU'];
+const ROLES: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU', 'KE_TOAN'];
 const isRole = (r: unknown): r is Role => (ROLES as readonly unknown[]).includes(r);
 
 export type Fetcher = (url: string, init: { headers: Record<string, string> }) => Promise<Response>;

@@ -32,6 +32,10 @@ describe('navigation', () => {
     expect(visibleNav([])).toEqual([]);
   });
 
+  it('gives the accountant only the overview and Vi bằng, where MISA is confirmed', () => {
+    expect(visibleNav(['KE_TOAN']).map((n) => n.label)).toEqual(['Tổng quan', 'Vi bằng']);
+  });
+
   it('has no accounting menu and unique slugs', () => {
     expect(NAV.map((n) => n.label.toLowerCase()).join('|')).not.toMatch(/kế toán|thanh toán|misa/);
     expect(new Set(NAV.map((n) => n.slug)).size).toBe(NAV.length);

@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'TRUONG_VP' | 'THU_KY' | 'THV' | 'VAN_THU';
+export type Role = 'ADMIN' | 'TRUONG_VP' | 'THU_KY' | 'THV' | 'VAN_THU' | 'KE_TOAN';
 
 export interface NavItem {
   readonly slug: string;
@@ -11,12 +11,14 @@ export interface NavItem {
 
 const ALL: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU'];
 const MANAGE: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY'];
+/** Kế toán chỉ làm bước xác nhận MISA trên hồ sơ Vi bằng; không thấy ba nghiệp vụ còn lại hay mục văn phòng. */
+const WITH_ACCOUNTANT: readonly Role[] = [...ALL, 'KE_TOAN'];
 
 export const OVERVIEW: NavItem = {
   slug: '',
   label: 'Tổng quan',
   group: 'domain',
-  roles: ALL,
+  roles: WITH_ACCOUNTANT,
   summary: 'Công việc đang chờ theo vai trò.',
 };
 
@@ -25,7 +27,7 @@ export const NAV: readonly NavItem[] = [
     slug: 'vi-bang',
     label: 'Vi bằng',
     group: 'domain',
-    roles: ALL,
+    roles: WITH_ACCOUNTANT,
     summary: 'Hồ sơ lập vi bằng, bằng chứng và số.',
   },
   {
