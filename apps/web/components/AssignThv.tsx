@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
+import { CheckPanel } from './CheckPanel';
 
 export interface ThvOption {
   readonly userId: string;
@@ -81,16 +82,16 @@ export function AssignThv({ caseId, options, currentThvId, caseTitle }: Props) {
             </label>
           ) : null}
         </section>
-        <aside className="panel">
-          <h2>Kiểm tra trước khi phân công</h2>
-          <p className="notice-blue">Trạng thái và quyền được xác minh khi thao tác thực tế.</p>
-          <ul className="check-list">
-            <li>Chỉ Admin được thực hiện</li>
-            <li>Một THV phụ trách duy nhất</li>
-            <li>THV chỉ xử lý hồ sơ được giao</li>
-            <li>Thư ký vẫn truy cập mọi hồ sơ</li>
-            <li>Lưu thời điểm và lịch sử phân công</li>
-          </ul>
+        <CheckPanel
+          title="Kiểm tra trước khi phân công"
+          checks={[
+            'Chỉ Admin được thực hiện',
+            'Một THV phụ trách duy nhất',
+            'THV chỉ xử lý hồ sơ được giao',
+            'Thư ký vẫn truy cập mọi hồ sơ',
+            'Lưu thời điểm và lịch sử phân công',
+          ]}
+        >
           <p role="alert" className="error" hidden={!error}>
             {error}
           </p>
@@ -100,10 +101,7 @@ export function AssignThv({ caseId, options, currentThvId, caseTitle }: Props) {
           <button type="submit" className="primary wide" disabled={busy}>
             {busy ? 'Đang lưu…' : 'Xác nhận phân công'}
           </button>
-          <p className="note-box">
-            Lưu audit • hiển thị thông báo và trạng thái kiểm tra sau thao tác.
-          </p>
-        </aside>
+        </CheckPanel>
       </form>
     );
   }

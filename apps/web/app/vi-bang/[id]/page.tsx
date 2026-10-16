@@ -153,7 +153,11 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
                     <td>{r.reason}</td>
                     <td>
                       {r.status === 'PENDING' ? (
-                        <ChangeDecision requestId={r.id} canDecide={isAdmin} />
+                        isAdmin ? (
+                          <Link href={`/vi-bang/${c.id}/duyet-sua`}>Xem và duyệt</Link>
+                        ) : (
+                          <ChangeDecision requestId={r.id} canDecide={false} />
+                        )
                       ) : (
                         (REQUEST_LABEL[r.status] ?? r.status)
                       )}
