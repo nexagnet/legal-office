@@ -107,6 +107,117 @@ export class VibangIntakeController {
     return this.run(a, 'vb_create_contract', [id, b.externalRef]);
   }
 
+  @Post('customers/:id/profile')
+  @HttpCode(HttpStatus.OK)
+  updateCustomer(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          displayName: text(300),
+          idNumber: text(100).optional(),
+          address: text(500).optional(),
+          phone: text(50).optional(),
+          taxCode: text(100).optional(),
+          representative: text(300).optional(),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'vb_update_customer', [
+      id,
+      b.displayName,
+      b.idNumber ?? null,
+      b.address ?? null,
+      b.phone ?? null,
+      b.taxCode ?? null,
+      b.representative ?? null,
+    ]);
+  }
+
+  @Post('contracts/:id')
+  @HttpCode(HttpStatus.OK)
+  updateContract(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+    const b = parse(
+      z
+        .object({
+          serviceKind: z
+            .enum(['VI_BANG', 'TONG_DAT', 'XAC_MINH', 'THI_HANH_AN'])
+            .nullable()
+            .optional(),
+          signedOn: day.nullable().optional(),
+          validFrom: day.nullable().optional(),
+          validTo: day.nullable().optional(),
+          status: z.enum(['ACTIVE', 'ENDED']),
+          note: text(2000).optional(),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'vb_update_contract', [
+      id,
+      b.serviceKind ?? null,
+      b.signedOn ?? null,
+      b.validFrom ?? null,
+      b.validTo ?? null,
+      b.status,
+      b.note ?? null,
+    ]);
+  }
+
+  /** Danh bạ chủ thể (có PII): chỉ vai tiếp nhận; vai khác nhận danh sách rỗng. */
+  @Get('customers')
+  async listCustomers(@CurrentActor() a: AuthenticatedActor, @Query('q') q?: string) {
+    const rows = await this.repo.rows<Record<string, string | null>>(
+      a.tenantId,
+      'vb_list_customers',
+      [a.tenantId, a.userId, q ?? null],
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      externalRef: r.external_ref,
+      displayName: r.display_name,
+      idNumber: r.id_number,
+      address: r.address,
+      phone: r.phone,
+      taxCode: r.tax_code,
+      representative: r.representative,
+    }));
+  }
+
+  @Get('contracts')
+  async listContracts(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('customerId') customerId?: string,
+  ) {
+    const cust = customerId === undefined || customerId === '' ? null : parse(uuid, customerId);
+    const rows = await this.repo.rows<Record<string, string | null>>(
+      a.tenantId,
+      'vb_list_contracts',
+      [a.tenantId, a.userId, cust],
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      customerId: r.customer_id,
+      externalRef: r.external_ref,
+      serviceKind: r.service_kind,
+      signedOn: r.signed_on,
+      validFrom: r.valid_from,
+      validTo: r.valid_to,
+      status: r.status,
+      note: r.note,
+    }));
+  }
+
   @Post('cases')
   @HttpCode(HttpStatus.OK)
   createCase(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
