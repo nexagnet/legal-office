@@ -722,6 +722,34 @@ export class OfficeController {
     }));
   }
 
+  /** Việc được giao cho chính người gọi, xuyên nghiệp vụ (màn điện thoại ngoài hiện trường). Chỉ đọc. */
+  @Get('my-work')
+  async myWork(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{
+      domain: string;
+      ref_id: string;
+      label: string;
+      status: string;
+      deadline_at: Date | null;
+      created_at: Date;
+      overdue: boolean;
+    }>(a, 'of_search_my_work', [officeId]);
+    return {
+      items: rows.map((r) => ({
+        domain: r.domain,
+        refId: r.ref_id,
+        label: r.label,
+        status: r.status,
+        deadlineAt: r.deadline_at,
+        createdAt: r.created_at,
+        overdue: r.overdue,
+      })),
+    };
+  }
+
   /** Thông báo nhắc hạn của chính người gọi (sinh lười từ hạn họ được xem; không gửi ra ngoài). */
   @Get('notifications')
   async notifications(
