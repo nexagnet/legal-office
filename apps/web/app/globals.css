@@ -730,3 +730,85 @@ th a:hover {
   font-weight: 600;
   color: var(--ink);
 }
+
+/* Màn xử lý từng bước của hồ sơ (Figma 3:106, 3:132, 3:158) */
+.stage-grid {
+  margin-bottom: 20px;
+}
+@media (min-width: 900px) {
+  .stage-grid {
+    grid-template-columns: 525fr 568fr;
+  }
+}
+.stage-cards {
+  margin-bottom: 20px;
+}
+@media (min-width: 900px) {
+  .stage-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.stage-cards .panel {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-height: 280px;
+}
+.stage-cards .panel .pill {
+  align-self: end;
+  justify-self: start;
+}
+.stage-cards h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.small {
+  font-size: 12px;
+  color: var(--ink);
+}
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pill[data-tone='ok'] {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.pill[data-tone='warn'] {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+.pill[data-tone='idle'] {
+  background: var(--bg);
+  color: var(--muted);
+}
+.notice {
+  background: var(--warn-bg);
+}
+.notice h2 {
+  color: var(--warn-ink);
+  font-size: 16px;
+}
+.ready {
+  margin-bottom: 20px;
+  background: var(--warn-bg);
+}
+.ready[data-ready='true'] {
+  background: var(--ok-bg);
+}
+.ready[data-ready='true'] h2 {
+  color: var(--ok);
+}
+.ready p {
+  margin: 0;
+}

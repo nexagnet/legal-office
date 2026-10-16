@@ -4,7 +4,8 @@ import { AssignThv, type ThvOption } from '../../../components/AssignThv';
 import { CaseSteps, type Progress } from '../../../components/CaseSteps';
 import { CaseActions } from '../../../components/CaseActions';
 import { ChangeDecision } from '../../../components/ChangeRequestRow';
-import { API_URL, currentSession, requestCookie } from '../../../lib/server';
+import { type CaseDetail, getJson } from '../../../lib/case-api';
+import { currentSession, requestCookie } from '../../../lib/server';
 import { CASE_STATUS_LABEL } from '../../../lib/messages';
 
 export const dynamic = 'force-dynamic';
@@ -22,14 +23,6 @@ const fmt = new Intl.DateTimeFormat('vi-VN', {
   timeZone: 'Asia/Ho_Chi_Minh',
 });
 
-interface CaseDetail {
-  readonly id: string;
-  readonly title: string;
-  readonly description: string | null;
-  readonly status: string;
-  readonly createdAt: string;
-  readonly responsibleThvUserId: string | null;
-}
 interface ChangeItem {
   readonly id: string;
   readonly reason: string;
@@ -37,20 +30,6 @@ interface ChangeItem {
   readonly after: Record<string, string>;
   readonly status: string;
   readonly createdAt: string;
-}
-
-async function getJson<T>(path: string, cookie: string | null): Promise<T | 404 | 'error'> {
-  try {
-    const res = await fetch(`${API_URL}${path}`, {
-      headers: cookie ? { cookie } : {},
-      cache: 'no-store',
-    });
-    if (res.status === 404) return 404;
-    if (!res.ok) return 'error';
-    return (await res.json()) as T;
-  } catch {
-    return 'error';
-  }
 }
 
 export default async function CasePage({ params }: { params: Promise<{ id: string }> }) {
@@ -115,7 +94,7 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
       </header>
       <div className="panels case-grid">
         {typeof progress === 'object' ? (
-          <CaseSteps caseId={c.id} status={c.status} progress={progress} roles={session.roles} />
+          <CaseSteps caseId={c.id} status={c.status} progress={progress} />
         ) : (
           <section className="panel">
             <h2>Tiến độ hồ sơ</h2>

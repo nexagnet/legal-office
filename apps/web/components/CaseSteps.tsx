@@ -1,8 +1,4 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
-import { messageFor } from '../lib/messages';
+import Link from 'next/link';
 
 export interface Progress {
   readonly misaStatus: string;
@@ -16,8 +12,6 @@ interface Props {
   readonly caseId: string;
   readonly status: string;
   readonly progress: Progress;
-  /** Vai của người dùng, chỉ để ẩn nút không liên quan; quyền thật do DB quyết định. */
-  readonly roles: readonly string[];
 }
 
 const fmt = new Intl.DateTimeFormat('vi-VN', {
@@ -26,65 +20,22 @@ const fmt = new Intl.DateTimeFormat('vi-VN', {
   timeZone: 'Asia/Ho_Chi_Minh',
 });
 
+/** Màn xử lý của bước kế tiếp (Figma 3:106, 3:132, 3:158). */
+function nextStage(progress: Progress): { href: string; label: string } {
+  if (progress.misaStatus !== 'CONFIRMED_FULL' || !progress.numberLabel) {
+    return { href: 'cap-so', label: 'Xác nhận MISA và cấp số' };
+  }
+  if (!progress.stampedAt || !progress.hasFinalScan) {
+    return { href: 'ky-dong-dau', label: 'Ký, đóng dấu và bản scan' };
+  }
+  return { href: 'tra-ket-qua', label: 'Trả kết quả cho khách' };
+}
+
 /** Các bước pháp lý theo thứ tự: MISA → cấp số → ký → đóng dấu → bản scan → trả khách. MISA là sổ duy nhất về tiền. */
-export function CaseSteps({ caseId, status, progress, roles }: Props) {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const has = (...r: string[]) => r.some((x) => roles.includes(x));
-  const misaOk = progress.misaStatus === 'CONFIRMED_FULL';
-
-  async function call(method: string, path: string, body?: unknown) {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/vibang/cases/${caseId}/${path}`, {
-        method,
-        headers: { 'content-type': 'application/json' },
-        body: body === undefined ? undefined : JSON.stringify(body),
-      });
-      const json = (await res.json().catch(() => ({}))) as { code?: string };
-      if (!res.ok) return setError(messageFor(json.code));
-      router.refresh();
-    } catch {
-      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function recordMisa(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const reference = String(new FormData(e.currentTarget).get('reference') ?? '').trim();
-    void call('PUT', 'misa', { status: 'CONFIRMED_FULL', reference });
-  }
-
-  async function uploadScan(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const input = e.currentTarget.elements.namedItem('scan') as HTMLInputElement | null;
-    const file = input?.files?.[0];
-    if (!file || file.size === 0) return setError(messageFor('INVALID_DOCUMENT'));
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/vibang/cases/${caseId}/final-scan`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/pdf' },
-        body: file,
-      });
-      const json = (await res.json().catch(() => ({}))) as { code?: string };
-      if (!res.ok) return setError(messageFor(json.code));
-      router.refresh();
-    } catch {
-      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
+export function CaseSteps({ caseId, status, progress }: Props) {
   const finished = status === 'RETURNED' || status === 'CANCELLED';
   const steps: { label: string; done: boolean; detail?: string }[] = [
-    { label: 'Kế toán xác nhận MISA', done: misaOk },
+    { label: 'Kế toán xác nhận MISA', done: progress.misaStatus === 'CONFIRMED_FULL' },
     {
       label: 'Cấp số Vi bằng',
       done: !!progress.numberLabel,
@@ -104,6 +55,8 @@ export function CaseSteps({ caseId, status, progress, roles }: Props) {
     { label: 'Trả khách', done: status === 'RETURNED' },
   ];
 
+  const next = nextStage(progress);
+
   return (
     <section className="panel" aria-labelledby="steps-t">
       <h2 id="steps-t">Tiến độ hồ sơ</h2>
@@ -119,80 +72,13 @@ export function CaseSteps({ caseId, status, progress, roles }: Props) {
       {progress.misaRevokeStatus !== 'NONE' ? (
         <p className="muted">Có đề nghị thu hồi xác nhận MISA đang xử lý.</p>
       ) : null}
-      {!progress.hasFinalScan && !finished && progress.stampedAt && has('VAN_THU', 'THV') ? (
-        <form className="form" onSubmit={uploadScan}>
-          <label>
-            Bản scan cuối (PDF, tối đa 25 MB)
-            <input name="scan" type="file" accept="application/pdf" required />
-          </label>
-          <button type="submit" className="primary" disabled={busy}>
-            Tải bản scan cuối
-          </button>
-        </form>
-      ) : null}
-      {!progress.hasFinalScan && !finished && !progress.stampedAt ? (
-        <p className="muted">Bản scan cuối tải lên được sau khi xác nhận đã đóng dấu.</p>
-      ) : null}
       {finished ? null : (
-        <div className="stack">
-          {!misaOk && has('KE_TOAN', 'ADMIN') ? (
-            <form className="form" onSubmit={recordMisa}>
-              <label>
-                Mã tham chiếu MISA
-                <input name="reference" required maxLength={200} />
-              </label>
-              <button type="submit" className="primary" disabled={busy}>
-                Xác nhận đã thu đủ trên MISA
-              </button>
-            </form>
-          ) : null}
-          {misaOk && !progress.numberLabel && has('VAN_THU', 'THU_KY', 'ADMIN', 'TRUONG_VP') ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={busy}
-              onClick={() => void call('POST', 'number')}
-            >
-              Cấp số
-            </button>
-          ) : null}
-          {progress.numberLabel && !progress.signedAt && has('THV') ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={busy}
-              onClick={() => void call('POST', 'signature-confirmations')}
-            >
-              Xác nhận đã ký
-            </button>
-          ) : null}
-          {progress.signedAt &&
-          !progress.stampedAt &&
-          has('VAN_THU', 'THU_KY', 'ADMIN', 'TRUONG_VP') ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={busy}
-              onClick={() => void call('POST', 'stamp-confirmations')}
-            >
-              Xác nhận đã đóng dấu
-            </button>
-          ) : null}
-          {progress.stampedAt ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={busy}
-              onClick={() => void call('POST', 'return')}
-            >
-              Trả khách
-            </button>
-          ) : null}
-        </div>
+        <p>
+          <Link className="primary btn-link" href={`/vi-bang/${caseId}/${next.href}`}>
+            Tiếp tục: {next.label}
+          </Link>
+        </p>
       )}
-      <p role="alert" className="error" hidden={!error}>
-        {error}
-      </p>
     </section>
   );
 }
