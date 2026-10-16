@@ -1067,3 +1067,12 @@ tr[data-selected='true'] > td {
   border-radius: 7px;
   font-size: 12px;
 }
+
+.filters-ledger {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .filters-ledger {
+    grid-template-columns: 1fr 188px auto;
+  }
+}
