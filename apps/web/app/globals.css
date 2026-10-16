@@ -981,6 +981,15 @@ th a:hover {
 /* Khách hàng và hợp đồng (Figma 3:184) */
 .filters-single {
   grid-template-columns: 1fr auto;
+  padding-block: 12px;
+  margin: 26px 0 23px;
+}
+.filters-single + .table-wrap th,
+.filters-single + .table-wrap td {
+  padding-block: 22px;
+}
+.filters-single + .table-wrap thead th {
+  padding-block: 12px;
 }
 .small-ref {
   font-weight: 400;
