@@ -7,10 +7,12 @@ import { messageFor } from '../lib/messages';
 interface Props {
   readonly requestId: string;
   readonly canDecide: boolean;
+  /** Màn duyệt riêng (Figma 16:64) dùng nút lớn thay cho cặp nút gọn trong bảng. */
+  readonly wide?: boolean;
 }
 
 /** Admin duyệt hoặc từ chối một đề nghị đang chờ. */
-export function ChangeDecision({ requestId, canDecide }: Props) {
+export function ChangeDecision({ requestId, canDecide, wide }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -37,10 +39,20 @@ export function ChangeDecision({ requestId, canDecide }: Props) {
 
   return (
     <span>
-      <button type="button" className="primary" disabled={busy} onClick={() => void decide(true)}>
-        Duyệt
+      <button
+        type="button"
+        className={wide ? 'primary wide' : 'primary'}
+        disabled={busy}
+        onClick={() => void decide(true)}
+      >
+        {wide ? 'Phê duyệt yêu cầu' : 'Duyệt'}
       </button>{' '}
-      <button type="button" disabled={busy} onClick={() => void decide(false)}>
+      <button
+        type="button"
+        className={wide ? 'wide' : undefined}
+        disabled={busy}
+        onClick={() => void decide(false)}
+      >
         Từ chối
       </button>
       <span role="alert" className="error" hidden={!error}>
