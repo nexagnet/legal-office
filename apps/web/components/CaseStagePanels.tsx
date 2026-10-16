@@ -1,6 +1,7 @@
 'use client';
 
 import type { ContactEntry } from '../lib/contacts';
+import { HandoverForm } from './HandoverForm';
 import { ContactLog } from './ContactLog';
 import type { Progress } from './CaseSteps';
 import { useCaseApi } from './useCaseApi';
@@ -200,7 +201,11 @@ export function ReturnPanel({
   progress,
   roles,
   contacts,
-}: Props & { readonly contacts: readonly ContactEntry[] }) {
+  handover,
+}: Props & {
+  readonly contacts: readonly ContactEntry[];
+  readonly handover: { readonly recipient: string | null; readonly on: string | null };
+}) {
   const api = useCaseApi(caseId);
   const returned = status === 'RETURNED';
   const ready = !!progress.stampedAt && progress.hasFinalScan;
@@ -227,11 +232,19 @@ export function ReturnPanel({
           contacts={contacts}
           canLog={!finished && hasRole(roles, 'ADMIN', 'THV', 'THU_KY', 'VAN_THU')}
         />
-        {finished ? null : (
+        {finished && !returned ? null : (
           <section className="panel" aria-labelledby="handover-t">
             <h2 id="handover-t">Bàn giao Vi bằng</h2>
             <p className="muted">Đã liên hệ không đồng nghĩa đã bàn giao.</p>
             {progress.stampedAt ? (
+              <HandoverForm
+                caseId={caseId}
+                recipient={handover.recipient}
+                handedOverOn={handover.on}
+                canRecord={hasRole(roles, 'ADMIN', 'THV', 'VAN_THU')}
+              />
+            ) : null}
+            {progress.stampedAt && !returned ? (
               <button
                 type="button"
                 className="primary"

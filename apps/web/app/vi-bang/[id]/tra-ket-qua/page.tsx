@@ -20,6 +20,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         progress={progress}
         roles={roles}
         contacts={typeof res === 'object' ? res.items : []}
+        handover={{ recipient: c.handoverRecipient ?? null, on: c.handoverOn ?? null }}
       />
     );
   });

@@ -7,6 +7,8 @@ export interface CaseDetail {
   readonly status: string;
   readonly createdAt: string;
   readonly responsibleThvUserId: string | null;
+  readonly handoverRecipient?: string | null;
+  readonly handoverOn?: string | null;
 }
 
 export async function getJson<T>(path: string, cookie: string | null): Promise<T | 404 | 'error'> {

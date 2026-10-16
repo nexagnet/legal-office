@@ -79,6 +79,7 @@ const MESSAGES: Record<string, string> = {
   OBLIGATION_NOT_FOUND: 'Không tìm thấy nghĩa vụ.',
   OBLIGATION_FINAL: 'Nghĩa vụ đã hoàn tất, không ghi thêm được.',
   ALREADY_RECORDED: 'Nội dung này đã được ghi nhận trước đó.',
+  INVALID_HANDOVER: 'Cần nhập tên người nhận và ngày bàn giao hợp lệ.',
   INVALID_DOCUMENT: 'Tệp không hợp lệ hoặc sai định dạng cho phép.',
   FILE_TOO_LARGE: 'Tệp quá lớn (tối đa 25 MB).',
   FILE_STORE_NOT_CONFIGURED: 'Hệ thống chưa cấu hình kho lưu tệp. Liên hệ quản trị.',
@@ -112,6 +113,16 @@ export function messageFor(code: string | undefined): string {
   if (!code) return 'Không thực hiện được. Vui lòng thử lại.';
   return MESSAGES[code] ?? `Không thực hiện được (${code}).`;
 }
+
+export const NEXT_STEP_LABEL: Record<string, string> = {
+  ASSIGN_THV: 'Phân công THV',
+  MISA_NUMBER: 'Kế toán xác nhận MISA, cấp số',
+  SIGN: 'Ký Vi bằng',
+  STAMP: 'Đóng dấu',
+  RETURN: 'Trả kết quả',
+  REGISTRATION: 'Đăng ký Vi bằng',
+  DONE: 'Hoàn tất',
+};
 
 export const CASE_STATUS_LABEL: Record<string, string> = {
   INTAKE: 'Tiếp nhận',

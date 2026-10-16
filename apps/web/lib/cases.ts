@@ -6,6 +6,12 @@ export interface CaseItem {
   readonly status: string;
   readonly createdAt: string;
   readonly responsibleThvUserId: string | null;
+  readonly branchName?: string | null;
+  /** Null với vai Kế toán (dữ liệu cá nhân). */
+  readonly customerName?: string | null;
+  readonly thvLabel?: string | null;
+  readonly numberLabel?: string | null;
+  readonly nextStep?: string | null;
 }
 
 /** Hồ sơ Vi bằng trong phạm vi quyền của người xem. `'error'` khi API không trả lời được. */
