@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { AccessRequestActions } from '../../components/AccessRequestActions';
 import { AccessRequestForm } from '../../components/AccessRequestForm';
+import { CalendarSettings } from '../../components/CalendarSettings';
+import { loadCalendar } from '../../lib/deadlines-api';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { ACCESS_KIND_LABEL, ACCESS_STATUS_LABEL, ROLE_LABEL } from '../../lib/messages';
 
@@ -82,6 +84,7 @@ export default async function AdminPage() {
   const cookie = await requestCookie();
   const members = officeId ? await load(cookie, officeId) : [];
   const requests = officeId ? await loadRequests(cookie, officeId) : [];
+  const calendar = officeId ? await loadCalendar(cookie, officeId) : null;
   const isAdmin = session.roles.includes('ADMIN');
   const people =
     members === 'error'
@@ -189,6 +192,17 @@ export default async function AdminPage() {
       )}
       {officeId && isAdmin ? (
         <AccessRequestForm officeId={officeId} people={people} branches={session.branches} />
+      ) : null}
+      {officeId && calendar !== null && calendar === 'error' ? (
+        <section className="calendar-settings" aria-labelledby="cal-t">
+          <h2 id="cal-t">Lịch làm việc</h2>
+          <div className="state" role="alert">
+            <h3>Không tải được lịch làm việc</h3>
+            <p>Vui lòng thử lại sau.</p>
+          </div>
+        </section>
+      ) : officeId && calendar && calendar !== 'error' ? (
+        <CalendarSettings officeId={officeId} calendar={calendar} canEdit={isAdmin} />
       ) : null}
     </section>
   );
