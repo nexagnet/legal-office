@@ -194,6 +194,48 @@ export class VibangIntakeController {
     return this.run(a, 'vb_cancel_case', [id, b.reason]);
   }
 
+  @Post('cases/:id/rejection')
+  @HttpCode(HttpStatus.OK)
+  reject(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          clause: z.number().int().min(1).max(8),
+          basis: text(2000).optional(),
+          reason: text(2000),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'vb_reject_case', [id, b.clause, b.basis ?? '', b.reason]);
+  }
+
+  @Post('cases/:id/copies')
+  @HttpCode(HttpStatus.OK)
+  issueCopy(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          kind: z.enum(['AUTHORITY', 'PARTICIPANT']),
+          requester: text(500),
+          basis: text(2000),
+          copies: z.number().int().min(1).max(50),
+          receivedBy: text(500),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'vb_issue_copy', [id, b.kind, b.requester, b.basis, b.copies, b.receivedBy]);
+  }
+
   @Get('cases/:id/change-requests')
   async changes(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
     const rows = await this.repo.rows<{
