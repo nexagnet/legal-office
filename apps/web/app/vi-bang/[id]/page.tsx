@@ -116,6 +116,16 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
           </Link>
         </p>
       ) : null}
+      {typeof progress === 'object' && progress.numberLabel ? (
+        <p>
+          <Link className="btn-link" href={`/vi-bang/${c.id}/thu-hoi-misa`}>
+            Thu hồi xác nhận MISA
+          </Link>{' '}
+          <Link className="btn-link" href={`/vi-bang/${c.id}/sua-loi-n11`}>
+            Sửa lỗi kỹ thuật N-11
+          </Link>
+        </p>
+      ) : null}
       <CaseActions
         caseId={c.id}
         title={c.title}
