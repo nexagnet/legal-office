@@ -49,7 +49,7 @@ export function ChangeDecision({ requestId, canDecide, wide }: Props) {
       </button>{' '}
       <button
         type="button"
-        className={wide ? 'wide' : undefined}
+        className={wide ? 'secondary wide' : undefined}
         disabled={busy}
         onClick={() => void decide(false)}
       >

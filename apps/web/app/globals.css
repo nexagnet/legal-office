@@ -38,6 +38,27 @@ a,
 button {
   min-height: 44px;
 }
+/* Nút phụ chưa gắn lớp: viền nhẹ, nền trắng; nút chính dùng .primary */
+button:not([class]),
+.secondary {
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+button:not([class]):hover:not(:disabled),
+.secondary:hover:not(:disabled) {
+  background: var(--bg);
+}
+button:not([class]):disabled,
+.secondary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
@@ -1170,4 +1191,52 @@ tr[data-selected='true'] > td {
     grid-template-columns: minmax(0, 721fr) minmax(0, 376fr);
     gap: 19px;
   }
+}
+
+/* Màn thao tác quản trị (Figma 16:2, 16:64, 16:126, 16:188): form 723 + bảng kiểm 372, cao 686 */
+@media (min-width: 900px) {
+  .assign-grid {
+    grid-template-columns: 723fr 372fr;
+    gap: 21px;
+  }
+}
+.assign-grid > .panel {
+  min-height: 686px;
+  padding: 24px 22px;
+}
+.assign-grid .form h2 {
+  margin-bottom: 35px;
+}
+.assign-grid aside h2 {
+  margin-bottom: 23px;
+}
+.assign-grid .form label {
+  margin-bottom: 29px;
+  line-height: 22px;
+}
+.assign-grid .form input,
+.assign-grid .form select {
+  min-height: 42px;
+  margin-top: 1px;
+}
+.assign-grid .notice-blue {
+  margin-bottom: 29px;
+}
+.assign-grid .check-list {
+  gap: 41px;
+  margin-bottom: 90px;
+}
+.assign-grid .check-list li {
+  line-height: 22px;
+}
+.assign-grid .primary.wide {
+  min-height: 49px;
+}
+.assign-grid .note-box {
+  min-height: 67px;
+  margin-top: 20px;
+  padding: 12px 13px;
+}
+.assign-grid > .panel > h2 {
+  line-height: 22px;
 }

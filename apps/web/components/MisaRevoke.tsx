@@ -112,7 +112,7 @@ export function MisaRevoke(p: Props) {
             </button>{' '}
             <button
               type="button"
-              className="wide"
+              className="secondary wide"
               disabled={busy}
               onClick={() =>
                 void post(`cases/${p.caseId}/misa/revoke-decisions`, { accept: false })
