@@ -348,12 +348,18 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     });
   });
 
-  it('phạm vi: Admin/Trưởng VP/Thư ký/THV thấy cả văn phòng; Văn thư chỉ chi nhánh được cấp; Kế toán và tenant khác thì rỗng', async () => {
+  it('phạm vi: Admin/Trưởng VP/Thư ký thấy cả văn phòng, THV cả văn phòng chỉ ở S-02; Văn thư chỉ chi nhánh được cấp; Kế toán và tenant khác thì rỗng', async () => {
     for (const code of ['s-01', 's-02', 's-04', 's-05']) {
       const all = (await rowsOf(code, U.admin)).length;
       expect(all).toBeGreaterThanOrEqual(2);
-      for (const u of [U.head, U.secretary, U.thv, U.thv2])
-        expect((await rowsOf(code, u)).length).toBe(all);
+      for (const u of [U.head, U.secretary]) expect((await rowsOf(code, u)).length).toBe(all);
+      // THV: xem cả văn phòng chỉ ở S-02 (Vi bằng, quyết định 16/10/2026); S-01/S-04/S-05 chỉ hồ sơ mình phụ trách.
+      for (const u of [U.thv, U.thv2]) {
+        const mine = await rowsOf(code, u);
+        if (code === 's-02') expect(mine.length).toBe(all);
+        else expect(mine.every((r) => r.thvUserId === u)).toBe(true);
+      }
+      if (code !== 's-02') expect((await rowsOf(code, U.thv2)).length).toBeLessThan(all);
       // Văn thư CN1 chỉ thấy các dòng của CN1 (dòng CN2 bị lọc); STT đánh lại trong phạm vi được xem.
       const c1 = await rowsOf(code, U.clerk);
       expect(c1.length).toBe(all - 1);

@@ -19,12 +19,15 @@ BEGIN
 END $$;
 
 -- Phạm vi theo dòng: vai toàn văn phòng thấy mọi chi nhánh; Văn thư chỉ chi nhánh được cấp. Kế toán không có trong danh sách.
-CREATE FUNCTION of_ledger_can_read(p_tenant uuid, p_actor uuid, p_office uuid, p_branch uuid) RETURNS boolean
+-- THV: xem cả văn phòng chỉ với Vi bằng (quyết định 16/10/2026 chỉ nêu Vi bằng); tống đạt, xác minh, thi hành án
+-- THV chỉ thấy hồ sơ mình phụ trách (p_thv_all = false, p_handler = người phụ trách hồ sơ), khớp các hàm danh sách hiện có.
+CREATE FUNCTION of_ledger_can_read(p_tenant uuid, p_actor uuid, p_office uuid, p_branch uuid, p_handler uuid, p_thv_all boolean) RETURNS boolean
 LANGUAGE sql STABLE AS $$
   SELECT EXISTS (
     SELECT 1 FROM memberships m
     WHERE m.tenant_id = p_tenant AND m.user_id = p_actor AND m.office_id = p_office
-      AND (m.role IN ('ADMIN', 'TRUONG_VP', 'THU_KY', 'THV')
+      AND (m.role IN ('ADMIN', 'TRUONG_VP', 'THU_KY')
+        OR (m.role = 'THV' AND (p_thv_all OR p_handler = p_actor))
         OR (m.role = 'VAN_THU' AND EXISTS (SELECT 1 FROM branch_grants g
                                            WHERE g.membership_id = m.id AND g.tenant_id = p_tenant AND g.branch_id = p_branch)))
   )
@@ -55,7 +58,7 @@ BEGIN
     FROM td_documents d JOIN td_requests r ON r.id = d.request_id AND r.tenant_id = d.tenant_id
     WHERE d.tenant_id = p_tenant AND r.office_id = p_office
       AND (p_year IS NULL OR extract(year FROM d.created_at AT TIME ZONE 'Asia/Ho_Chi_Minh') = p_year)
-      AND of_ledger_can_read(p_tenant, p_actor, r.office_id, r.branch_id)
+      AND of_ledger_can_read(p_tenant, p_actor, r.office_id, r.branch_id, d.handler_user_id, false)
   ), numbered AS (
     SELECT row_number() OVER (ORDER BY x.created_at, x.document_id) AS stt, x.* FROM rows_ x
   )
@@ -93,7 +96,7 @@ BEGIN
     JOIN vibang_cases c ON c.id = n.case_id AND c.tenant_id = n.tenant_id
     LEFT JOIN customers cu ON cu.id = c.customer_id AND cu.tenant_id = c.tenant_id
     WHERE n.tenant_id = p_tenant AND n.office_id = p_office AND (p_year IS NULL OR n.year = p_year)
-      AND of_ledger_can_read(p_tenant, p_actor, c.office_id, c.branch_id)
+      AND of_ledger_can_read(p_tenant, p_actor, c.office_id, c.branch_id, c.responsible_thv_user_id, true)
   ), numbered AS (
     SELECT row_number() OVER (ORDER BY x.year, x.seq) AS stt, x.* FROM rows_ x
   )
@@ -126,7 +129,7 @@ BEGIN
     FROM vx_cases c
     WHERE c.tenant_id = p_tenant AND c.office_id = p_office
       AND (p_year IS NULL OR extract(year FROM c.created_at AT TIME ZONE 'Asia/Ho_Chi_Minh') = p_year)
-      AND of_ledger_can_read(p_tenant, p_actor, c.office_id, c.branch_id)
+      AND of_ledger_can_read(p_tenant, p_actor, c.office_id, c.branch_id, c.handler_user_id, false)
   ), numbered AS (
     SELECT row_number() OVER (ORDER BY x.created_at, x.case_id) AS stt, x.* FROM rows_ x
   )
@@ -166,7 +169,7 @@ BEGIN
     FROM th_cases c
     WHERE c.tenant_id = p_tenant AND c.office_id = p_office
       AND (p_year IS NULL OR extract(year FROM c.created_at AT TIME ZONE 'Asia/Ho_Chi_Minh') = p_year)
-      AND of_ledger_can_read(p_tenant, p_actor, c.office_id, c.branch_id)
+      AND of_ledger_can_read(p_tenant, p_actor, c.office_id, c.branch_id, c.handler_user_id, false)
   ), numbered AS (
     SELECT row_number() OVER (ORDER BY x.created_at, x.case_id) AS stt, x.* FROM rows_ x
   )
