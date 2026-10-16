@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildInput } from './FormDraft';
+import { buildInput } from '../components/FormDraft';
 
 describe('buildInput', () => {
   it('builds nested objects from dotted paths and skips blanks', () => {
