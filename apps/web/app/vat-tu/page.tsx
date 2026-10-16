@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StatCard } from '../../components/StatCard';
 import { AdjustBatchForm, NewItemForm, StockMovementForm } from '../../components/StockForms';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 
@@ -63,12 +64,41 @@ export default async function SuppliesPage() {
     stock === 'error'
       ? []
       : [...new Map(stock.map((r) => [r.itemId, { itemId: r.itemId, name: r.name }])).values()];
+  const outOfStock =
+    stock === 'error'
+      ? 0
+      : items.filter((i) => !stock.some((r) => r.itemId === i.itemId && (r.onHand ?? 0) > 0))
+          .length;
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Vật tư</h1>
-      <p className="muted">
-        Tồn kho theo chi nhánh, nhập xuất theo lô cũ nhất trước. Không có giá.
-      </p>
+      <div className="page-head">
+        <div>
+          <h1 id="t">Vật tư văn phòng</h1>
+          <p className="muted">Tồn kho theo chi nhánh, quản lý theo lô nhập. Không có giá.</p>
+        </div>
+        {officeId && canManage ? (
+          <a className="primary btn-link" href="#nhap-vat-tu">
+            + Nhập vật tư
+          </a>
+        ) : null}
+      </div>
+      {stock !== 'error' && items.length > 0 ? (
+        <div className="stats">
+          <StatCard label="Mặt hàng" value={items.length} note="Trong danh mục vật tư" />
+          <StatCard
+            label="Có tồn kho"
+            value={items.length - outOfStock}
+            note="Còn ít nhất một chi nhánh có tồn"
+            tone="green"
+          />
+          <StatCard
+            label="Hết tồn"
+            value={outOfStock}
+            note="Không còn ở chi nhánh nào"
+            tone="amber"
+          />
+        </div>
+      ) : null}
       {stock === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được tồn kho</h2>
@@ -85,9 +115,10 @@ export default async function SuppliesPage() {
             <caption className="sr-only">Tồn kho vật tư</caption>
             <thead>
               <tr>
-                <th scope="col">Vật tư</th>
+                <th scope="col">Tên vật tư</th>
                 <th scope="col">Chi nhánh</th>
-                <th scope="col">Tồn</th>
+                <th scope="col">Tồn kho</th>
+                <th scope="col">Đơn vị</th>
               </tr>
             </thead>
             <tbody>
@@ -95,15 +126,24 @@ export default async function SuppliesPage() {
                 <tr key={`${r.itemId}-${r.branchId ?? 'none'}`}>
                   <th scope="row">{r.name}</th>
                   <td>{r.branchName ?? <span className="muted">Chưa có tồn</span>}</td>
-                  <td>{r.onHand === null ? '' : `${r.onHand} ${r.unit}`}</td>
+                  <td>{r.onHand === null ? '' : r.onHand}</td>
+                  <td>{r.unit}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      {officeId && canManage ? <NewItemForm officeId={officeId} /> : null}
-      <StockMovementForm items={items} branches={session.branches} />
+      <aside className="panel">
+        <p className="muted">
+          Nguyên tắc xuất kho: ưu tiên lô nhập trước (FIFO), có lịch sử người nhập/xuất, thời gian
+          và chi nhánh.
+        </p>
+      </aside>
+      <div id="nhap-vat-tu">
+        {officeId && canManage ? <NewItemForm officeId={officeId} /> : null}
+        <StockMovementForm items={items} branches={session.branches} />
+      </div>
       {canAdjust && batches !== 'error' && batches.length > 0 ? (
         <>
           <h2>Kiểm kê lô</h2>

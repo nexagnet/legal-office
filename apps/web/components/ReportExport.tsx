@@ -20,7 +20,7 @@ export function ReportExport({
     URL.revokeObjectURL(url);
   }
   return (
-    <button type="button" onClick={download} disabled={rows.length <= 1}>
+    <button type="button" className="primary" onClick={download} disabled={rows.length <= 1}>
       Tải CSV
     </button>
   );

@@ -24,6 +24,7 @@ const initials = (label: string) =>
 
 /** Trang con có đầu trang riêng trong Figma (3:54). */
 const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
+  '/quan-tri': { title: 'Nhân sự và phân quyền', sub: 'Vai trò, chi nhánh và quyền xử lý hồ sơ' },
   '/vi-bang/tao-moi': { title: 'Tạo hồ sơ Vi bằng', sub: 'Tiếp nhận yêu cầu lập Vi bằng' },
 };
 
