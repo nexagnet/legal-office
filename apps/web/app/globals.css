@@ -664,3 +664,69 @@ th a:hover {
 .rules li::before {
   content: '• ';
 }
+
+/* Chi tiết và tiến độ Vi bằng (Figma 3:80) */
+.case-head {
+  margin-bottom: 20px;
+}
+.case-head h1 {
+  margin: 0;
+  font-size: 23px;
+}
+.case-head-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.case-head .muted {
+  margin: 12px 0 0;
+}
+.case-grid {
+  margin-bottom: 24px;
+}
+@media (min-width: 900px) {
+  .case-grid {
+    grid-template-columns: 720fr 377fr;
+  }
+}
+.steps {
+  gap: 16px;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.steps li[data-done='true'] {
+  font-weight: 600;
+  color: var(--ink);
+}
+.dot {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+.steps li[data-done='true'] .dot {
+  background: var(--ok);
+}
+.info {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px 24px;
+  margin: 0;
+  font-size: 12px;
+}
+.info dt {
+  color: var(--muted);
+}
+.info dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+}

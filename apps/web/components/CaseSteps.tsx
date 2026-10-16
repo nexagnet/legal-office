@@ -105,12 +105,12 @@ export function CaseSteps({ caseId, status, progress, roles }: Props) {
   ];
 
   return (
-    <section className="card" aria-labelledby="steps-t">
-      <h2 id="steps-t">Tiến trình</h2>
+    <section className="panel" aria-labelledby="steps-t">
+      <h2 id="steps-t">Tiến độ hồ sơ</h2>
       <ol className="steps">
         {steps.map((s) => (
           <li key={s.label} data-done={s.done}>
-            <span aria-hidden="true">{s.done ? '✓' : '○'}</span> {s.label}
+            <span className="dot" aria-hidden="true" /> {s.label}
             {s.detail ? <span className="muted"> · {s.detail}</span> : null}
             <span className="sr-only">{s.done ? ' (đã xong)' : ' (chưa xong)'}</span>
           </li>

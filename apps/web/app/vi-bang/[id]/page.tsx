@@ -104,20 +104,36 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
       <p>
         <Link href="/vi-bang">← Danh sách hồ sơ</Link>
       </p>
-      <h1 id="t">{c.title}</h1>
-      <p>
-        <span className="badge" data-status={c.status}>
-          {CASE_STATUS_LABEL[c.status] ?? c.status}
-        </span>{' '}
-        <span className="muted">
-          Tạo {fmt.format(new Date(c.createdAt))} ·{' '}
-          {c.responsibleThvUserId ? 'Đã phân công THV' : 'Chưa phân công THV'}
-        </span>
-      </p>
-      <p>{c.description || <span className="muted">Chưa có nội dung ghi nhận.</span>}</p>
-      {typeof progress === 'object' ? (
-        <CaseSteps caseId={c.id} status={c.status} progress={progress} roles={session.roles} />
-      ) : null}
+      <header className="panel case-head">
+        <div className="case-head-row">
+          <h1 id="t">{c.title}</h1>
+          <span className="badge" data-status={c.status}>
+            {CASE_STATUS_LABEL[c.status] ?? c.status}
+          </span>
+        </div>
+        <p className="muted">{c.description || 'Chưa có nội dung ghi nhận.'}</p>
+      </header>
+      <div className="panels case-grid">
+        {typeof progress === 'object' ? (
+          <CaseSteps caseId={c.id} status={c.status} progress={progress} roles={session.roles} />
+        ) : (
+          <section className="panel">
+            <h2>Tiến độ hồ sơ</h2>
+            <p className="muted">Chưa tải được tiến độ hồ sơ.</p>
+          </section>
+        )}
+        <section className="panel" aria-labelledby="info-t">
+          <h2 id="info-t">Thông tin xử lý</h2>
+          <dl className="info">
+            <dt>THV phụ trách</dt>
+            <dd>{c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công'}</dd>
+            <dt>Ngày tạo</dt>
+            <dd>{fmt.format(new Date(c.createdAt))}</dd>
+            <dt>Giới hạn sửa</dt>
+            <dd>48 giờ từ ngày tạo</dd>
+          </dl>
+        </section>
+      </div>
       {isAdmin && c.status !== 'RETURNED' && c.status !== 'CANCELLED' ? (
         <AssignThv caseId={c.id} options={thvOptions} currentThvId={c.responsibleThvUserId} />
       ) : null}

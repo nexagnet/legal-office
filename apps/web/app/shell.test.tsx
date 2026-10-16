@@ -125,6 +125,19 @@ describe('AppShell subpage head', () => {
   });
 });
 
+describe('AppShell case detail head', () => {
+  it('shows the detail header from Figma 3:80 for a case page', () => {
+    path.current = '/vi-bang/00000000-0000-4000-8000-000000000000';
+    render(
+      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    expect(document.querySelector('.topbar-h')?.textContent).toBe('Chi tiết và tiến độ Vi bằng');
+    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+  });
+});
+
 describe('ModuleState', () => {
   const item = findNav('quan-tri')!;
   it('asks to sign in when unauthenticated and never offers actions', () => {
