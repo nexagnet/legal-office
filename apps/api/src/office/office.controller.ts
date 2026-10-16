@@ -331,7 +331,7 @@ export class OfficeController {
     const q = parse(
       z
         .object({
-          refNo: z.string().max(200),
+          refNo: z.string().max(200).optional(),
           issuedOn: isoDate,
           sendMethod: z.string().max(200),
         })
@@ -343,7 +343,14 @@ export class OfficeController {
       { contentType, contentLength, body: req },
       (f) => `t/${a.tenantId}/of/correspondence/${id}/proof/${randomUUID()}.${f.extension}`,
       (key, f) =>
-        this.run(a, 'of_corr_issue', [id, q.refNo, q.issuedOn, q.sendMethod, key, f.sha256]),
+        this.run(a, 'of_corr_issue', [
+          id,
+          q.refNo ?? null,
+          q.issuedOn,
+          q.sendMethod,
+          key,
+          f.sha256,
+        ]),
     );
   }
 
@@ -385,7 +392,7 @@ export class OfficeController {
     const b = parse(
       z
         .object({
-          refNo: z.string().max(200),
+          refNo: z.string().max(200).optional(),
           issuedOn: isoDate,
           sendMethod: z.string().max(200),
           proofKey: z.string().max(500).nullish(),
@@ -396,12 +403,32 @@ export class OfficeController {
     );
     return this.run(a, 'of_corr_issue', [
       id,
-      b.refNo,
+      b.refNo ?? null,
       b.issuedOn,
       b.sendMethod,
       b.proofKey ?? null,
       b.proofSha256 ?? null,
     ]);
+  }
+
+  /** Gắn/đổi/bỏ hồ sơ liên quan của công văn (bỏ cả hai trường = bỏ liên kết). Chỉ khi chưa hoàn tất. */
+  @Post('correspondence/:id/link')
+  @HttpCode(HttpStatus.OK)
+  linkCorrespondence(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          caseKind: z.enum(['VIBANG', 'SERVICE', 'VERIFICATION', 'ENFORCEMENT']).nullish(),
+          caseId: uuid.nullish(),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'of_corr_link_case', [id, b.caseKind ?? null, b.caseId ?? null]);
   }
 
   @Post('decisions')
