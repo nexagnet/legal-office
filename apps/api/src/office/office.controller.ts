@@ -722,6 +722,50 @@ export class OfficeController {
     }));
   }
 
+  /** Thông báo nhắc hạn của chính người gọi (sinh lười từ hạn họ được xem; không gửi ra ngoài). */
+  @Get('notifications')
+  async notifications(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('unread') unread?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const lim = parse(z.coerce.number().int().min(1).max(200), limit ?? '50');
+    const rows = await this.read<{
+      id: string;
+      kind: string;
+      domain: string;
+      ref_id: string;
+      case_id: string | null;
+      label: string;
+      deadline_at: Date;
+      created_at: Date;
+      read_at: Date | null;
+      overdue: boolean;
+    }>(a, 'of_search_notifications', [officeId, unread === 'true', lim]);
+    const items = rows.map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      domain: r.domain,
+      refId: r.ref_id,
+      caseId: r.case_id,
+      label: r.label,
+      deadlineAt: r.deadline_at,
+      createdAt: r.created_at,
+      readAt: r.read_at,
+      overdue: r.overdue,
+    }));
+    return { unreadCount: items.filter((i) => i.readAt === null).length, items };
+  }
+
+  /** Đánh dấu đã đọc một thông báo (`id`) hoặc tất cả thông báo chưa đọc của mình (bỏ `id`). */
+  @Post('notifications/read')
+  @HttpCode(HttpStatus.OK)
+  markNotificationsRead(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(z.object({ officeId: uuid, id: uuid.optional() }).strict(), body);
+    return this.run(a, 'of_notifications_read', [b.officeId, b.id ?? null]);
+  }
+
   /** Báo cáo tổng hợp theo kỳ (ngày tạo, giờ Việt Nam). Mỗi dòng là một đơn vị đếm riêng; không có số tiền. */
   @Get('report')
   async report(
