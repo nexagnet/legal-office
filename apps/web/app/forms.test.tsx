@@ -381,7 +381,15 @@ describe('ReturnPanel', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       reply(409, { code: 'FINAL_SCAN_MISSING' }),
     );
-    render(<ReturnPanel caseId="c1" status="ASSIGNED" progress={stampedProgress} />);
+    render(
+      <ReturnPanel
+        caseId="c1"
+        status="ASSIGNED"
+        progress={stampedProgress}
+        roles={[]}
+        contacts={[]}
+      />,
+    );
     expect(screen.getByText('CHƯA ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã trả kết quả' }));
     expect((await screen.findByRole('alert')).textContent).toBe(
@@ -395,11 +403,21 @@ describe('ReturnPanel', () => {
         caseId="c1"
         status="ASSIGNED"
         progress={{ ...stampedProgress, hasFinalScan: true }}
+        roles={[]}
+        contacts={[]}
       />,
     );
     expect(screen.getByText('ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
     cleanup();
-    render(<ReturnPanel caseId="c1" status="RETURNED" progress={progressBase} />);
+    render(
+      <ReturnPanel
+        caseId="c1"
+        status="RETURNED"
+        progress={progressBase}
+        roles={[]}
+        contacts={[]}
+      />,
+    );
     expect(screen.queryByRole('button')).toBeNull();
   });
 });

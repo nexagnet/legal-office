@@ -298,7 +298,7 @@ button {
 .form textarea {
   display: block;
   width: 100%;
-  min-height: 42px;
+  min-height: 46px;
   margin-top: 4px;
   padding: 8px 12px;
   font: inherit;
@@ -361,7 +361,7 @@ table {
 }
 th,
 td {
-  padding: 22px 18px;
+  padding: 24px 18px;
   text-align: left;
   vertical-align: middle;
   background: var(--surface);
@@ -447,7 +447,13 @@ th a:hover {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin: -4px 0 16px;
+}
+.page-head h1,
+.page-head h2 {
+  margin: 3px 0 0;
+  font-size: 20px;
+  line-height: 35px;
 }
 .page-head .muted {
   margin-bottom: 0;
@@ -500,19 +506,29 @@ th a:hover {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   margin-bottom: 24px;
 }
+.stats-top {
+  margin-top: 6px;
+}
+.stats-top .stat {
+  min-height: 130px;
+}
+.stats-top .stat-note {
+  margin-top: 17px !important;
+}
 .stat {
   position: relative;
-  padding: 18px 20px 16px 26px;
+  min-height: 116px;
+  padding: 20px 20px 16px 30px;
   background: var(--surface);
   border-radius: var(--radius);
 }
 .stat::before {
   content: '';
   position: absolute;
-  left: 12px;
-  top: 18px;
-  width: 3px;
-  height: 36px;
+  left: 16px;
+  top: 20px;
+  width: 4px;
+  height: 46px;
   border-radius: 2px;
   background: var(--accent);
 }
@@ -529,37 +545,41 @@ th a:hover {
   margin: 0;
 }
 .stat-label {
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 22px;
   color: var(--muted);
 }
 .stat-value {
-  font-size: 26px;
+  margin-top: 5px !important;
+  font-size: 25px;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 36px;
 }
 .stat-note {
-  margin-top: 14px !important;
-  font-size: 11px;
+  margin: 3px 0 0 -10px !important;
+  font-size: 12px;
+  line-height: 18px;
   color: var(--muted);
 }
 .panels {
   display: grid;
-  gap: 16px;
+  gap: 24px;
   grid-template-columns: 1fr;
 }
 @media (min-width: 900px) {
   .panels {
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 725fr) minmax(0, 368fr);
   }
 }
 .panel {
-  padding: 20px 24px;
+  padding: 23px;
   background: var(--surface);
   border-radius: var(--radius);
 }
 .panel h2 {
-  margin: 0 0 12px;
-  font-size: 17px;
+  margin: 0 0 27px;
+  font-size: 18px;
+  line-height: 27px;
 }
 .panel .muted {
   margin: 0;
@@ -570,14 +590,15 @@ th a:hover {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 4px;
+  gap: 14px;
 }
 .rows li {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 12px;
+  min-height: 60px;
+  padding: 0 15px;
   border-radius: var(--radius-sm);
 }
 .rows li:nth-child(even) {
@@ -589,17 +610,22 @@ th a:hover {
   color: var(--ink);
   text-decoration: none;
 }
+.reminders {
+  gap: 22px;
+  margin-top: -5px;
+}
 .reminders li {
   position: relative;
-  padding: 10px 0 10px 18px;
+  min-height: 22px;
+  padding: 0 0 0 23px;
 }
 .reminders li::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 17px;
-  width: 7px;
-  height: 7px;
+  top: 4px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #b45309;
 }
@@ -638,13 +664,29 @@ th a:hover {
     grid-template-columns: 345fr 330fr;
   }
 }
+.intake-form,
+.intake-side .panel {
+  padding: 27px 24px;
+}
+.intake-side .panel:first-child {
+  min-height: 346px;
+}
+.intake-side .panel:last-child {
+  min-height: 276px;
+}
+.intake-form h3,
+.intake-side h3 {
+  margin-bottom: 24px;
+}
 .intake-form label {
-  margin-bottom: 20px;
+  margin-bottom: 31px;
   color: var(--muted);
 }
 .intake-form input,
 .intake-form select,
 .intake-form textarea {
+  min-height: 46px;
+  margin-top: 7px;
   color: var(--ink);
   font-weight: 400;
 }
@@ -667,7 +709,7 @@ th a:hover {
 
 /* Chi tiết và tiến độ Vi bằng (Figma 3:80) */
 .case-head {
-  margin-bottom: 20px;
+  margin: 22px 0 20px;
 }
 .case-head h1 {
   margin: 0;
@@ -685,16 +727,20 @@ th a:hover {
 .case-grid {
   margin-bottom: 24px;
 }
+.case-grid > .panel {
+  min-height: 432px;
+}
 @media (min-width: 900px) {
   .case-grid {
     grid-template-columns: 720fr 377fr;
   }
 }
 .steps {
-  gap: 16px;
+  gap: 28px;
 }
 .steps li {
   display: flex;
+  padding-left: 9px;
   align-items: center;
   gap: 12px;
   font-size: 13px;
@@ -717,8 +763,8 @@ th a:hover {
 }
 .info {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 24px 24px;
+  grid-template-columns: minmax(122px, max-content) 1fr;
+  gap: 30px 0;
   margin: 0;
   font-size: 12px;
 }
@@ -732,8 +778,14 @@ th a:hover {
 }
 
 /* Màn xử lý từng bước của hồ sơ (Figma 3:106, 3:132, 3:158) */
+.stage-back {
+  margin: 0 0 35px;
+}
 .stage-grid {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+.stage-grid > .panel {
+  min-height: 460px;
 }
 @media (min-width: 900px) {
   .stage-grid {
@@ -741,7 +793,7 @@ th a:hover {
   }
 }
 .stage-cards {
-  margin-bottom: 20px;
+  margin: 48px 0 31px;
 }
 @media (min-width: 900px) {
   .stage-cards {
@@ -752,7 +804,7 @@ th a:hover {
   display: grid;
   align-content: start;
   gap: 16px;
-  min-height: 280px;
+  min-height: 400px;
 }
 .stage-cards .panel .pill {
   align-self: end;
@@ -800,7 +852,9 @@ th a:hover {
   font-size: 16px;
 }
 .ready {
-  margin-bottom: 20px;
+  min-height: 107px;
+  padding: 24px 29px;
+  margin-bottom: 27px;
   background: var(--warn-bg);
 }
 .ready[data-ready='true'] {
@@ -1088,4 +1142,18 @@ tr[data-selected='true'] > td {
   .filters-ledger {
     grid-template-columns: 1fr 188px auto;
   }
+}
+
+/* Trả kết quả (Figma 3:158): lịch sử liên hệ trái, bàn giao phải */
+@media (min-width: 900px) {
+  .return-grid {
+    grid-template-columns: 566fr 529fr;
+  }
+}
+.return-grid > .panel {
+  min-height: 497px;
+}
+.contact-rows li {
+  min-height: 44px;
+  font-size: 12px;
 }

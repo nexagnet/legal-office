@@ -1,5 +1,7 @@
 'use client';
 
+import type { ContactEntry } from '../lib/contacts';
+import { ContactLog } from './ContactLog';
 import type { Progress } from './CaseSteps';
 import { useCaseApi } from './useCaseApi';
 
@@ -192,7 +194,13 @@ export function SignStampPanels({ caseId, status, progress, roles }: Props) {
 }
 
 /** Trả kết quả (Figma 3:158). Chỉ phần máy chủ đã hỗ trợ: xác nhận đã trả; chưa có nhật ký liên hệ/người nhận. */
-export function ReturnPanel({ caseId, status, progress }: Omit<Props, 'roles'>) {
+export function ReturnPanel({
+  caseId,
+  status,
+  progress,
+  roles,
+  contacts,
+}: Props & { readonly contacts: readonly ContactEntry[] }) {
   const api = useCaseApi(caseId);
   const returned = status === 'RETURNED';
   const ready = !!progress.stampedAt && progress.hasFinalScan;
@@ -213,23 +221,30 @@ export function ReturnPanel({ caseId, status, progress }: Omit<Props, 'roles'>) 
             : 'Cần xác nhận đã đóng dấu và tải bản scan cuối trước khi trả kết quả.'}
         </p>
       </section>
-      {finished ? null : (
-        <section className="panel" aria-labelledby="handover-t">
-          <h2 id="handover-t">Bàn giao Vi bằng</h2>
-          <p className="muted">Đã liên hệ không đồng nghĩa đã bàn giao.</p>
-          {progress.stampedAt ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={api.busy}
-              onClick={() => void api.call('POST', 'return')}
-            >
-              Xác nhận đã trả kết quả
-            </button>
-          ) : null}
-          <ErrorLine error={api.error} />
-        </section>
-      )}
+      <div className="panels return-grid">
+        <ContactLog
+          caseId={caseId}
+          contacts={contacts}
+          canLog={!finished && hasRole(roles, 'ADMIN', 'THV', 'THU_KY', 'VAN_THU')}
+        />
+        {finished ? null : (
+          <section className="panel" aria-labelledby="handover-t">
+            <h2 id="handover-t">Bàn giao Vi bằng</h2>
+            <p className="muted">Đã liên hệ không đồng nghĩa đã bàn giao.</p>
+            {progress.stampedAt ? (
+              <button
+                type="button"
+                className="primary"
+                disabled={api.busy}
+                onClick={() => void api.call('POST', 'return')}
+              >
+                Xác nhận đã trả kết quả
+              </button>
+            ) : null}
+            <ErrorLine error={api.error} />
+          </section>
+        )}
+      </div>
     </>
   );
 }
