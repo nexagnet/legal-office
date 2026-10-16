@@ -95,6 +95,11 @@ export default async function LedgerPage({
           <ReportExport rows={table} filename={`${code}${year ? `-${year}` : ''}.csv`} />
         ) : null}
       </div>
+      <p>
+        <Link className="btn-link" href="/so-sach/theo-doi-so">
+          Theo dõi cập nhật CSDL / Sở
+        </Link>
+      </p>
       <form className="filters filters-ledger" method="get" role="search">
         <label>
           <span className="sr-only">Sổ</span>

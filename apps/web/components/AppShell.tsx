@@ -25,6 +25,14 @@ const initials = (label: string) =>
 /** Trang con có đầu trang riêng trong Figma (3:54). */
 const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   '/quan-tri': { title: 'Nhân sự và phân quyền', sub: 'Vai trò, chi nhánh và quyền xử lý hồ sơ' },
+  '/cai-dat': {
+    title: 'Cấu hình văn phòng',
+    sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',
+  },
+  '/so-sach/theo-doi-so': {
+    title: 'Theo dõi Sở / CSDL',
+    sub: 'Theo dõi hạn cập nhật CSDL và xử lý gửi Sở khi cần',
+  },
   '/hop-dong/n-03': {
     title: 'Hợp đồng dịch vụ lập Vi bằng · N-03',
     sub: 'Tạo từ dữ liệu, nhập DOCX/PDF, cho phép một hợp đồng gắn nhiều Vi bằng.',
@@ -61,6 +69,10 @@ const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
   'kiem-tra-ban-giao': {
     title: 'Kiểm tra bàn giao & kết quả liên hệ khách',
     sub: 'Đã thông báo không đồng nghĩa đã bàn giao; phải đạt đủ các điều kiện trước khi trả.',
+  },
+  'cap-nhat-so': {
+    title: 'Theo dõi cập nhật CSDL / Sở Tư pháp',
+    sub: 'Thời hạn 3 ngày làm việc từ lúc kết thúc việc lập Vi bằng; xử lý ngoại lệ riêng.',
   },
   'thu-hoi-misa': {
     title: 'Thu hồi xác nhận thanh toán trên MISA',

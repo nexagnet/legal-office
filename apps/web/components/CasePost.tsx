@@ -10,12 +10,16 @@ export function useCasePost() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function post(path: string, body: unknown): Promise<boolean> {
+  async function post(
+    path: string,
+    body: unknown,
+    method: 'POST' | 'PUT' = 'POST',
+  ): Promise<boolean> {
     setBusy(true);
     setError(null);
     try {
       const res = await fetch(`/api/vibang/${path}`, {
-        method: 'POST',
+        method,
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
       });

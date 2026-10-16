@@ -946,6 +946,11 @@ tr[data-selected='true'] > td {
   color: var(--accent);
   background: #dbeafe;
   border-radius: 9px;
+  text-decoration: none;
+}
+.tab-chip[aria-current='true'] {
+  color: #fff;
+  background: var(--accent);
 }
 .template-grid {
   display: grid;
@@ -1035,6 +1040,14 @@ tr[data-selected='true'] > td {
   padding: 14px;
   color: var(--accent);
   background: #eff6ff;
+  border-radius: 9px;
+  font-size: 12px;
+}
+.notice-amber {
+  margin: 0 0 16px;
+  padding: 14px;
+  color: #92400e;
+  background: #fffbeb;
   border-radius: 9px;
   font-size: 12px;
 }
