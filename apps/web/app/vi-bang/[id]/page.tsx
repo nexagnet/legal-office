@@ -123,6 +123,12 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
           </Link>{' '}
           <Link className="btn-link" href={`/vi-bang/${c.id}/sua-loi-n11`}>
             Sửa lỗi kỹ thuật N-11
+          </Link>{' '}
+          <Link className="btn-link" href={`/vi-bang/${c.id}/tai-lieu`}>
+            Tài liệu và chứng cứ
+          </Link>{' '}
+          <Link className="btn-link" href={`/vi-bang/${c.id}/kiem-tra-ban-giao`}>
+            Kiểm tra bàn giao
           </Link>
         </p>
       ) : null}

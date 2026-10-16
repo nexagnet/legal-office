@@ -46,6 +46,14 @@ const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Ký, đóng dấu và bản scan',
     sub: 'Hoàn tất Vi bằng trên bản giấy và lưu bản scan',
   },
+  'tai-lieu': {
+    title: 'Kho hồ sơ, chứng cứ và bản scan cuối',
+    sub: 'Quản lý phiên bản tài liệu; bản scan giấy cuối phải hoàn chỉnh trước khi trả.',
+  },
+  'kiem-tra-ban-giao': {
+    title: 'Kiểm tra bàn giao & kết quả liên hệ khách',
+    sub: 'Đã thông báo không đồng nghĩa đã bàn giao; phải đạt đủ các điều kiện trước khi trả.',
+  },
   'thu-hoi-misa': {
     title: 'Thu hồi xác nhận thanh toán trên MISA',
     sub: 'Giữ nguyên số Vi bằng đã cấp; tạm chặn trả nếu xác nhận thanh toán bị thu hồi.',
