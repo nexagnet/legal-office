@@ -74,7 +74,6 @@ export default async function SuppliesPage() {
       <div className="page-head">
         <div>
           <h1 id="t">Vật tư văn phòng</h1>
-          <p className="muted">Tồn kho theo chi nhánh, quản lý theo lô nhập. Không có giá.</p>
         </div>
         {officeId && canManage ? (
           <a className="primary btn-link" href="#nhap-vat-tu">

@@ -361,7 +361,7 @@ table {
 }
 th,
 td {
-  padding: 24px 18px;
+  padding: 28px 18px;
   text-align: left;
   vertical-align: middle;
   background: var(--surface);
@@ -506,6 +506,12 @@ th a:hover {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   margin-bottom: 24px;
 }
+@media (min-width: 900px) {
+  .stats:has(> :nth-child(3):last-child) {
+    grid-template-columns: 346fr 346fr 375fr;
+    gap: 25px;
+  }
+}
 .stats-top {
   margin-top: 6px;
 }
@@ -518,7 +524,7 @@ th a:hover {
 .stat {
   position: relative;
   min-height: 116px;
-  padding: 20px 20px 16px 30px;
+  padding: 20px 20px 12px 30px;
   background: var(--surface);
   border-radius: var(--radius);
 }
@@ -1008,7 +1014,7 @@ tr[data-selected='true'] > td {
 }
 .template-grid {
   display: grid;
-  gap: 24px;
+  gap: 25px 23px;
   margin: 0 0 24px;
   padding: 0;
   list-style: none;
@@ -1156,4 +1162,12 @@ tr[data-selected='true'] > td {
 .contact-rows li {
   min-height: 44px;
   font-size: 12px;
+}
+
+/* Báo cáo (Figma 3:340): biểu đồ 721 + bộ lọc 376 */
+@media (min-width: 900px) {
+  .report-grid {
+    grid-template-columns: minmax(0, 721fr) minmax(0, 376fr);
+    gap: 19px;
+  }
 }
