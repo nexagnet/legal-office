@@ -30,6 +30,10 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
 
 const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
 const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
+  'duyet-sua': {
+    title: 'Yêu cầu sửa hồ sơ sau 48 giờ',
+    sub: 'Sửa dữ liệu nội bộ phải duyệt; không áp dụng cho Vi bằng đã phát hành.',
+  },
   'phan-cong': {
     title: 'Admin phân công Thừa hành viên',
     sub: 'Chỉ Admin phân công, mỗi Vi bằng có một THV phụ trách.',
