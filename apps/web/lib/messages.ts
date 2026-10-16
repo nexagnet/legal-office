@@ -96,6 +96,15 @@ const MESSAGES: Record<string, string> = {
   INVALID_STATUS: 'Trạng thái công văn chưa phù hợp cho bước này.',
   FINAL_DOCUMENT_REQUIRED: 'Cần đính kèm bản cuối của công văn trước khi trình duyệt.',
   SEND_PROOF_REQUIRED: 'Cần chứng từ gửi đi trước khi ban hành.',
+  NOT_RESPONSIBLE_THV: 'Chỉ THV phụ trách hồ sơ này được thực hiện thao tác này.',
+  REJECT_NOT_ALLOWED: 'Hồ sơ đã ký hoặc đã kết thúc nên không từ chối được.',
+  INVALID_CLAUSE: 'Khoản của Điều 28 không hợp lệ.',
+  BASIS_REQUIRED: 'Cần nhập căn cứ.',
+  CASE_NOT_RETURNED: 'Chỉ cấp bản sao khi hồ sơ đã trả kết quả cho khách.',
+  INVALID_KIND: 'Loại yêu cầu cấp bản sao không hợp lệ.',
+  FIELDS_REQUIRED: 'Cần nhập đủ người yêu cầu, căn cứ và người nhận.',
+  INVALID_COPIES: 'Số bản sao phải từ 1 đến 50.',
+  FIELD_NOT_FOR_KIND: 'Trường này không áp dụng cho loại khách hàng đã chọn.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
