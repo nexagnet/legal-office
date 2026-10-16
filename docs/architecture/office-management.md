@@ -17,8 +17,13 @@ Migration `apps/api/drizzle/0008_office.sql`. Dữ liệu giả lập. **Không 
 ## Nhân sự (nguồn S-06)
 `of_personnel` mỗi lần lưu là một phiên bản mới (chỉ ghi thêm); `of_s06_book` lấy bản mới nhất. Cột theo mẫu TP-THV-S-06 TT08: họ tên, giới, chuyên môn, quyết định Thừa phát lại / Thừa hành viên (số, ngày), Trưởng VP / Hợp danh, hợp đồng lao động, bảo hiểm và đóng, ghi chú. Chỉ lưu **tình trạng + ghi chú** cho bảo hiểm, không số tiền. Đọc chỉ Admin/Trưởng VP.
 
+## Sổ theo dõi S-01, S-02, S-04, S-05 (đọc)
+Migration `0030_office_ledgers.sql`; HTTP `GET /office/ledgers/{s-01|s-02|s-04|s-05}?officeId=&year=&limit=`. Trả `columns` (đúng số cột và thứ tự mẫu Phụ lục I TT 08/2026/TT-BTP: 10/7/11/13) và `rows` dựng từ dữ liệu đã có, kèm cột truy vết về hồ sơ gốc. Đây là bản điện tử hỗ trợ theo dõi, **không phải biểu mẫu chính thức**. S-03 là của Sở Tư pháp (không có), S-06 đọc qua `personnel`.
+Quyền: Admin, Trưởng VP, Thư ký, Thừa hành viên xem cả văn phòng; Văn thư theo chi nhánh được cấp; Kế toán không xem. Mọi lần đọc ghi `audit_log` (`of.ledger.sNN.read`). STT đánh theo thứ tự thời gian trong phạm vi người đọc được xem.
+Cột chưa có nguồn dữ liệu trả `null` (không suy đoán): S-01 loại văn bản, số/ngày văn bản, ba cột cơ quan giao, họ tên + số Thẻ THV; S-02 địa chỉ nơi lập, họ tên + số Thẻ THV; S-04 hợp đồng dịch vụ, quyết định THA, bản án, người yêu cầu/phải THA, nội dung xác minh, ghi chú; S-05 cột 3, sửa đổi/bổ sung và thu hồi quyết định, họ tên + số Thẻ THV, ghi chú.
+
 ## HTTP (`/office`)
-`POST|GET correspondence`, `POST correspondence/:id/{attachments,result,submission,approval,issuance}`, `POST|GET decisions`, `POST tt06-forms`, `POST tt06-forms/:code/download`, `POST items`, `POST items/:id/{receipts,issues}`, `POST batches/:id/adjustment`, `PUT|GET personnel`.
+`POST|GET correspondence`, `POST correspondence/:id/{attachments,result,submission,approval,issuance}`, `POST|GET decisions`, `POST tt06-forms`, `POST tt06-forms/:code/download`, `POST items`, `POST items/:id/{receipts,issues}`, `POST batches/:id/adjustment`, `PUT|GET personnel`, `GET ledgers/:code`.
 
 ## Giả định chưa được chủ sản phẩm xác nhận
 - Ai được ghi công văn/quyết định (Admin, Trưởng VP, Thư ký, Văn thư theo chi nhánh); THV chỉ đọc công văn mình xử lý và không đọc sổ quyết định.
