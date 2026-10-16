@@ -23,6 +23,7 @@ import {
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { addWorkingDays } from '../deadlines/working-days';
 import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
@@ -473,6 +474,111 @@ export class OfficeController {
       'cache-control': 'private, no-store',
     });
     return new StreamableFile(bytes);
+  }
+
+  /** Lịch làm việc của văn phòng: ngày làm việc trong tuần + ngày nghỉ/lễ. Mọi thành viên đọc được. */
+  @Get('calendar')
+  async calendar(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    return this.loadCalendar(a, officeId);
+  }
+
+  private async loadCalendar(a: AuthenticatedActor, officeId: string) {
+    const rows = await this.read<{
+      kind: string;
+      day: string | null;
+      label: string | null;
+      weekdays: number[] | null;
+    }>(a, 'of_search_calendar', [officeId]);
+    const weekdays = rows.find((r) => r.kind === 'WEEKDAYS')?.weekdays ?? [1, 2, 3, 4, 5];
+    const holidays = rows
+      .filter((r) => r.kind === 'HOLIDAY' && r.day !== null)
+      .map((r) => ({
+        day: r.day as string,
+        label: r.label ?? '',
+      }));
+    return { workingWeekdays: weekdays, holidays };
+  }
+
+  @Put('calendar/weekdays')
+  @HttpCode(HttpStatus.OK)
+  setWeekdays(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z
+        .object({
+          officeId: uuid,
+          weekdays: z.array(z.number().int().min(1).max(7)).min(1).max(7),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'of_set_work_weekdays', [b.officeId, b.weekdays]);
+  }
+
+  @Post('calendar/holidays')
+  @HttpCode(HttpStatus.OK)
+  addHoliday(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z.object({ officeId: uuid, day: isoDate, label: z.string().min(1).max(200) }).strict(),
+      body,
+    );
+    return this.run(a, 'of_add_holiday', [b.officeId, b.day, b.label]);
+  }
+
+  @Post('calendar/holidays/remove')
+  @HttpCode(HttpStatus.OK)
+  removeHoliday(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(z.object({ officeId: uuid, day: isoDate }).strict(), body);
+    return this.run(a, 'of_remove_holiday', [b.officeId, b.day]);
+  }
+
+  /** Hạn dự kiến sau N ngày làm việc theo lịch của văn phòng (chỉ để nhắc; không đổi trạng thái hồ sơ). */
+  @Get('deadlines/compute')
+  async computeDeadline(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('from') from: string,
+    @Query('days') days: string,
+  ) {
+    const start = parse(isoDate, from);
+    const n = parse(z.coerce.number().int().min(0).max(366), days);
+    const cal = await this.loadCalendar(a, officeId);
+    const due = addWorkingDays(new Date(`${start}T00:00:00+07:00`), n, {
+      workingWeekdays: cal.workingWeekdays,
+      holidays: cal.holidays.map((h) => h.day),
+    });
+    return { dueDate: new Date(due.getTime() + 7 * 3600 * 1000).toISOString().slice(0, 10) };
+  }
+
+  /** Hạn sắp tới/quá hạn để nhắc trong ứng dụng (không tự gửi ra ngoài). */
+  @Get('deadlines')
+  async deadlines(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('withinDays') withinDays?: string,
+  ) {
+    const d = parse(z.coerce.number().int().min(0).max(90), withinDays ?? '7');
+    const until = new Date(Date.now() + d * 24 * 3600 * 1000).toISOString();
+    const rows = await this.read<{
+      domain: string;
+      ref_id: string;
+      case_id: string;
+      label: string;
+      deadline_at: Date;
+      status: string;
+      overdue: boolean;
+    }>(a, 'of_search_deadlines', [officeId, until]);
+    return rows.map((r) => ({
+      domain: r.domain,
+      refId: r.ref_id,
+      caseId: r.case_id,
+      label: r.label,
+      deadlineAt: r.deadline_at,
+      status: r.status,
+      overdue: r.overdue,
+    }));
   }
 
   /** Báo cáo tổng hợp theo kỳ (ngày tạo, giờ Việt Nam). Mỗi dòng là một đơn vị đếm riêng; không có số tiền. */
