@@ -25,6 +25,7 @@ import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { addWorkingDays } from '../deadlines/working-days';
+import { LEDGER_BY_CODE, shapeLedgerRow } from './ledgers';
 import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
@@ -968,5 +969,34 @@ export class OfficeController {
     @Query('officeId', ParseUUIDPipe) officeId: string,
   ) {
     return this.read(a, 'of_s06_read', [officeId]);
+  }
+
+  /**
+   * Sổ theo dõi Phụ lục I TT 08/2026/TT-BTP: S-01, S-02, S-04, S-05 (S-03 của Sở Tư pháp; S-06 ở `personnel`).
+   * Trả danh sách cột đúng thứ tự mẫu và các dòng dựng từ dữ liệu đã có; cột chưa có nguồn là null. Quyền do DB quyết định.
+   */
+  @Get('ledgers/:code')
+  async ledger(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('code') code: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('year') year?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const def = LEDGER_BY_CODE.get(code.toLowerCase());
+    if (!def) throw new HttpException({ code: 'LEDGER_NOT_FOUND', label: null }, 404);
+    const y =
+      year === undefined || year === ''
+        ? null
+        : parse(z.coerce.number().int().min(2000).max(2200), year);
+    const l = parse(z.coerce.number().int().min(1).max(1000), limit ?? '500');
+    const rows = await this.read(a, def.fn, [officeId, y, l]);
+    return {
+      code: def.code,
+      title: def.title,
+      notice: 'Bản điện tử hỗ trợ theo dõi, không phải biểu mẫu chính thức.',
+      columns: def.columns.map((c) => ({ no: c.no, key: c.key, label: c.label })),
+      rows: rows.map((r) => shapeLedgerRow(def, r)),
+    };
   }
 }
