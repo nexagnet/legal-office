@@ -56,8 +56,7 @@ export default async function Page({
     <section aria-labelledby="t">
       <div className="page-head">
         <div>
-          <h1 id="t">Theo dõi cập nhật CSDL / Sở Tư pháp</h1>
-          <p className="muted">Theo dõi hạn cập nhật CSDL và xử lý gửi Sở khi cần.</p>
+          <h1 id="t">Theo dõi cập nhật với Sở Tư pháp</h1>
         </div>
       </div>
       <div className="stats">

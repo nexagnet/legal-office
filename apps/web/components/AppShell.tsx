@@ -30,8 +30,8 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',
   },
   '/so-sach/theo-doi-so': {
-    title: 'Theo dõi Sở / CSDL',
-    sub: 'Theo dõi hạn cập nhật CSDL và xử lý gửi Sở khi cần',
+    title: 'Sổ theo dõi S-03',
+    sub: 'Theo dõi thông tin cập nhật Sở Tư pháp',
   },
   '/hop-dong/n-03': {
     title: 'Hợp đồng dịch vụ lập Vi bằng · N-03',

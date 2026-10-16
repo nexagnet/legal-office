@@ -44,7 +44,7 @@ export default async function HomePage() {
       <h1 id="t" className="sr-only">
         Tổng quan
       </h1>
-      <div className="stats">
+      <div className="stats stats-top">
         <StatCard label="Hồ sơ đang xử lý" value={sum.open} note="Chưa trả khách hoặc huỷ" />
         <StatCard
           label="Chưa phân công THV"
