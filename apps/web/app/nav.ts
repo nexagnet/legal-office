@@ -39,14 +39,14 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'xac-minh',
-    label: 'Xác minh',
+    label: 'Xác minh điều kiện THA',
     group: 'domain',
     roles: ALL,
     summary: 'Hồ sơ xác minh điều kiện thi hành án.',
   },
   {
     slug: 'to-chuc-tha',
-    label: 'Tổ chức THA',
+    label: 'Tổ chức thi hành án',
     group: 'domain',
     roles: ALL,
     summary: 'Hồ sơ tổ chức thi hành án, tài sản và chuyển giao.',
@@ -60,17 +60,10 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'hop-dong',
-    label: 'Hợp đồng',
+    label: 'Khách hàng & hợp đồng',
     group: 'office',
     roles: MANAGE,
     summary: 'Hợp đồng dịch vụ (không có số tiền kế toán).',
-  },
-  {
-    slug: 'cong-van',
-    label: 'Công văn & quyết định',
-    group: 'office',
-    roles: ALL,
-    summary: 'Công văn đi/đến, quyết định và tìm kiếm.',
   },
   {
     slug: 'so-sach',
@@ -81,14 +74,21 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'bieu-mau',
-    label: 'Biểu mẫu',
+    label: 'Thư viện biểu mẫu',
     group: 'office',
     roles: ALL,
     summary: 'Biểu mẫu tải về; Phụ lục TT06 chỉ tải về.',
   },
   {
+    slug: 'cong-van',
+    label: 'Công văn đi / đến',
+    group: 'office',
+    roles: ALL,
+    summary: 'Công văn đi/đến, quyết định và tìm kiếm.',
+  },
+  {
     slug: 'vat-tu',
-    label: 'Vật tư',
+    label: 'Vật tư văn phòng',
     group: 'office',
     roles: [...MANAGE, 'VAN_THU'],
     summary: 'Nhập, xuất, điều chỉnh vật tư theo lô (không có giá).',
@@ -102,7 +102,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'quan-tri',
-    label: 'Quản trị',
+    label: 'Nhân sự & chi nhánh',
     group: 'admin',
     roles: ['ADMIN'],
     summary: 'Người dùng, vai trò, chi nhánh và quyền ký.',
@@ -116,3 +116,12 @@ export function visibleNav(roles: readonly Role[]): readonly NavItem[] {
 export function findNav(slug: string): NavItem | undefined {
   return NAV.find((n) => n.slug === slug);
 }
+
+export const ROLE_LABEL: Record<Role, string> = {
+  ADMIN: 'Quản trị viên',
+  TRUONG_VP: 'Trưởng văn phòng',
+  THU_KY: 'Thư ký',
+  THV: 'Thừa hành viên',
+  VAN_THU: 'Văn thư',
+  KE_TOAN: 'Kế toán',
+};
