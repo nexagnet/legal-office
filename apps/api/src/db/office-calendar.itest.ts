@@ -183,7 +183,7 @@ describe.skipIf(!ADMIN_URL)('lịch làm việc và hạn sắp tới (PostgreSQ
       `SELECT count(*)::int AS n FROM office_holidays`,
       [],
     );
-    expect(seen[0].n).toBe(0);
+    expect(seen[0]?.n).toBe(0);
     await fn('of_remove_holiday', T, U.admin, OFF, '2026-01-01');
   });
 
