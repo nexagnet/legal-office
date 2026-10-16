@@ -8,6 +8,7 @@ import {
   Optional,
   Param,
   ParseUUIDPipe,
+  Query,
   Res,
   StreamableFile,
   UseGuards,
@@ -75,6 +76,99 @@ export class VibangReadController {
         status: r.status,
         decidedBy: r.decided_by,
         decidedAt: r.decided_at,
+      })),
+    };
+  }
+
+  private async registrations(a: AuthenticatedActor, caseId: string | null) {
+    const rows = await this.repo.rows<{
+      case_id: string;
+      office_id: string;
+      number_label: string;
+      thv_user_id: string | null;
+      thv_label: string | null;
+      case_status: string;
+      made_at: Date | null;
+      reg_status: string;
+      deadline_at: Date | null;
+      updated_at: Date | null;
+      updated_by: string | null;
+      incident_reason: string | null;
+      overdue: boolean;
+    }>(a.tenantId, 'vb_list_registrations', [a.tenantId, a.userId, caseId, 200]);
+    return rows.map((r) => ({
+      caseId: r.case_id,
+      officeId: r.office_id,
+      numberLabel: r.number_label,
+      thvUserId: r.thv_user_id,
+      thvLabel: r.thv_label,
+      caseStatus: r.case_status,
+      madeAt: r.made_at,
+      regStatus: r.reg_status,
+      deadlineAt: r.deadline_at,
+      updatedAt: r.updated_at,
+      updatedBy: r.updated_by,
+      incidentReason: r.incident_reason,
+      overdue: r.overdue,
+    }));
+  }
+
+  /**
+   * Theo dõi cập nhật CSDL/Sở của các Vi bằng đã cấp số (việc phía Văn phòng; S-03 là sổ của Sở).
+   * `status` lọc theo nhóm: pending (chưa/đang cập nhật), done (đã cập nhật), incident (sự cố); `summary` đếm trên toàn bộ danh sách.
+   */
+  @Get('registrations')
+  async registrationList(@CurrentActor() a: AuthenticatedActor, @Query('status') status?: string) {
+    const all = await this.registrations(a, null);
+    const group = (s: string) =>
+      s === 'CONFIRMED' ? 'done' : s === 'FAILED' ? 'incident' : 'pending';
+    const summary = {
+      pending: all.filter((r) => group(r.regStatus) === 'pending').length,
+      done: all.filter((r) => group(r.regStatus) === 'done').length,
+      incident: all.filter((r) => group(r.regStatus) === 'incident').length,
+    };
+    const items =
+      status === 'pending' || status === 'done' || status === 'incident'
+        ? all.filter((r) => group(r.regStatus) === status)
+        : all;
+    return { summary, items };
+  }
+
+  /** Trạng thái theo dõi cập nhật Sở/CSDL của một hồ sơ (đã cấp số). */
+  @Get('cases/:id/registration')
+  async registrationOne(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const [r] = await this.registrations(a, id);
+    if (!r) throw caseNotFound();
+    return r;
+  }
+
+  /** Nhật ký liên hệ khách của hồ sơ (nhắc/kết quả; chỉ mã, mới nhất trước). */
+  @Get('cases/:id/contacts')
+  async contacts(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.read<{
+      id: string;
+      kind: string;
+      outcome: string;
+      actor_user_id: string;
+      at: Date;
+    }>(a, 'vb_list_contacts', id);
+    const visible = await this.repo.rows(a.tenantId, 'vb_list_cases', [
+      a.tenantId,
+      a.userId,
+      id,
+      1,
+    ]);
+    if (visible.length === 0) throw caseNotFound();
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        kind: r.kind,
+        outcome: r.outcome,
+        actorUserId: r.actor_user_id,
+        at: r.at,
       })),
     };
   }
