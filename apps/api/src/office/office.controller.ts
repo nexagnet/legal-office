@@ -724,6 +724,62 @@ export class OfficeController {
     }));
   }
 
+  /** Cấu hình văn phòng (đọc: mọi thành viên): tên pháp lý, tên hiển thị trên văn bản, quy tắc số Vi bằng, chi nhánh. */
+  @Get('settings')
+  async settings(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const [r] = await this.read<{
+      office_name: string;
+      legal_name: string;
+      display_name: string;
+      number_rule: string;
+      branches: { id: string; name: string }[];
+    }>(a, 'of_search_office_settings', [officeId]);
+    if (!r) throw new HttpException({ code: 'ROLE_LACKS_PERMISSION', label: null }, 403);
+    return {
+      officeName: r.office_name,
+      legalName: r.legal_name,
+      displayName: r.display_name,
+      numberRule: r.number_rule,
+      branches: r.branches,
+    };
+  }
+
+  /** Sửa tên pháp lý/tên hiển thị (chỉ Admin). Bỏ trường nào thì giữ nguyên trường đó. */
+  @Put('settings')
+  @HttpCode(HttpStatus.OK)
+  setSettings(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z
+        .object({
+          officeId: uuid,
+          legalName: z.string().max(300).optional(),
+          displayName: z.string().max(300).optional(),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'of_set_office_settings', [
+      b.officeId,
+      b.legalName ?? null,
+      b.displayName ?? null,
+    ]);
+  }
+
+  /** Người nhận bàn giao: các Thừa hành viên của văn phòng (Admin/Trưởng VP/Thư ký/Thừa hành viên xem được). */
+  @Get('receivers')
+  async receivers(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{ user_id: string; label: string }>(a, 'of_search_receivers', [
+      officeId,
+    ]);
+    return { items: rows.map((r) => ({ userId: r.user_id, label: r.label })) };
+  }
+
   /** Việc được giao cho chính người gọi, xuyên nghiệp vụ (màn điện thoại ngoài hiện trường). Chỉ đọc. */
   @Get('my-work')
   async myWork(
