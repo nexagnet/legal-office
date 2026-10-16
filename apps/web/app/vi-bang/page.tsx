@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { CaseTable } from '../../components/CaseTable';
-import { NewCaseForm } from '../../components/NewCaseForm';
 import { loadCases } from '../../lib/cases';
 import { currentSession, requestCookie } from '../../lib/server';
 
@@ -31,7 +30,7 @@ export default async function ViBangPage() {
             Hồ sơ bạn được phép xem. Chưa ghi nhận số tiền; thanh toán do kế toán xác nhận từ MISA.
           </p>
         </div>
-        <a className="primary btn-link" href="#tao-ho-so">
+        <a className="primary btn-link" href="/vi-bang/tao-moi">
           + Tạo hồ sơ Vi bằng
         </a>
       </div>
@@ -48,7 +47,6 @@ export default async function ViBangPage() {
       ) : (
         <CaseTable cases={cases} />
       )}
-      <NewCaseForm branches={session.branches} />
     </section>
   );
 }

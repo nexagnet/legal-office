@@ -66,46 +66,93 @@ export function NewCaseForm({ branches }: Props) {
     return <p className="muted">Bạn chưa có chi nhánh nào để tiếp nhận hồ sơ.</p>;
   }
   return (
-    <form id="tao-ho-so" className="card form" onSubmit={submit} aria-labelledby="new-case-title">
-      <h2 id="new-case-title">Tiếp nhận hồ sơ mới</h2>
-      <label>
-        Chi nhánh
-        <select name="branchId" required defaultValue={branches[0]?.id}>
-          {branches.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Loại khách
-        <select name="kind" defaultValue="PERSON">
-          <option value="PERSON">Cá nhân</option>
-          <option value="ORGANIZATION">Tổ chức</option>
-        </select>
-      </label>
-      <label>
-        Mã tham chiếu khách hàng
-        <input name="customerRef" required maxLength={200} />
-      </label>
-      <label>
-        Tiêu đề hồ sơ
-        <input name="title" required maxLength={300} />
-      </label>
-      <label>
-        Nội dung cần ghi nhận
-        <textarea name="description" rows={3} maxLength={5000} />
-      </label>
-      <p role="alert" className="error" hidden={!error}>
-        {error}
-      </p>
-      <p role="status" className="success" hidden={!done}>
-        Đã tiếp nhận hồ sơ.
-      </p>
-      <button type="submit" className="primary" disabled={busy}>
-        {busy ? 'Đang lưu…' : 'Tiếp nhận hồ sơ'}
-      </button>
-    </form>
+    <div className="intake">
+      <div className="page-head">
+        <h2 className="page-sub">Tạo hồ sơ Vi bằng</h2>
+        <button type="submit" form="tao-ho-so" className="primary" disabled={busy}>
+          {busy ? 'Đang lưu…' : 'Tiếp nhận hồ sơ'}
+        </button>
+      </div>
+      <div className="intake-grid">
+        <form
+          id="tao-ho-so"
+          className="panel form intake-form"
+          onSubmit={submit}
+          aria-labelledby="new-case-title"
+        >
+          <h3 id="new-case-title">01 Thông tin tiếp nhận</h3>
+          <div className="form-row">
+            <label>
+              Loại khách hàng
+              <select name="kind" defaultValue="PERSON">
+                <option value="PERSON">Cá nhân</option>
+                <option value="ORGANIZATION">Tổ chức</option>
+              </select>
+            </label>
+            <label>
+              Địa điểm tiếp nhận
+              <select name="branchId" required defaultValue={branches[0]?.id}>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label>
+            Mã tham chiếu khách hàng
+            <input name="customerRef" required maxLength={200} />
+          </label>
+          <label>
+            Tiêu đề hồ sơ
+            <input name="title" required maxLength={300} />
+          </label>
+          <label>
+            Nội dung yêu cầu lập Vi bằng
+            <textarea
+              name="description"
+              rows={3}
+              maxLength={5000}
+              placeholder="Mô tả ngắn sự kiện, hành vi cần lập Vi bằng..."
+            />
+          </label>
+          <label>
+            Thừa hành viên phụ trách
+            <input
+              value="Chưa phân công — chỉ Admin có quyền phân"
+              disabled
+              readOnly
+              aria-readonly="true"
+            />
+          </label>
+          <p role="alert" className="error" hidden={!error}>
+            {error}
+          </p>
+          <p role="status" className="success" hidden={!done}>
+            Đã tiếp nhận hồ sơ.
+          </p>
+        </form>
+        <aside className="intake-side">
+          <section className="panel" aria-labelledby="intake-rules">
+            <h3 id="intake-rules">Quy tắc tiếp nhận</h3>
+            <ul className="rules">
+              <li>THV, Thư ký, Văn thư, Admin có thể tạo hồ sơ</li>
+              <li>Admin là người duy nhất phân công THV</li>
+              <li>Một Vi bằng có một THV phụ trách</li>
+              <li>Được sửa hồ sơ trong 48 giờ đầu</li>
+              <li>Sau 48 giờ phải gửi yêu cầu sửa cho Admin</li>
+            </ul>
+          </section>
+          <section className="panel" aria-labelledby="intake-note">
+            <h3 id="intake-note">Lưu ý</h3>
+            <p className="muted">
+              Đây là form tối giản khi tiếp nhận. Các thông tin pháp lý bắt buộc được bổ sung trước
+              bước hoàn tất văn bản N-04.
+            </p>
+          </section>
+        </aside>
+      </div>
+    </div>
   );
 }

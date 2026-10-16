@@ -603,3 +603,64 @@ th a:hover {
   border-radius: 50%;
   background: #b45309;
 }
+
+/* Tạo hồ sơ Vi bằng (Figma 3:54): form 762px + cột quy tắc 330px */
+.page-sub {
+  margin: 0;
+  font-size: 20px;
+}
+.intake-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1100px) {
+  .intake-grid {
+    grid-template-columns: minmax(0, 762px) minmax(280px, 330px);
+  }
+}
+.intake-side {
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+.panel h3 {
+  margin: 0 0 16px;
+  font-size: 17px;
+}
+.intake-form .form-row {
+  display: grid;
+  gap: 0 30px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 700px) {
+  .intake-form .form-row {
+    grid-template-columns: 345fr 330fr;
+  }
+}
+.intake-form label {
+  margin-bottom: 20px;
+  color: var(--muted);
+}
+.intake-form input,
+.intake-form select,
+.intake-form textarea {
+  color: var(--ink);
+  font-weight: 400;
+}
+.intake-form input:disabled {
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+  opacity: 1;
+}
+.rules {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 16px;
+  font-size: 12px;
+}
+.rules li::before {
+  content: '• ';
+}
