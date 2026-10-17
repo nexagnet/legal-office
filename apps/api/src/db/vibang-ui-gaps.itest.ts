@@ -322,6 +322,22 @@ describe.skipIf(!ADMIN_URL)(
       expect((await api('GET', `/vibang/cases/${c}/history`, null)).status).toBe(401);
     });
 
+    it('stamps the cancellation time and shows it in the history', async () => {
+      const c = await newCase();
+      expect(
+        (
+          await api('POST', `/vibang/cases/${c}/cancellation`, U.admin, {
+            reason: 'Khách rút yêu cầu',
+          })
+        ).status,
+      ).toBe(200);
+      const items = (await api('GET', `/vibang/cases/${c}/history`, U.clerk1)).json.items as {
+        kind: string;
+        detail: string | null;
+      }[];
+      expect(items[0]).toMatchObject({ kind: 'CANCELLED', detail: 'Khách rút yêu cầu' });
+    });
+
     it('reports activity per branch with zero rows kept and the same read scope', async () => {
       const tomorrow = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
       const q = (user: string | null) =>
