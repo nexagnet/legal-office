@@ -1443,3 +1443,7 @@ tr[data-selected='true'] > td {
   border-radius: 6px;
   background: #e9f1fc;
 }
+
+.ops-report {
+  margin-top: 24px;
+}
