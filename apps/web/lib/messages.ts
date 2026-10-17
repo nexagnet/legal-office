@@ -294,3 +294,33 @@ export const ACCESS_STATUS_LABEL: Record<string, string> = {
   REJECTED: 'Bị từ chối',
   WITHDRAWN: 'Đã rút',
 };
+
+export const HISTORY_KIND_LABEL: Record<string, string> = {
+  CASE_CREATED: 'Tiếp nhận hồ sơ',
+  THV_ASSIGNED: 'Phân công THV',
+  THV_CHANGED: 'Đổi THV phụ trách',
+  MISA_CONFIRMED_FULL: 'Xác nhận thanh toán đủ (MISA)',
+  MISA_REVOKE_PROPOSED: 'Đề nghị thu hồi xác nhận MISA',
+  MISA_REVOKED: 'Thu hồi xác nhận MISA',
+  MISA_REVOKE_REJECTED: 'Từ chối thu hồi MISA',
+  NUMBER_ALLOCATED: 'Cấp số Vi bằng',
+  DOCUMENT_ADDED: 'Thêm tài liệu',
+  SIGNED: 'THV ký',
+  STAMPED: 'Văn thư đóng dấu',
+  HANDOVER: 'Bàn giao kết quả',
+  CHANGE_REQUESTED: 'Đề nghị sửa hồ sơ',
+  CHANGE_APPROVED: 'Duyệt đề nghị sửa',
+  CHANGE_REJECTED: 'Từ chối đề nghị sửa',
+  REJECTED: 'Từ chối yêu cầu lập Vi bằng',
+  COPY_ISSUED: 'Cấp bản sao',
+  CONTACT_REMINDER: 'Nhắc khách đến nhận',
+  CONTACT_RESULT: 'Báo kết quả cho khách',
+  N11_PROPOSED: 'Đề nghị sửa lỗi kỹ thuật N-11',
+  N11_APPLIED: 'Áp dụng sửa lỗi N-11',
+};
+
+export const MISA_STATUS_LABEL: Record<string, string> = {
+  CONFIRMED_FULL: 'Đã xác nhận thanh toán đủ',
+  PENDING: 'Chờ xác nhận',
+  REVOKED: 'Đã thu hồi',
+};

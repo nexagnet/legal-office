@@ -4,7 +4,7 @@ import { isOpenCase, loadCases, summarizeCases } from '../lib/cases';
 import { DeadlineReminders } from '../components/DeadlineReminders';
 import { loadDeadlines } from '../lib/deadlines-api';
 import { CASE_STATUS_LABEL } from '../lib/messages';
-import { currentSession, requestCookie } from '../lib/server';
+import { API_URL, currentSession, requestCookie } from '../lib/server';
 import { NAV, OVERVIEW } from './nav';
 
 export const dynamic = 'force-dynamic';
@@ -46,6 +46,35 @@ const COMMON_WORK = [
   'Không có phân hệ kế toán; dùng MISA',
 ];
 
+interface BranchActivity {
+  readonly branchId: string;
+  readonly branchName: string;
+  readonly vibangCases: number;
+  readonly vibangNumbers: number;
+  readonly tongDatDocuments: number;
+  readonly xacMinhCases: number;
+  readonly thiHanhCases: number;
+  readonly correspondence: number;
+}
+
+const activityTotal = (b: BranchActivity) =>
+  b.vibangCases + b.tongDatDocuments + b.xacMinhCases + b.thiHanhCases + b.correspondence;
+
+/** Hoạt động theo địa điểm từ đầu năm đến hôm nay (giờ Việt Nam); lỗi thì ẩn khối, không chặn trang. */
+async function loadActivity(cookie: string | null, officeId: string): Promise<BranchActivity[]> {
+  const to = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+  const qs = new URLSearchParams({ officeId, from: `${to.slice(0, 4)}-01-01`, to });
+  try {
+    const res = await fetch(`${API_URL}/office/branches/activity?${qs.toString()}`, {
+      headers: cookie ? { cookie } : {},
+      cache: 'no-store',
+    });
+    return res.ok ? ((await res.json()) as BranchActivity[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 const canSeeCases = (roles: readonly string[]) =>
   (NAV.find((n) => n.slug === 'vi-bang')?.roles ?? []).some((r) => roles.includes(r));
 
@@ -69,6 +98,8 @@ export default async function HomePage() {
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
   const deadlines = officeId ? await loadDeadlines(cookie, officeId) : 'error';
+  const activity = officeId ? await loadActivity(cookie, officeId) : [];
+  const activityMax = Math.max(1, ...activity.map(activityTotal));
   const sum = summarizeCases(cases);
   const today = cases.filter(isOpenCase).slice(0, 4);
   const reminders: string[] = [
@@ -140,6 +171,30 @@ export default async function HomePage() {
           )}
         </div>
       </div>
+      {activity.length > 0 ? (
+        <section className="panel branch-activity" aria-labelledby="act-t">
+          <h2 id="act-t">Hoạt động theo địa điểm</h2>
+          <p className="muted">
+            Từ đầu năm đến nay: hồ sơ Vi bằng, văn bản tống đạt, hồ sơ xác minh, thi hành án và công
+            văn.
+          </p>
+          <ul>
+            {activity.map((b) => (
+              <li key={b.branchId}>
+                <span className="branch-activity-name">
+                  {b.branchName}
+                  <strong>{activityTotal(b)}</strong>
+                </span>
+                <span className="branch-bar" aria-hidden="true">
+                  <span
+                    style={{ width: `${Math.round((activityTotal(b) / activityMax) * 100)}%` }}
+                  />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <DeadlineReminders items={deadlines} />
     </section>
   );
