@@ -199,7 +199,7 @@ export default async function AdminPage() {
           </table>
         </div>
       )}
-      <aside className="panel">
+      <aside className="panel note-panel">
         <p className="muted">
           Phân quyền theo vai trò, địa điểm và hồ sơ; quyền hành nghề pháp lý không thể thay bằng
           quyền Admin ứng dụng.

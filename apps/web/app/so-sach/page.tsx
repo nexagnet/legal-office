@@ -87,19 +87,11 @@ export default async function LedgerPage({
       <div className="page-head">
         <div>
           <h1 id="t">{ledger === 'error' ? 'Sổ sách' : ledger.title}</h1>
-          <p className="muted">
-            Sổ theo Thông tư 08, dựng từ hồ sơ; không phải biểu mẫu chính thức.
-          </p>
         </div>
         {ledger !== 'error' ? (
           <ReportExport rows={table} filename={`${code}${year ? `-${year}` : ''}.csv`} />
         ) : null}
       </div>
-      <p>
-        <Link className="btn-link" href="/so-sach/theo-doi-so">
-          Theo dõi cập nhật CSDL / Sở
-        </Link>
-      </p>
       <form className="filters filters-ledger" method="get" role="search">
         <label>
           <span className="sr-only">Sổ</span>
@@ -172,6 +164,9 @@ export default async function LedgerPage({
           <p className="muted">{ledger.notice} Cột chưa có nguồn dữ liệu hiển thị “—”.</p>
         </aside>
       ) : null}
+      <p className="ledger-link">
+        <Link href="/so-sach/theo-doi-so">Theo dõi cập nhật CSDL / Sở →</Link>
+      </p>
     </section>
   );
 }

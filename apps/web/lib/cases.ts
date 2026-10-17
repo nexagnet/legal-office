@@ -11,6 +11,8 @@ export interface CaseItem {
   readonly customerName?: string | null;
   readonly thvLabel?: string | null;
   readonly numberLabel?: string | null;
+  readonly intakeNo?: string | null;
+  readonly createdByLabel?: string | null;
   readonly nextStep?: string | null;
 }
 

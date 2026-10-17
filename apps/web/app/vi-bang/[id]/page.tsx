@@ -73,10 +73,13 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
   );
   const isAdmin = session.roles.includes('ADMIN');
   const isFinal = c.status === 'RETURNED' || c.status === 'CANCELLED';
+  const meta = [c.customerName, c.branchName, c.thvLabel ? `THV ${c.thvLabel}` : null].filter(
+    (x): x is string => !!x,
+  );
   const windowOpen = Date.now() < new Date(c.createdAt).getTime() + WINDOW_MS;
   return (
     <section aria-labelledby="t">
-      <p>
+      <p className="case-back">
         <Link href="/vi-bang">← Danh sách hồ sơ</Link>
       </p>
       <header className="panel case-head">
@@ -86,8 +89,15 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
             {CASE_STATUS_LABEL[c.status] ?? c.status}
           </span>
         </div>
-        <p className="muted">{c.description || 'Chưa có nội dung ghi nhận.'}</p>
+        {meta.length > 0 ? <p className="muted">{meta.join(' • ')}</p> : null}
       </header>
+      {typeof progress === 'object' && progress.numberLabel ? (
+        <nav className="case-tabs" aria-label="Các mục của hồ sơ">
+          <span aria-current="page">Tổng quan</span>
+          <Link href={`/vi-bang/${c.id}/tai-lieu`}>Tài liệu</Link>
+          <Link href={`/vi-bang/${c.id}/cap-nhat-so`}>Cập nhật Sở</Link>
+        </nav>
+      ) : null}
       <div className="panels case-grid">
         {typeof progress === 'object' ? (
           <CaseSteps caseId={c.id} status={c.status} progress={progress} />
@@ -101,11 +111,43 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
           <h2 id="info-t">Thông tin xử lý</h2>
           <dl className="info">
             <dt>THV phụ trách</dt>
-            <dd>{c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công'}</dd>
+            <dd>{c.thvLabel ?? (c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công')}</dd>
+            {c.branchName ? (
+              <>
+                <dt>Địa điểm</dt>
+                <dd>{c.branchName}</dd>
+              </>
+            ) : null}
+            {c.intakeNo ? (
+              <>
+                <dt>Số tiếp nhận</dt>
+                <dd>{c.intakeNo}</dd>
+              </>
+            ) : null}
+            {c.createdByLabel ? (
+              <>
+                <dt>Người tạo</dt>
+                <dd>{c.createdByLabel}</dd>
+              </>
+            ) : null}
+            {c.customerPhone ? (
+              <>
+                <dt>SĐT khách</dt>
+                <dd>{c.customerPhone}</dd>
+              </>
+            ) : null}
+            {c.customerIdNumber ? (
+              <>
+                <dt>Số định danh</dt>
+                <dd>{c.customerIdNumber}</dd>
+              </>
+            ) : null}
             <dt>Ngày tạo</dt>
             <dd>{fmt.format(new Date(c.createdAt))}</dd>
             <dt>Giới hạn sửa</dt>
             <dd>48 giờ từ ngày tạo</dd>
+            <dt>Nội dung</dt>
+            <dd>{c.description || 'Chưa có nội dung ghi nhận.'}</dd>
           </dl>
         </section>
       </div>
@@ -117,7 +159,7 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
         </p>
       ) : null}
       {typeof progress === 'object' && progress.numberLabel ? (
-        <p>
+        <p className="case-links">
           <Link className="btn-link" href={`/vi-bang/${c.id}/thu-hoi-misa`}>
             Thu hồi xác nhận MISA
           </Link>{' '}
