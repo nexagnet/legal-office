@@ -84,6 +84,7 @@ export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
                 <tr key={c.id}>
                   <th scope="row">
                     <Link href={`/vi-bang/${c.id}`}>{c.title}</Link>
+                    {c.intakeNo ? <small className="muted small-ref"> · {c.intakeNo}</small> : null}
                   </th>
                   <td>{c.customerName ?? <span className="muted">—</span>}</td>
                   <td>{c.branchName ?? <span className="muted">—</span>}</td>

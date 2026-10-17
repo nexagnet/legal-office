@@ -28,6 +28,7 @@ export function NewCaseForm({ branches }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [kind, setKind] = useState('PERSON');
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,6 +45,23 @@ export function NewCaseForm({ branches }: Props) {
         externalRef: String(f.get('customerRef') ?? ''),
       });
       if (!customer.ok || !customer.label) return setError(messageFor(customer.code));
+      const profile = {
+        displayName: String(f.get('displayName') ?? '').trim(),
+        phone: String(f.get('phone') ?? '').trim(),
+        idNumber: kind === 'PERSON' ? String(f.get('idNumber') ?? '').trim() : '',
+      };
+      if (profile.phone || profile.idNumber) {
+        if (!profile.displayName)
+          return setError('Cần nhập tên khách hàng khi nhập SĐT hoặc số định danh.');
+      }
+      if (profile.displayName) {
+        const saved = await post(`/vibang/customers/${customer.label}/profile`, {
+          displayName: profile.displayName,
+          ...(profile.phone ? { phone: profile.phone } : {}),
+          ...(profile.idNumber ? { idNumber: profile.idNumber } : {}),
+        });
+        if (!saved.ok) return setError(messageFor(saved.code));
+      }
       const created = await post('/vibang/cases', {
         officeId: branch.officeId,
         branchId: branch.id,
@@ -53,6 +71,7 @@ export function NewCaseForm({ branches }: Props) {
       });
       if (!created.ok) return setError(messageFor(created.code));
       form.reset();
+      setKind('PERSON');
       setDone(true);
       router.refresh();
     } catch {
@@ -84,7 +103,7 @@ export function NewCaseForm({ branches }: Props) {
           <div className="form-row">
             <label>
               Loại khách hàng
-              <select name="kind" defaultValue="PERSON">
+              <select name="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
                 <option value="PERSON">Cá nhân</option>
                 <option value="ORGANIZATION">Tổ chức</option>
               </select>
@@ -104,6 +123,22 @@ export function NewCaseForm({ branches }: Props) {
             Mã tham chiếu khách hàng
             <input name="customerRef" required maxLength={200} />
           </label>
+          <label>
+            Tên khách hàng
+            <input name="displayName" maxLength={300} />
+          </label>
+          <div className="form-row">
+            <label>
+              Số điện thoại
+              <input name="phone" type="tel" maxLength={50} />
+            </label>
+            {kind === 'PERSON' ? (
+              <label>
+                Số định danh cá nhân
+                <input name="idNumber" maxLength={100} />
+              </label>
+            ) : null}
+          </div>
           <label>
             Tiêu đề hồ sơ
             <input name="title" required maxLength={300} />

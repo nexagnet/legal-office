@@ -115,6 +115,43 @@ describe('NewCaseForm', () => {
     });
   });
 
+  it('saves name, phone and ID number on the customer before creating the case', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'cust-1' }))
+      .mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'cust-1' }))
+      .mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'case-1' }));
+    render(<NewCaseForm branches={branches} />);
+    fireEvent.change(screen.getByLabelText('Tên khách hàng'), { target: { value: 'Nguyễn An' } });
+    fireEvent.change(screen.getByLabelText('Số điện thoại'), { target: { value: '0900000001' } });
+    fireEvent.change(screen.getByLabelText('Số định danh cá nhân'), {
+      target: { value: '001099000001' },
+    });
+    fill();
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(spy.mock.calls.map((c) => c[0])).toEqual([
+      '/api/vibang/customers',
+      '/api/vibang/customers/cust-1/profile',
+      '/api/vibang/cases',
+    ]);
+    expect(JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string)).toEqual({
+      displayName: 'Nguyễn An',
+      phone: '0900000001',
+      idNumber: '001099000001',
+    });
+  });
+
+  it('asks for the customer name when only a phone number is given', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      reply(200, { code: 'ALLOWED', label: 'cust-1' }),
+    );
+    render(<NewCaseForm branches={branches} />);
+    fireEvent.change(screen.getByLabelText('Số điện thoại'), { target: { value: '0900000001' } });
+    fill();
+    expect((await screen.findByRole('alert')).textContent).toContain('Cần nhập tên khách hàng');
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it('shows the server reason and does not create a case when the customer step is denied', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')

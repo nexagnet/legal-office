@@ -118,6 +118,30 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
                 <dd>{c.branchName}</dd>
               </>
             ) : null}
+            {c.intakeNo ? (
+              <>
+                <dt>Số tiếp nhận</dt>
+                <dd>{c.intakeNo}</dd>
+              </>
+            ) : null}
+            {c.createdByLabel ? (
+              <>
+                <dt>Người tạo</dt>
+                <dd>{c.createdByLabel}</dd>
+              </>
+            ) : null}
+            {c.customerPhone ? (
+              <>
+                <dt>SĐT khách</dt>
+                <dd>{c.customerPhone}</dd>
+              </>
+            ) : null}
+            {c.customerIdNumber ? (
+              <>
+                <dt>Số định danh</dt>
+                <dd>{c.customerIdNumber}</dd>
+              </>
+            ) : null}
             <dt>Ngày tạo</dt>
             <dd>{fmt.format(new Date(c.createdAt))}</dd>
             <dt>Giới hạn sửa</dt>

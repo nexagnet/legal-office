@@ -10,6 +10,10 @@ export interface CaseDetail {
   readonly branchName?: string | null;
   readonly customerName?: string | null;
   readonly thvLabel?: string | null;
+  readonly intakeNo?: string | null;
+  readonly createdByLabel?: string | null;
+  readonly customerPhone?: string | null;
+  readonly customerIdNumber?: string | null;
   readonly handoverRecipient?: string | null;
   readonly handoverOn?: string | null;
 }
