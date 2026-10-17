@@ -9,7 +9,9 @@ import { AdjustBatchForm, NewItemForm, StockMovementForm } from '../components/S
 import { AccessRequestActions } from '../components/AccessRequestActions';
 import { AccessRequestForm } from '../components/AccessRequestForm';
 import { ReportExport } from '../components/ReportExport';
-import { reportStatusLabel } from '../lib/messages';
+import { PlaceForm } from '../components/PlaceForm';
+import { CustomerDirectory } from '../components/CustomerDirectory';
+import { HISTORY_KIND_LABEL, reportStatusLabel } from '../lib/messages';
 import { ApprovalActions } from '../components/ApprovalActions';
 import { NewFormUpload } from '../components/NewFormUpload';
 import { NewDecisionForm } from '../components/NewDecisionForm';
@@ -1222,5 +1224,61 @@ describe('Access requests', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Rút đề xuất' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(spy.mock.calls[0]![0]).toBe('/api/admin/access-requests/r1/withdrawal');
+  });
+});
+
+describe('PlaceForm', () => {
+  it('posts the trimmed place address and is read-only when the case is final', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() =>
+        Promise.resolve(new Response('{"code":"ALLOWED"}', { status: 200 })),
+      );
+    render(<PlaceForm caseId="case-1" placeAddress={null} canEdit />);
+    fireEvent.change(screen.getByLabelText('Nơi lập Vi bằng'), {
+      target: { value: '  Số 12 phố Huế  ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu nơi lập' }));
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/vibang/cases/case-1/place');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      placeAddress: 'Số 12 phố Huế',
+    });
+    cleanup();
+    render(<PlaceForm caseId="case-1" placeAddress="Hà Nội" canEdit={false} />);
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByText('Hà Nội')).toBeTruthy();
+    spy.mockRestore();
+  });
+
+  it('labels every history kind the API can return', () => {
+    for (const k of ['CASE_CREATED', 'NUMBER_ALLOCATED', 'SIGNED', 'HANDOVER', 'COPY_ISSUED']) {
+      expect(HISTORY_KIND_LABEL[k]).toBeTruthy();
+    }
+  });
+});
+
+describe('CustomerDirectory Vi bằng column', () => {
+  it('shows the number count per customer, dash when unknown', () => {
+    const c = (id: string) => ({
+      id,
+      kind: 'PERSON' as const,
+      externalRef: `KH-${id}`,
+      displayName: `Khách ${id}`,
+      address: null,
+    });
+    render(
+      <CustomerDirectory
+        customers={[c('a'), c('b')] as never}
+        contracts={[]}
+        query=""
+        numberCounts={{ a: 3 }}
+      />,
+    );
+    expect(screen.getByRole('columnheader', { name: 'Vi bằng' })).toBeTruthy();
+    const rows = screen.getAllByRole('row');
+    expect(rows[1]!.textContent).toContain('3');
+    expect(rows[2]!.textContent).toContain('—');
   });
 });

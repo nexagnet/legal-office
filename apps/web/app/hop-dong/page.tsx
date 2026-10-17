@@ -7,6 +7,9 @@ import { NAV } from '../nav';
 
 export const dynamic = 'force-dynamic';
 
+/** Số khách tối đa được đếm Vi bằng mỗi lần mở trang (mỗi khách một lần gọi API). */
+const MAX_COUNTED = 100;
+
 const ITEM = NAV.find((n) => n.slug === 'hop-dong')!;
 
 export default async function CustomersPage({
@@ -46,6 +49,23 @@ export default async function CustomersPage({
     getJson<Customer[]>(`/vibang/customers${qs}`, cookie),
     getJson<Contract[]>('/vibang/contracts', cookie),
   ]);
+  const numberCounts: Record<string, number> = {};
+  if (typeof customers === 'object' && Array.isArray(customers)) {
+    const counts = await Promise.all(
+      customers
+        .slice(0, MAX_COUNTED)
+        .map((c) =>
+          getJson<{ total: number }>(
+            `/vibang/customers/${encodeURIComponent(c.id)}/numbers`,
+            cookie,
+          ),
+        ),
+    );
+    customers.slice(0, MAX_COUNTED).forEach((c, i) => {
+      const r = counts[i];
+      if (typeof r === 'object') numberCounts[c.id] = r.total;
+    });
+  }
   return (
     <section aria-labelledby="t">
       <div className="page-head">
@@ -79,6 +99,7 @@ export default async function CustomersPage({
           customers={customers}
           contracts={typeof contracts === 'object' && Array.isArray(contracts) ? contracts : []}
           query={q}
+          numberCounts={numberCounts}
         />
       )}
     </section>

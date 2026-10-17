@@ -14,13 +14,15 @@ interface Props {
   readonly customers: readonly Customer[];
   readonly contracts: readonly Contract[];
   readonly query: string;
+  /** Số Vi bằng đã cấp theo khách (id khách → số); thiếu thì hiện gạch ngang. */
+  readonly numberCounts?: Readonly<Record<string, number>>;
 }
 
 /**
  * Danh bạ chủ thể kiểu hàng-thẻ (Figma 3:184). Dữ liệu cá nhân chỉ do máy chủ trả cho vai tiếp nhận;
  * danh sách rỗng được nói rõ là rỗng hoặc không có quyền, không dựng dữ liệu thay thế.
  */
-export function CustomerDirectory({ customers, contracts, query }: Props) {
+export function CustomerDirectory({ customers, contracts, query, numberCounts = {} }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = customers.find((c) => c.id === selectedId) ?? null;
   const contractsOf = (id: string) => contracts.filter((k) => k.customerId === id);
@@ -45,6 +47,7 @@ export function CustomerDirectory({ customers, contracts, query }: Props) {
                 <th scope="col">Khách hàng</th>
                 <th scope="col">Loại</th>
                 <th scope="col">Hợp đồng</th>
+                <th scope="col">Vi bằng</th>
                 <th scope="col">Địa chỉ</th>
                 <th scope="col">Thao tác</th>
               </tr>
@@ -64,6 +67,7 @@ export function CustomerDirectory({ customers, contracts, query }: Props) {
                         ? 'Chưa gắn hợp đồng'
                         : ks.map((k) => k.externalRef).join(', ')}
                     </td>
+                    <td>{numberCounts[c.id] ?? '—'}</td>
                     <td>{c.address ?? '—'}</td>
                     <td>
                       <button

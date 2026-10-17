@@ -88,16 +88,23 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
           <span className="badge" data-status={c.status}>
             {CASE_STATUS_LABEL[c.status] ?? c.status}
           </span>
+          <Link className="secondary btn-link case-history-link" href={`/vi-bang/${c.id}/lich-su`}>
+            Xem lịch sử xử lý
+          </Link>
         </div>
         {meta.length > 0 ? <p className="muted">{meta.join(' • ')}</p> : null}
       </header>
-      {typeof progress === 'object' && progress.numberLabel ? (
-        <nav className="case-tabs" aria-label="Các mục của hồ sơ">
-          <span aria-current="page">Tổng quan</span>
+      <nav className="case-tabs" aria-label="Các mục của hồ sơ">
+        <span aria-current="page">Tổng quan</span>
+        <Link href={`/vi-bang/${c.id}/phap-ly`}>Thông tin pháp lý</Link>
+        {typeof progress === 'object' && progress.numberLabel ? (
           <Link href={`/vi-bang/${c.id}/tai-lieu`}>Tài liệu</Link>
+        ) : null}
+        <Link href={`/vi-bang/${c.id}/lich-su`}>Lịch sử</Link>
+        {typeof progress === 'object' && progress.numberLabel ? (
           <Link href={`/vi-bang/${c.id}/cap-nhat-so`}>Cập nhật Sở</Link>
-        </nav>
-      ) : null}
+        ) : null}
+      </nav>
       <div className="panels case-grid">
         {typeof progress === 'object' ? (
           <CaseSteps caseId={c.id} status={c.status} progress={progress} />

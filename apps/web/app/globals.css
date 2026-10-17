@@ -1519,3 +1519,72 @@ tr[data-selected='true'] > td {
 .ops-report {
   margin-top: 24px;
 }
+
+/* Tab Thông tin pháp lý và Lịch sử của hồ sơ (Figma 3:80). */
+.history {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.history li {
+  display: grid;
+  gap: 2px;
+  padding-left: 22px;
+  position: relative;
+}
+.history li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 11px;
+  height: 11px;
+  border-radius: 6px;
+  background: var(--accent);
+}
+.history-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.case-history-link {
+  margin-left: auto;
+}
+
+/* Hoạt động theo địa điểm trên Tổng quan. */
+.branch-activity {
+  margin: 24px 0;
+}
+.branch-activity ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px 45px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.branch-activity-name {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  line-height: 22px;
+}
+.branch-bar {
+  display: block;
+  height: 10px;
+  margin-top: 10px;
+  background: #e9f1fc;
+  border-radius: 5px;
+}
+.branch-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 5px;
+}
+
+.legal-grid form {
+  margin-top: 20px;
+}
