@@ -48,7 +48,7 @@ export function OfficeSettingsForm(p: Props) {
   }
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submit} className="settings">
       <div className="page-head">
         <h2>Thiết lập Văn phòng</h2>
         {p.canEdit ? (
@@ -57,7 +57,7 @@ export function OfficeSettingsForm(p: Props) {
           </button>
         ) : null}
       </div>
-      <div className="panels assign-grid">
+      <div className="panels assign-grid settings-grid">
         <section className="panel form">
           <h2>Thông tin pháp lý</h2>
           <label>
@@ -82,6 +82,10 @@ export function OfficeSettingsForm(p: Props) {
             Quy tắc số Vi bằng
             <input value={p.numberRule} readOnly />
           </label>
+          <label>
+            Người xác nhận hồ sơ
+            <input value="Thừa hành viên phụ trách / Văn thư" readOnly />
+          </label>
           <p className="notice-amber">
             Cloud lưu bản scan quản lý; dữ liệu thật chỉ vận hành sau khi hoàn tất điều kiện pháp lý
             và được phê duyệt.
@@ -95,10 +99,11 @@ export function OfficeSettingsForm(p: Props) {
         </section>
         <section className="panel">
           <h2>Địa điểm hoạt động</h2>
-          <ul className="check-list">
+          <ul className="branch-list">
             {p.branches.map((b) => (
               <li key={b.id}>
-                <strong>{b.name}</strong> · Cùng một đơn vị pháp lý
+                <strong>{b.name}</strong>
+                <span>Cùng một đơn vị pháp lý</span>
               </li>
             ))}
           </ul>

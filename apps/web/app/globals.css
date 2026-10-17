@@ -805,8 +805,14 @@ th a:hover {
 }
 
 /* Màn xử lý từng bước của hồ sơ (Figma 3:106, 3:132, 3:158) */
+.stage {
+  position: relative;
+  margin-top: 12px;
+}
 .stage-back {
-  margin: 0 0 35px;
+  position: absolute;
+  top: -32px;
+  margin: 0;
 }
 .stage-back a,
 .case-back a,
@@ -1242,6 +1248,7 @@ tr[data-selected='true'] > td {
   .assign-grid {
     grid-template-columns: 723fr 372fr;
     gap: 21px;
+    max-width: 1116px;
   }
 }
 .assign-grid > .panel {
@@ -1317,4 +1324,69 @@ tr[data-selected='true'] > td {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+/* Cấu hình văn phòng (Figma 3:392): khối pháp lý 735 + địa điểm 357, cao 644. */
+.settings .page-head {
+  margin-bottom: 17px;
+}
+.settings .page-head .primary {
+  min-width: 219px;
+}
+@media (min-width: 900px) {
+  .settings-grid {
+    grid-template-columns: 735fr 357fr;
+    gap: 24px;
+  }
+}
+.settings-grid > .panel {
+  min-height: 644px;
+  padding: 24px 26px 20px;
+}
+.settings-grid .form h2 {
+  margin-bottom: 32px;
+}
+.settings-grid .form label {
+  margin-bottom: 31px;
+  font-size: 13px;
+}
+.settings-grid .form input {
+  min-height: 46px;
+}
+.settings-grid .notice-amber {
+  min-height: 109px;
+  margin-top: 52px;
+  padding: 18px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.settings-grid > .panel:last-child {
+  padding: 28px 26px 24px 21px;
+}
+.settings-grid > .panel:last-child h2 {
+  margin-bottom: 40px;
+}
+.branch-list {
+  display: grid;
+  gap: 22px;
+  margin: 0 0 69px;
+  padding: 0;
+  list-style: none;
+}
+.branch-list li {
+  display: grid;
+  gap: 5px;
+  padding: 14px 18px;
+  min-height: 79px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+.branch-list strong {
+  font-size: 14px;
+  line-height: 22px;
+}
+.branch-list span {
+  font-size: 12px;
+  line-height: 22px;
+  color: var(--muted);
 }

@@ -262,6 +262,14 @@ describe('IssueCopyForm', () => {
     expect(await screen.findByText('Đã ghi nhận cấp bản sao.')).toBeTruthy();
   });
 
+  it('renders the Figma layout with the check panel when given a case title', () => {
+    mockOk();
+    render(<IssueCopyForm caseId="case-2" caseTitle="251/2026/VB-THV" />);
+    expect(screen.getByLabelText('Vi bằng gốc')).toHaveProperty('value', '251/2026/VB-THV');
+    expect(screen.getByText('Kiểm soát cấp bản sao')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cấp bản sao' })).toBeTruthy();
+  });
+
   it('maps CASE_NOT_RETURNED, INVALID_COPIES and FIELDS_REQUIRED', async () => {
     const codes: Record<string, string> = {
       CASE_NOT_RETURNED: 'đã trả kết quả',

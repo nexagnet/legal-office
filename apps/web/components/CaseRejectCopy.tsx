@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { CheckPanel } from './CheckPanel';
 import { useCaseApi } from './useCaseApi';
 
 /** Tám trường hợp từ chối theo Điều 28, nhãn rút gọn. Số khoản gửi lên máy chủ; máy chủ là bên quyết định. */
@@ -74,7 +75,14 @@ export function RejectCaseForm({ caseId }: { readonly caseId: string }) {
 }
 
 /** Cấp bản sao Vi bằng (Điều 32) cho hồ sơ đã trả kết quả. Chi phí bản sao quản lý trên MISA, không nhập ở đây. */
-export function IssueCopyForm({ caseId }: { readonly caseId: string }) {
+export function IssueCopyForm({
+  caseId,
+  caseTitle,
+}: {
+  readonly caseId: string;
+  /** Có tên hồ sơ thì dựng bố cục màn cấp bản sao (Figma 19:126); không có thì là biểu mẫu gọn. */
+  readonly caseTitle?: string;
+}) {
   const api = useCaseApi(caseId);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,6 +94,65 @@ export function IssueCopyForm({ caseId }: { readonly caseId: string }) {
       copies: Number(text(f, 'copies')),
       receivedBy: text(f, 'receivedBy'),
     });
+  }
+  if (caseTitle !== undefined) {
+    return (
+      <form className="panels assign-grid" onSubmit={submit} aria-labelledby="copy-t">
+        <section className="panel form">
+          <h2 id="copy-t">Đăng ký yêu cầu cấp bản sao</h2>
+          <label>
+            Vi bằng gốc
+            <input value={caseTitle} readOnly />
+          </label>
+          <label>
+            Người yêu cầu thuộc nhóm
+            <select name="kind" defaultValue="PARTICIPANT">
+              <option value="PARTICIPANT">Người yêu cầu hoặc người tham gia</option>
+              <option value="AUTHORITY">Cơ quan có thẩm quyền (yêu cầu bằng văn bản)</option>
+            </select>
+          </label>
+          <label>
+            Người hoặc cơ quan yêu cầu
+            <input name="requester" required maxLength={500} />
+          </label>
+          <label>
+            Căn cứ (vd đơn đề nghị, văn bản yêu cầu)
+            <input name="basis" required maxLength={2000} />
+          </label>
+          <label>
+            Số bản sao
+            <input
+              name="copies"
+              type="number"
+              required
+              min={1}
+              max={50}
+              step={1}
+              defaultValue={1}
+            />
+          </label>
+          <label>
+            Người nhận bản sao
+            <input name="receivedBy" required maxLength={500} />
+          </label>
+        </section>
+        <CheckPanel
+          title="Kiểm soát cấp bản sao"
+          checks={[
+            'Đúng trường hợp được yêu cầu',
+            'Đối chiếu bản gốc lưu trữ',
+            'Theo thẩm quyền cơ quan lưu trữ',
+            'Lưu lịch sử và người nhận',
+            'Chi phí bản sao quản lý trên MISA',
+          ]}
+        >
+          <Feedback error={api.error} done={api.done} ok="Đã ghi nhận cấp bản sao." />
+          <button type="submit" className="primary wide" disabled={api.busy}>
+            {api.busy ? 'Đang gửi…' : 'Cấp bản sao'}
+          </button>
+        </CheckPanel>
+      </form>
+    );
   }
   return (
     <form className="card form" onSubmit={submit} aria-labelledby="copy-t">
