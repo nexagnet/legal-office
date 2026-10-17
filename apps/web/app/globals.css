@@ -1588,3 +1588,12 @@ tr[data-selected='true'] > td {
 .legal-grid form {
   margin-top: 20px;
 }
+.thv-cards {
+  margin-top: 32px;
+}
+.thv-card-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}

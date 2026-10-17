@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AccessRequestActions } from '../../components/AccessRequestActions';
 import { AccessRequestForm } from '../../components/AccessRequestForm';
 import { CalendarSettings } from '../../components/CalendarSettings';
+import { ThvCardsForm, type ThvCard } from '../../components/ThvCardsForm';
 import { loadCalendar } from '../../lib/deadlines-api';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { ACCESS_KIND_LABEL, ACCESS_STATUS_LABEL, ROLE_LABEL } from '../../lib/messages';
@@ -52,6 +53,18 @@ async function loadRequests(
   }
 }
 
+async function loadThvCards(cookie: string | null, officeId: string): Promise<ThvCard[]> {
+  try {
+    const res = await fetch(
+      `${API_URL}/office/thv-cards?officeId=${encodeURIComponent(officeId)}`,
+      { headers: cookie ? { cookie } : {}, cache: 'no-store' },
+    );
+    return res.ok ? ((await res.json()) as ThvCard[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 async function load(cookie: string | null, officeId: string): Promise<Member[] | 'error'> {
   try {
     const res = await fetch(`${API_URL}/office/members?officeId=${encodeURIComponent(officeId)}`, {
@@ -85,11 +98,22 @@ export default async function AdminPage() {
   const members = officeId ? await load(cookie, officeId) : [];
   const requests = officeId ? await loadRequests(cookie, officeId) : [];
   const calendar = officeId ? await loadCalendar(cookie, officeId) : null;
+  const thvCards = officeId ? await loadThvCards(cookie, officeId) : [];
   const isAdmin = session.roles.includes('ADMIN');
   const people =
     members === 'error'
       ? []
       : [...new Map(members.map((m) => [m.userId, { userId: m.userId, label: m.label }])).values()];
+  const thvPeople =
+    members === 'error'
+      ? []
+      : [
+          ...new Map(
+            members
+              .filter((m) => m.role === 'THV')
+              .map((m) => [m.userId, { userId: m.userId, label: m.label }]),
+          ).values(),
+        ];
   return (
     <section aria-labelledby="t">
       <div className="page-head">
@@ -209,6 +233,9 @@ export default async function AdminPage() {
         <div id="de-xuat-quyen">
           <AccessRequestForm officeId={officeId} people={people} branches={session.branches} />
         </div>
+      ) : null}
+      {officeId ? (
+        <ThvCardsForm officeId={officeId} people={thvPeople} cards={thvCards} canEdit={isAdmin} />
       ) : null}
       {officeId && calendar !== null && calendar === 'error' ? (
         <section className="calendar-settings" aria-labelledby="cal-t">
