@@ -25,7 +25,7 @@ import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { addWorkingDays } from '../deadlines/working-days';
-import { LEDGER_BY_CODE, shapeLedgerRow } from './ledgers';
+import { LEDGER_BY_CODE, shapeLedgerRow, withThvLabel } from './ledgers';
 import { buildPdf, PDF_MIME } from './pdf-export';
 import { buildXlsx, XLSX_MIME, type SheetSpec } from './xlsx-export';
 import { recordWithUpload } from '../storage/evidence';
@@ -1303,6 +1303,35 @@ export class OfficeController {
     return this.run(a, 'of_set_item_category', [id, b.category]);
   }
 
+  @Get('thv-cards')
+  async thvCards(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{ user_id: string; full_name: string; card_no: string }>(
+      a,
+      'of_search_thv_cards',
+      [officeId],
+    );
+    return rows.map((r) => ({ userId: r.user_id, fullName: r.full_name, cardNo: r.card_no }));
+  }
+
+  @Put('thv-cards')
+  setThvCard(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z
+        .object({
+          officeId: uuid,
+          userId: uuid,
+          fullName: z.string().max(200),
+          cardNo: z.string().max(50),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'of_set_thv_card', [b.officeId, b.userId, b.fullName, b.cardNo]);
+  }
+
   @Put('personnel')
   savePersonnel(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
     const b = parse(
@@ -1440,6 +1469,12 @@ export class OfficeController {
         : parse(z.coerce.number().int().min(2000).max(2200), year);
     const l = parse(z.coerce.number().int().min(1).max(1000), limit ?? '500');
     const rows = await this.read(a, def.fn, [officeId, y, l]);
-    return { def, rows: rows.map((r) => shapeLedgerRow(def, r)) };
+    const cards = await this.read<{ user_id: string; full_name: string; card_no: string }>(
+      a,
+      'of_search_thv_cards',
+      [officeId],
+    );
+    const label = new Map(cards.map((c) => [c.user_id, `${c.full_name}, số Thẻ ${c.card_no}`]));
+    return { def, rows: rows.map((r) => withThvLabel(def, shapeLedgerRow(def, r), label)) };
   }
 }

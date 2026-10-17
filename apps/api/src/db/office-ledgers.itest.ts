@@ -394,4 +394,41 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     expect((await ledger('s-01', U.admin, '&year=abc')).status).toBe(400);
     expect((await ledger('s-01', U.admin, '&limit=0')).status).toBe(400);
   });
+  it('THV: Admin nhập họ tên + số Thẻ thì cột "Thừa hành viên" của cả bốn sổ được điền; người khác không nhập được', async () => {
+    const put = (user: string, body: unknown) =>
+      fetch(`${base}/office/thv-cards`, {
+        method: 'PUT',
+        headers: {
+          'content-type': 'application/json',
+          'x-synthetic-user': user,
+          'x-synthetic-tenant': T,
+        },
+        body: JSON.stringify(body),
+      }).then(async (r) => ({ status: r.status, json: await r.json().catch(() => ({})) }));
+    const card = {
+      officeId: OFF,
+      userId: U.thv,
+      fullName: 'Trần Văn B (giả lập)',
+      cardNo: 'GL-001',
+    };
+    expect((await put(U.head, card)).status).toBe(403);
+    expect((await put(U.admin, { ...card, cardNo: '' })).status).toBe(422);
+    expect((await put(U.admin, card)).status).toBe(200);
+    const list = await get(`/office/thv-cards?officeId=${OFF}`, U.head);
+    expect(list.json).toEqual([
+      { userId: U.thv, fullName: 'Trần Văn B (giả lập)', cardNo: 'GL-001' },
+    ]);
+    const expected = 'Trần Văn B (giả lập), số Thẻ GL-001';
+    expect((await rowsOf('s-01', U.admin))[0]).toMatchObject({ thuaHanhVienThucHien: expected });
+    expect((await rowsOf('s-02', U.head))[0]).toMatchObject({ thuaHanhVienLap: expected });
+    expect((await rowsOf('s-04', U.admin))[0]).toMatchObject({ thuaHanhVienThucHien: expected });
+    expect((await rowsOf('s-05', U.admin))[0]).toMatchObject({ thuaHanhVienThucHien: expected });
+    // THV khác chưa có thẻ thì giữ null
+    const other = (await rowsOf('s-01', U.admin)).find((r) => r.thvUserId === U.thv2);
+    expect(other?.thuaHanhVienThucHien).toBeNull();
+    // Người ngoài văn phòng nhận danh sách rỗng; xoá bằng cách để trống cả hai
+    expect((await get(`/office/thv-cards?officeId=${OFF}`, U.foreign, T2)).json).toEqual([]);
+    expect((await put(U.admin, { ...card, fullName: '', cardNo: '' })).status).toBe(200);
+    expect((await get(`/office/thv-cards?officeId=${OFF}`, U.head)).json).toEqual([]);
+  });
 });

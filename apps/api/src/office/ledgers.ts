@@ -249,3 +249,16 @@ export function shapeLedgerRow(
   for (const t of def.trace) out[t.key] = row[t.sql] ?? null;
   return out;
 }
+
+/** Điền cột "Thừa hành viên" khi nguồn SQL để trống nhưng người THV đã có họ tên + số Thẻ (Admin nhập). Không ghi đè giá trị có sẵn. */
+export function withThvLabel(
+  def: LedgerDef,
+  row: Record<string, unknown>,
+  labels: ReadonlyMap<string, string>,
+): Record<string, unknown> {
+  const thvCol = def.columns.find((c) => /^thuaHanhVien/.test(c.key));
+  const uid = row.thvUserId;
+  if (!thvCol || row[thvCol.key] != null || typeof uid !== 'string') return row;
+  const text = labels.get(uid);
+  return text === undefined ? row : { ...row, [thvCol.key]: text };
+}
