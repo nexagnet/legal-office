@@ -7,6 +7,9 @@ export interface CaseDetail {
   readonly status: string;
   readonly createdAt: string;
   readonly responsibleThvUserId: string | null;
+  readonly branchName?: string | null;
+  readonly customerName?: string | null;
+  readonly thvLabel?: string | null;
   readonly handoverRecipient?: string | null;
   readonly handoverOn?: string | null;
 }
