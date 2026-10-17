@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CalendarSettings } from '../components/CalendarSettings';
+import { ThvCardsForm } from '../components/ThvCardsForm';
 import { DeadlineReminders } from '../components/DeadlineReminders';
 import { DEADLINE_DOMAIN_LABEL, deadlineHref, type DeadlineItem } from '../lib/deadlines';
 
@@ -157,5 +158,34 @@ describe('CalendarSettings', () => {
     expect(screen.queryByRole('button', { name: 'Lưu ngày làm việc' })).toBeNull();
     expect(screen.queryByRole('button', { name: /Xoá ngày nghỉ/ })).toBeNull();
     expect(screen.getByLabelText('Thứ Hai').matches(':disabled')).toBe(true);
+  });
+});
+
+describe('ThvCardsForm', () => {
+  const people = [{ userId: 'u-1', label: 'Nguyễn Văn A' }];
+  const cards = [{ userId: 'u-1', fullName: 'Nguyễn Văn An', cardNo: '123' }];
+
+  it('lets Admin save a card with PUT', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(200, {}));
+    render(<ThvCardsForm officeId="o-1" people={people} cards={cards} canEdit />);
+    fireEvent.change(screen.getByLabelText('Số Thẻ Nguyễn Văn A'), { target: { value: '456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const [url, init] = spy.mock.calls[0]!;
+    expect(url).toBe('/api/office/thv-cards');
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      officeId: 'o-1',
+      userId: 'u-1',
+      fullName: 'Nguyễn Văn An',
+      cardNo: '456',
+    });
+    expect(await screen.findByText('Đã lưu.')).toBeTruthy();
+  });
+
+  it('is read-only for non-admins', () => {
+    render(<ThvCardsForm officeId="o-1" people={people} cards={cards} canEdit={false} />);
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByText('123')).toBeTruthy();
   });
 });
