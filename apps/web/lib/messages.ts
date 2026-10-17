@@ -220,6 +220,9 @@ export const REPORT_DOMAIN_LABEL: Record<string, string> = {
   TONG_DAT: 'Tống đạt',
   XAC_MINH: 'Xác minh',
   THI_HANH_AN: 'Tổ chức thi hành án',
+  CONG_VAN: 'Công văn',
+  VAT_TU: 'Vật tư',
+  LAO_DONG: 'Nhân sự',
 };
 export const REPORT_UNIT_LABEL: Record<string, string> = {
   CASE: 'Hồ sơ',
@@ -228,11 +231,28 @@ export const REPORT_UNIT_LABEL: Record<string, string> = {
   DOCUMENT: 'Văn bản tống đạt',
   ROUND: 'Đợt xác minh',
   OBLIGATION: 'Nghĩa vụ thi hành án',
+  CORRESPONDENCE: 'Công văn',
+  MOVEMENT: 'Số lần xuất nhập',
+  QUANTITY: 'Tổng số lượng',
+  PERSON: 'Người',
 };
 const REQUEST_STATUS_LABEL: Record<string, string> = { OPEN: 'Đang mở', CLOSED: 'Đã đóng' };
 
+const STOCK_MOVEMENT_LABEL: Record<string, string> = {
+  RECEIPT: 'Nhập kho',
+  ISSUE: 'Xuất kho',
+  ADJUSTMENT: 'Điều chỉnh',
+};
+const LABOUR_STATUS_LABEL: Record<string, string> = { ACTIVE: 'Đang làm việc', LEFT: 'Đã nghỉ' };
+
 /** Nhãn trạng thái theo đúng miền và đơn vị đếm; mã lạ giữ nguyên. */
 export function reportStatusLabel(domain: string, unit: string, status: string): string {
+  if (domain === 'CONG_VAN') {
+    const [direction = '', state = ''] = status.split(':');
+    return `${CORRESPONDENCE_DIRECTION_LABEL[direction] ?? direction}: ${CORRESPONDENCE_STATUS_LABEL[state] ?? state}`;
+  }
+  if (domain === 'VAT_TU') return STOCK_MOVEMENT_LABEL[status] ?? status;
+  if (domain === 'LAO_DONG') return LABOUR_STATUS_LABEL[status] ?? status;
   const map =
     domain === 'VIBANG' && unit === 'CASE'
       ? CASE_STATUS_LABEL

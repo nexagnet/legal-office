@@ -51,6 +51,26 @@ async function load(
   }
 }
 
+async function loadOps(
+  cookie: string | null,
+  officeId: string,
+  from: string,
+  to: string,
+  branchId: string,
+): Promise<Row[]> {
+  const qs = new URLSearchParams({ officeId, from, to });
+  if (branchId) qs.set('branchId', branchId);
+  try {
+    const res = await fetch(`${API_URL}/office/report/ops?${qs.toString()}`, {
+      headers: cookie ? { cookie } : {},
+      cache: 'no-store',
+    });
+    return res.ok ? ((await res.json()) as Row[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function ReportPage({
   searchParams,
 }: {
@@ -80,6 +100,8 @@ export default async function ReportPage({
   const rows = officeId
     ? await load(await requestCookie(), officeId, from, to, branchId, groupBy)
     : [];
+  const ops =
+    officeId && !groupBy ? await loadOps(await requestCookie(), officeId, from, to, branchId) : [];
   const table: string[][] =
     rows === 'error'
       ? []
@@ -243,6 +265,39 @@ export default async function ReportPage({
           </button>
         </form>
       </div>
+      {ops.length > 0 ? (
+        <div className="panel ops-report">
+          <h2>Công văn, vật tư và nhân sự</h2>
+          <p className="muted">
+            Công văn theo ngày tạo, vật tư theo ngày phát sinh; nhân sự là hiện trạng, không theo
+            kỳ. Mỗi dòng đếm một đơn vị riêng.
+          </p>
+          <div className="table-wrap">
+            <table>
+              <caption className="sr-only">Công văn, vật tư và nhân sự</caption>
+              <thead>
+                <tr>
+                  {['Nghiệp vụ', 'Đơn vị đếm', 'Trạng thái', 'Số lượng'].map((h) => (
+                    <th key={h} scope="col">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {ops.map((r, i) => (
+                  <tr key={i}>
+                    <th scope="row">{REPORT_DOMAIN_LABEL[r.domain] ?? r.domain}</th>
+                    <td>{REPORT_UNIT_LABEL[r.unit] ?? r.unit}</td>
+                    <td>{reportStatusLabel(r.domain, r.unit, r.status)}</td>
+                    <td>{r.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

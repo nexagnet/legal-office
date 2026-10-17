@@ -1114,6 +1114,11 @@ describe('Report helpers', () => {
     expect(reportStatusLabel('TONG_DAT', 'REQUEST', 'OPEN')).toBe('Đang mở');
     expect(reportStatusLabel('TONG_DAT', 'DOCUMENT', 'DELIVERED')).toBe('Đã tống đạt');
     expect(reportStatusLabel('XAC_MINH', 'ROUND', 'COMPLETED')).toBe('Đã hoàn thành');
+    expect(reportStatusLabel('CONG_VAN', 'CORRESPONDENCE', 'INBOUND:RECEIVED')).toBe(
+      'Công văn đến: Đã nhận',
+    );
+    expect(reportStatusLabel('VAT_TU', 'QUANTITY', 'ISSUE')).toBe('Xuất kho');
+    expect(reportStatusLabel('LAO_DONG', 'PERSON', 'LEFT')).toBe('Đã nghỉ');
     expect(reportStatusLabel('THI_HANH_AN', 'OBLIGATION', 'PARTIAL')).not.toBe('PARTIAL');
     expect(reportStatusLabel('VIBANG', 'NUMBER', 'ALLOCATED')).toBe('Đã cấp');
     expect(reportStatusLabel('VIBANG', 'CASE', 'LẠ')).toBe('LẠ');
