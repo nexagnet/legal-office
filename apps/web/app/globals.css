@@ -1389,6 +1389,7 @@ tr[data-selected='true'] > td {
   font-size: 12px;
   line-height: 22px;
   color: var(--muted);
+}
 
 /* Tổng quan — bốn nghiệp vụ (Figma 56:2). */
 .domains {
