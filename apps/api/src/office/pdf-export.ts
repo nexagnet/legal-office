@@ -6,8 +6,8 @@ import type { SheetSpec } from './xlsx-export';
 export const PDF_MIME = 'application/pdf';
 
 // DejaVu Sans phủ đủ chữ tiếng Việt; font chuẩn của PDF (Helvetica) thì không.
-const require = createRequire(__filename);
-const FONT_DIR = join(dirname(require.resolve('dejavu-fonts-ttf/package.json')), 'ttf');
+const nodeRequire = createRequire(__filename);
+const FONT_DIR = join(dirname(nodeRequire.resolve('dejavu-fonts-ttf/package.json')), 'ttf');
 const FONT = join(FONT_DIR, 'DejaVuSans.ttf');
 const FONT_BOLD = join(FONT_DIR, 'DejaVuSans-Bold.ttf');
 
