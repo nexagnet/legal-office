@@ -7,6 +7,8 @@ export interface NavItem {
   /** Vai được hiển thị mục này. Chỉ để gợi ý menu; quyền thật do API/DB quyết định. */
   readonly roles: readonly Role[];
   readonly summary: string;
+  /** Không hiện ở menu bên (Figma không có); vẫn truy cập được bằng đường dẫn và lối tắt ở Tổng quan. */
+  readonly hidden?: boolean;
 }
 
 const ALL: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU'];
@@ -57,6 +59,7 @@ export const NAV: readonly NavItem[] = [
     group: 'office',
     roles: ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV'],
     summary: 'Đề xuất chuyển giao và uỷ quyền chờ duyệt, trả lại, nộp lại.',
+    hidden: true,
   },
   {
     slug: 'hop-dong',
@@ -117,7 +120,7 @@ export const NAV: readonly NavItem[] = [
 ];
 
 export function visibleNav(roles: readonly Role[]): readonly NavItem[] {
-  return [OVERVIEW, ...NAV].filter((n) => n.roles.some((r) => roles.includes(r)));
+  return [OVERVIEW, ...NAV].filter((n) => !n.hidden && n.roles.some((r) => roles.includes(r)));
 }
 
 export function findNav(slug: string): NavItem | undefined {

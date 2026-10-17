@@ -109,6 +109,9 @@ export default async function HomePage() {
   const visible = DOMAINS.filter((d) =>
     (NAV.find((n) => n.slug === d.slug)?.roles ?? []).some((r) => session.roles.includes(r)),
   );
+  const canReview = (NAV.find((n) => n.slug === 'hop-duyet')?.roles ?? []).some((r) =>
+    session.roles.includes(r),
+  );
   return (
     <section aria-labelledby="t">
       <h1 id="t" className="sr-only">
@@ -160,6 +163,11 @@ export default async function HomePage() {
         </div>
         <div className="panel">
           <h2>Nhắc việc và cảnh báo</h2>
+          {canReview ? (
+            <p>
+              <Link href="/hop-duyet">Hộp duyệt: đề xuất chờ duyệt, trả lại, nộp lại</Link>
+            </p>
+          ) : null}
           {reminders.length === 0 ? (
             <p className="muted">Không có việc cần nhắc.</p>
           ) : (
