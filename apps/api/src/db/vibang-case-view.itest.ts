@@ -185,9 +185,10 @@ describe.skipIf(!ADMIN_URL)('Vi bằng case view and handover (HTTP + PostgreSQL
       T,
     ]);
     const cust = await customer();
-    await owner.query(`UPDATE customers SET display_name = 'Nguyễn Văn Giả Lập' WHERE id = $1`, [
-      cust,
-    ]);
+    await owner.query(
+      `UPDATE customers SET display_name = 'Nguyễn Văn Giả Lập', phone = '0900000000', id_number = '000000000000' WHERE id = $1`,
+      [cust],
+    );
     const r = await api('POST', '/vibang/cases', U.clerk1, {
       officeId: OFF,
       branchId: BR1,
@@ -202,6 +203,10 @@ describe.skipIf(!ADMIN_URL)('Vi bằng case view and handover (HTTP + PostgreSQL
       thvLabel: null,
       numberLabel: null,
       nextStep: 'ASSIGN_THV',
+      createdBy: U.clerk1,
+      createdByLabel: 'VAN_THU',
+      customerPhone: '0900000000',
+      customerIdNumber: '000000000000',
       handoverRecipient: null,
       handoverOn: null,
     });
@@ -218,6 +223,24 @@ describe.skipIf(!ADMIN_URL)('Vi bằng case view and handover (HTTP + PostgreSQL
     const acc = await api('GET', `/vibang/cases/${c}`, U.acc1);
     expect(acc.status).toBe(200);
     expect(acc.json.customerName).toBeNull();
+    expect(acc.json.customerPhone).toBeNull();
+    expect(acc.json.customerIdNumber).toBeNull();
+    // số tiếp nhận tăng dần theo văn phòng, đúng năm hiện tại (giờ Việt Nam)
+    const year = new Date(Date.now() + 7 * 3600_000).getUTCFullYear();
+    const second = (
+      await api('POST', '/vibang/cases', U.clerk1, {
+        officeId: OFF,
+        branchId: BR1,
+        customerId: cust,
+        title: 'Hồ sơ thứ hai',
+      })
+    ).json.label as string;
+    const no = async (id: string) =>
+      ((await api('GET', `/vibang/cases/${id}`, U.admin)).json as { intakeNo: string }).intakeNo;
+    const a1 = await no(c);
+    const a2 = await no(second);
+    expect(a1).toMatch(new RegExp(`^\\d+/${year}/TN$`));
+    expect(Number(a2.split('/')[0])).toBe(Number(a1.split('/')[0]) + 1);
     expect((await api('GET', `/vibang/cases/${c}`, U.clerk2)).status).toBe(404);
   });
 

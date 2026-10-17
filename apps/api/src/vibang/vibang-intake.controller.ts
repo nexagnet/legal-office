@@ -65,6 +65,11 @@ interface CaseRow {
   readonly next_step: string | null;
   readonly handover_recipient: string | null;
   readonly handover_on: string | null;
+  readonly intake_no: string | null;
+  readonly created_by: string | null;
+  readonly created_by_label: string | null;
+  readonly customer_phone: string | null;
+  readonly customer_id_number: string | null;
 }
 const toCase = (r: CaseRow) => ({
   id: r.id,
@@ -86,6 +91,11 @@ const toCase = (r: CaseRow) => ({
   nextStep: r.next_step,
   handoverRecipient: r.handover_recipient,
   handoverOn: r.handover_on,
+  intakeNo: r.intake_no,
+  createdBy: r.created_by,
+  createdByLabel: r.created_by_label,
+  customerPhone: r.customer_phone,
+  customerIdNumber: r.customer_id_number,
 });
 
 /**
