@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CaseSteps, type Progress } from '../../../components/CaseSteps';
 import { CaseActions } from '../../../components/CaseActions';
-import { IssueCopyForm, RejectCaseForm } from '../../../components/CaseRejectCopy';
+import { RejectCaseForm } from '../../../components/CaseRejectCopy';
 import { ChangeDecision } from '../../../components/ChangeRequestRow';
 import { type CaseDetail, getJson } from '../../../lib/case-api';
 import { currentSession, requestCookie } from '../../../lib/server';
@@ -172,6 +172,14 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
           <Link className="btn-link" href={`/vi-bang/${c.id}/kiem-tra-ban-giao`}>
             Kiểm tra bàn giao
           </Link>
+          {c.status === 'RETURNED' ? (
+            <>
+              {' '}
+              <Link className="btn-link" href={`/vi-bang/${c.id}/cap-ban-sao`}>
+                Cấp bản sao
+              </Link>
+            </>
+          ) : null}
         </p>
       ) : null}
       <CaseActions
@@ -183,7 +191,6 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
         canCancel={isAdmin}
       />
       {c.status === 'INTAKE' || c.status === 'ASSIGNED' ? <RejectCaseForm caseId={c.id} /> : null}
-      {c.status === 'RETURNED' ? <IssueCopyForm caseId={c.id} /> : null}
       <h2>Đề nghị thay đổi</h2>
       {items.length === 0 ? (
         <p className="muted">Chưa có đề nghị thay đổi.</p>

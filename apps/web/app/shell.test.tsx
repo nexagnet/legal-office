@@ -147,6 +147,7 @@ describe('AppShell stage heads', () => {
     ['sua-loi-n11', 'Sửa lỗi kỹ thuật Vi bằng · N-11'],
     ['tai-lieu', 'Kho hồ sơ, chứng cứ và bản scan cuối'],
     ['kiem-tra-ban-giao', 'Kiểm tra bàn giao & kết quả liên hệ khách'],
+    ['cap-ban-sao', 'Tiếp nhận yêu cầu cấp bản sao Vi bằng'],
   ])('shows the Figma header for /vi-bang/<id>/%s', (stage, title) => {
     path.current = `/vi-bang/abc/${stage}`;
     render(
