@@ -4,10 +4,17 @@
 export function ReportExport({
   rows,
   filename,
+  server,
 }: {
   readonly rows: readonly (readonly string[])[];
   readonly filename: string;
+  /** Đường xuất của máy chủ (`/office/...`) và tham số lọc; có thì thêm nút Excel và PDF. */
+  readonly server?: { readonly path: string; readonly params: Readonly<Record<string, string>> };
 }) {
+  const href = (format: 'xlsx' | 'pdf') =>
+    server
+      ? `/api${server.path}?${new URLSearchParams({ ...server.params, format }).toString()}`
+      : '';
   function download() {
     const csv = rows
       .map((r) => r.map((c) => `"${c.replaceAll('"', '""')}"`).join(','))
@@ -20,8 +27,20 @@ export function ReportExport({
     URL.revokeObjectURL(url);
   }
   return (
-    <button type="button" className="primary" onClick={download} disabled={rows.length <= 1}>
-      Tải CSV
-    </button>
+    <div className="export-actions">
+      {server ? (
+        <>
+          <a className="secondary btn-link" href={href('xlsx')}>
+            Xuất Excel
+          </a>
+          <a className="secondary btn-link" href={href('pdf')}>
+            Xuất PDF
+          </a>
+        </>
+      ) : null}
+      <button type="button" className="primary" onClick={download} disabled={rows.length <= 1}>
+        Tải CSV
+      </button>
+    </div>
   );
 }
