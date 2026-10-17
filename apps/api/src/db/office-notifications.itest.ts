@@ -223,5 +223,21 @@ describe.skipIf(!ADMIN_URL)(
       expect(items(await list(U.otherTenantAdmin, '', T2))).toHaveLength(0);
       expect((await list(null)).status).toBe(401);
     });
+
+    it('also reminds correspondence with an open due date, within the same read scope', async () => {
+      await owner.query(
+        `INSERT INTO of_correspondence (tenant_id, office_id, branch_id, direction, status, doc_type, counterparty, subject, received_on, due_at, result_note, created_by)
+         VALUES ($1,$2,$3,'INBOUND','RECEIVED','CV','Sở','Công văn quá hạn', current_date - 5, now() - interval '1 day', NULL, $4),
+                ($1,$2,$3,'INBOUND','HANDLED','CV','Sở','Đã xử lý', current_date - 5, now() - interval '1 day', 'xong', $4)`,
+        [T, OFF, BR2, U.admin],
+      );
+      const mine = items(await list(U.clerk2));
+      expect(mine.map((i) => [i.label, i.kind])).toEqual([
+        ['Công văn quá hạn', 'DEADLINE_OVERDUE'],
+      ]);
+      expect(items(await list(U.clerk2))).toHaveLength(1);
+      expect(items(await list(U.admin)).some((i) => i.label === 'Công văn quá hạn')).toBe(true);
+      expect(items(await list(U.clerk1)).some((i) => i.label === 'Công văn quá hạn')).toBe(false);
+    });
   },
 );
