@@ -317,6 +317,7 @@ export const HISTORY_KIND_LABEL: Record<string, string> = {
   CONTACT_RESULT: 'Báo kết quả cho khách',
   N11_PROPOSED: 'Đề nghị sửa lỗi kỹ thuật N-11',
   N11_APPLIED: 'Áp dụng sửa lỗi N-11',
+  CANCELLED: 'Huỷ hồ sơ',
 };
 
 export const MISA_STATUS_LABEL: Record<string, string> = {
