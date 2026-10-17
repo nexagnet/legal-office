@@ -808,6 +808,24 @@ th a:hover {
 .stage-back {
   margin: 0 0 35px;
 }
+.stage-back a,
+.case-back a,
+.case-links a {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.stage-back a:hover,
+.case-back a:hover,
+.case-links a:hover {
+  text-decoration: underline;
+}
+.case-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+}
 .stage-grid {
   margin-bottom: 24px;
 }
@@ -1017,7 +1035,7 @@ tr[data-selected='true'] > td {
   border-bottom: 1px solid var(--line);
 }
 .note-panel {
-  margin-top: 16px;
+  margin: 16px 0 24px;
   font-size: 15px;
 }
 .note-panel p {
@@ -1173,6 +1191,23 @@ tr[data-selected='true'] > td {
 
 .filters-ledger {
   grid-template-columns: 1fr;
+  padding-block: 10px;
+  margin: 26px 0 27px;
+}
+.filters-ledger + .table-wrap + .panel {
+  margin-top: 56px;
+}
+.ledger-link {
+  margin: 20px 0 0;
+}
+.ledger-link a {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.ledger-link a:hover {
+  text-decoration: underline;
 }
 @media (min-width: 900px) {
   .filters-ledger {
@@ -1248,4 +1283,32 @@ tr[data-selected='true'] > td {
 }
 .assign-grid > .panel > h2 {
   line-height: 22px;
+}
+
+/* Các mục của hồ sơ (Figma 3:582): thanh tab trắng, mục hiện tại gạch chân */
+.case-tabs {
+  display: flex;
+  gap: 8px;
+  min-height: 47px;
+  margin: 0 0 25px;
+  padding: 0 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+.case-tabs > * {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+.case-tabs > [aria-current='page'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.case-tabs > a:hover {
+  color: var(--ink);
 }
