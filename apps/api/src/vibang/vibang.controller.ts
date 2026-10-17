@@ -177,6 +177,18 @@ export class VibangController {
     return this.run(a, 'vb_record_handover', [a.userId, id, b.recipientName, b.handedOverOn]);
   }
 
+  /** Nhập/sửa địa chỉ nơi lập vi bằng (cột 5 sổ S-02). Gửi chuỗi rỗng để xoá. Hồ sơ đã trả hoặc huỷ không sửa được. */
+  @Post('cases/:id/place')
+  @HttpCode(HttpStatus.OK)
+  setPlace(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ placeAddress: z.string().max(500) }).strict(), body);
+    return this.run(a, 'vb_set_case_place', [a.userId, id, b.placeAddress]);
+  }
+
   @Put('cases/:id/registration')
   setRegistration(
     @CurrentActor() a: AuthenticatedActor,
