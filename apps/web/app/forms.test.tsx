@@ -462,6 +462,24 @@ describe('ReturnPanel', () => {
   });
 });
 
+describe('ReportExport', () => {
+  it('links to the server Excel and PDF exports with the filters', () => {
+    render(
+      <ReportExport
+        rows={[['a'], ['b']]}
+        filename="x.csv"
+        server={{ path: '/office/report/export', params: { officeId: 'o1', from: '2026-10-01' } }}
+      />,
+    );
+    expect(screen.getByRole('link', { name: 'Xuất Excel' }).getAttribute('href')).toBe(
+      '/api/office/report/export?officeId=o1&from=2026-10-01&format=xlsx',
+    );
+    expect(screen.getByRole('link', { name: 'Xuất PDF' }).getAttribute('href')).toContain(
+      'format=pdf',
+    );
+  });
+});
+
 describe('Handover record', () => {
   it('posts recipient and date, and shows a recorded handover read-only', async () => {
     const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(200, {}));
