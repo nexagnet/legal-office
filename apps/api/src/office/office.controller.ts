@@ -26,7 +26,8 @@ import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { addWorkingDays } from '../deadlines/working-days';
 import { LEDGER_BY_CODE, shapeLedgerRow } from './ledgers';
-import { buildXlsx, XLSX_MIME } from './xlsx-export';
+import { buildPdf, PDF_MIME } from './pdf-export';
+import { buildXlsx, XLSX_MIME, type SheetSpec } from './xlsx-export';
 import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
@@ -955,21 +956,18 @@ export class OfficeController {
     @Query('from') from: string,
     @Query('to') to: string,
     @Query('branchId') branchId?: string,
+    @Query('format') format?: string,
   ) {
     const rows = await this.loadReport(a, officeId, from, to, branchId);
-    const buf = await buildXlsx({
+    const spec: SheetSpec = {
       name: 'Báo cáo',
       title: `Báo cáo tổng hợp từ ${from} đến ${to}`,
       notice:
         'Bản điện tử hỗ trợ theo dõi, không phải biểu mẫu chính thức. Mỗi dòng là một đơn vị đếm riêng; không có số tiền.',
       columns: ['Nghiệp vụ', 'Đơn vị đếm', 'Trạng thái', 'Số lượng'],
       rows: rows.map((r) => [r.domain, r.unit, r.status, r.total]),
-    });
-    res.set({
-      'Content-Type': XLSX_MIME,
-      'Content-Disposition': `attachment; filename="bao-cao-${from}_${to}.xlsx"`,
-    });
-    return new StreamableFile(buf);
+    };
+    return this.sendSheet(res, spec, format, `bao-cao-${from}_${to}`);
   }
 
   /** Danh bạ thành viên văn phòng (chỉ đọc, chỉ Admin). Không trả băm mật khẩu. */
@@ -1337,9 +1335,10 @@ export class OfficeController {
     @Query('officeId', ParseUUIDPipe) officeId: string,
     @Query('year') year?: string,
     @Query('limit') limit?: string,
+    @Query('format') format?: string,
   ) {
     const { def, rows } = await this.loadLedger(a, code, officeId, year, limit);
-    const buf = await buildXlsx({
+    const spec: SheetSpec = {
       name: def.code,
       title: `${def.title} (${def.code})`,
       notice: LEDGER_NOTICE,
@@ -1350,10 +1349,24 @@ export class OfficeController {
           return typeof v === 'string' || typeof v === 'number' ? v : null;
         }),
       ),
-    });
+    };
+    return this.sendSheet(res, spec, format, `so-${def.code.toLowerCase()}`);
+  }
+
+  /** `format=pdf` ra PDF khổ A4 ngang; mặc định (hoặc `xlsx`) ra Excel. Giá trị khác bị từ chối. */
+  private async sendSheet(
+    res: { set(headers: Record<string, string>): unknown },
+    spec: SheetSpec,
+    format: string | undefined,
+    base: string,
+  ) {
+    if (format !== undefined && format !== 'xlsx' && format !== 'pdf')
+      throw new HttpException({ code: 'INVALID_FORMAT', label: null }, 422);
+    const pdf = format === 'pdf';
+    const buf = pdf ? await buildPdf(spec) : await buildXlsx(spec);
     res.set({
-      'Content-Type': XLSX_MIME,
-      'Content-Disposition': `attachment; filename="so-${def.code.toLowerCase()}.xlsx"`,
+      'Content-Type': pdf ? PDF_MIME : XLSX_MIME,
+      'Content-Disposition': `attachment; filename="${base}.${pdf ? 'pdf' : 'xlsx'}"`,
     });
     return new StreamableFile(buf);
   }
