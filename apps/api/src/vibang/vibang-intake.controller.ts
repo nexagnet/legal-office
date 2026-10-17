@@ -220,6 +220,35 @@ export class VibangIntakeController {
     }));
   }
 
+  /** Các vi bằng đã cấp số của một khách (danh bạ khách là PII: chỉ vai tiếp nhận; hồ sơ vẫn qua cổng xem). */
+  @Get('customers/:id/numbers')
+  async customerNumbers(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const rows = await this.repo.rows<{
+      case_id: string;
+      number_label: string;
+      allocated_at: Date;
+      case_status: string;
+      title: string;
+      branch_id: string;
+      branch_name: string | null;
+    }>(a.tenantId, 'vb_list_customer_numbers', [a.tenantId, a.userId, id]);
+    return {
+      total: rows.length,
+      items: rows.map((r) => ({
+        caseId: r.case_id,
+        numberLabel: r.number_label,
+        allocatedAt: r.allocated_at,
+        status: r.case_status,
+        title: r.title,
+        branchId: r.branch_id,
+        branchName: r.branch_name,
+      })),
+    };
+  }
+
   @Get('contracts')
   async listContracts(
     @CurrentActor() a: AuthenticatedActor,

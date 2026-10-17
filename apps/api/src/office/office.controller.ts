@@ -969,6 +969,38 @@ export class OfficeController {
     return rows.map((r) => ({ domain: r.domain, unit: r.unit, status: r.status, total: r.total }));
   }
 
+  /** Hoạt động theo địa điểm (chi nhánh): mỗi chi nhánh một dòng, kỳ theo ngày tạo; chi nhánh không có việc vẫn hiện số 0. Không số tiền. */
+  @Get('branches/activity')
+  async branchActivity(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    const rows = await this.read<{
+      branch_id: string;
+      branch_name: string;
+      vibang_cases: number;
+      vibang_numbers: number;
+      tong_dat_documents: number;
+      xac_minh_cases: number;
+      thi_hanh_cases: number;
+      correspondence: number;
+      last_activity_at: Date | null;
+    }>(a, 'of_search_branch_activity', [officeId, parse(isoDate, from), parse(isoDate, to)]);
+    return rows.map((r) => ({
+      branchId: r.branch_id,
+      branchName: r.branch_name,
+      vibangCases: r.vibang_cases,
+      vibangNumbers: r.vibang_numbers,
+      tongDatDocuments: r.tong_dat_documents,
+      xacMinhCases: r.xac_minh_cases,
+      thiHanhCases: r.thi_hanh_cases,
+      correspondence: r.correspondence,
+      lastActivityAt: r.last_activity_at,
+    }));
+  }
+
   /** Xuất báo cáo tổng hợp theo kỳ ra Excel. Cùng phạm vi quyền với `GET report`; không số tiền. */
   @Get('report/export')
   async reportExport(

@@ -145,6 +145,67 @@ export class VibangReadController {
     return r;
   }
 
+  /** Tab "Thông tin pháp lý": hợp đồng, định danh khách (PII chỉ vai tiếp nhận), số vi bằng, MISA, ký, đóng dấu, đăng ký, bản scan. */
+  @Get('cases/:id/legal')
+  async legal(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const [r] = await this.read<Record<string, string | Date | null>>(a, 'vb_case_legal', id);
+    if (!r) throw caseNotFound();
+    return {
+      placeAddress: r.place_address,
+      contract: {
+        ref: r.contract_ref,
+        serviceKind: r.contract_service_kind,
+        signedOn: r.contract_signed_on,
+        validFrom: r.contract_valid_from,
+        validTo: r.contract_valid_to,
+        status: r.contract_status,
+      },
+      customer: {
+        kind: r.customer_kind,
+        name: r.customer_name,
+        idNumber: r.customer_id_number,
+        address: r.customer_address,
+        phone: r.customer_phone,
+        taxCode: r.customer_tax_code,
+        representative: r.customer_representative,
+      },
+      number: { label: r.number_label, allocatedAt: r.number_allocated_at },
+      misa: {
+        status: r.misa_status,
+        reference: r.misa_reference,
+        confirmedAt: r.misa_confirmed_at,
+      },
+      signed: { at: r.signed_at, byLabel: r.signed_by_label },
+      stamped: { at: r.stamped_at, byLabel: r.stamped_by_label },
+      registration: { status: r.registration_status, deadlineAt: r.registration_deadline_at },
+      finalScan: { sha256: r.final_scan_sha256, lockedAt: r.final_scan_locked_at },
+    };
+  }
+
+  /** Tab "Lịch sử": các mốc của hồ sơ theo thời gian (mới nhất trước). `kind` là mã sự kiện, `detail` ngắn và không PII. */
+  @Get('cases/:id/history')
+  async history(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    await this.requireCase(a, id);
+    const rows = await this.read<{
+      at: Date;
+      kind: string;
+      actor_user_id: string | null;
+      actor_label: string | null;
+      detail: string | null;
+    }>(a, 'vb_case_history', id);
+    return {
+      items: rows
+        .map((r) => ({
+          at: r.at,
+          kind: r.kind,
+          actorUserId: r.actor_user_id,
+          actorLabel: r.actor_label,
+          detail: r.detail,
+        }))
+        .reverse(),
+    };
+  }
+
   /** Nhật ký liên hệ khách của hồ sơ (nhắc/kết quả; chỉ mã, mới nhất trước). */
   @Get('cases/:id/contacts')
   async contacts(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
