@@ -83,6 +83,10 @@ const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Sửa lỗi kỹ thuật Vi bằng · N-11',
     sub: 'Áp dụng quy trình pháp lý riêng; không dùng quyền sửa hồ sơ nội bộ 48 giờ.',
   },
+  'cap-ban-sao': {
+    title: 'Tiếp nhận yêu cầu cấp bản sao Vi bằng',
+    sub: 'Cấp bản sao theo yêu cầu phù hợp quy định; tài chính xử lý tại MISA.',
+  },
   'tra-ket-qua': {
     title: 'Trả kết quả và liên hệ khách',
     sub: 'Ghi nhận liên hệ, bàn giao Vi bằng cho khách',
