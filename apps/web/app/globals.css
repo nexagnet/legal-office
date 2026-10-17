@@ -1389,4 +1389,128 @@ tr[data-selected='true'] > td {
   font-size: 12px;
   line-height: 22px;
   color: var(--muted);
+
+/* Tổng quan — bốn nghiệp vụ (Figma 56:2). */
+.domains {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px 20px;
+  max-width: 1096px;
+  margin: 19px 0 37px;
+}
+@media (min-width: 900px) {
+  .domains {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.domain {
+  --tone: var(--accent);
+  --tone-bg: #eaf1ff;
+  position: relative;
+  display: block;
+  min-height: 184px;
+  padding: 18px 20px 0 34px;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--surface);
+  border-radius: 13px;
+}
+.domain[data-domain='tong-dat'] {
+  --tone: #047857;
+  --tone-bg: #e8f8f0;
+}
+.domain[data-domain='xac-minh'] {
+  --tone: #7c3aed;
+  --tone-bg: #f3efff;
+}
+.domain[data-domain='to-chuc-tha'] {
+  --tone: #9a6700;
+  --tone-bg: #fff4df;
+}
+.domain:hover,
+.domain:focus-visible {
+  box-shadow: 0 0 0 2px var(--tone);
+}
+.domain-flag {
+  position: absolute;
+  left: 19px;
+  top: 20px;
+  width: 5px;
+  height: 68px;
+  border-radius: 3px;
+  background: var(--tone);
+}
+.domain-name {
+  display: block;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--tone);
+}
+.domain-sub {
+  display: block;
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 24px;
+  color: var(--muted);
+}
+.domain-meta {
+  display: block;
+  margin: 17px 0 0 -1px;
+  padding: 17px 13px 5px;
+  margin-right: 17px;
+  min-height: 62px;
+  background: var(--tone-bg);
+  border-radius: 8px;
+}
+.domain-meta-line {
+  display: block;
+  font-size: 13px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.domain-count {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--muted);
+}
+.common-work {
+  max-width: 1117px;
+  padding: 20px 23px 48px;
+  margin-bottom: 24px;
+}
+.common-work h2 {
+  margin: 0 0 33px;
+  font-size: 18px;
+  line-height: 24px;
+}
+.common-work ul {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 27px 40px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 900px) {
+  .common-work ul {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.common-work li {
+  position: relative;
+  padding-left: 23px;
+  font-size: 13px;
+  line-height: 24px;
+}
+.common-work li::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 7px;
+  width: 11px;
+  height: 11px;
+  border-radius: 6px;
+  background: #e9f1fc;
 }
