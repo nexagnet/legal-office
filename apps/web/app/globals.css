@@ -1312,3 +1312,9 @@ tr[data-selected='true'] > td {
 .case-tabs > a:hover {
   color: var(--ink);
 }
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

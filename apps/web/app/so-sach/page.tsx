@@ -89,7 +89,18 @@ export default async function LedgerPage({
           <h1 id="t">{ledger === 'error' ? 'Sổ sách' : ledger.title}</h1>
         </div>
         {ledger !== 'error' ? (
-          <ReportExport rows={table} filename={`${code}${year ? `-${year}` : ''}.csv`} />
+          <ReportExport
+            rows={table}
+            filename={`${code}${year ? `-${year}` : ''}.csv`}
+            server={
+              officeId
+                ? {
+                    path: `/office/ledgers/${code}/export`,
+                    params: { officeId, ...(year ? { year } : {}) },
+                  }
+                : undefined
+            }
+          />
         ) : null}
       </div>
       <form className="filters filters-ledger" method="get" role="search">

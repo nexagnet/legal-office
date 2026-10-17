@@ -120,7 +120,18 @@ export default async function ReportPage({
           </p>
         </div>
         {rows !== 'error' && rows.length > 0 ? (
-          <ReportExport rows={table} filename={`bao-cao-${from}-${to}.csv`} />
+          <ReportExport
+            rows={table}
+            filename={`bao-cao-${from}-${to}.csv`}
+            server={
+              officeId && !groupBy
+                ? {
+                    path: '/office/report/export',
+                    params: { officeId, from, to, ...(branchId ? { branchId } : {}) },
+                  }
+                : undefined
+            }
+          />
         ) : null}
       </div>
       {rows !== 'error' && cases.length > 0 ? (
