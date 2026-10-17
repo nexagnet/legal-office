@@ -1253,7 +1253,14 @@ describe('PlaceForm', () => {
   });
 
   it('labels every history kind the API can return', () => {
-    for (const k of ['CASE_CREATED', 'NUMBER_ALLOCATED', 'SIGNED', 'HANDOVER', 'COPY_ISSUED']) {
+    for (const k of [
+      'CASE_CREATED',
+      'NUMBER_ALLOCATED',
+      'SIGNED',
+      'HANDOVER',
+      'COPY_ISSUED',
+      'CANCELLED',
+    ]) {
       expect(HISTORY_KIND_LABEL[k]).toBeTruthy();
     }
   });

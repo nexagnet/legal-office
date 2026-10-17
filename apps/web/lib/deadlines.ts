@@ -16,12 +16,14 @@ export interface OfficeCalendar {
 export const DEADLINE_DOMAIN_LABEL: Record<string, string> = {
   TONG_DAT: 'Tống đạt',
   VIBANG_CSDL: 'Vi bằng · cập nhật CSDL',
+  CONG_VAN: 'Công văn',
 };
 
-/** Trang đích của một hạn. Tống đạt chưa có trang chi tiết theo hồ sơ nên về danh sách. */
+/** Trang đích của một hạn. Tống đạt và công văn chưa có trang chi tiết nên về danh sách. */
 export function deadlineHref(d: Pick<DeadlineItem, 'domain' | 'caseId'>): string | null {
   if (d.domain === 'VIBANG_CSDL') return `/vi-bang/${d.caseId}`;
   if (d.domain === 'TONG_DAT') return '/tong-dat';
+  if (d.domain === 'CONG_VAN') return '/cong-van';
   return null;
 }
 

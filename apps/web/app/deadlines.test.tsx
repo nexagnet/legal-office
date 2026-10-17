@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CalendarSettings } from '../components/CalendarSettings';
 import { DeadlineReminders } from '../components/DeadlineReminders';
-import { deadlineHref, type DeadlineItem } from '../lib/deadlines';
+import { DEADLINE_DOMAIN_LABEL, deadlineHref, type DeadlineItem } from '../lib/deadlines';
 
 const refresh = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), refresh }) }));
@@ -62,6 +62,10 @@ describe('DeadlineReminders', () => {
   it('shows an error state instead of an empty list when the API failed', () => {
     render(<DeadlineReminders items="error" />);
     expect(screen.getByRole('alert').textContent).toContain('Không tải được nhắc hạn');
+  });
+  it('labels and links official letters to their list', () => {
+    expect(deadlineHref({ domain: 'CONG_VAN', caseId: 'x' })).toBe('/cong-van');
+    expect(DEADLINE_DOMAIN_LABEL.CONG_VAN).toBe('Công văn');
   });
   it('has no link for an unknown domain', () => {
     expect(deadlineHref({ domain: 'KHAC', caseId: 'x' })).toBeNull();
