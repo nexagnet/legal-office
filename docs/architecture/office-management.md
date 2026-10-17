@@ -20,7 +20,8 @@ Migration `apps/api/drizzle/0008_office.sql`. Dữ liệu giả lập. **Không 
 ## Sổ theo dõi S-01, S-02, S-04, S-05 (đọc)
 Migration `0030_office_ledgers.sql`; HTTP `GET /office/ledgers/{s-01|s-02|s-04|s-05}?officeId=&year=&limit=`. Trả `columns` (đúng số cột và thứ tự mẫu Phụ lục I TT 08/2026/TT-BTP: 10/7/11/13) và `rows` dựng từ dữ liệu đã có, kèm cột truy vết về hồ sơ gốc. Đây là bản điện tử hỗ trợ theo dõi, **không phải biểu mẫu chính thức**. S-03 là của Sở Tư pháp (không có), S-06 đọc qua `personnel`.
 Quyền: Admin, Trưởng VP, Thư ký, Thừa hành viên xem cả văn phòng; Văn thư theo chi nhánh được cấp; Kế toán không xem. Mọi lần đọc ghi `audit_log` (`of.ledger.sNN.read`). STT đánh theo thứ tự thời gian trong phạm vi người đọc được xem.
-Cột chưa có nguồn dữ liệu trả `null` (không suy đoán): S-01 loại văn bản, số/ngày văn bản, ba cột cơ quan giao, họ tên + số Thẻ THV; S-02 địa chỉ nơi lập, họ tên + số Thẻ THV; S-04 hợp đồng dịch vụ, quyết định THA, bản án, người yêu cầu/phải THA, nội dung xác minh, ghi chú; S-05 cột 3, sửa đổi/bổ sung và thu hồi quyết định, họ tên + số Thẻ THV, ghi chú.
+Cột chưa có nguồn dữ liệu trả `null` (không suy đoán): S-01 loại văn bản, số/ngày văn bản, ba cột cơ quan giao; S-02 (địa chỉ nơi lập nay lấy từ `place_address`, migration 0043); S-04 hợp đồng dịch vụ, quyết định THA, bản án, người yêu cầu/phải THA, nội dung xác minh, ghi chú; S-05 cột 3, sửa đổi/bổ sung và thu hồi quyết định, ghi chú.
+Cột "Thừa hành viên" của cả bốn sổ được điền ở tầng API từ `of_thv_cards` (migration 0046): Admin nhập họ tên + số Thẻ qua `PUT /office/thv-cards` (`GET` cho thành viên văn phòng); THV chưa có thẻ thì giữ `null`.
 
 ## HTTP (`/office`)
 `POST|GET correspondence`, `POST correspondence/:id/{attachments,result,submission,approval,issuance}`, `POST|GET decisions`, `POST tt06-forms`, `POST tt06-forms/:code/download`, `POST items`, `POST items/:id/{receipts,issues}`, `POST batches/:id/adjustment`, `PUT|GET personnel`, `GET ledgers/:code`.
