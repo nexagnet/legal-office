@@ -947,6 +947,28 @@ export class OfficeController {
     }));
   }
 
+  /** Báo cáo kỳ cho công văn, vật tư và lao động (cùng hình dạng dòng với `GET report`; vật tư tách số lần và tổng số lượng; không số tiền). */
+  @Get('report/ops')
+  async reportOps(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    const rows = await this.read<{ domain: string; unit: string; status: string; total: number }>(
+      a,
+      'of_search_report_ops',
+      [
+        officeId,
+        parse(isoDate, from),
+        parse(isoDate, to),
+        branchId === undefined || branchId === '' ? null : parse(uuid, branchId),
+      ],
+    );
+    return rows.map((r) => ({ domain: r.domain, unit: r.unit, status: r.status, total: r.total }));
+  }
+
   /** Xuất báo cáo tổng hợp theo kỳ ra Excel. Cùng phạm vi quyền với `GET report`; không số tiền. */
   @Get('report/export')
   async reportExport(

@@ -243,5 +243,50 @@ describe.skipIf(!ADMIN_URL)(
       expect((await q('x', U.admin)).status).toBe(400);
       expect((await q('thv', null)).status).toBe(401);
     });
+
+    it('reports correspondence, supplies and labour for a period with the same scope', async () => {
+      const item = id();
+      const batch = id();
+      await owner.query(
+        `INSERT INTO of_correspondence (tenant_id, office_id, branch_id, direction, status, doc_type, counterparty, subject, received_on, created_by)
+         VALUES ($1,$2,$3,'INBOUND','RECEIVED','CV','Sở','V/v A', current_date, $4), ($1,$2,$5,'INBOUND','RECEIVED','CV','Sở','V/v B', current_date, $4)`,
+        [T, OFF, BR1, U.admin, BR2],
+      );
+      await owner.query(
+        `INSERT INTO of_items (id, tenant_id, office_id, name, unit, created_by) VALUES ($1,$2,$3,'Giấy','ram',$4)`,
+        [item, T, OFF, U.admin],
+      );
+      await owner.query(
+        `INSERT INTO of_batches (id, tenant_id, item_id, office_id, branch_id, receipt_ref, qty_received, qty_remaining, received_by) VALUES ($1,$2,$3,$4,$5,'PN-1',10,7,$6)`,
+        [batch, T, item, OFF, BR1, U.admin],
+      );
+      await owner.query(
+        `INSERT INTO of_movements (tenant_id, batch_id, kind, delta, purpose, actor_user_id) VALUES ($1,$2,'RECEIPT',10,NULL,$3), ($1,$2,'ISSUE',-3,'in',$3)`,
+        [T, batch, U.admin],
+      );
+      await owner.query(
+        `INSERT INTO of_personnel (tenant_id, office_id, person_id, version, branch_id, full_name, gender, work_status, saved_by)
+         VALUES ($1,$2,$3,1,$4,'Nguyễn A','M','ACTIVE',$5), ($1,$2,$3,2,$4,'Nguyễn A','M','LEFT',$5)`,
+        [T, OFF, id(), BR1, U.admin],
+      );
+      const q = (user: string | null, extra = '') =>
+        get(`/office/report/ops?officeId=${OFF}&from=2020-01-01&to=${today}${extra}`, user);
+      const rows = JSON.parse((await q(U.admin)).buf.toString()) as Record<string, unknown>[];
+      const pick = (d: string, u: string, s: string) =>
+        rows.find((r) => r.domain === d && r.unit === u && r.status === s)?.total;
+      expect(pick('CONG_VAN', 'CORRESPONDENCE', 'INBOUND:RECEIVED')).toBe(2);
+      expect(pick('VAT_TU', 'MOVEMENT', 'ISSUE')).toBe(1);
+      expect(pick('VAT_TU', 'QUANTITY', 'RECEIPT')).toBe(10);
+      expect(pick('VAT_TU', 'QUANTITY', 'ISSUE')).toBe(3);
+      // chỉ tính phiên bản mới nhất của mỗi người
+      expect(pick('LAO_DONG', 'PERSON', 'LEFT')).toBe(1);
+      expect(pick('LAO_DONG', 'PERSON', 'ACTIVE')).toBeUndefined();
+      // Văn thư chi nhánh 2 không thấy phần của chi nhánh 1
+      const c2 = JSON.parse((await q(U.clerk2)).buf.toString()) as Record<string, unknown>[];
+      expect(c2.find((r) => r.unit === 'CORRESPONDENCE')?.total).toBe(1);
+      expect(c2.some((r) => r.domain === 'VAT_TU')).toBe(false);
+      expect((await q(U.admin, '&from=bad')).status).toBe(400);
+      expect((await q(null)).status).toBe(401);
+    });
   },
 );
