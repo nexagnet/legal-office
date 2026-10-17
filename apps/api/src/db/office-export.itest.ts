@@ -180,6 +180,20 @@ describe.skipIf(!ADMIN_URL)(
       expect(ls[3]![0]).toBe(1);
     });
 
+    it('exports the same report and ledger as PDF and rejects unknown formats', async () => {
+      const r = await get(`${rep}&format=pdf`, U.admin);
+      expect(r.status).toBe(200);
+      expect(r.res.headers.get('content-type')).toContain('application/pdf');
+      expect(r.buf.subarray(0, 5).toString()).toBe('%PDF-');
+      const l = await get(`/office/ledgers/s-01/export?officeId=${OFF}&format=pdf`, U.admin);
+      expect(l.res.headers.get('content-disposition')).toContain('so-s-01.pdf');
+      expect(l.buf.subarray(0, 5).toString()).toBe('%PDF-');
+      expect((await get(`${rep}&format=docx`, U.admin)).status).toBe(422);
+      expect((await get(`${rep}&format=pdf`, null)).status).toBe(401);
+      const out = await get(`/office/ledgers/s-01/export?officeId=${OFF}&format=pdf`, U.outsider);
+      expect(out.status).toBe(200); // outsider thấy sổ rỗng, cùng phạm vi với Excel
+    });
+
     it('keeps the same scope as the JSON endpoints and rejects bad callers', async () => {
       // Văn thư chi nhánh khác không thấy dòng của chi nhánh 1
       const l = await get(`/office/ledgers/s-01/export?officeId=${OFF}`, U.clerk2);
