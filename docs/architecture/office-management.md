@@ -33,3 +33,7 @@ Cột "Thừa hành viên" của cả bốn sổ được điền ở tầng API
 - Danh mục loại văn bản là văn bản tự do; kiểm tra "chỉ dành cho cơ quan nhà nước" mới dựa trên mã/tên biểu mẫu TT06 đã đăng ký.
 - Cột S-06 chi tiết (đặc biệt phần bảo hiểm) cần đối chiếu mẫu in chính thức.
 - Kho tệp thật và xác thực thật thuộc #5.
+
+## Nhắc hạn qua email (migration 0047)
+Owner chốt 18/10/2026: nhắc hạn tự động gửi qua email, Zalo làm sau. Thông báo trong ứng dụng (0033) vẫn là nguồn; mỗi (người, hạn, nhóm DUE_SOON/OVERDUE) đúng một thông báo nên đúng một thư. `of_email_pending(tenant)` đồng bộ thông báo cho mọi thành viên có tài khoản đăng nhập (đúng phạm vi `of_can_read`) rồi trả các thông báo chưa đọc và chưa gửi; `of_email_mark_sent` ghi `emailed_at`. Không có đường HTTP.
+Việc gửi chạy ngoài API bằng `node dist/reminders/reminders.cli.js` theo lịch (cron của nền tảng triển khai): mỗi người một thư gom mọi văn phòng, gửi tới email đăng nhập của chính họ, nội dung gồm loại việc, tên/tiêu đề và hạn (giờ Việt Nam). Thư lỗi không bị ghi là đã gửi nên lần chạy sau thử lại; sập giữa lúc gửi và ghi nhận có thể gửi lặp một thư. Biến môi trường: `DATABASE_URL` (vai ứng dụng), `TENANT_IDS` (danh sách, phân cách dấu phẩy), `SMTP_URL`, `MAIL_FROM`; thiếu một biến thì dừng, không gửi gì.
