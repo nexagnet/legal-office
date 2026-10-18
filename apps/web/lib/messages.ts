@@ -4,6 +4,15 @@ const MESSAGES: Record<string, string> = {
   BRANCH_NOT_GRANTED: 'Bạn chưa được cấp quyền ở chi nhánh này.',
   NOT_ASSIGNED_HANDLER: 'Bạn không phải người phụ trách hồ sơ này.',
   ADMIN_ONLY: 'Chỉ Admin được thực hiện thao tác này.',
+  MAIL_KEY_MISSING:
+    'Máy chủ chưa có khoá mã hoá mật khẩu (MAIL_SETTINGS_KEY). Nhờ quản trị hạ tầng đặt khoá trước.',
+  INVALID_MAIL_SETTINGS:
+    'Cấu hình email chưa hợp lệ. Kiểm tra máy chủ (không dùng địa chỉ nội bộ), cổng và địa chỉ gửi.',
+  MAIL_SETTINGS_NOT_FOUND: 'Chưa lưu cấu hình email.',
+  NO_LOGIN_EMAIL: 'Tài khoản của bạn chưa có email đăng nhập để nhận thư thử.',
+  MAIL_PASSWORD_UNREADABLE: 'Không giải mã được mật khẩu đã lưu. Hãy nhập lại mật khẩu SMTP.',
+  MAIL_SEND_FAILED:
+    'Gửi thư thử không thành công. Kiểm tra máy chủ, cổng, tên đăng nhập và mật khẩu SMTP.',
   REFERENCE_REQUIRED: 'Cần nhập mã tham chiếu.',
   TITLE_REQUIRED: 'Cần nhập tiêu đề hồ sơ.',
   CUSTOMER_NOT_FOUND: 'Không tìm thấy khách hàng.',
