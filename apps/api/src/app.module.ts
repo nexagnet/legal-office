@@ -14,6 +14,7 @@ import { type ActorResolver } from './http/actor';
 import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
 import { ServiceOfDocumentsController } from './service-of-documents/service-of-documents.controller';
 import { OfficeController } from './office/office.controller';
+import { MailSettingsController } from './reminders/mail-settings.controller';
 import { VerificationController } from './verification/verification.controller';
 import { VibangIntakeController } from './vibang/vibang-intake.controller';
 import { FILE_STORE, type FileStore } from './storage/file-store';
@@ -53,6 +54,7 @@ export class AppModule {
         ApprovalController,
         AccessController,
         OfficeController,
+        MailSettingsController,
         FormsController,
       ],
       providers: [

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AccessRequestActions } from '../../components/AccessRequestActions';
 import { AccessRequestForm } from '../../components/AccessRequestForm';
 import { CalendarSettings } from '../../components/CalendarSettings';
+import { MailSettingsForm, type MailSettings } from '../../components/MailSettingsForm';
 import { ThvCardsForm, type ThvCard } from '../../components/ThvCardsForm';
 import { loadCalendar } from '../../lib/deadlines-api';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
@@ -65,6 +66,21 @@ async function loadThvCards(cookie: string | null, officeId: string): Promise<Th
   }
 }
 
+async function loadMailSettings(
+  cookie: string | null,
+  officeId: string,
+): Promise<MailSettings | 'error'> {
+  try {
+    const res = await fetch(
+      `${API_URL}/office/mail-settings?officeId=${encodeURIComponent(officeId)}`,
+      { headers: cookie ? { cookie } : {}, cache: 'no-store' },
+    );
+    return res.ok ? ((await res.json()) as MailSettings) : 'error';
+  } catch {
+    return 'error';
+  }
+}
+
 async function load(cookie: string | null, officeId: string): Promise<Member[] | 'error'> {
   try {
     const res = await fetch(`${API_URL}/office/members?officeId=${encodeURIComponent(officeId)}`, {
@@ -100,6 +116,7 @@ export default async function AdminPage() {
   const calendar = officeId ? await loadCalendar(cookie, officeId) : null;
   const thvCards = officeId ? await loadThvCards(cookie, officeId) : [];
   const isAdmin = session.roles.includes('ADMIN');
+  const mail = officeId && isAdmin ? await loadMailSettings(cookie, officeId) : null;
   const people =
     members === 'error'
       ? []
@@ -236,6 +253,9 @@ export default async function AdminPage() {
       ) : null}
       {officeId ? (
         <ThvCardsForm officeId={officeId} people={thvPeople} cards={thvCards} canEdit={isAdmin} />
+      ) : null}
+      {officeId && mail !== null && mail !== 'error' ? (
+        <MailSettingsForm officeId={officeId} settings={mail} />
       ) : null}
       {officeId && calendar !== null && calendar === 'error' ? (
         <section className="calendar-settings" aria-labelledby="cal-t">
