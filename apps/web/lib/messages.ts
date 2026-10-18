@@ -285,7 +285,7 @@ export const ROLE_LABEL: Record<string, string> = {
   ADMIN: 'Admin',
   TRUONG_VP: 'Trưởng văn phòng',
   THU_KY: 'Thư ký',
-  THV: 'Thừa phát lại',
+  THV: 'Thừa hành viên',
   VAN_THU: 'Văn thư',
   KE_TOAN: 'Kế toán',
 };
