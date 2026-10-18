@@ -4,7 +4,14 @@ import { PG_POOL, PgService } from './db/pg.service';
 import { AccessController } from './admin/access.controller';
 import { ApprovalController } from './approval/approval.controller';
 import { AuthController } from './auth/auth.controller';
-import { AUTH_CONFIG, AuthService, type AuthConfig } from './auth/auth.service';
+import {
+  AUTH_CONFIG,
+  AuthService,
+  TENANT_MAILER,
+  type AuthConfig,
+  type TenantMailerResolver,
+} from './auth/auth.service';
+import { resolveTenantMailer } from './reminders/resolve-mailer';
 import { SessionResolver } from './auth/session.resolver';
 import { AssetsController } from './assets/assets.controller';
 import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
@@ -30,6 +37,8 @@ export interface AppOptions {
   readonly auth?: AuthConfig;
   /** Kho tệp (R2/đĩa). Không đặt = các thao tác cần tệp trả 503. */
   readonly fileStore?: FileStore | null;
+  /** Mailer theo tenant cho email xác thực Admin; không đặt = đọc cấu hình SMTP đã lưu (mặc định). */
+  readonly tenantMailer?: TenantMailerResolver;
 }
 
 const DEFAULT_AUTH: AuthConfig = { sessionTtlMinutes: 720, secureCookie: true, allowedOrigins: [] };
@@ -60,6 +69,12 @@ export class AppModule {
       providers: [
         { provide: PG_POOL, useValue: options.pool },
         { provide: AUTH_CONFIG, useValue: options.auth ?? DEFAULT_AUTH },
+        {
+          provide: TENANT_MAILER,
+          useValue:
+            options.tenantMailer ??
+            ((tenantId: string) => resolveTenantMailer(options.pool, tenantId, process.env)),
+        },
         AuthService,
         options.resolver === 'session'
           ? {

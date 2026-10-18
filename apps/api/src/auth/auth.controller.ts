@@ -21,7 +21,7 @@ import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { statusFor } from '../vibang/status';
-import { AuthService, SESSION_COOKIE } from './auth.service';
+import { AuthService, CHALLENGE_COOKIE, SESSION_COOKIE } from './auth.service';
 import { hashPassword, MAX_PASSWORD_LENGTH, passwordPolicyError } from './password';
 import { readCookie } from './session.resolver';
 
@@ -39,11 +39,16 @@ const loginBody = z
     password: z.string().min(1).max(MAX_PASSWORD_LENGTH),
   })
   .strict();
+const linkBody = z
+  .object({ tenantId: z.string().uuid(), token: z.string().regex(/^[A-Za-z0-9_-]{43}$/) })
+  .strict();
+const codeBody = z.object({ code: z.string().regex(/^\d{6}$/) }).strict();
 const passwordBody = z
   .object({ email: z.string().min(3).max(254), password: z.string().max(MAX_PASSWORD_LENGTH) })
   .strict();
 
 const LOCK_SECONDS = 15 * 60;
+const CHALLENGE_COOKIE_SECONDS = 25 * 60;
 
 @Controller('auth')
 export class AuthController {
@@ -52,6 +57,11 @@ export class AuthController {
   private cookie(value: string, maxAgeSeconds: number): string {
     const secure = this.auth.config.secureCookie ? '; Secure' : '';
     return `${SESSION_COOKIE}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAgeSeconds}${secure}`;
+  }
+
+  private challengeCookie(value: string, maxAgeSeconds: number): string {
+    const secure = this.auth.config.secureCookie ? '; Secure' : '';
+    return `${CHALLENGE_COOKIE}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAgeSeconds}${secure}`;
   }
 
   @Post('login')
@@ -71,12 +81,87 @@ export class AuthController {
     if (result.status === 'invalid') {
       throw new UnauthorizedException({ code: 'INVALID_CREDENTIALS', label: null });
     }
+    res.setHeader('Cache-Control', 'no-store');
+    if (result.status === 'verification_required') {
+      res.setHeader(
+        'Set-Cookie',
+        this.challengeCookie(result.challengeCookie, CHALLENGE_COOKIE_SECONDS),
+      );
+      return { code: 'VERIFICATION_REQUIRED', label: null };
+    }
+    if (result.status === 'rate_limited') {
+      throw new HttpException(
+        { code: 'CHALLENGE_RATE_LIMITED', label: null },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    if (result.status === 'mail_failed') {
+      throw new HttpException(
+        { code: 'VERIFICATION_MAIL_FAILED', label: null },
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
+    if (result.status === 'unavailable') {
+      throw new HttpException(
+        { code: 'VERIFICATION_UNAVAILABLE', label: null },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
     res.setHeader(
       'Set-Cookie',
       this.cookie(result.cookieValue, this.auth.config.sessionTtlMinutes * 60),
     );
-    res.setHeader('Cache-Control', 'no-store');
     return { code: 'ALLOWED', label: null };
+  }
+
+  /** Bấm link trong email: trả mã 6 số một lần (không cần phiên). */
+  @Post('verify-link')
+  @HttpCode(HttpStatus.OK)
+  async verifyLink(@Body() raw: unknown, @Res({ passthrough: true }) res: HeaderSink) {
+    const parsed = linkBody.safeParse(raw);
+    if (!parsed.success) throw new BadRequestException('Link không hợp lệ');
+    const result = await this.auth.redeemLink(parsed.data.tenantId, parsed.data.token);
+    res.setHeader('Cache-Control', 'no-store');
+    if (result.status !== 'ok') {
+      throw new HttpException(
+        { code: 'LINK_INVALID', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    return {
+      code: 'ALLOWED',
+      label: null,
+      verificationCode: result.code,
+      validMinutes: result.validMinutes,
+    };
+  }
+
+  /** Nhập mã 6 số ở trình duyệt đã qua bước mật khẩu; đúng thì mở phiên. */
+  @Post('login/verify')
+  @HttpCode(HttpStatus.OK)
+  async verifyLogin(
+    @Body() raw: unknown,
+    @Req() req: HeaderSource,
+    @Res({ passthrough: true }) res: HeaderSink,
+  ) {
+    const parsed = codeBody.safeParse(raw);
+    if (!parsed.success) throw new BadRequestException('Mã xác thực không hợp lệ');
+    const cookie = AuthService.parseCookieValue(readCookie(req.headers, CHALLENGE_COOKIE));
+    res.setHeader('Cache-Control', 'no-store');
+    if (!cookie) {
+      throw new UnauthorizedException({ code: 'CHALLENGE_INVALID', label: null });
+    }
+    const result = await this.auth.verifyCode(cookie.tenantId, cookie.token, parsed.data.code);
+    if (result.status === 'ok') {
+      res.setHeader('Set-Cookie', [
+        this.cookie(result.cookieValue, this.auth.config.sessionTtlMinutes * 60),
+        this.challengeCookie('', 0),
+      ]);
+      return { code: 'ALLOWED', label: null };
+    }
+    const status =
+      result.status === 'CODE_NOT_ISSUED' ? HttpStatus.CONFLICT : HttpStatus.UNAUTHORIZED;
+    throw new HttpException({ code: result.status, label: null }, status);
   }
 
   @Post('logout')

@@ -71,5 +71,6 @@ export function rateLimit(
 
 export const DEFAULT_RATE_RULES: readonly RateLimitRule[] = [
   { prefix: '/auth/login', limit: 20, windowMs: 60_000 },
+  { prefix: '/auth/verify-link', limit: 20, windowMs: 60_000 },
   { prefix: '', limit: 600, windowMs: 60_000 },
 ];

@@ -115,6 +115,18 @@ const MESSAGES: Record<string, string> = {
   FIELDS_REQUIRED: 'Cần nhập đủ người yêu cầu, căn cứ và người nhận.',
   INVALID_COPIES: 'Số bản sao phải từ 1 đến 50.',
   FIELD_NOT_FOR_KIND: 'Trường này không áp dụng cho loại khách hàng đã chọn.',
+  VERIFICATION_MAIL_FAILED:
+    'Không gửi được email xác thực. Kiểm tra cấu hình email hoặc nhờ quản trị hệ thống tắt tạm bước này.',
+  VERIFICATION_UNAVAILABLE:
+    'Chưa thể xác thực qua email (thiếu địa chỉ web). Liên hệ quản trị hệ thống.',
+  CHALLENGE_RATE_LIMITED: 'Đã yêu cầu xác thực quá nhiều lần. Vui lòng thử lại sau 15 phút.',
+  LINK_INVALID:
+    'Link xác thực không hợp lệ, đã dùng hoặc đã hết hạn. Hãy đăng nhập lại để nhận email mới.',
+  INVALID_CODE: 'Mã xác thực chưa đúng. Kiểm tra lại mã trên trang đã mở từ email.',
+  CODE_NOT_ISSUED: 'Chưa có mã. Hãy bấm link trong email để nhận mã trước.',
+  CHALLENGE_INVALID: 'Phiên xác thực không còn hiệu lực. Vui lòng đăng nhập lại.',
+  CHALLENGE_EXPIRED: 'Phiên xác thực đã hết hạn. Vui lòng đăng nhập lại.',
+  CHALLENGE_LOCKED: 'Nhập sai mã quá 5 lần nên phiên xác thực đã bị huỷ. Vui lòng đăng nhập lại.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
