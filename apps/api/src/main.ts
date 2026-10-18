@@ -21,6 +21,7 @@ async function bootstrap(): Promise<void> {
           .split(',')
           .map((o) => o.trim())
           .filter(Boolean),
+        publicWebUrl: process.env.PUBLIC_WEB_URL || undefined,
       },
     }),
   );

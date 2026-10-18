@@ -20,6 +20,7 @@
 ## B. Owner đã quyết định
 
 1. **Thứ Bảy có tính ngày làm việc không?** Đã chốt (16/10/2026): **không**. Lịch làm việc vẫn cấu hình được theo văn phòng; đổi sau không mất dữ liệu.
+2. **Admin đăng nhập có xác thực email** (chốt 18/10/2026). Admin nhập email + mật khẩu; hệ thống tự gửi email chứa link; phải bấm link mới sinh mã 6 số; nhập mã vào màn đăng nhập mới có phiên. Email Admin mặc định `phungtienviet14@gmail.com` (đặt bằng `set-password.cli.js`, không ghi cứng trong mã). Tham số kỹ thuật đề xuất, chờ chủ dự án xác nhận: giữ mật khẩu làm lớp đầu; link dùng một lần, hết hạn 15 phút; mã hết hạn 10 phút, sai 5 lần thì huỷ; tối đa 3 lần gửi mỗi 15 phút; chỉ bắt buộc khi tenant đã lưu SMTP; lối thoát bằng lệnh CLI. Chi tiết: `docs/architecture/auth-password.md`.
 
 ## C. Cổng chặn không phải việc code
 
