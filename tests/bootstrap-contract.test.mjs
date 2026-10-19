@@ -188,7 +188,7 @@ describe('V5 Repair R3 caller fail-closed evidence and permission contract', () 
     assert.doesNotMatch(repairCaller, /pull-requests: write|contents: write|actions: write|id-token: write|secrets: inherit/);
     assert.match(repairCaller, /if: needs\.discover\.outputs\.should_repair == 'true'/);
     for (const name of ['CLAUDE_CODE_OAUTH_TOKEN', 'BUILDER_PUBLISHER_APP_ID', 'BUILDER_PUBLISHER_APP_PRIVATE_KEY']) {
-      assert.match(repairCaller, new RegExp(name + ': \\\\$\\\\{\\\\{ secrets\\\\.' + name + ' \\\\}\\\\}'));
+      assert.ok(repairCaller.includes(name + ': $' + '{{ secrets.' + name + ' }}'), name);
     }
     assert.doesNotMatch(repairCaller, /git push|gh pr merge|gh api.*merge|allowed_bots: ['"]\*/);
   });
