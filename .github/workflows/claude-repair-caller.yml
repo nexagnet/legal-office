@@ -1,0 +1,126 @@
+name: Nexagnet V5 Legal Office Repair Caller
+
+# R3 Task Contract: https://github.com/nexagnet/legal-office/issues/38
+# Only trusted, completed Reviewer workflow_runs on the default branch.
+on:
+  workflow_run:
+    workflows: [Nexagnet V5 Legal Office Reviewer Caller]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  discover:
+    name: Verify Reviewer run-scoped REQUEST_CHANGES evidence
+    if: >-
+      github.repository == 'nexagnet/legal-office' &&
+      github.event.workflow_run.event == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+    outputs:
+      should_repair: ${{ steps.evidence.outputs.should_repair }}
+      pr_number: ${{ steps.evidence.outputs.pr_number }}
+      head_sha: ${{ steps.evidence.outputs.head_sha }}
+    steps:
+      - id: evidence
+        name: Authenticate upstream run and read trusted evidence artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEWER_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "nexagnet/legal-office"
+          test "$GITHUB_EVENT_NAME" = "workflow_run"
+          [[ "$REVIEWER_RUN" =~ ^[1-9][0-9]*$ ]]
+          jq -e --argjson id "$REVIEWER_RUN" '
+            .action == "completed"
+            and .workflow_run.id == $id
+            and .workflow_run.event == "workflow_run"
+            and .workflow_run.conclusion == "success"
+          ' "$GITHUB_EVENT_PATH" > /dev/null
+
+          upstream="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$REVIEWER_RUN")"
+          jq -e --arg repo "$GITHUB_REPOSITORY" '
+            .name == "Nexagnet V5 Legal Office Reviewer Caller"
+            and .path == ".github/workflows/claude-reviewer-caller.yml"
+            and .event == "workflow_run"
+            and .status == "completed" and .conclusion == "success"
+            and .head_branch == "main"
+            and .repository.full_name == $repo
+          ' <<< "$upstream" > /dev/null
+
+          mkdir -p "$RUNNER_TEMP/reviewer-evidence"
+          gh run download "$REVIEWER_RUN" --repo "$GITHUB_REPOSITORY" \
+            --name nexagnet-review-evidence \
+            --dir "$RUNNER_TEMP/reviewer-evidence"
+          file="$RUNNER_TEMP/reviewer-evidence/review-evidence.json"
+          test -s "$file"
+          test "$(wc -c < "$file")" -le 30000
+          jq -e '
+            .schema == "nexagnet-review-v1"
+            and (.pr | type == "number" and . > 0)
+            and (.issue | type == "number" and . > 0)
+            and (.ci_run_id | type == "number" and . > 0)
+            and (.head_sha | type == "string" and test("^[0-9a-f]{40}$"))
+            and (.review.head_sha == .head_sha)
+            and (.review.diff_inspected == true)
+            and (.review.verdict == "PASS" or .review.verdict == "REQUEST_CHANGES")
+          ' "$file" > /dev/null
+
+          if test "$(jq -r .review.verdict "$file")" = "PASS"; then
+            echo "Verified Reviewer PASS; no repair requested."
+            echo "should_repair=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          jq -e '
+            .review.verdict == "REQUEST_CHANGES"
+            and any(.review.findings[]; .severity == "blocker" or .severity == "major")
+          ' "$file" > /dev/null
+          pr="$(jq -r .pr "$file")"
+          sha="$(jq -r .head_sha "$file")"
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr")"
+          jq -e --arg sha "$sha" --arg repo "$GITHUB_REPOSITORY" '
+            .state == "open"
+            and .head.sha == $sha
+            and .head.repo.full_name == $repo
+            and .base.repo.full_name == $repo
+            and .base.ref == "main"
+            and .user.login == "nexagnet-builder-publisher[bot]"
+            and .user.type == "Bot"
+          ' <<< "$actual" > /dev/null
+          echo "should_repair=true" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$pr" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$sha" >> "$GITHUB_OUTPUT"
+
+  repair:
+    name: Shared exact-HEAD Repair on same PR
+    needs: discover
+    if: needs.discover.outputs.should_repair == 'true'
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+    uses: nexagnet/.github/.github/workflows/claude-repair.yml@3bedc42906b1417e5468bae890aae87c40ef8208
+    with:
+      pr_number: ${{ fromJSON(needs.discover.outputs.pr_number) }}
+      expected_head_sha: ${{ needs.discover.outputs.head_sha }}
+      reviewer_run_id: ${{ github.event.workflow_run.id }}
+      reviewer_workflow_name: 'Nexagnet V5 Legal Office Reviewer Caller'
+      reviewer_workflow_path: '.github/workflows/claude-reviewer-caller.yml'
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      BUILDER_PUBLISHER_APP_ID: ${{ secrets.BUILDER_PUBLISHER_APP_ID }}
+      BUILDER_PUBLISHER_APP_PRIVATE_KEY: ${{ secrets.BUILDER_PUBLISHER_APP_PRIVATE_KEY }}
