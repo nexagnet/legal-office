@@ -151,3 +151,45 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
   });
 
 });
+
+
+const repairCaller = readFileSync(
+  new URL('../.github/workflows/claude-repair-caller.yml', import.meta.url), 'utf8',
+).replaceAll('\r\n', '\n');
+
+describe('V5 Repair R3 caller fail-closed evidence and permission contract', () => {
+  it('pins merged central Repair SHA and triggers only successful Reviewer workflow_run', () => {
+    assert.match(repairCaller, /workflows: \[Nexagnet V5 Legal Office Reviewer Caller\]/);
+    assert.match(repairCaller, /types: \[completed\]/);
+    assert.match(repairCaller, /github\.event\.workflow_run\.event == 'workflow_run'/);
+    assert.match(repairCaller, /github\.event\.workflow_run\.conclusion == 'success'/);
+    assert.match(repairCaller, /claude-repair\.yml@3bedc42906b1417e5468bae890aae87c40ef8208/);
+    assert.doesNotMatch(repairCaller, /pull_request_target|issue_comment:|workflow_dispatch:|@main\b/);
+  });
+
+  it('authenticates run name/path and artifact rather than trusting comments or upstream main SHA', () => {
+    for (const token of [
+      '.workflow_run.id == $id', '.event == "workflow_run"',
+      '.path == ".github/workflows/claude-reviewer-caller.yml"',
+      '.head_branch == "main"', 'nexagnet-review-evidence',
+      '.schema == "nexagnet-review-v1"',
+      '.review.diff_inspected == true', '.review.verdict == "REQUEST_CHANGES"',
+      'any(.review.findings[];', 'should_repair=true', 'should_repair=false',
+      '.head.sha == $sha', '.user.login == "nexagnet-builder-publisher[bot]"'
+    ]) assert.ok(repairCaller.includes(token), token);
+    assert.match(repairCaller, /pr_number: \$\{\{ fromJSON\(needs\.discover\.outputs\.pr_number\) \}\}/);
+    assert.match(repairCaller, /expected_head_sha: \$\{\{ needs\.discover\.outputs\.head_sha \}\}/);
+    assert.match(repairCaller, /reviewer_run_id: \$\{\{ github\.event\.workflow_run\.id \}\}/);
+    assert.doesNotMatch(repairCaller, /expected_head_sha: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+  });
+
+  it('keeps caller read-only and passes explicit secrets only to centralized Repair', () => {
+    assert.match(repairCaller, /permissions:\n  contents: read\n  actions: read\n  issues: read\n  pull-requests: read/);
+    assert.doesNotMatch(repairCaller, /pull-requests: write|contents: write|actions: write|id-token: write|secrets: inherit/);
+    assert.match(repairCaller, /if: needs\.discover\.outputs\.should_repair == 'true'/);
+    for (const name of ['CLAUDE_CODE_OAUTH_TOKEN', 'BUILDER_PUBLISHER_APP_ID', 'BUILDER_PUBLISHER_APP_PRIVATE_KEY']) {
+      assert.ok(repairCaller.includes(name + ': $' + '{{ secrets.' + name + ' }}'), name);
+    }
+    assert.doesNotMatch(repairCaller, /git push|gh pr merge|gh api.*merge|allowed_bots: ['"]\*/);
+  });
+});
