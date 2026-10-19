@@ -20,7 +20,7 @@ jobs:
       github.actor == 'phungtienviet14-sketch' &&
       github.event.issue.pull_request == null &&
       contains(github.event.comment.body, '@claude')
-    uses: nexagnet/.github/.github/workflows/claude-builder.yml@7166e745607860e6f8a414548963f83d12c71f9b
+    uses: nexagnet/.github/.github/workflows/claude-builder.yml@8a4c620db0c58bcee6ddcb6bd25950e24a911688
     with:
       issue_number: ${{ github.event.issue.number }}
     secrets:
