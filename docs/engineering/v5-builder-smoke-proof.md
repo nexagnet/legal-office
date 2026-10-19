@@ -1,6 +1,6 @@
 # V5 Builder Smoke Proof
 
-V5_BUILDER_SMOKE_MARKER_UNDER_REPAIR_TEST
+NEXAGNET_V5_BUILDER_SMOKE_20261019
 
 This file is a disposable, documentation-only artifact used to prove the Nexagnet V5 Builder sandboxed edit flow (Issue #158). It can be removed at any time.
 
