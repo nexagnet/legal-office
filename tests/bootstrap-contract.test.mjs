@@ -95,8 +95,8 @@ const reviewerCaller = readFileSync(
 ).replaceAll('\r\n', '\n');
 
 describe('V5 consumer callers R3 static security contract (not runtime proof)', () => {
-  const builderPinned = 'c98e47e9008cdd5de6e8b68839b64f50bee81ae9';
-  const reviewerPinned = '7dd9f51531667f7d2e89d87145e028965d4080da';
+  const builderPinned = '7166e745607860e6f8a414548963f83d12c71f9b';
+  const reviewerPinned = '7166e745607860e6f8a414548963f83d12c71f9b';
 
   it('pins independent immutable and reviewed central Builder/Reviewer workflow versions', () => {
     assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + builderPinned));
@@ -145,8 +145,8 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
     assert.doesNotMatch(reviewerCaller, /issues: write|contents: write|actions: write|id-token: write/);
     assert.doesNotMatch(reviewerCaller, /secrets: inherit|BUILDER_PUBLISHER_APP_ID|BUILDER_PUBLISHER_APP_PRIVATE_KEY/);
     assert.doesNotMatch(builderCaller, /pull-requests: write|issues: write|contents: write/);
-    assert.match(reviewerCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-reviewer\.yml@7dd9f51531667f7d2e89d87145e028965d4080da/);
-    assert.match(builderCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-builder\.yml@c98e47e9008cdd5de6e8b68839b64f50bee81ae9/);
+    assert.match(reviewerCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-reviewer\.yml@7166e745607860e6f8a414548963f83d12c71f9b/);
+    assert.match(builderCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-builder\.yml@7166e745607860e6f8a414548963f83d12c71f9b/);
     assert.doesNotMatch(reviewerCaller, /pull_request_target|workflow_dispatch|gh pr merge|gh api.*merge|deploy/);
   });
 
