@@ -28,6 +28,11 @@
    - Điều 46.1 THA: quyết định thu hồi trong 2 ngày làm việc kể từ khi chấm dứt/thanh lý. Chấm dứt vụ việc (ADMIN/Trưởng VP) cần lý do mã, căn cứ và tệp chứng cứ; điểm Luật THADS Điều 31.5 do người dùng ghi trong căn cứ, hệ thống không suy ra.
    - "Trừ khi các bên có thoả thuận khác": Admin/Trưởng VP ghi hạn thoả thuận kèm lý do.
    - Đóng hạn Xác minh/THA cần Trưởng VP có quyền ký (`legal_signer`). Cài đặt: migration 0050, `POST /office/deadlines/:id/{done,agree}`, `PUT /verification/cases/:id/contract-date`, `POST /enforcement/cases/:id/termination`.
+4. **Bảng quyền, `legal_signer`, Admin lệch §4.1 (chốt theo đề xuất 21/10/2026, sẽ chỉnh sau).**
+   - Nguồn thật của phân quyền là các hàm SQL (`td_authorize`, `of_can_read`, bảo vệ trigger `*_guard`), mỗi thao tác tự kiểm vai, chi nhánh được cấp (`branch_grants`) và người phụ trách. `apps/api/src/authz/policy.ts` chỉ là bảng mô phỏng cho cơ chế fail-closed, không phải nguồn nghiệp vụ.
+   - Giữ nguyên hành vi hiện có, không mở rộng thêm quyền: Admin quản trị, duyệt nội bộ (sửa hồ sơ, thu hồi MISA, chuyển hồ sơ), không tự ký văn bản pháp lý; THV chỉ ghi khi được giao; Thư ký/Văn thư/Kế toán theo chi nhánh được cấp.
+   - `legal_signer` do Admin cấp cho Trưởng VP hoặc THV theo quyết định bổ nhiệm; mọi bước ký/ban hành (quyết định xác minh, quyết định thu hồi THA) kiểm quyền này, thiếu thì `SIGNING_AUTHORITY_NOT_GRANTED`.
+   - Phần Admin đang làm khác §4.1 (nếu có) giữ nguyên để không phá luồng đã chạy; chủ dự án chỉnh sau khi rà bảng quyền thực tế.
 
 ## C. Cổng chặn không phải việc code
 
