@@ -21,6 +21,13 @@
 
 1. **Thứ Bảy có tính ngày làm việc không?** Đã chốt (16/10/2026): **không**. Lịch làm việc vẫn cấu hình được theo văn phòng; đổi sau không mất dữ liệu.
 2. **Admin đăng nhập có xác thực email** (chốt 18/10/2026). Admin nhập email + mật khẩu; hệ thống tự gửi email chứa link; phải bấm link mới sinh mã 6 số; nhập mã vào màn đăng nhập mới có phiên. Email Admin mặc định `phungtienviet14@gmail.com` (đặt bằng `set-password.cli.js`, không ghi cứng trong mã). Tham số kỹ thuật đề xuất, chờ chủ dự án xác nhận: giữ mật khẩu làm lớp đầu; link dùng một lần, hết hạn 15 phút; mã hết hạn 10 phút, sai 5 lần thì huỷ; tối đa 3 lần gửi mỗi 15 phút; chỉ bắt buộc khi tenant đã lưu SMTP; lối thoát bằng lệnh CLI. Chi tiết: `docs/architecture/auth-password.md`.
+3. **Hạn pháp định (chốt theo đề xuất 21/10/2026, chủ dự án cho phép tự chọn, sẽ chỉnh sau).** Bốn hạn tính theo ngày làm việc của văn phòng (lịch + ngày nghỉ, thứ Bảy không tính), hạn kết thúc 23:59:59 giờ VN của ngày làm việc cuối; chỉ nhắc, không khoá nghiệp vụ.
+   - Điều 25.2 Tống đạt: báo kết quả trong 2 ngày làm việc kể từ khi hoàn thành tống đạt (mốc = lần tống đạt cuối).
+   - Điều 31.3 Vi bằng: cập nhật CSDL và gửi N-11 trong 2 ngày làm việc kể từ khi lập N-11.
+   - Điều 35.1 Xác minh: Trưởng VP ra quyết định trong 3 ngày làm việc kể từ ngày ký hợp đồng; ngày ký do người xử lý nhập.
+   - Điều 46.1 THA: quyết định thu hồi trong 2 ngày làm việc kể từ khi chấm dứt/thanh lý. Chấm dứt vụ việc (ADMIN/Trưởng VP) cần lý do mã, căn cứ và tệp chứng cứ; điểm Luật THADS Điều 31.5 do người dùng ghi trong căn cứ, hệ thống không suy ra.
+   - "Trừ khi các bên có thoả thuận khác": Admin/Trưởng VP ghi hạn thoả thuận kèm lý do.
+   - Đóng hạn Xác minh/THA cần Trưởng VP có quyền ký (`legal_signer`). Cài đặt: migration 0050, `POST /office/deadlines/:id/{done,agree}`, `PUT /verification/cases/:id/contract-date`, `POST /enforcement/cases/:id/termination`.
 
 ## C. Cổng chặn không phải việc code
 

@@ -127,6 +127,11 @@ const MESSAGES: Record<string, string> = {
   CHALLENGE_INVALID: 'Phiên xác thực không còn hiệu lực. Vui lòng đăng nhập lại.',
   CHALLENGE_EXPIRED: 'Phiên xác thực đã hết hạn. Vui lòng đăng nhập lại.',
   CHALLENGE_LOCKED: 'Nhập sai mã quá 5 lần nên phiên xác thực đã bị huỷ. Vui lòng đăng nhập lại.',
+  DEADLINE_NOT_FOUND: 'Không tìm thấy hạn này.',
+  INVALID_DATE: 'Ngày không hợp lệ (không được ở tương lai).',
+  INVALID_DUE: 'Hạn thỏa thuận phải sau ngày bắt đầu tính hạn.',
+  NOTE_REQUIRED: 'Cần ghi chú đã làm gì.',
+  ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
@@ -195,6 +200,13 @@ export const ROUND_STATUS_LABEL: Record<string, string> = {
 export const ENFORCEMENT_STATUS_LABEL: Record<string, string> = {
   OPEN: 'Đang thực hiện',
   COMPLETED: 'Đã hoàn tất',
+  TERMINATED: 'Đã chấm dứt',
+};
+export const TERMINATION_REASON_LABEL: Record<string, string> = {
+  AGREEMENT: 'Đương sự thỏa thuận chấm dứt',
+  REQUESTER_WITHDRAWAL: 'Người yêu cầu rút yêu cầu',
+  NO_CONDITIONS: 'Không có điều kiện thi hành',
+  OTHER: 'Căn cứ khác (ghi rõ ở ô căn cứ)',
 };
 export const OBLIGATION_STATUS_LABEL: Record<string, string> = {
   OPEN: 'Chưa thực hiện',

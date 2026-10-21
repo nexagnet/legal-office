@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StatutoryDeadlineActions } from './StatutoryDeadlineActions';
 import {
   DEADLINE_DOMAIN_LABEL,
   deadlineHref,
@@ -19,8 +20,8 @@ export function DeadlineReminders({
     <div className="panel deadlines" aria-labelledby="deadline-t">
       <h2 id="deadline-t">Nhắc hạn</h2>
       <p className="muted">
-        Hạn trong 7 ngày tới và hạn đã quá. Chỉ là nhắc việc trong ứng dụng, không phải hạn pháp lý
-        tự động.
+        Hạn trong 7 ngày tới và hạn đã quá. Hạn ghi “Điều …” là hạn pháp định tính theo lịch làm
+        việc của văn phòng; hệ thống chỉ nhắc, không tự đổi trạng thái hồ sơ.
       </p>
       {items === 'error' ? (
         <div className="state" role="alert">
@@ -48,6 +49,7 @@ export function DeadlineReminders({
                   </span>
                   <span>Hạn {formatDay(d.deadlineAt)}</span>
                 </span>
+                {d.statutory ? <StatutoryDeadlineActions id={d.refId} /> : null}
               </li>
             );
           })}

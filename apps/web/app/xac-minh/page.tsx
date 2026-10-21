@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { NewVerificationForm } from '../../components/NewVerificationForm';
 import { VerificationActions } from '../../components/VerificationActions';
 import { AssignHandler } from '../../components/AssignHandler';
+import { ContractDateForm } from '../../components/ContractDateForm';
 import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
 import { ROUND_STATUS_LABEL, VERIFICATION_STATUS_LABEL } from '../../lib/messages';
 
@@ -111,6 +112,7 @@ export default async function VerificationPage() {
                         currentId={c.handlerUserId}
                       />
                     )}
+                    {c.status === 'CONCLUDED' ? null : <ContractDateForm caseId={c.caseId} />}
                     <VerificationActions caseId={c.caseId} status={c.status} rounds={c.rounds} />
                   </td>
                 </tr>
