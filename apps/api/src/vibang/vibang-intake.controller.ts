@@ -1,23 +1,33 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
   Inject,
   NotFoundException,
+  Optional,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Put,
   Query,
+  Req,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { recordWithUpload } from '../storage/evidence';
+import { FILE_STORE, type FileStore } from '../storage/file-store';
+import type { RawBody } from '../storage/upload';
 import { statusFor } from './status';
 import { VibangRepo, type Op } from './vibang.repo';
 
@@ -104,7 +114,10 @@ const toCase = (r: CaseRow) => ({
 @Controller('vibang')
 @UseGuards(ActorGuard)
 export class VibangIntakeController {
-  constructor(@Inject(VibangRepo) private readonly repo: VibangRepo) {}
+  constructor(
+    @Inject(VibangRepo) private readonly repo: VibangRepo,
+    @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
+  ) {}
 
   private run(actor: AuthenticatedActor, fn: string, args: readonly unknown[]): Promise<Reply> {
     return this.repo
@@ -162,6 +175,114 @@ export class VibangIntakeController {
       b.taxCode ?? null,
       b.representative ?? null,
     ]);
+  }
+
+  /** Tải bản scan hợp đồng (PDF/JPEG/PNG). Máy chủ tự tính hash và khoá lưu. */
+  @Post('contracts/:id/attachment-files')
+  @HttpCode(HttpStatus.OK)
+  attachContractFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(z.object({ name: text(200).optional() }).strict(), query);
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/vb/contracts/${id}/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'vb_add_contract_attachment', [id, q.name ?? '', key, f.sha256]),
+    );
+  }
+
+  @Get('contracts/:id/attachments')
+  async listContractAttachments(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const rows = await this.repo.rows<{ id: string; name: string; added_at: string }>(
+      a.tenantId,
+      'vb_list_contract_attachments',
+      [a.tenantId, a.userId, id],
+    );
+    return rows.map((r) => ({ id: Number(r.id), name: r.name, addedAt: r.added_at }));
+  }
+
+  @Get('contracts/:id/attachments/:attId')
+  async downloadContractAttachment(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('attId', ParseIntPipe) attId: number,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+  ) {
+    if (!this.store)
+      throw new HttpException(
+        { code: 'FILE_STORE_NOT_CONFIGURED', label: null },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    const rows = await this.repo.rows<{ id: string; name: string; key: string }>(
+      a.tenantId,
+      'vb_list_contract_attachments',
+      [a.tenantId, a.userId, id],
+    );
+    const att = rows.find((r) => Number(r.id) === attId);
+    const bytes =
+      att && att.key.startsWith(`t/${a.tenantId}/`) ? await this.store.get(att.key) : null;
+    if (!att || !bytes)
+      throw new HttpException({ code: 'FILE_NOT_FOUND', label: null }, HttpStatus.NOT_FOUND);
+    const ext = (att.key.split('.').pop() ?? '').toLowerCase();
+    const type = ext === 'pdf' ? 'application/pdf' : ext === 'png' ? 'image/png' : 'image/jpeg';
+    res.set({
+      'content-type': type,
+      'content-disposition': `attachment; filename="${att.name.replace(/[^A-Za-z0-9._-]/g, '_')}"`,
+      'cache-control': 'private, no-store',
+    });
+    return new StreamableFile(bytes);
+  }
+
+  @Get('contracts/:id/parties')
+  async listContractParties(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const rows = await this.repo.rows<Record<string, string | null>>(
+      a.tenantId,
+      'vb_list_contract_parties',
+      [a.tenantId, a.userId, id],
+    );
+    return rows.map((r) => ({
+      customerId: r.customer_id,
+      role: r.role,
+      displayName: r.display_name,
+      externalRef: r.external_ref,
+    }));
+  }
+
+  @Put('contracts/:id/parties/:customerId')
+  @HttpCode(HttpStatus.OK)
+  setContractParty(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('customerId', ParseUUIDPipe) customerId: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ role: z.enum(['REPRESENTATIVE', 'BENEFICIARY', 'WITNESS', 'OTHER']) }).strict(),
+      body,
+    );
+    return this.run(a, 'vb_set_contract_party', [id, customerId, b.role]);
+  }
+
+  @Post('contracts/:id/parties/:customerId/remove')
+  @HttpCode(HttpStatus.OK)
+  removeContractParty(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('customerId', ParseUUIDPipe) customerId: string,
+  ) {
+    return this.run(a, 'vb_remove_contract_party', [id, customerId]);
   }
 
   @Post('contracts/:id')
