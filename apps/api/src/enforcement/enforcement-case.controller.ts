@@ -203,6 +203,57 @@ export class EnforcementCaseController {
     return this.run(a, 'th_complete_case', [id, b.evidenceKey, b.evidenceSha256]);
   }
 
+  /** Chấm dứt tổ chức THA khi chưa hoàn tất mọi nghĩa vụ (Điều 46): lý do có mã, căn cứ pháp lý, tệp văn bản chấm dứt/thanh lý. */
+  @Post(':id/termination')
+  @HttpCode(HttpStatus.OK)
+  terminate(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          reason: z.string().max(40),
+          basis: z.string().max(2000),
+          evidenceKey: z.string().max(500),
+          evidenceSha256: z.string().max(64),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'th_terminate_case', [
+      id,
+      b.reason,
+      b.basis,
+      b.evidenceKey,
+      b.evidenceSha256,
+    ]);
+  }
+
+  /** Như trên nhưng tải thẳng tệp văn bản chấm dứt; lý do và căn cứ đi theo query. */
+  @Post(':id/termination-file')
+  @HttpCode(HttpStatus.OK)
+  terminateWithFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z.object({ reason: z.string().max(40), basis: z.string().max(2000) }).strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/th/cases/${id}/termination/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'th_terminate_case', [id, q.reason, q.basis, key, f.sha256]),
+    );
+  }
+
   /** Ghi kết quả thực hiện kèm tệp chứng cứ (PDF/JPEG/PNG); ghi chú và khoá chống trùng đi theo query. */
   @Post('obligations/:id/event-files')
   @HttpCode(HttpStatus.OK)

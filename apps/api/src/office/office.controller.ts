@@ -740,6 +740,7 @@ export class OfficeController {
       deadline_at: Date;
       status: string;
       overdue: boolean;
+      can_close: boolean;
     }>(a, 'of_search_deadlines', [officeId, until]);
     return rows.map((r) => ({
       domain: r.domain,
@@ -749,7 +750,38 @@ export class OfficeController {
       deadlineAt: r.deadline_at,
       status: r.status,
       overdue: r.overdue,
+      /** true = hạn pháp định (NĐ 151): refId là id dòng hạn, dùng cho done/agree. */
+      statutory: r.can_close,
     }));
+  }
+
+  /** Đánh dấu đã làm xong một hạn pháp định (báo kết quả / cập nhật CSDL / ra quyết định). Cần ghi chú. */
+  @Post('deadlines/:id/done')
+  @HttpCode(HttpStatus.OK)
+  closeDeadline(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ note: z.string().max(2000) }).strict(), body);
+    return this.run(a, 'of_deadline_done', [id, b.note]);
+  }
+
+  /** "Các bên có thỏa thuận khác": ghi hạn thỏa thuận kèm lý do (Admin/Trưởng VP). */
+  @Post('deadlines/:id/agree')
+  @HttpCode(HttpStatus.OK)
+  agreeDeadline(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({ dueAt: z.string().datetime({ offset: true }), reason: z.string().max(2000) })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'of_deadline_agree', [id, b.dueAt, b.reason]);
   }
 
   /** Cấu hình văn phòng (đọc: mọi thành viên): tên pháp lý, tên hiển thị trên văn bản, quy tắc số Vi bằng, chi nhánh. */

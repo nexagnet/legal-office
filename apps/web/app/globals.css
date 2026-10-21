@@ -940,6 +940,13 @@ th a:hover {
   align-items: flex-start;
   gap: 2px;
 }
+.deadline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+}
 .deadline-rows li[data-overdue='true'] {
   border-left: 4px solid var(--danger);
 }

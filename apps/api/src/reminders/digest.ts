@@ -22,6 +22,10 @@ const DOMAIN_LABEL: Record<string, string> = {
   TONG_DAT: 'Tống đạt',
   VIBANG_CSDL: 'Đăng ký Vi bằng',
   CONG_VAN: 'Công văn',
+  TONG_DAT_BAO_KET_QUA: 'Tống đạt: báo kết quả',
+  VIBANG_N11: 'Vi bằng: cập nhật CSDL sau sửa lỗi',
+  XAC_MINH_QUYET_DINH: 'Xác minh: ra quyết định',
+  THA_THU_HOI: 'THA: thu hồi quyết định thi hành án',
 };
 
 const VN_DATE = new Intl.DateTimeFormat('vi-VN', {

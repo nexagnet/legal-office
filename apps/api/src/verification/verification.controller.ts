@@ -107,6 +107,18 @@ export class VerificationController {
     return this.run(a, 'vx_create_case', [b.officeId, b.branchId, b.caseRef]);
   }
 
+  /** Ngày ký hợp đồng dịch vụ xác minh: sinh/sửa hạn 3 ngày làm việc ra quyết định xác minh (Điều 35.1). */
+  @Put('cases/:id/contract-date')
+  @HttpCode(HttpStatus.OK)
+  setContractDate(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ signedOn: z.string().date() }).strict(), body);
+    return this.run(a, 'vx_set_contract_date', [id, b.signedOn]);
+  }
+
   @Put('cases/:id/handler')
   assign(
     @CurrentActor() a: AuthenticatedActor,
