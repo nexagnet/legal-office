@@ -6,7 +6,7 @@ import type { INestApplication } from '@nestjs/common';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
-import { FailClosedResolver, SyntheticHeaderResolver } from '../http/actor';
+import { SyntheticHeaderResolver } from '../http/actor';
 
 // Cần PostgreSQL tạm. HTTP thật (fetch tới Nest) + DB thật + vai legal_app có RLS. Dữ liệu giả lập.
 const ADMIN_URL = process.env.DATABASE_URL;
@@ -28,11 +28,8 @@ describe.skipIf(!ADMIN_URL)('UAT HTTP: hạn pháp định Xác minh và THA (sy
   const admin = new pg.Pool({ connectionString: ADMIN_URL, max: 1 });
   let owner: pg.Pool;
   let appPool: pg.Pool;
-  let closedPool: pg.Pool;
   let server: INestApplication;
-  let closed: INestApplication;
   let base = '';
-  let closedBase = '';
   const id = () => randomUUID();
   const T = id();
   const T2 = id();
@@ -86,7 +83,6 @@ describe.skipIf(!ADMIN_URL)('UAT HTTP: hạn pháp định Xác minh và THA (sy
     appUrl.username = 'legal_app';
     appUrl.password = '';
     appPool = new pg.Pool({ connectionString: appUrl.toString(), max: 8 });
-    closedPool = new pg.Pool({ connectionString: appUrl.toString(), max: 2 });
 
     server = await NestFactory.create(
       AppModule.register({ pool: appPool, resolver: new SyntheticHeaderResolver() }),
@@ -94,12 +90,6 @@ describe.skipIf(!ADMIN_URL)('UAT HTTP: hạn pháp định Xác minh và THA (sy
     );
     await server.listen(0);
     base = (await server.getUrl()).replace('[::1]', 'localhost');
-    closed = await NestFactory.create(
-      AppModule.register({ pool: closedPool, resolver: new FailClosedResolver() }),
-      { logger: false },
-    );
-    await closed.listen(0);
-    closedBase = (await closed.getUrl()).replace('[::1]', 'localhost');
 
     await owner.query(`INSERT INTO tenants (id, name) VALUES ($1,'A'),($2,'B')`, [T, T2]);
     await owner.query(`INSERT INTO offices (id, tenant_id, name) VALUES ($1,$2,'VP A')`, [OFF, T]);
@@ -146,7 +136,6 @@ describe.skipIf(!ADMIN_URL)('UAT HTTP: hạn pháp định Xác minh và THA (sy
 
   afterAll(async () => {
     await server?.close();
-    await closed?.close();
     await owner?.end();
     await admin.query(`DROP DATABASE IF EXISTS ${DB}`);
     await admin.end();
