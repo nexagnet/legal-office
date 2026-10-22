@@ -163,6 +163,9 @@ export default async function HomePage() {
         </div>
         <div className="panel">
           <h2>Nhắc việc và cảnh báo</h2>
+          <p>
+            <Link href="/viec-cua-toi">Việc của tôi: hồ sơ đang giao cho bạn</Link>
+          </p>
           {canReview ? (
             <p>
               <Link href="/hop-duyet">Hộp duyệt: đề xuất chờ duyệt, trả lại, nộp lại</Link>

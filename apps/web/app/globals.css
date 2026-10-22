@@ -1619,3 +1619,41 @@ tr[data-selected='true'] > td {
   letter-spacing: 0.4em;
   font-variant-numeric: tabular-nums;
 }
+
+.my-work {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.my-work li {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #dfe5ee);
+  border-radius: 10px;
+}
+.my-work li[data-overdue='true'] {
+  border-left: 4px solid var(--danger);
+}
+.my-work a {
+  font-weight: 600;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.my-work-domain {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #5b6778);
+}
+.my-work-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
