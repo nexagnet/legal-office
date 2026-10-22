@@ -9,6 +9,66 @@ const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
 
 const JOBS = ['bootstrap-verify', 'bootstrap-safety', 'app-verify', 'audit', 'db-integration'];
 
+describe('manual sandbox negative probe caller (R3 #172)', () => {
+  const centralPin = '3a68dd94b9fd927ffd97457020a197ed0423172a';
+  const readCaller = () => readFileSync(
+    new URL('../.github/workflows/claude-sandbox-probe-caller.yml', import.meta.url), 'utf8',
+  ).replaceAll('\r\n', '\n');
+
+  it('only exposes manual dispatch with no task-controlled inputs or automatic event', () => {
+    const caller = readCaller();
+    assert.equal(caller.split('on:\n')[1].split('\npermissions:')[0], '  workflow_dispatch:\n');
+    assert.doesNotMatch(caller, /pull_request_target|issue_comment|workflow_run|schedule:|inputs:/);
+  });
+
+  it('enforces repository, owner, event and default-main branch before the reusable job', () => {
+    const caller = readCaller();
+    const expression = caller.match(/    if: >-\n([\s\S]*?)    uses:/)?.[1];
+    assert.ok(expression);
+    const clauses = expression.trim().split(/\s*&&\s*/).map(clause => {
+      const match = clause.match(/^github\.(repository|event_name|actor|ref) == '([^']+)'$/);
+      assert.ok(match, 'only literal equality AND clauses are allowed');
+      return [match[1], match[2]];
+    });
+    assert.deepEqual(clauses, [
+      ['repository', 'nexagnet/legal-office'],
+      ['event_name', 'workflow_dispatch'],
+      ['actor', 'phungtienviet14-sketch'],
+      ['ref', 'refs/heads/main'],
+    ]);
+    const allowed = Object.fromEntries(clauses);
+    const evaluate = context => clauses.every(([key, value]) => context[key] === value);
+    assert.equal(evaluate(allowed), true);
+    for (const [key, value] of [
+      ['repository', 'nexagnet/other'], ['event_name', 'pull_request'],
+      ['actor', 'another-user'], ['ref', 'refs/heads/codex/unreviewed'],
+      ['ref', 'refs/tags/main'], ['actor', undefined],
+    ]) assert.equal(evaluate({ ...allowed, [key]: value }), false);
+  });
+
+  it('pins the diagnostic to the exact merged central SHA and has no local execution steps', () => {
+    const caller = readCaller();
+    const job = caller.split('jobs:\n')[1];
+    assert.match(job, new RegExp('uses: nexagnet/\\.github/\\.github/workflows/claude-sandbox-probe\\.yml@' + centralPin + '\\n'));
+    assert.equal((job.match(/^  [a-z-]+:/gm) ?? []).length, 1);
+    assert.doesNotMatch(job, /steps:|runs-on:|run:|with:|@(?:main|master|HEAD|v\d+)\b/);
+  });
+
+  it('grants only the read permissions required by the central probe', () => {
+    const caller = readCaller();
+    assert.equal(caller.split('permissions:\n')[1].split('\njobs:')[0],
+      '  contents: read\n  issues: read\n  pull-requests: read\n');
+    assert.doesNotMatch(caller, /: write\b|write-all|id-token:|actions: write|secrets: inherit/);
+  });
+
+  it('maps only the existing Claude secret and never a Publisher/App credential', () => {
+    const caller = readCaller();
+    assert.equal(caller.split('    secrets:\n')[1],
+      '      CLAUDE_CODE_OAUTH_TOKEN: $' + '{{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}\n');
+    assert.doesNotMatch(caller, /BUILDER_PUBLISHER|APP_PRIVATE_KEY|GITHUB_TOKEN|GH_TOKEN|gh pr merge|deploy/);
+  });
+});
+
 describe('legal-office R3 application CI contract', () => {
   it('runs on PR HEAD and on main push without privileged PR-target events', () => {
     assert.match(workflow, /on:\n  pull_request:\n    branches: \[main\]/);
