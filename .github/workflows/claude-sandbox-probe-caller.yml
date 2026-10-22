@@ -23,7 +23,7 @@ jobs:
       github.actor == 'phungtienviet14-sketch' &&
       github.ref == 'refs/heads/codex/tool-isolation-runtime-36-37' &&
       github.sha == inputs.expected_consumer_sha
-    uses: nexagnet/.github/.github/workflows/claude-read-isolation-probe.yml@147f7a3674494a671a5e67a52e70fc7cd82ca549
+    uses: nexagnet/.github/.github/workflows/claude-read-isolation-probe.yml@4ad084be9039aefa9f61ea162b627b90f82dd192
     with:
       expected_consumer_sha: ${{ inputs.expected_consumer_sha }}
     secrets:
@@ -35,7 +35,7 @@ jobs:
       github.actor == 'phungtienviet14-sketch' &&
       github.ref == 'refs/heads/codex/tool-isolation-runtime-36-37' &&
       github.sha == inputs.expected_consumer_sha
-    uses: nexagnet/.github/.github/workflows/claude-mcp-isolation-probe.yml@147f7a3674494a671a5e67a52e70fc7cd82ca549
+    uses: nexagnet/.github/.github/workflows/claude-mcp-isolation-probe.yml@4ad084be9039aefa9f61ea162b627b90f82dd192
     with:
       expected_consumer_sha: ${{ inputs.expected_consumer_sha }}
     secrets:
