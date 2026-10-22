@@ -37,3 +37,47 @@ The job log prints `expected=<sha> actual=<sha>`; reviewers must read it rather 
 
 - GitHub connection refuses protected `.github/workflows` edits, workflow cannot run on this private repository, or repository permission/secret settings require elevation.
 - No self-approval, no bypass of branch protection, no R3 auto-merge or production.
+
+## Manual V5 sandbox diagnostic (#172)
+
+This separate caller is scoped by [legal-office #172](https://github.com/nexagnet/legal-office/issues/172)
+and [central #32](https://github.com/nexagnet/.github/issues/32). It adds no application behavior.
+The existing Builder, Reviewer and Repair workflow pins stay unchanged.
+
+- Workflow: `.github/workflows/claude-sandbox-probe-caller.yml`, display name
+  `Nexagnet V5 Legal Office Sandbox Probe (manual)`.
+- Event: `workflow_dispatch` only, with no inputs. The job requires repository
+  `nexagnet/legal-office`, actor `phungtienviet14-sketch` and `refs/heads/main`.
+  The central workflow independently checks the actual default branch and actor.
+- Central version: `3a68dd94b9fd927ffd97457020a197ed0423172a`, the immutable
+  owner-approved PR35 merge commit. Its exact-main CI must pass before rollout.
+- Permissions: read-only contents/issues/pull requests. Only the existing
+  `CLAUDE_CODE_OAUTH_TOKEN` is explicitly mapped; no inherited secrets or Publisher
+  credential. The central diagnostic bounds runtime to 30 minutes and serializes
+  runs per consumer. It uses synthetic canaries and a runner-local loopback fixture.
+- The contract tests execute in the existing `bootstrap-verify` CI job. CI validates
+  caller policy and source only; it does not execute Claude or establish isolation.
+
+After independent review, owner-controlled R3 consumer merge and exact-main consumer
+CI, an explicitly authorized owner may run the workflow from `main`, for example:
+
+```sh
+gh workflow run claude-sandbox-probe-caller.yml --repo nexagnet/legal-office --ref main
+```
+
+This command starts a real Claude diagnostic using the existing account allocation.
+Creating this source PR does not dispatch it. Before running, verify the current
+consumer main SHA, the central pin, and the approved source. Never switch the caller
+to a branch/tag, add free-form inputs, broaden egress or retry without the sandbox.
+
+Record the consumer Actions run URL/ID and SHA, central pin, sanitized step summary
+and `sandbox-probe-audit` artifact on #172 and central #32. Read the trusted verdict,
+not the model's report: only `SANDBOX_NEGATIVE_PROVEN` establishes scoped Bash network,
+environment and synthetic file denial. `NOT_PROVEN`, `SANDBOX_NEGATIVE_FAIL`, missing
+artifacts or a failed run keep acceptance open. Never print credentials, canary values
+or raw model/tool transcripts. This does not prove Read/Glob/Grep or MCP isolation,
+does not enable public Internet/Figma, and does not close central #36/#37/#38.
+
+Rollback: stop manual dispatches and remove this caller through an owner-controlled
+R3 PR. Cancel an active diagnostic if needed; retain its sanitized evidence. Do not
+change existing application callers, secrets or V4 fallback as part of rollback.

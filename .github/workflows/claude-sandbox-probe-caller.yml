@@ -1,0 +1,22 @@
+name: Nexagnet V5 Legal Office Sandbox Probe (manual)
+
+# R3 contract: https://github.com/nexagnet/legal-office/issues/172
+# Central diagnostic only; actual sandbox proof requires the trusted run verdict.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  probe:
+    if: >-
+      github.repository == 'nexagnet/legal-office' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.actor == 'phungtienviet14-sketch' &&
+      github.ref == 'refs/heads/main'
+    uses: nexagnet/.github/.github/workflows/claude-sandbox-probe.yml@3a68dd94b9fd927ffd97457020a197ed0423172a
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
