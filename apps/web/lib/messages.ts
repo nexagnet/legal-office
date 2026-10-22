@@ -131,6 +131,8 @@ const MESSAGES: Record<string, string> = {
   INVALID_DATE: 'Ngày không hợp lệ (không được ở tương lai).',
   INVALID_DUE: 'Hạn thỏa thuận phải sau ngày bắt đầu tính hạn.',
   NOTE_REQUIRED: 'Cần ghi chú đã làm gì.',
+  INVALID_ROLE: 'Vai trò không hợp lệ.',
+  PARTY_NOT_FOUND: 'Không tìm thấy người tham gia này.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };

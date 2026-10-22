@@ -33,6 +33,7 @@
    - Giữ nguyên hành vi hiện có, không mở rộng thêm quyền: Admin quản trị, duyệt nội bộ (sửa hồ sơ, thu hồi MISA, chuyển hồ sơ), không tự ký văn bản pháp lý; THV chỉ ghi khi được giao; Thư ký/Văn thư/Kế toán theo chi nhánh được cấp.
    - `legal_signer` do Admin cấp cho Trưởng VP hoặc THV theo quyết định bổ nhiệm; mọi bước ký/ban hành (quyết định xác minh, quyết định thu hồi THA) kiểm quyền này, thiếu thì `SIGNING_AUTHORITY_NOT_GRANTED`.
    - Phần Admin đang làm khác §4.1 (nếu có) giữ nguyên để không phá luồng đã chạy; chủ dự án chỉnh sau khi rà bảng quyền thực tế.
+5. **Hợp đồng: tệp đính kèm và người tham gia (21/10/2026, theo đề xuất).** Bản scan hợp đồng (PDF/JPEG/PNG) lưu như chứng cứ có hash; người tham gia là khách khác liên kết vào hợp đồng với vai trò (đại diện, thụ hưởng, làm chứng, khác). Chỉ vai tiếp nhận (Admin, Trưởng VP, Thư ký, Văn thư, THV) thao tác và đọc, giống danh bạ. Không lưu số tiền (MISA là sổ duy nhất). Cài đặt: migration 0051, `/vibang/contracts/:id/{attachment-files,attachments,parties}`.
 
 ## C. Cổng chặn không phải việc code
 

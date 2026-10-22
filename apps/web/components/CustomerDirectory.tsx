@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CONTRACT_STATUS_LABEL, type Contract, type Customer } from '../lib/customers';
+import { ContractExtras } from './ContractExtras';
 import { PARTY_KIND_LABEL } from '../lib/messages';
 import {
   ContractForm,
@@ -106,6 +107,7 @@ export function CustomerDirectory({ customers, contracts, query, numberCounts = 
                     </span>
                   </p>
                   <ContractForm contract={k} />
+                  <ContractExtras contractId={k.id} customers={customers} />
                 </div>
               ))
             )}
