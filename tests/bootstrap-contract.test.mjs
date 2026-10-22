@@ -10,7 +10,7 @@ const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
 const JOBS = ['bootstrap-verify', 'bootstrap-safety', 'app-verify', 'audit', 'db-integration'];
 
 describe('reviewed branch-only Read/MCP diagnostics (R3 #175)', () => {
-  const centralPin = 'cbbc92dc5f9892118b43fe408962f4e69cfae00d';
+  const centralPin = '147f7a3674494a671a5e67a52e70fc7cd82ca549';
   const readCaller = () => readFileSync(
     new URL('../.github/workflows/claude-sandbox-probe-caller.yml', import.meta.url), 'utf8',
   ).replaceAll('\r\n', '\n');
