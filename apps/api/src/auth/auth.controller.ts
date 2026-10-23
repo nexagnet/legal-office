@@ -39,6 +39,9 @@ const loginBody = z
     password: z.string().min(1).max(MAX_PASSWORD_LENGTH),
   })
   .strict();
+const emailLoginBody = z
+  .object({ tenantId: z.string().uuid(), email: z.string().min(3).max(254) })
+  .strict();
 const linkBody = z
   .object({ tenantId: z.string().uuid(), token: z.string().regex(/^[A-Za-z0-9_-]{43}$/) })
   .strict();
@@ -82,36 +85,29 @@ export class AuthController {
       throw new UnauthorizedException({ code: 'INVALID_CREDENTIALS', label: null });
     }
     res.setHeader('Cache-Control', 'no-store');
-    if (result.status === 'verification_required') {
-      res.setHeader(
-        'Set-Cookie',
-        this.challengeCookie(result.challengeCookie, CHALLENGE_COOKIE_SECONDS),
-      );
-      return { code: 'VERIFICATION_REQUIRED', label: null };
-    }
-    if (result.status === 'rate_limited') {
-      throw new HttpException(
-        { code: 'CHALLENGE_RATE_LIMITED', label: null },
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
-    }
-    if (result.status === 'mail_failed') {
-      throw new HttpException(
-        { code: 'VERIFICATION_MAIL_FAILED', label: null },
-        HttpStatus.BAD_GATEWAY,
-      );
-    }
-    if (result.status === 'unavailable') {
-      throw new HttpException(
-        { code: 'VERIFICATION_UNAVAILABLE', label: null },
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    }
     res.setHeader(
       'Set-Cookie',
       this.cookie(result.cookieValue, this.auth.config.sessionTtlMinutes * 60),
     );
     return { code: 'ALLOWED', label: null };
+  }
+
+  /**
+   * Admin đăng nhập bằng email, không cần mật khẩu: gửi link (xem `AuthService.loginByEmail`). Luôn trả cùng một
+   * phản hồi và cùng loại cookie, bất kể email có hợp lệ hay không.
+   */
+  @Post('login/email')
+  @HttpCode(HttpStatus.OK)
+  async loginByEmail(@Body() raw: unknown, @Res({ passthrough: true }) res: HeaderSink) {
+    const parsed = emailLoginBody.safeParse(raw);
+    if (!parsed.success) throw new BadRequestException('Dữ liệu đăng nhập không hợp lệ');
+    const { challengeCookie } = await this.auth.loginByEmail(
+      parsed.data.tenantId,
+      parsed.data.email,
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Set-Cookie', this.challengeCookie(challengeCookie, CHALLENGE_COOKIE_SECONDS));
+    return { code: 'VERIFICATION_REQUIRED', label: null };
   }
 
   /** Bấm link trong email: trả mã 6 số một lần (không cần phiên). */
@@ -136,7 +132,7 @@ export class AuthController {
     };
   }
 
-  /** Nhập mã 6 số ở trình duyệt đã qua bước mật khẩu; đúng thì mở phiên. */
+  /** Nhập mã 6 số ở trình duyệt đã yêu cầu link qua email; đúng thì mở phiên. */
   @Post('login/verify')
   @HttpCode(HttpStatus.OK)
   async verifyLogin(
