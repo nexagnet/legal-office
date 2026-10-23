@@ -1,8 +1,8 @@
 import pg from 'pg';
 
 /**
- * Lối thoát khi email xác thực Admin không dùng được (SMTP hỏng, mất hộp thư): bật/tắt bước email của MỘT tenant.
- * Chạy bằng tài khoản chủ DB, nên không cần đăng nhập. Mật khẩu vẫn được kiểm; chỉ bước email bị bỏ qua khi `off`.
+ * Bật/tắt đường đăng nhập Admin bằng link email của MỘT tenant (vd khi SMTP hỏng).
+ * Chạy bằng tài khoản chủ DB, nên không cần đăng nhập. Đăng nhập bằng mật khẩu không bị ảnh hưởng.
  *   DATABASE_URL=... TENANT_ID=... MODE=off|on node dist/auth/admin-verification.cli.js
  */
 async function main(): Promise<void> {
@@ -33,7 +33,7 @@ async function main(): Promise<void> {
   } finally {
     await client.end();
   }
-  console.log(`Bước email xác thực Admin: ${MODE === 'on' ? 'BẬT' : 'TẮT'}.`);
+  console.log(`Đăng nhập Admin bằng email: ${MODE === 'on' ? 'BẬT' : 'TẮT'}.`);
 }
 
 main().catch((error: unknown) => {

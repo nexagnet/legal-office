@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { PgService } from '../db/pg.service';
 import type { Mailer } from '../reminders/mailer';
@@ -31,11 +31,11 @@ export const hashToken = (token: string): string =>
 export type LoginResult =
   | { readonly status: 'ok'; readonly cookieValue: string; readonly userId: string }
   | { readonly status: 'invalid' }
-  | { readonly status: 'locked' }
-  | { readonly status: 'verification_required'; readonly challengeCookie: string }
-  | { readonly status: 'rate_limited' }
-  | { readonly status: 'mail_failed' }
-  | { readonly status: 'unavailable' };
+  | { readonly status: 'locked' };
+
+type ChallengeResult =
+  | { readonly status: 'sent'; readonly challengeCookie: string }
+  | { readonly status: 'rate_limited' | 'mail_failed' | 'unavailable' };
 
 export type LinkResult =
   | { readonly status: 'ok'; readonly code: string; readonly validMinutes: number }
@@ -66,6 +66,8 @@ export interface BranchInfo {
 
 @Injectable()
 export class AuthService {
+  private readonly log = new Logger(AuthService.name);
+
   constructor(
     @Inject(PgService) private readonly pg: PgService,
     @Inject(AUTH_CONFIG) readonly config: AuthConfig,
@@ -93,15 +95,40 @@ export class AuthService {
       });
       return op.code === 'ACCOUNT_LOCKED' ? { status: 'locked' } : { status: 'invalid' };
     }
-    const required = await this.pg.withTenant(tenantId, async (c) => {
-      const { rows } = await c.query<{ required: boolean }>(
-        'SELECT au_admin_verification_required($1,$2) AS required',
+    return this.openSession(tenantId, state.user_id);
+  }
+
+  /**
+   * Admin đăng nhập không cần mật khẩu: nhập email, hệ thống gửi link, bấm link nhận mã 6 số, nhập mã ở đúng trình
+   * duyệt này. Phản hồi luôn như nhau (kể cả email lạ, không phải Admin, chưa có SMTP, đang khoá, gửi thư lỗi, quá
+   * số lần) để không dò được email nào là Admin; chỉ Admin của tenant đã lưu SMTP mới nhận được thư. Lý do thật
+   * ghi vào log máy chủ. Cookie trả về với email không hợp lệ là mồi vô dụng.
+   */
+  async loginByEmail(
+    tenantId: string,
+    email: string,
+  ): Promise<{ readonly challengeCookie: string }> {
+    const decoy = { challengeCookie: `${tenantId}.${randomBytes(32).toString('base64url')}` };
+    const state = await this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ user_id: string; locked: boolean }>(
+        'SELECT * FROM au_login_state($1,$2)',
+        [tenantId, email],
+      );
+      return rows[0];
+    });
+    if (!state || state.locked) return decoy;
+    const eligible = await this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ ok: boolean }>(
+        'SELECT au_admin_verification_required($1,$2) AS ok',
         [tenantId, state.user_id],
       );
-      return rows[0]?.required === true;
+      return rows[0]?.ok === true;
     });
-    if (required) return this.startChallenge(tenantId, state.user_id);
-    return this.openSession(tenantId, state.user_id);
+    if (!eligible) return decoy;
+    const result = await this.startChallenge(tenantId, state.user_id);
+    if (result.status === 'sent') return { challengeCookie: result.challengeCookie };
+    this.log.warn(`Đăng nhập Admin qua email không gửi được thư: ${result.status}`);
+    return decoy;
   }
 
   private async openSession(tenantId: string, userId: string): Promise<LoginResult> {
@@ -119,8 +146,8 @@ export class AuthService {
     return { status: 'ok', cookieValue: `${tenantId}.${token}`, userId };
   }
 
-  /** Bước 2 cho Admin: tạo thử thách, gửi link qua email; chưa có phiên cho tới khi nhập đúng mã. */
-  private async startChallenge(tenantId: string, userId: string): Promise<LoginResult> {
+  /** Tạo thử thách và gửi link qua email; chưa có phiên cho tới khi bấm link và nhập đúng mã. */
+  private async startChallenge(tenantId: string, userId: string): Promise<ChallengeResult> {
     const base = (this.config.publicWebUrl ?? this.config.allowedOrigins[0] ?? '').replace(
       /\/+$/,
       '',
@@ -156,18 +183,18 @@ export class AuthService {
         to: created.email,
         subject: 'Xác thực đăng nhập Quản lý văn phòng',
         text: [
-          'Có yêu cầu đăng nhập quản trị vào hệ thống.',
+          'Có yêu cầu đăng nhập quản trị vào hệ thống bằng email.',
           '',
-          `Bấm vào link sau để nhận mã xác thực (link dùng một lần, hết hạn sau ${LINK_TTL_MINUTES} phút):`,
+          `Bấm vào link sau để nhận mã đăng nhập (link dùng một lần, hết hạn sau ${LINK_TTL_MINUTES} phút):`,
           `${base}/xac-thuc?t=${tenantId}.${linkToken}`,
           '',
-          'Nếu không phải bạn đăng nhập, đừng bấm link và hãy đổi mật khẩu.',
+          'Nếu không phải bạn yêu cầu, đừng bấm link; có thể bỏ qua thư này.',
         ].join('\n'),
       });
     } catch {
       return { status: 'mail_failed' };
     }
-    return { status: 'verification_required', challengeCookie: `${tenantId}.${secret}` };
+    return { status: 'sent', challengeCookie: `${tenantId}.${secret}` };
   }
 
   /** Bấm link trong email: sinh mã 6 số một lần. Không cần phiên; mã vô dụng nếu thiếu cookie của trình duyệt đang đăng nhập. */

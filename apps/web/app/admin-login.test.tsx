@@ -23,16 +23,38 @@ function fillLogin() {
   fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
 }
 
-describe('LoginForm — bước email của Admin', () => {
-  it('chuyển sang nhập mã khi API yêu cầu xác thực, rồi vào trang chủ khi mã đúng', async () => {
+function startEmail() {
+  fireEvent.click(screen.getByRole('button', { name: 'Admin: đăng nhập bằng email' }));
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.test' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Gửi link qua email' }));
+}
+
+describe('LoginForm — Admin chọn mật khẩu hoặc email', () => {
+  it('mật khẩu đúng vào thẳng trang chủ, không có bước thứ hai', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => reply(200, { code: 'ALLOWED' }));
+    render(<LoginForm tenantId={T} />);
+    fillLogin();
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
+    expect(fetchMock.mock.calls[0]![0]).toBe('/api/auth/login');
+  });
+
+  it('đăng nhập bằng email: gửi email, nhập mã đúng thì vào trang chủ', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementationOnce(() => reply(200, { code: 'VERIFICATION_REQUIRED' }))
       .mockImplementationOnce(() => reply(200, { code: 'ALLOWED' }));
     render(<LoginForm tenantId={T} />);
-    fillLogin();
+    startEmail();
     await screen.findByText('Xác thực đăng nhập');
     expect(push).not.toHaveBeenCalled();
+    const [url0, init0] = fetchMock.mock.calls[0]!;
+    expect(url0).toBe('/api/auth/login/email');
+    expect(JSON.parse(String((init0 as RequestInit).body))).toEqual({
+      tenantId: T,
+      email: 'admin@example.test',
+    });
     fireEvent.change(screen.getByLabelText('Mã xác thực'), { target: { value: '123456' } });
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận' }));
     await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
@@ -41,31 +63,21 @@ describe('LoginForm — bước email của Admin', () => {
     expect(JSON.parse(String((init as RequestInit).body))).toEqual({ code: '123456' });
   });
 
-  it('sai mã thì ở lại bước nhập mã; phiên hết hạn thì quay về bước mật khẩu', async () => {
+  it('sai mã thì ở lại bước nhập mã; phiên hết hạn thì quay về bước email', async () => {
     vi.spyOn(globalThis, 'fetch')
       .mockImplementationOnce(() => reply(200, { code: 'VERIFICATION_REQUIRED' }))
       .mockImplementationOnce(() => reply(401, { code: 'INVALID_CODE' }))
       .mockImplementationOnce(() => reply(401, { code: 'CHALLENGE_EXPIRED' }));
     render(<LoginForm tenantId={T} />);
-    fillLogin();
+    startEmail();
     await screen.findByLabelText('Mã xác thực');
     fireEvent.change(screen.getByLabelText('Mã xác thực'), { target: { value: '000000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận' }));
     await screen.findByText(/Mã xác thực chưa đúng/);
     expect(screen.getByLabelText('Mã xác thực')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận' }));
-    await screen.findByLabelText('Mật khẩu');
+    await screen.findByRole('button', { name: 'Gửi link qua email' });
     expect(screen.getByText(/đã hết hạn/)).toBeTruthy();
-  });
-
-  it('báo lỗi gửi email thay vì vào trang', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
-      reply(502, { code: 'VERIFICATION_MAIL_FAILED' }),
-    );
-    render(<LoginForm tenantId={T} />);
-    fillLogin();
-    await screen.findByText(/Không gửi được email xác thực/);
-    expect(push).not.toHaveBeenCalled();
   });
 });
 
