@@ -105,6 +105,13 @@ const CASE_HEAD = { title: 'Chi tiết và tiến độ Vi bằng', sub: 'Theo d
 
 const hrefOf = (i: NavItem) => `/${i.slug}`;
 
+const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
+  { group: 'work', title: 'Công việc' },
+  { group: 'domain', title: 'Nghiệp vụ' },
+  { group: 'office', title: 'Văn phòng' },
+  { group: 'admin', title: 'Quản trị' },
+];
+
 /** Mục đang mở: khớp chính xác, hoặc trang con (`/vi-bang/123`) của một mục không phải Tổng quan. */
 function currentItem(items: readonly NavItem[], pathname: string): NavItem | undefined {
   return items.find(
@@ -138,30 +145,34 @@ export function AppShell({
       </a>
       <aside className="side" data-open={open}>
         <div className="brand">
-          <div
-            data-testid="tenant-logo-slot"
-            className="logo-slot"
-            aria-label="Chỗ đặt logo văn phòng"
-          >
-            Vị trí logo của văn phòng
+          <div data-testid="tenant-logo-slot" className="logo-slot" aria-hidden="true">
+            {initials(tenantName ?? 'Quản lý văn phòng')}
           </div>
           <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
         </div>
         <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
-          <h2 className="nav-title">Không gian làm việc</h2>
-          <ul>
-            {items.map((i) => (
-              <li key={i.slug}>
-                <Link
-                  href={hrefOf(i)}
-                  aria-current={current === i ? 'page' : undefined}
-                  onClick={() => setOpen(false)}
-                >
-                  {i.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {GROUPS.map(({ group, title }) => {
+            const inGroup = items.filter((i) => i.group === group);
+            if (inGroup.length === 0) return null;
+            return (
+              <div key={group} className="nav-group">
+                <h2 className="nav-title">{title}</h2>
+                <ul>
+                  {inGroup.map((i) => (
+                    <li key={i.slug}>
+                      <Link
+                        href={hrefOf(i)}
+                        aria-current={current === i ? 'page' : undefined}
+                        onClick={() => setOpen(false)}
+                      >
+                        {i.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </nav>
         {signedIn ? (
           <div className="profile">
