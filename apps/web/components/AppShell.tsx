@@ -103,6 +103,26 @@ const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
 const STAGE_PATH = /^\/vi-bang\/[^/]+\/([a-z0-9-]+)$/;
 const CASE_HEAD = { title: 'Chi tiết và tiến độ Vi bằng', sub: 'Theo dõi tiến độ và xử lý hồ sơ' };
 
+/** Màn đăng nhập/xác thực: không thanh bên, nền một khối có panel thương hiệu. */
+const AUTH_PATHS: ReadonlySet<string> = new Set(['/login', '/xac-thuc']);
+/** Lối tắt trên thanh dưới (điện thoại): việc của tôi, hộp duyệt, hai nghiệp vụ dùng nhiều nhất. */
+const QUICK_SLUGS = ['viec-cua-toi', 'hop-duyet', 'vi-bang', 'tong-dat'] as const;
+
+function AuthStage({ children }: { readonly children: ReactNode }) {
+  return (
+    <div className="auth-stage">
+      <aside className="auth-brand" aria-hidden="true">
+        <span className="auth-mark">NX</span>
+        <p className="auth-title">Quản lý văn phòng thừa hành viên</p>
+        <p className="auth-sub">Vi bằng · Tống đạt · Xác minh · Tổ chức thi hành án</p>
+      </aside>
+      <main id="main" className="auth-main" tabIndex={-1}>
+        {children}
+      </main>
+    </div>
+  );
+}
+
 const hrefOf = (i: NavItem) => `/${i.slug}`;
 
 const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
@@ -134,6 +154,10 @@ export function AppShell({
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const current = currentItem(items, pathname);
+  if (AUTH_PATHS.has(pathname)) return <AuthStage>{children}</AuthStage>;
+  const quick = QUICK_SLUGS.map((slug) => items.find((i) => i.slug === slug)).filter(
+    (i): i is NavItem => i !== undefined,
+  );
   const head =
     SUBPAGE_HEAD[pathname] ??
     STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
@@ -219,6 +243,23 @@ export function AppShell({
           {children}
         </main>
       </div>
+      {quick.length > 0 ? (
+        <nav className="bottom-nav" aria-label="Truy cập nhanh">
+          {quick.map((i) => (
+            <Link key={i.slug} href={hrefOf(i)} aria-current={current === i ? 'page' : undefined}>
+              {i.label}
+            </Link>
+          ))}
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls="primary-nav"
+            onClick={() => setOpen((v) => !v)}
+          >
+            Thêm
+          </button>
+        </nav>
+      ) : null}
     </div>
   );
 }
