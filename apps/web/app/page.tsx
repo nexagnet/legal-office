@@ -1,4 +1,18 @@
 import Link from 'next/link';
+import {
+  ArrowRight,
+  BookOpen,
+  Building2,
+  ChevronRight,
+  FileText,
+  Gavel,
+  Package,
+  Search,
+  Send,
+  Settings,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { ModuleState } from '../components/ModuleState';
 import { isOpenCase, loadCases, summarizeCases } from '../lib/cases';
 import { DeadlineReminders } from '../components/DeadlineReminders';
@@ -37,13 +51,26 @@ const DOMAINS = [
   },
 ] as const;
 
-const COMMON_WORK = [
-  'Khách hàng, hồ sơ và hợp đồng',
-  'Sổ sách S-01, S-02, S-04, S-05, S-06',
-  'Công văn, quyết định, kho tài liệu',
-  'Vật tư giấy/mực theo FIFO',
-  'Quản lý nhân sự và chi nhánh',
-  'Không có phân hệ kế toán; dùng MISA',
+const DOMAIN_ICON: Readonly<Record<string, LucideIcon>> = {
+  'vi-bang': FileText,
+  'tong-dat': Send,
+  'xac-minh': Search,
+  'to-chuc-tha': Gavel,
+};
+
+function DomainIcon({ slug }: { readonly slug: string }) {
+  const Icon = DOMAIN_ICON[slug] ?? FileText;
+  return <Icon />;
+}
+
+/** `href` rỗng: dòng chỉ để nhắc, không có màn riêng. */
+const COMMON_WORK: readonly { text: string; icon: LucideIcon; href: string }[] = [
+  { text: 'Khách hàng, hồ sơ và hợp đồng', icon: Users, href: '/hop-dong' },
+  { text: 'Sổ sách S-01, S-02, S-04, S-05, S-06', icon: BookOpen, href: '/so-sach' },
+  { text: 'Công văn, quyết định, kho tài liệu', icon: FileText, href: '/cong-van' },
+  { text: 'Vật tư giấy/mực theo FIFO', icon: Package, href: '/vat-tu' },
+  { text: 'Quản lý nhân sự và chi nhánh', icon: Building2, href: '/quan-tri' },
+  { text: 'Không có phân hệ kế toán; dùng MISA', icon: Settings, href: '' },
 ];
 
 interface BranchActivity {
@@ -120,7 +147,10 @@ export default async function HomePage() {
       <div className="domains">
         {visible.map((d) => (
           <Link key={d.slug} href={`/${d.slug}`} className="domain" data-domain={d.slug}>
-            <span className="domain-flag" aria-hidden="true" />
+            <span className="domain-tile" aria-hidden="true">
+              <DomainIcon slug={d.slug} />
+            </span>
+            <ArrowRight className="domain-arrow" aria-hidden="true" />
             <span className="domain-name">{d.name}</span>
             <span className="domain-sub">{d.sub}</span>
             <span className="domain-meta">
@@ -138,8 +168,21 @@ export default async function HomePage() {
       <div className="panel common-work">
         <h2>Công việc chung toàn Văn phòng</h2>
         <ul>
-          {COMMON_WORK.map((t) => (
-            <li key={t}>{t}</li>
+          {COMMON_WORK.map(({ text, icon: Icon, href }) => (
+            <li key={text}>
+              {href ? (
+                <Link href={href}>
+                  <Icon aria-hidden="true" />
+                  <span>{text}</span>
+                  <ChevronRight className="work-chevron" aria-hidden="true" />
+                </Link>
+              ) : (
+                <span className="work-static">
+                  <Icon aria-hidden="true" />
+                  <span>{text}</span>
+                </span>
+              )}
+            </li>
           ))}
         </ul>
       </div>
