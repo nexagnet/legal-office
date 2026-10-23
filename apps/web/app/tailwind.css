@@ -1,0 +1,29 @@
+/*
+ * Tailwind chỉ nạp theme + utilities, KHÔNG nạp preflight: globals.css và theme-v2.css vẫn là lớp nền,
+ * các thành phần mới (components/ui) dùng utility. Màu lấy từ token của theme-v2.css.
+ */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-brass: var(--brass);
+  --color-brass-soft: var(--brass-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-bg);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-bg);
+  --color-warn: var(--warn-ink);
+  --color-warn-soft: var(--warn-bg);
+  --font-sans: var(--font);
+  --font-serif: var(--font-serif);
+}

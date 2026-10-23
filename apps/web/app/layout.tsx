@@ -7,6 +7,7 @@ import '@fontsource/be-vietnam-pro/700.css';
 import '@fontsource-variable/source-serif-4';
 import './globals.css';
 import './theme-v2.css';
+import './tailwind.css';
 import { ROLE_LABEL, visibleNav } from './nav';
 import { currentSession } from '../lib/server';
 
