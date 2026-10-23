@@ -1080,3 +1080,63 @@ tbody tr:hover > td {
     content: none;
   }
 }
+
+/* Tiến độ hồ sơ: bước đánh số, nối bằng đường dọc, bước xong có dấu tích (Figma N7) */
+.steps {
+  counter-reset: step;
+  gap: 0;
+  margin: 12px 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.steps li {
+  counter-increment: step;
+  position: relative;
+  min-height: 56px;
+  padding: 0 0 0 0;
+  align-items: flex-start;
+  font-size: 14px;
+}
+.steps li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 30px;
+  bottom: 2px;
+  width: 2px;
+  background: var(--line);
+}
+.steps li[data-done='true']:not(:last-child)::after {
+  background: var(--d-vibang);
+}
+.steps .dot {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--surface);
+  border: 2px solid var(--line-strong);
+}
+.steps .dot::before {
+  content: counter(step);
+}
+.steps li[data-done='true'] .dot {
+  color: #ffffff;
+  background: var(--d-vibang);
+  border-color: var(--d-vibang);
+}
+.steps li[data-done='true'] .dot::before {
+  content: '✓';
+}
+.steps .step-text {
+  margin-top: 4px;
+}
+
+.auth-mark svg {
+  width: 30px;
+  height: 30px;
+  color: #0a1f3b;
+}
