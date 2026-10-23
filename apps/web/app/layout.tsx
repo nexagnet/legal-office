@@ -1,7 +1,12 @@
 import type { ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
-import '@fontsource-variable/inter';
+import '@fontsource/be-vietnam-pro/400.css';
+import '@fontsource/be-vietnam-pro/500.css';
+import '@fontsource/be-vietnam-pro/600.css';
+import '@fontsource/be-vietnam-pro/700.css';
+import '@fontsource-variable/source-serif-4';
 import './globals.css';
+import './theme-v2.css';
 import { ROLE_LABEL, visibleNav } from './nav';
 import { currentSession } from '../lib/server';
 

@@ -40,9 +40,12 @@ describe('navigation', () => {
     expect(visibleNav(['KE_TOAN']).map((n) => n.label)).toEqual(['Tổng quan', 'Vi bằng']);
   });
 
-  it('keeps the approval inbox reachable but out of the sidebar', () => {
-    expect(findNav('hop-duyet')).toBeDefined();
-    expect(visibleNav(['ADMIN']).map((n) => n.slug)).not.toContain('hop-duyet');
+  it('puts My work and the approval inbox in the sidebar for the roles that may use them', () => {
+    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toEqual(
+      expect.arrayContaining(['viec-cua-toi', 'hop-duyet']),
+    );
+    expect(visibleNav(['VAN_THU']).map((n) => n.slug)).toContain('viec-cua-toi');
+    expect(visibleNav(['VAN_THU']).map((n) => n.slug)).not.toContain('hop-duyet');
   });
 
   it('has no accounting menu and unique slugs', () => {

@@ -3,11 +3,11 @@ export type Role = 'ADMIN' | 'TRUONG_VP' | 'THU_KY' | 'THV' | 'VAN_THU' | 'KE_TO
 export interface NavItem {
   readonly slug: string;
   readonly label: string;
-  readonly group: 'domain' | 'office' | 'admin';
+  readonly group: 'work' | 'domain' | 'office' | 'admin';
   /** Vai được hiển thị mục này. Chỉ để gợi ý menu; quyền thật do API/DB quyết định. */
   readonly roles: readonly Role[];
   readonly summary: string;
-  /** Không hiện ở menu bên (Figma không có); vẫn truy cập được bằng đường dẫn và lối tắt ở Tổng quan. */
+  /** Không hiện ở menu bên; vẫn truy cập được bằng đường dẫn. Hiện không mục nào dùng. */
   readonly hidden?: boolean;
 }
 
@@ -19,7 +19,7 @@ const WITH_ACCOUNTANT: readonly Role[] = [...ALL, 'KE_TOAN'];
 export const OVERVIEW: NavItem = {
   slug: '',
   label: 'Tổng quan',
-  group: 'domain',
+  group: 'work',
   roles: WITH_ACCOUNTANT,
   summary: 'Công việc đang chờ theo vai trò.',
 };
@@ -56,18 +56,16 @@ export const NAV: readonly NavItem[] = [
   {
     slug: 'viec-cua-toi',
     label: 'Việc của tôi',
-    group: 'office',
+    group: 'work',
     roles: ALL,
     summary: 'Hồ sơ đang giao cho bạn ở bốn nghiệp vụ.',
-    hidden: true,
   },
   {
     slug: 'hop-duyet',
     label: 'Hộp duyệt',
-    group: 'office',
+    group: 'work',
     roles: ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV'],
     summary: 'Đề xuất chuyển giao và uỷ quyền chờ duyệt, trả lại, nộp lại.',
-    hidden: true,
   },
   {
     slug: 'hop-dong',
