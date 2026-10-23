@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import { KpiStrip } from '../../components/KpiStrip';
 import { CaseTable } from '../../components/CaseTable';
-import { loadCases } from '../../lib/cases';
+import { loadCases, summarizeCases } from '../../lib/cases';
 import { currentSession, requestCookie } from '../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +22,7 @@ export default async function ViBangPage() {
     );
   }
   const cases = await loadCases(await requestCookie());
+  const sum = cases === 'error' ? null : summarizeCases(cases);
   return (
     <section aria-labelledby="t">
       <div className="page-head">
@@ -44,8 +46,19 @@ export default async function ViBangPage() {
           <h2>Chưa có hồ sơ</h2>
           <p>Chưa có hồ sơ Vi bằng nào trong phạm vi quyền của bạn.</p>
         </div>
-      ) : (
-        <CaseTable cases={cases} />
+      ) : sum === null ? null : (
+        <>
+          <KpiStrip
+            label="Tổng hợp hồ sơ Vi bằng"
+            items={[
+              { label: 'Đang xử lý', value: sum.open },
+              { label: 'Chưa phân công', value: sum.unassigned, tone: 'warn' },
+              { label: 'Chờ trả khách', value: sum.awaitingReturn, tone: 'warn' },
+              { label: 'Đã trả khách', value: sum.returned, tone: 'ok' },
+            ]}
+          />
+          <CaseTable cases={cases} />
+        </>
       )}
     </section>
   );

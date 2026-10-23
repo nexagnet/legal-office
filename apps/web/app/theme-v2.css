@@ -642,7 +642,8 @@ tbody tr:hover > td {
 }
 /* Tiêu đề trang đã nằm ở banner: giữ cho trình đọc màn hình, ẩn bản trùng */
 .main > h1:first-child,
-.main > section > h1:first-child {
+.main > section > h1:first-child,
+.main > section > .page-head h1 {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -932,5 +933,41 @@ tbody tr:hover > td {
   }
   .kpi dd {
     font-size: 24px;
+  }
+}
+
+/* Việc của tôi: dải số liệu cùng dạng thẻ với các danh sách */
+.my-work-kpi {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+}
+.my-work-kpi div {
+  position: relative;
+  padding: 16px 20px 16px 24px;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.my-work-kpi div::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--accent);
+}
+.my-work-kpi div[data-tone='danger']::before {
+  background: var(--danger);
+}
+.my-work-kpi dd {
+  font: 700 30px/1.2 var(--font-serif);
+  color: var(--accent);
+}
+.my-work-kpi div[data-tone='danger'] dd {
+  color: var(--danger);
+}
+@media (max-width: 699px) {
+  .my-work-kpi {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 }
