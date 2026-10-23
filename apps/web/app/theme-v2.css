@@ -608,14 +608,27 @@ tbody tr:hover > td {
 .topbar::after {
   content: '';
   position: absolute;
-  right: 372px;
+  right: 344px;
   bottom: 0;
-  width: 180px;
+  width: 400px;
   height: 120px;
-  opacity: 0.9;
   pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 120'%3E%3Crect x='40' y='40' width='96' height='62' rx='10' fill='%23ffffff' fill-opacity='.55' transform='rotate(-8 88 71)'/%3E%3Crect x='30' y='24' width='96' height='62' rx='10' fill='%23ffffff' fill-opacity='.85' transform='rotate(6 78 55)'/%3E%3Crect x='48' y='40' width='50' height='6' rx='3' fill='%238196b3' fill-opacity='.45'/%3E%3Crect x='48' y='54' width='62' height='6' rx='3' fill='%238196b3' fill-opacity='.35'/%3E%3Crect x='48' y='68' width='34' height='6' rx='3' fill='%238196b3' fill-opacity='.3'/%3E%3C/svg%3E")
-    no-repeat right bottom / contain;
+  background: url('/banner-scene.svg') no-repeat right bottom / contain;
+  -webkit-mask-image: linear-gradient(to right, transparent 20%, #000 54%);
+  mask-image: linear-gradient(to right, transparent 20%, #000 54%);
+}
+.topbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(420px 160px at 78% 0%, rgba(255, 236, 196, 0.55), transparent 70%),
+    radial-gradient(300px 120px at 100% 100%, var(--banner-soft), transparent 70%);
+}
+.topbar > * {
+  position: relative;
+  z-index: 1;
 }
 .shell[data-domain] .topbar-h {
   color: var(--banner-tone);
@@ -627,7 +640,8 @@ tbody tr:hover > td {
     color: #ffffff;
     background: linear-gradient(180deg, #0f2d55, #0a1f3b);
   }
-  .topbar::after {
+  .topbar::after,
+  .topbar::before {
     content: none;
   }
   .topbar-h,
