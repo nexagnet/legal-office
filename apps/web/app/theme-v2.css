@@ -608,7 +608,7 @@ tbody tr:hover > td {
 .topbar::after {
   content: '';
   position: absolute;
-  right: 28px;
+  right: 372px;
   bottom: 0;
   width: 180px;
   height: 120px;
@@ -969,5 +969,114 @@ tbody tr:hover > td {
   .my-work-kpi {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+  }
+}
+
+.nav-badge {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 1px 7px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  background: var(--danger);
+  border-radius: 999px;
+}
+
+/* Tìm kiếm (Ctrl K) */
+.search-trigger {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  min-width: 300px;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 12px;
+  color: var(--muted);
+  font: inherit;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.search-trigger svg {
+  width: 18px;
+  height: 18px;
+}
+.search-trigger kbd {
+  margin-left: auto;
+  padding: 1px 7px;
+  font: 600 11px var(--font);
+  color: var(--faint);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+@media (min-width: 900px) {
+  .search-trigger {
+    display: flex;
+  }
+}
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(10, 31, 59, 0.5);
+}
+.search-panel {
+  position: fixed;
+  top: 12vh;
+  left: 50%;
+  z-index: 50;
+  width: min(560px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(10, 31, 59, 0.35);
+}
+.search-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+}
+.search-results {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.search-results button {
+  display: grid;
+  width: 100%;
+  gap: 2px;
+  min-height: 48px;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.search-results button:hover,
+.search-results button:focus-visible {
+  background: var(--accent-soft);
+}
+.search-results small,
+.search-empty {
+  color: var(--muted);
+}
+.search-empty {
+  margin: 12px 4px 0;
+}
+@media (max-width: 1099px) {
+  .topbar::after {
+    content: none;
   }
 }
