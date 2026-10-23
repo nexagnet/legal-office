@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { KpiStrip, countStatus } from '../../components/KpiStrip';
+import { RowActions } from '../../components/RowActions';
 import { StatusPill } from '../../components/StatusPill';
 import { EnforcementActions } from '../../components/EnforcementActions';
 import { NewEnforcementForm } from '../../components/NewEnforcementForm';
@@ -83,79 +85,91 @@ export default async function EnforcementPage() {
           <p>Chưa có hồ sơ nào trong phạm vi quyền của bạn.</p>
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="table-cards">
-            <caption className="sr-only">Hồ sơ tổ chức thi hành án</caption>
-            <thead>
-              <tr>
-                <th scope="col">Mã hồ sơ</th>
-                <th scope="col">Trạng thái</th>
-                <th scope="col">Đương sự</th>
-                <th scope="col">Nghĩa vụ</th>
-                <th scope="col">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((c) => (
-                <tr key={c.caseId}>
-                  <th scope="row">
-                    {c.caseRef}
-                    <div className="muted">
-                      {c.agreementRef} · {c.decisionRef}
-                    </div>
-                  </th>
-                  <td data-label="Trạng thái">
-                    <StatusPill
-                      status={c.status}
-                      label={ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status}
-                    />
-                  </td>
-                  <td data-label="Đương sự">
-                    {c.parties.length === 0 ? (
-                      <span className="muted">Chưa có</span>
-                    ) : (
-                      <ul>
-                        {c.parties.map((p) => (
-                          <li key={p.id}>
-                            {p.displayName} · {PARTY_ROLE_LABEL[p.role] ?? p.role}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </td>
-                  <td data-label="Nghĩa vụ">
-                    {c.obligations.length === 0 ? (
-                      <span className="muted">Chưa có</span>
-                    ) : (
-                      <ul>
-                        {c.obligations.map((o) => (
-                          <li key={o.id}>
-                            {o.seq}. {o.description} ·{' '}
-                            {OBLIGATION_STATUS_LABEL[o.status] ?? o.status}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </td>
-                  <td data-label="Thao tác">
-                    {c.status === 'COMPLETED' ? null : (
-                      <AssignHandler
-                        path={`enforcement-cases/${c.caseId}/handler`}
-                        options={handlers}
-                        currentId={c.handlerUserId}
-                      />
-                    )}
-                    <EnforcementActions
-                      caseId={c.caseId}
-                      status={c.status}
-                      obligations={c.obligations}
-                    />
-                  </td>
+        <>
+          <KpiStrip
+            label="Tổng hợp hồ sơ tổ chức thi hành án"
+            items={[
+              { label: 'Đang thực hiện', value: countStatus(items, 'OPEN') },
+              { label: 'Đã hoàn tất', value: countStatus(items, 'COMPLETED'), tone: 'ok' },
+              { label: 'Đã chấm dứt', value: countStatus(items, 'TERMINATED') },
+            ]}
+          />
+          <div className="table-wrap">
+            <table className="table-cards">
+              <caption className="sr-only">Hồ sơ tổ chức thi hành án</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Mã hồ sơ</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">Đương sự</th>
+                  <th scope="col">Nghĩa vụ</th>
+                  <th scope="col">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {items.map((c) => (
+                  <tr key={c.caseId}>
+                    <th scope="row">
+                      {c.caseRef}
+                      <div className="muted">
+                        {c.agreementRef} · {c.decisionRef}
+                      </div>
+                    </th>
+                    <td data-label="Trạng thái">
+                      <StatusPill
+                        status={c.status}
+                        label={ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status}
+                      />
+                    </td>
+                    <td data-label="Đương sự">
+                      {c.parties.length === 0 ? (
+                        <span className="muted">Chưa có</span>
+                      ) : (
+                        <ul>
+                          {c.parties.map((p) => (
+                            <li key={p.id}>
+                              {p.displayName} · {PARTY_ROLE_LABEL[p.role] ?? p.role}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                    <td data-label="Nghĩa vụ">
+                      {c.obligations.length === 0 ? (
+                        <span className="muted">Chưa có</span>
+                      ) : (
+                        <ul>
+                          {c.obligations.map((o) => (
+                            <li key={o.id}>
+                              {o.seq}. {o.description} ·{' '}
+                              {OBLIGATION_STATUS_LABEL[o.status] ?? o.status}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                    <td data-label="Thao tác">
+                      <RowActions>
+                        {c.status === 'COMPLETED' ? null : (
+                          <AssignHandler
+                            path={`enforcement-cases/${c.caseId}/handler`}
+                            options={handlers}
+                            currentId={c.handlerUserId}
+                          />
+                        )}
+                        <EnforcementActions
+                          caseId={c.caseId}
+                          status={c.status}
+                          obligations={c.obligations}
+                        />
+                      </RowActions>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
       <NewEnforcementForm branches={session.branches} />
     </section>

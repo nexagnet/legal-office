@@ -828,3 +828,109 @@ tbody tr:hover > td {
   height: 18px;
   color: var(--faint);
 }
+
+/* Dải số liệu và bảng theo màu nghiệp vụ (Figma N3–N6) */
+.shell {
+  --tone: var(--accent);
+  --tone-soft: var(--accent-soft);
+}
+.shell[data-domain='vi-bang'] {
+  --tone: var(--d-vibang);
+  --tone-soft: var(--d-vibang-soft);
+}
+.shell[data-domain='tong-dat'] {
+  --tone: var(--d-tongdat);
+  --tone-soft: var(--d-tongdat-soft);
+}
+.shell[data-domain='xac-minh'] {
+  --tone: var(--d-xacminh);
+  --tone-soft: var(--d-xacminh-soft);
+}
+.shell[data-domain='to-chuc-tha'] {
+  --tone: var(--d-tha);
+  --tone-soft: var(--d-tha-soft);
+}
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  margin: 4px 0 20px;
+}
+.kpi {
+  --kpi: var(--tone);
+  position: relative;
+  padding: 16px 20px 16px 24px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.kpi::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--kpi);
+}
+.kpi[data-tone='ok'] {
+  --kpi: var(--ok);
+}
+.kpi[data-tone='warn'] {
+  --kpi: var(--warn-ink);
+}
+.kpi[data-tone='danger'] {
+  --kpi: var(--danger);
+}
+.kpi dt {
+  font-size: 13px;
+  color: var(--muted);
+}
+.kpi dd {
+  margin: 4px 0 0;
+  font: 700 30px/1.2 var(--font-serif);
+  color: var(--kpi);
+}
+.shell[data-domain] thead th {
+  background: var(--tone-soft);
+  color: var(--tone);
+}
+.shell[data-domain] .table-wrap tbody tr > :first-child {
+  box-shadow: inset 4px 0 0 var(--tone);
+}
+
+.row-actions summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  color: var(--tone);
+  font-weight: 600;
+  background: var(--tone-soft);
+  border-radius: 999px;
+  cursor: pointer;
+  list-style: none;
+}
+.row-actions summary::-webkit-details-marker {
+  display: none;
+}
+.row-actions[open] summary {
+  margin-bottom: 12px;
+}
+.row-actions-body {
+  display: grid;
+  gap: 12px;
+  min-width: min(320px, 100%);
+}
+@media (max-width: 699px) {
+  .kpi-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .kpi {
+    padding: 12px 14px 12px 18px;
+  }
+  .kpi dd {
+    font-size: 24px;
+  }
+}
