@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StatusPill } from '../../components/StatusPill';
 import { NewServiceForm } from '../../components/NewServiceForm';
 import { ServiceRowActions } from '../../components/ServiceRowActions';
 import { AssignHandler } from '../../components/AssignHandler';
@@ -90,7 +91,10 @@ export default async function ServicePage() {
                   <td data-label="Người nhận">{d.recipientName}</td>
                   <td data-label="Hạn">{fmt.format(new Date(d.deadlineAt))}</td>
                   <td data-label="Trạng thái">
-                    {SERVICE_STATUS_LABEL[d.status] ?? d.status}
+                    <StatusPill
+                      status={d.status}
+                      label={SERVICE_STATUS_LABEL[d.status] ?? d.status}
+                    />
                     {d.undeliverableReason ? (
                       <span className="muted">
                         {' '}

@@ -528,3 +528,7 @@ tbody tr:hover > td {
 .auth-main form button {
   width: 100%;
 }
+.pill[data-tone='danger'] {
+  background: var(--danger-bg);
+  color: var(--danger);
+}

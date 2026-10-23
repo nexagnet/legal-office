@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StatusPill } from '../../components/StatusPill';
 import { NewVerificationForm } from '../../components/NewVerificationForm';
 import { VerificationActions } from '../../components/VerificationActions';
 import { AssignHandler } from '../../components/AssignHandler';
@@ -87,7 +88,10 @@ export default async function VerificationPage() {
                 <tr key={c.caseId}>
                   <th scope="row">{c.caseRef}</th>
                   <td data-label="Trạng thái">
-                    {VERIFICATION_STATUS_LABEL[c.status] ?? c.status}
+                    <StatusPill
+                      status={c.status}
+                      label={VERIFICATION_STATUS_LABEL[c.status] ?? c.status}
+                    />
                     {c.conclusionText ? <span className="muted"> · {c.conclusionText}</span> : null}
                   </td>
                   <td data-label="THV phụ trách">
