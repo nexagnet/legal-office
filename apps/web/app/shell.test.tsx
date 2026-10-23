@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from '../components/AppShell';
@@ -107,7 +107,11 @@ describe('AppShell', () => {
     expect(screen.getByRole('main')).toBeTruthy();
     expect(screen.getByTestId('tenant-logo-slot')).toBeTruthy();
     expect(document.querySelector('img')).toBeNull();
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
+        .getByRole('link', { name: 'Vi bằng' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
     const btn = screen.getByRole('button', { name: 'Menu' });
     expect(btn.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(btn);
@@ -129,7 +133,11 @@ describe('AppShell subpage head', () => {
     expect(document.querySelector('.topbar-sub')?.textContent).toBe(
       'Tiếp nhận yêu cầu lập Vi bằng',
     );
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
+        .getByRole('link', { name: 'Vi bằng' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
   });
 });
 
@@ -142,7 +150,11 @@ describe('AppShell case detail head', () => {
       </AppShell>,
     );
     expect(document.querySelector('.topbar-h')?.textContent).toBe('Chi tiết và tiến độ Vi bằng');
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
+        .getByRole('link', { name: 'Vi bằng' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
   });
 });
 
@@ -166,7 +178,11 @@ describe('AppShell stage heads', () => {
       </AppShell>,
     );
     expect(document.querySelector('.topbar-h')?.textContent).toBe(title);
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
+        .getByRole('link', { name: 'Vi bằng' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
   });
 });
 
@@ -206,5 +222,32 @@ describe('ModuleState', () => {
       />,
     );
     expect(screen.getByRole('status').textContent).toContain('Chưa có dữ liệu');
+  });
+});
+
+describe('AppShell v2', () => {
+  const items = visibleNav(['ADMIN']);
+
+  it('có thanh điều hướng dưới với việc của tôi, hộp duyệt và nút Thêm', () => {
+    render(
+      <AppShell items={items} tenantName={null} signedIn>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const quick = within(screen.getByRole('navigation', { name: 'Truy cập nhanh' }));
+    for (const name of ['Việc của tôi', 'Hộp duyệt', 'Vi bằng', 'Tống đạt', 'Thêm'])
+      expect(quick.getByRole(name === 'Thêm' ? 'button' : 'link', { name })).toBeTruthy();
+  });
+
+  it('màn đăng nhập không có thanh bên, chỉ panel thương hiệu và nội dung', () => {
+    path.current = '/login';
+    render(
+      <AppShell items={[]} tenantName={null}>
+        <p>form đăng nhập</p>
+      </AppShell>,
+    );
+    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.getByText('form đăng nhập')).toBeTruthy();
+    expect(screen.getByRole('main')).toBeTruthy();
   });
 });
