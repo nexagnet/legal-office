@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { KpiStrip, countStatus } from '../../components/KpiStrip';
+import { RowActions } from '../../components/RowActions';
 import { StatusPill } from '../../components/StatusPill';
 import { NewServiceForm } from '../../components/NewServiceForm';
 import { ServiceRowActions } from '../../components/ServiceRowActions';
@@ -71,53 +73,70 @@ export default async function ServicePage() {
           <p>Chưa có văn bản nào trong phạm vi quyền của bạn.</p>
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="table-cards">
-            <caption className="sr-only">Văn bản tống đạt</caption>
-            <thead>
-              <tr>
-                <th scope="col">Yêu cầu</th>
-                <th scope="col">Người nhận</th>
-                <th scope="col">Hạn</th>
-                <th scope="col">Trạng thái</th>
-                <th scope="col">Số lần</th>
-                <th scope="col">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((d) => (
-                <tr key={d.documentId}>
-                  <th scope="row">{d.requestRef}</th>
-                  <td data-label="Người nhận">{d.recipientName}</td>
-                  <td data-label="Hạn">{fmt.format(new Date(d.deadlineAt))}</td>
-                  <td data-label="Trạng thái">
-                    <StatusPill
-                      status={d.status}
-                      label={SERVICE_STATUS_LABEL[d.status] ?? d.status}
-                    />
-                    {d.undeliverableReason ? (
-                      <span className="muted">
-                        {' '}
-                        · {UNDELIVERABLE_LABEL[d.undeliverableReason] ?? d.undeliverableReason}
-                      </span>
-                    ) : null}
-                  </td>
-                  <td data-label="Số lần">{d.attempts}</td>
-                  <td data-label="Thao tác">
-                    {d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE' ? null : (
-                      <AssignHandler
-                        path={`service-of-documents/documents/${d.documentId}/handler`}
-                        options={handlers}
-                        currentId={d.handlerUserId}
-                      />
-                    )}
-                    <ServiceRowActions documentId={d.documentId} status={d.status} />
-                  </td>
+        <>
+          <KpiStrip
+            label="Tổng hợp văn bản tống đạt"
+            items={[
+              { label: 'Chưa giao người xử lý', value: countStatus(items, 'PENDING') },
+              { label: 'Đang xử lý', value: countStatus(items, 'ASSIGNED') },
+              { label: 'Đã tống đạt', value: countStatus(items, 'DELIVERED'), tone: 'ok' },
+              {
+                label: 'Không tống đạt được',
+                value: countStatus(items, 'UNDELIVERABLE'),
+                tone: 'danger',
+              },
+            ]}
+          />
+          <div className="table-wrap">
+            <table className="table-cards">
+              <caption className="sr-only">Văn bản tống đạt</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Yêu cầu</th>
+                  <th scope="col">Người nhận</th>
+                  <th scope="col">Hạn</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">Số lần</th>
+                  <th scope="col">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {items.map((d) => (
+                  <tr key={d.documentId}>
+                    <th scope="row">{d.requestRef}</th>
+                    <td data-label="Người nhận">{d.recipientName}</td>
+                    <td data-label="Hạn">{fmt.format(new Date(d.deadlineAt))}</td>
+                    <td data-label="Trạng thái">
+                      <StatusPill
+                        status={d.status}
+                        label={SERVICE_STATUS_LABEL[d.status] ?? d.status}
+                      />
+                      {d.undeliverableReason ? (
+                        <span className="muted">
+                          {' '}
+                          · {UNDELIVERABLE_LABEL[d.undeliverableReason] ?? d.undeliverableReason}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td data-label="Số lần">{d.attempts}</td>
+                    <td data-label="Thao tác">
+                      <RowActions>
+                        {d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE' ? null : (
+                          <AssignHandler
+                            path={`service-of-documents/documents/${d.documentId}/handler`}
+                            options={handlers}
+                            currentId={d.handlerUserId}
+                          />
+                        )}
+                        <ServiceRowActions documentId={d.documentId} status={d.status} />
+                      </RowActions>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
       <NewServiceForm branches={session.branches} />
     </section>

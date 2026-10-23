@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { KpiStrip, countStatus } from '../../components/KpiStrip';
+import { RowActions } from '../../components/RowActions';
 import { StatusPill } from '../../components/StatusPill';
 import { NewVerificationForm } from '../../components/NewVerificationForm';
 import { VerificationActions } from '../../components/VerificationActions';
@@ -71,61 +73,83 @@ export default async function VerificationPage() {
           <p>Chưa có hồ sơ nào trong phạm vi quyền của bạn.</p>
         </div>
       ) : (
-        <div className="table-wrap">
-          <table className="table-cards">
-            <caption className="sr-only">Hồ sơ xác minh</caption>
-            <thead>
-              <tr>
-                <th scope="col">Mã hồ sơ</th>
-                <th scope="col">Trạng thái</th>
-                <th scope="col">THV phụ trách</th>
-                <th scope="col">Các vòng</th>
-                <th scope="col">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((c) => (
-                <tr key={c.caseId}>
-                  <th scope="row">{c.caseRef}</th>
-                  <td data-label="Trạng thái">
-                    <StatusPill
-                      status={c.status}
-                      label={VERIFICATION_STATUS_LABEL[c.status] ?? c.status}
-                    />
-                    {c.conclusionText ? <span className="muted"> · {c.conclusionText}</span> : null}
-                  </td>
-                  <td data-label="THV phụ trách">
-                    {c.handlerUserId ? 'Đã phân công' : 'Chưa phân công'}
-                  </td>
-                  <td data-label="Các vòng">
-                    {c.rounds.length === 0 ? (
-                      <span className="muted">Chưa có vòng</span>
-                    ) : (
-                      <ul>
-                        {c.rounds.map((r) => (
-                          <li key={r.id}>
-                            {r.seq}. {r.partyName} · {ROUND_STATUS_LABEL[r.status] ?? r.status}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </td>
-                  <td data-label="Thao tác">
-                    {c.status === 'CONCLUDED' ? null : (
-                      <AssignHandler
-                        path={`verification/cases/${c.caseId}/handler`}
-                        options={handlers}
-                        currentId={c.handlerUserId}
-                      />
-                    )}
-                    {c.status === 'CONCLUDED' ? null : <ContractDateForm caseId={c.caseId} />}
-                    <VerificationActions caseId={c.caseId} status={c.status} rounds={c.rounds} />
-                  </td>
+        <>
+          <KpiStrip
+            label="Tổng hợp hồ sơ xác minh"
+            items={[
+              { label: 'Đang xác minh', value: countStatus(items, 'OPEN') },
+              {
+                label: 'Chờ quyết định kết luận',
+                value: countStatus(items, 'CONCLUSION_PROPOSED'),
+                tone: 'warn',
+              },
+              { label: 'Đã kết luận', value: countStatus(items, 'CONCLUDED'), tone: 'ok' },
+            ]}
+          />
+          <div className="table-wrap">
+            <table className="table-cards">
+              <caption className="sr-only">Hồ sơ xác minh</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Mã hồ sơ</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">THV phụ trách</th>
+                  <th scope="col">Các vòng</th>
+                  <th scope="col">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {items.map((c) => (
+                  <tr key={c.caseId}>
+                    <th scope="row">{c.caseRef}</th>
+                    <td data-label="Trạng thái">
+                      <StatusPill
+                        status={c.status}
+                        label={VERIFICATION_STATUS_LABEL[c.status] ?? c.status}
+                      />
+                      {c.conclusionText ? (
+                        <span className="muted"> · {c.conclusionText}</span>
+                      ) : null}
+                    </td>
+                    <td data-label="THV phụ trách">
+                      {c.handlerUserId ? 'Đã phân công' : 'Chưa phân công'}
+                    </td>
+                    <td data-label="Các vòng">
+                      {c.rounds.length === 0 ? (
+                        <span className="muted">Chưa có vòng</span>
+                      ) : (
+                        <ul>
+                          {c.rounds.map((r) => (
+                            <li key={r.id}>
+                              {r.seq}. {r.partyName} · {ROUND_STATUS_LABEL[r.status] ?? r.status}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                    <td data-label="Thao tác">
+                      <RowActions>
+                        {c.status === 'CONCLUDED' ? null : (
+                          <AssignHandler
+                            path={`verification/cases/${c.caseId}/handler`}
+                            options={handlers}
+                            currentId={c.handlerUserId}
+                          />
+                        )}
+                        {c.status === 'CONCLUDED' ? null : <ContractDateForm caseId={c.caseId} />}
+                        <VerificationActions
+                          caseId={c.caseId}
+                          status={c.status}
+                          rounds={c.rounds}
+                        />
+                      </RowActions>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
       <NewVerificationForm branches={session.branches} />
     </section>
