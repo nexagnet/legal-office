@@ -146,7 +146,7 @@ describe.skipIf(!ADMIN_URL)(
       mailFails = false;
       await owner.query(`DELETE FROM auth_login_challenges`);
       await owner.query(`DELETE FROM auth_tenant_settings`);
-    await owner.query(`DELETE FROM office_mail_settings`);
+      await owner.query(`DELETE FROM office_mail_settings`);
       await owner.query(`UPDATE auth_credentials SET failed_attempts = 0, locked_until = NULL`);
     });
 
