@@ -3,6 +3,25 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
+import {
+  BookOpen,
+  Building2,
+  ChartColumn,
+  CircleCheckBig,
+  FileText,
+  FolderOpen,
+  Gavel,
+  House,
+  Mail,
+  Menu,
+  Package,
+  Search,
+  Send,
+  Settings,
+  Users,
+  UserRound,
+  type LucideIcon,
+} from 'lucide-react';
 import type { NavItem } from '../app/nav';
 
 interface Props {
@@ -123,6 +142,37 @@ function AuthStage({ children }: { readonly children: ReactNode }) {
   );
 }
 
+const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
+  '': House,
+  'viec-cua-toi': UserRound,
+  'hop-duyet': CircleCheckBig,
+  'vi-bang': FileText,
+  'tong-dat': Send,
+  'xac-minh': Search,
+  'to-chuc-tha': Gavel,
+  'hop-dong': Users,
+  'so-sach': BookOpen,
+  'bieu-mau': FolderOpen,
+  'cong-van': Mail,
+  'vat-tu': Package,
+  'bao-cao': ChartColumn,
+  'quan-tri': Building2,
+  'cai-dat': Settings,
+};
+
+/** Màu miền: banner đầu trang và thẻ đổi tông theo nghiệp vụ đang mở (CSS đọc `data-domain`). */
+const DOMAIN_SLUGS: ReadonlySet<string> = new Set([
+  'vi-bang',
+  'tong-dat',
+  'xac-minh',
+  'to-chuc-tha',
+]);
+
+function NavIcon({ slug }: { readonly slug: string }) {
+  const Icon = NAV_ICON[slug];
+  return Icon ? <Icon className="nav-icon" aria-hidden="true" /> : null;
+}
+
 const hrefOf = (i: NavItem) => `/${i.slug}`;
 
 const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
@@ -158,12 +208,13 @@ export function AppShell({
   const quick = QUICK_SLUGS.map((slug) => items.find((i) => i.slug === slug)).filter(
     (i): i is NavItem => i !== undefined,
   );
+  const domain = DOMAIN_SLUGS.has(current?.slug ?? '') ? current?.slug : undefined;
   const head =
     SUBPAGE_HEAD[pathname] ??
     STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
     (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
   return (
-    <div className="shell">
+    <div className="shell" data-domain={domain}>
       <a className="skip" href="#main">
         Bỏ qua điều hướng
       </a>
@@ -189,7 +240,8 @@ export function AppShell({
                         aria-current={current === i ? 'page' : undefined}
                         onClick={() => setOpen(false)}
                       >
-                        {i.label}
+                        <NavIcon slug={i.slug} />
+                        <span>{i.label}</span>
                       </Link>
                     </li>
                   ))}
@@ -247,7 +299,8 @@ export function AppShell({
         <nav className="bottom-nav" aria-label="Truy cập nhanh">
           {quick.map((i) => (
             <Link key={i.slug} href={hrefOf(i)} aria-current={current === i ? 'page' : undefined}>
-              {i.label}
+              <NavIcon slug={i.slug} />
+              <span>{i.label}</span>
             </Link>
           ))}
           <button
@@ -256,7 +309,8 @@ export function AppShell({
             aria-controls="primary-nav"
             onClick={() => setOpen((v) => !v)}
           >
-            Thêm
+            <Menu className="nav-icon" aria-hidden="true" />
+            <span>Thêm</span>
           </button>
         </nav>
       ) : null}

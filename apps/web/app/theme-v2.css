@@ -1,39 +1,39 @@
 /*
- * Giao diện v2 "Giấy – Mực – Đồng thau" (Figma trang 09, 23/10/2026).
+ * Giao diện "Navy – Serif" (Figma trang N0, 23/10/2026): thanh bên navy, tiêu đề serif, thẻ trắng bo tròn, mỗi nghiệp vụ một màu.
  * Nạp SAU globals.css: đổi token rồi ghi đè các thành phần dùng chung; không đổi bố cục từng màn.
  */
 :root {
-  --bg: #f5f3ee;
+  --bg: #f3f6fb;
   --surface: #ffffff;
-  --surface-2: #faf9f6;
-  --ink: #16202e;
-  --muted: #5f6b7a;
-  --faint: #8a94a1;
-  --line: #e3dfd6;
-  --line-strong: #cfc9bc;
-  --head: #faf9f6;
-  --accent: #1f4e8c;
-  --accent-soft: #e8eff8;
+  --surface-2: #f8fafd;
+  --ink: #14233b;
+  --muted: #5b6b82;
+  --faint: #8a97ab;
+  --line: #e3e9f2;
+  --line-strong: #cbd5e4;
+  --head: #f8fafd;
+  --accent: #1f4fa8;
+  --accent-soft: #e8effb;
   --on-accent: #ffffff;
-  --brass: #a8802f;
-  --brass-soft: #f6eedc;
-  --focus: #a8802f;
-  --warn-bg: #fdf0dc;
-  --warn-ink: #b35c00;
-  --danger: #b42318;
-  --danger-bg: #fdecea;
-  --ok: #1f7a4d;
-  --ok-bg: #e6f4ec;
-  --side-bg: #12263f;
-  --side-raised: #1c3a5e;
+  --brass: #c9a24a;
+  --brass-soft: #f6ebcf;
+  --focus: #c9a24a;
+  --warn-bg: #fdf0da;
+  --warn-ink: #b76a00;
+  --danger: #d13438;
+  --danger-bg: #fdecec;
+  --ok: #1b8a5a;
+  --ok-bg: #e4f4ec;
+  --side-bg: #0a1f3b;
+  --side-raised: #14376a;
   --side-logo: #a8802f;
   --side-line: #69839b;
-  --side-ink: #c9d8e5;
-  --side-muted: #8a9db3;
+  --side-ink: #c5d2e6;
+  --side-muted: #8196b3;
   --radius: 16px;
   --radius-sm: 10px;
   --radius-xs: 10px;
-  --shadow: 0 4px 16px rgba(18, 38, 63, 0.08);
+  --shadow: 0 4px 18px rgba(15, 45, 85, 0.07);
   --font: 'Be Vietnam Pro', system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
 }
@@ -531,4 +531,181 @@ tbody tr:hover > td {
 .pill[data-tone='danger'] {
   background: var(--danger-bg);
   color: var(--danger);
+}
+
+/* ---- Navy – Serif (Figma N0) ---- */
+:root {
+  --d-vibang: #1f4fa8;
+  --d-vibang-soft: #e8effb;
+  --d-tongdat: #1b8a5a;
+  --d-tongdat-soft: #e4f4ec;
+  --d-xacminh: #7c3aed;
+  --d-xacminh-soft: #efe9fd;
+  --d-tha: #a4580f;
+  --d-tha-soft: #fcefd9;
+  --banner-soft: #eef2f9;
+}
+.shell[data-domain='vi-bang'] {
+  --banner-soft: var(--d-vibang-soft);
+  --banner-tone: var(--d-vibang);
+}
+.shell[data-domain='tong-dat'] {
+  --banner-soft: var(--d-tongdat-soft);
+  --banner-tone: var(--d-tongdat);
+}
+.shell[data-domain='xac-minh'] {
+  --banner-soft: var(--d-xacminh-soft);
+  --banner-tone: var(--d-xacminh);
+}
+.shell[data-domain='to-chuc-tha'] {
+  --banner-soft: var(--d-tha-soft);
+  --banner-tone: var(--d-tha);
+}
+.side {
+  background: linear-gradient(180deg, #0f2d55 0%, #0a1f3b 100%);
+}
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 14px;
+  border: 1px solid transparent;
+}
+.nav-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+  opacity: 0.85;
+}
+.nav a[aria-current='page'] {
+  background: var(--side-raised);
+  border-color: var(--brass);
+}
+.nav a[aria-current='page']::before {
+  content: none;
+}
+.nav a[aria-current='page'] .nav-icon {
+  opacity: 1;
+  color: var(--brass);
+}
+.topbar {
+  position: relative;
+  overflow: hidden;
+  min-height: 132px;
+  background: linear-gradient(100deg, #ffffff 35%, var(--banner-soft) 100%);
+  border-bottom: 0;
+}
+.topbar-h {
+  font-size: 30px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.topbar-sub {
+  margin-top: 6px;
+  font-size: 14px;
+}
+.topbar::after {
+  content: '';
+  position: absolute;
+  right: 28px;
+  bottom: 0;
+  width: 180px;
+  height: 120px;
+  opacity: 0.9;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 120'%3E%3Crect x='40' y='40' width='96' height='62' rx='10' fill='%23ffffff' fill-opacity='.55' transform='rotate(-8 88 71)'/%3E%3Crect x='30' y='24' width='96' height='62' rx='10' fill='%23ffffff' fill-opacity='.85' transform='rotate(6 78 55)'/%3E%3Crect x='48' y='40' width='50' height='6' rx='3' fill='%238196b3' fill-opacity='.45'/%3E%3Crect x='48' y='54' width='62' height='6' rx='3' fill='%238196b3' fill-opacity='.35'/%3E%3Crect x='48' y='68' width='34' height='6' rx='3' fill='%238196b3' fill-opacity='.3'/%3E%3C/svg%3E")
+    no-repeat right bottom / contain;
+}
+.shell[data-domain] .topbar-h {
+  color: var(--banner-tone);
+}
+@media (max-width: 899px) {
+  .topbar {
+    min-height: 0;
+    padding-block: 14px;
+    color: #ffffff;
+    background: linear-gradient(180deg, #0f2d55, #0a1f3b);
+  }
+  .topbar::after {
+    content: none;
+  }
+  .topbar-h,
+  .shell[data-domain] .topbar-h {
+    color: #ffffff;
+    font-size: 20px;
+  }
+  .topbar-sub {
+    color: #b9c7dd;
+    font-size: 12px;
+  }
+}
+/* Tiêu đề trang đã nằm ở banner: giữ cho trình đọc màn hình, ẩn bản trùng */
+.main > h1:first-child,
+.main > section > h1:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.panel,
+.table-wrap,
+.domain {
+  border-radius: 16px;
+}
+.domain {
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.domain[data-domain='vi-bang'] {
+  --tone: var(--d-vibang);
+  --tone-bg: var(--d-vibang-soft);
+}
+.domain[data-domain='tong-dat'] {
+  --tone: var(--d-tongdat);
+  --tone-bg: var(--d-tongdat-soft);
+}
+.domain[data-domain='xac-minh'] {
+  --tone: var(--d-xacminh);
+  --tone-bg: var(--d-xacminh-soft);
+}
+.domain[data-domain='to-chuc-tha'] {
+  --tone: var(--d-tha);
+  --tone-bg: var(--d-tha-soft);
+}
+.domain-name {
+  font: 700 19px/1.3 var(--font-serif);
+}
+.domain-meta {
+  border-radius: 12px;
+}
+.auth-brand {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(201, 162, 74, 0.22), transparent 60%),
+    linear-gradient(160deg, #14376a, #0a1f3b);
+}
+@media (max-width: 899px) {
+  .bottom-nav a,
+  .bottom-nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 62px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .bottom-nav [aria-current='page'] {
+    color: var(--accent);
+    box-shadow: inset 0 3px 0 var(--accent);
+  }
+  .bottom-nav .nav-icon {
+    width: 20px;
+    height: 20px;
+    color: inherit;
+    opacity: 1;
+  }
 }
