@@ -44,4 +44,16 @@ describe('Việc của tôi', () => {
     expect(renderToStaticMarkup(<MyWorkList items={[]} />)).toContain('Không có việc được giao');
     expect(renderToStaticMarkup(<MyWorkList items="error" />)).toContain('role="alert"');
   });
+
+  it('có dải số liệu, tab lọc theo nghiệp vụ và bảng', () => {
+    const html = renderToStaticMarkup(
+      <MyWorkList
+        items={[item({ overdue: true }), item({ domain: 'XAC_MINH', refId: 'x1', label: 'XM 1' })]}
+      />,
+    );
+    expect(html).toContain('Tất cả');
+    expect(html).toContain('Xác minh');
+    expect(html).toContain('<th>Nghiệp vụ</th>');
+    expect(html).toContain('Tổng việc');
+  });
 });
