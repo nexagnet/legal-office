@@ -40,6 +40,10 @@ The job log prints `expected=<sha> actual=<sha>`; reviewers must read it rather 
 
 ## Manual V5 sandbox diagnostic (#172)
 
+This section records the approved caller on `main`. The branch-only #175 diagnostic
+below is a separate authorized experiment; its replacement caller must never merge
+into `main`.
+
 This separate caller is scoped by [legal-office #172](https://github.com/nexagnet/legal-office/issues/172)
 and [central #32](https://github.com/nexagnet/.github/issues/32). It adds no application behavior.
 The existing Builder, Reviewer and Repair workflow pins stay unchanged.
@@ -81,3 +85,56 @@ does not enable public Internet/Figma, and does not close central #36/#37/#38.
 Rollback: stop manual dispatches and remove this caller through an owner-controlled
 R3 PR. Cancel an active diagnostic if needed; retain its sanitized evidence. Do not
 change existing application callers, secrets or V4 fallback as part of rollback.
+
+## Branch-only Read/Glob/Grep and MCP diagnostics (#175) — DO NOT MERGE
+
+[legal-office #175](https://github.com/nexagnet/legal-office/issues/175) scopes the
+owner-authorized runtime investigation for central
+[#36](https://github.com/nexagnet/.github/issues/36) and
+[#37](https://github.com/nexagnet/.github/issues/37). On
+`codex/tool-isolation-runtime-36-37` only, the already registered manual workflow
+filename calls two diagnostic reusable workflows at one reviewed immutable central
+SHA. Its Draft PR is for source review and evidence only. Do not merge it; the
+approved Bash diagnostic on `main` remains the default-branch caller.
+
+Both jobs require the owner actor, exact repository, `workflow_dispatch`, this fixed
+branch ref and equality between `github.sha` and the required
+`expected_consumer_sha` input. The reusable workflows repeat these gates and verify
+the checkout SHA. Permissions remain read-only; each job maps only the existing
+Claude OAuth secret. No Publisher credential, Internet tools or Figma grant is added.
+
+Before dispatch, record independent source review and successful CI for the exact
+central source and consumer HEAD, confirm both pins agree, and recheck the live
+consumer branch still matches the reviewed SHA. Dispatch the branch version of the
+existing registered filename with the actual full reviewed SHA:
+
+```sh
+gh workflow run claude-sandbox-probe-caller.yml --repo nexagnet/legal-office --ref codex/tool-isolation-runtime-36-37 -f expected_consumer_sha=FULL_REVIEWED_CONSUMER_SHA
+```
+
+The required input freezes the reviewed consumer commit; it is not a configurable
+tool prompt or target. Record the resulting run ID, attempt, actor, event, ref,
+consumer SHA and referenced central workflow SHA before accepting its output.
+Do not redispatch merely because a client polling session ended; inspect the live
+run first.
+
+The Read job uses a synthetic HOME and 15 fixed calls: positive controls plus
+Read/Glob/Grep cases for home, absolute, symlink and normalized path aliases.
+Authoritative native denial evidence is required for negative cases. Filtered-empty
+results or missing telemetry are `NOT_PROVEN`. The MCP job first requires actual
+startup, initialization and tool discovery from four benign local stdio fixtures,
+then checks a fresh candidate environment for zero starts and zero discovered MCP
+servers. Its exact-control Read guard bounds unrelated tool access; it is not
+evidence of native Read denial or MCP startup suppression.
+
+Record the trusted per-job verdicts and sanitized `read-isolation-proof` and
+`mcp-isolation-audit` artifacts on #175 and the corresponding central issues.
+Validate artifact structure and evidence independently. CI, model prose and an
+overall Actions success do not establish isolation. Missing controls, incomplete
+calls or malformed telemetry remain `NOT_PROVEN`; observed denied content or
+candidate MCP startup is a failure. Never upload or print raw execution files,
+canary values, credentials or model/tool transcripts.
+
+Keep central #42/#43 in Draft and unmerged. This experiment does not activate their
+candidate production changes or close broader security acceptance. Stop dispatches
+to roll back; retain sanitized evidence and leave main callers and secrets intact.

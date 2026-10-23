@@ -9,62 +9,67 @@ const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
 
 const JOBS = ['bootstrap-verify', 'bootstrap-safety', 'app-verify', 'audit', 'db-integration'];
 
-describe('manual sandbox negative probe caller (R3 #172)', () => {
-  const centralPin = '3a68dd94b9fd927ffd97457020a197ed0423172a';
+describe('reviewed branch-only Read/MCP diagnostics (R3 #175)', () => {
+  const centralPin = '4ad084be9039aefa9f61ea162b627b90f82dd192';
   const readCaller = () => readFileSync(
     new URL('../.github/workflows/claude-sandbox-probe-caller.yml', import.meta.url), 'utf8',
   ).replaceAll('\r\n', '\n');
 
-  it('only exposes manual dispatch with no task-controlled inputs or automatic event', () => {
+  it('only exposes manual dispatch with one required expected-SHA input', () => {
     const caller = readCaller();
-    assert.equal(caller.split('on:\n')[1].split('\npermissions:')[0], '  workflow_dispatch:\n');
-    assert.doesNotMatch(caller, /pull_request_target|issue_comment|workflow_run|schedule:|inputs:/);
+    assert.match(caller, /on:\n  workflow_dispatch:\n    inputs:\n      expected_consumer_sha:\n/);
+    assert.match(caller, /required: true\n        type: string/);
+    assert.doesNotMatch(caller, /pull_request_target|issue_comment|workflow_run|schedule:/);
+    const inputs = caller.split('    inputs:\n')[1]?.split('\npermissions:')[0] || '';
+    assert.equal((inputs.match(/^      [a-z_]+:/gm) ?? []).length, 1);
   });
 
-  it('enforces repository, owner, event and default-main branch before the reusable job', () => {
+  it('gates both jobs on owner, repository, event, diagnostic ref and exact dispatch SHA', () => {
     const caller = readCaller();
-    const expression = caller.match(/    if: >-\n([\s\S]*?)    uses:/)?.[1];
-    assert.ok(expression);
-    const clauses = expression.trim().split(/\s*&&\s*/).map(clause => {
-      const match = clause.match(/^github\.(repository|event_name|actor|ref) == '([^']+)'$/);
-      assert.ok(match, 'only literal equality AND clauses are allowed');
-      return [match[1], match[2]];
-    });
-    assert.deepEqual(clauses, [
-      ['repository', 'nexagnet/legal-office'],
-      ['event_name', 'workflow_dispatch'],
-      ['actor', 'phungtienviet14-sketch'],
-      ['ref', 'refs/heads/main'],
-    ]);
-    const allowed = Object.fromEntries(clauses);
-    const evaluate = context => clauses.every(([key, value]) => context[key] === value);
-    assert.equal(evaluate(allowed), true);
-    for (const [key, value] of [
-      ['repository', 'nexagnet/other'], ['event_name', 'pull_request'],
-      ['actor', 'another-user'], ['ref', 'refs/heads/codex/unreviewed'],
-      ['ref', 'refs/tags/main'], ['actor', undefined],
-    ]) assert.equal(evaluate({ ...allowed, [key]: value }), false);
+    const expressions = [...caller.matchAll(/    if: >-\n([\s\S]*?)    uses:/g)];
+    assert.equal(expressions.length, 2);
+    const expected = [
+      "github.repository == 'nexagnet/legal-office'",
+      "github.event_name == 'workflow_dispatch'",
+      "github.actor == 'phungtienviet14-sketch'",
+      "github.ref == 'refs/heads/codex/tool-isolation-runtime-36-37'",
+      'github.sha == inputs.expected_consumer_sha',
+    ];
+    for (const [, expression] of expressions) {
+      assert.deepEqual(expression.trim().split(/\s*&&\s*/), expected);
+    }
+    const owner = { repository: 'nexagnet/legal-office', event_name: 'workflow_dispatch',
+      actor: 'phungtienviet14-sketch', ref: 'refs/heads/codex/tool-isolation-runtime-36-37', sha: 'a'.repeat(40) };
+    const allowed = (context, expectedSha) => context.repository === owner.repository &&
+      context.event_name === owner.event_name && context.actor === owner.actor &&
+      context.ref === owner.ref && context.sha === expectedSha;
+    assert.equal(allowed(owner, owner.sha), true);
+    for (const [key, value] of [['repository', 'nexagnet/other'], ['actor', 'another-user'],
+      ['event_name', 'pull_request'], ['ref', 'refs/heads/main'], ['sha', 'b'.repeat(40)]]) {
+      assert.equal(allowed({ ...owner, [key]: value }, owner.sha), false);
+    }
   });
 
-  it('pins the diagnostic to the exact merged central SHA and has no local execution steps', () => {
+  it('pins both diagnostic workflows to the same reviewed immutable source', () => {
     const caller = readCaller();
-    const job = caller.split('jobs:\n')[1];
-    assert.match(job, new RegExp('uses: nexagnet/\\.github/\\.github/workflows/claude-sandbox-probe\\.yml@' + centralPin + '\\n'));
-    assert.equal((job.match(/^  [a-z-]+:/gm) ?? []).length, 1);
-    assert.doesNotMatch(job, /steps:|runs-on:|run:|with:|@(?:main|master|HEAD|v\d+)\b/);
+    assert.match(centralPin, /^[0-9a-f]{40}$/);
+    for (const kind of ['read', 'mcp']) {
+      assert.ok(caller.includes('uses: nexagnet/.github/.github/workflows/claude-' + kind + '-isolation-probe.yml@' + centralPin));
+    }
+    assert.doesNotMatch(caller, /steps:|runs-on:|run:|@(?:main|master|HEAD|v\d+)\b/);
   });
 
-  it('grants only the read permissions required by the central probe', () => {
+  it('keeps the permission ceiling read-only', () => {
     const caller = readCaller();
     assert.equal(caller.split('permissions:\n')[1].split('\njobs:')[0],
       '  contents: read\n  issues: read\n  pull-requests: read\n');
-    assert.doesNotMatch(caller, /: write\b|write-all|id-token:|actions: write|secrets: inherit/);
+    assert.doesNotMatch(caller, /: write\b|write-all|id-token:|secrets: inherit/);
   });
 
-  it('maps only the existing Claude secret and never a Publisher/App credential', () => {
+  it('maps exactly one existing Claude secret per job and forwards the frozen SHA', () => {
     const caller = readCaller();
-    assert.equal(caller.split('    secrets:\n')[1],
-      '      CLAUDE_CODE_OAUTH_TOKEN: $' + '{{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}\n');
+    assert.equal((caller.match(/CLAUDE_CODE_OAUTH_TOKEN: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/g) ?? []).length, 2);
+    assert.equal((caller.match(/expected_consumer_sha: \$\{\{ inputs\.expected_consumer_sha \}\}/g) ?? []).length, 2);
     assert.doesNotMatch(caller, /BUILDER_PUBLISHER|APP_PRIVATE_KEY|GITHUB_TOKEN|GH_TOKEN|gh pr merge|deploy/);
   });
 });
