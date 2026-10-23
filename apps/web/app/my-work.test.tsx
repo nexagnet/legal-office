@@ -24,7 +24,9 @@ describe('Việc của tôi', () => {
 
   it('dịch trạng thái, lạ thì giữ nguyên', () => {
     expect(myWorkStatusLabel({ domain: 'VIBANG', status: 'ASSIGNED' })).toBe('Đã phân công THV');
-    expect(myWorkStatusLabel({ domain: 'XAC_MINH', status: 'OPEN_X' })).toBe('OPEN_X');
+    expect(myWorkStatusLabel({ domain: 'XAC_MINH', status: 'OPEN' })).toBe('Đang xác minh');
+    expect(myWorkStatusLabel({ domain: 'THI_HANH', status: 'OPEN' })).toBe('Đang thực hiện');
+    expect(myWorkStatusLabel({ domain: 'XAC_MINH', status: 'LA' })).toBe('LA');
   });
 
   it('ghi "Quá hạn" bằng chữ và hiện hạn', () => {

@@ -71,7 +71,7 @@ export default async function VerificationPage() {
         </div>
       ) : (
         <div className="table-wrap">
-          <table>
+          <table className="table-cards">
             <caption className="sr-only">Hồ sơ xác minh</caption>
             <thead>
               <tr>
@@ -86,12 +86,14 @@ export default async function VerificationPage() {
               {items.map((c) => (
                 <tr key={c.caseId}>
                   <th scope="row">{c.caseRef}</th>
-                  <td>
+                  <td data-label="Trạng thái">
                     {VERIFICATION_STATUS_LABEL[c.status] ?? c.status}
                     {c.conclusionText ? <span className="muted"> · {c.conclusionText}</span> : null}
                   </td>
-                  <td>{c.handlerUserId ? 'Đã phân công' : 'Chưa phân công'}</td>
-                  <td>
+                  <td data-label="THV phụ trách">
+                    {c.handlerUserId ? 'Đã phân công' : 'Chưa phân công'}
+                  </td>
+                  <td data-label="Các vòng">
                     {c.rounds.length === 0 ? (
                       <span className="muted">Chưa có vòng</span>
                     ) : (
@@ -104,7 +106,7 @@ export default async function VerificationPage() {
                       </ul>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Thao tác">
                     {c.status === 'CONCLUDED' ? null : (
                       <AssignHandler
                         path={`verification/cases/${c.caseId}/handler`}
