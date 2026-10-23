@@ -1,4 +1,9 @@
-import { CASE_STATUS_LABEL, SERVICE_STATUS_LABEL } from './messages';
+import {
+  CASE_STATUS_LABEL,
+  ENFORCEMENT_STATUS_LABEL,
+  SERVICE_STATUS_LABEL,
+  VERIFICATION_STATUS_LABEL,
+} from './messages';
 import { API_URL } from './server';
 
 export interface MyWorkItem {
@@ -29,6 +34,8 @@ export function myWorkHref(item: Pick<MyWorkItem, 'domain' | 'refId'>): string |
 export function myWorkStatusLabel(item: Pick<MyWorkItem, 'domain' | 'status'>): string {
   if (item.domain === 'VIBANG') return CASE_STATUS_LABEL[item.status] ?? item.status;
   if (item.domain === 'TONG_DAT') return SERVICE_STATUS_LABEL[item.status] ?? item.status;
+  if (item.domain === 'XAC_MINH') return VERIFICATION_STATUS_LABEL[item.status] ?? item.status;
+  if (item.domain === 'THI_HANH') return ENFORCEMENT_STATUS_LABEL[item.status] ?? item.status;
   return item.status;
 }
 

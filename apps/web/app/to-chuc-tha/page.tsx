@@ -83,7 +83,7 @@ export default async function EnforcementPage() {
         </div>
       ) : (
         <div className="table-wrap">
-          <table>
+          <table className="table-cards">
             <caption className="sr-only">Hồ sơ tổ chức thi hành án</caption>
             <thead>
               <tr>
@@ -103,8 +103,8 @@ export default async function EnforcementPage() {
                       {c.agreementRef} · {c.decisionRef}
                     </div>
                   </th>
-                  <td>{ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status}</td>
-                  <td>
+                  <td data-label="Trạng thái">{ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status}</td>
+                  <td data-label="Đương sự">
                     {c.parties.length === 0 ? (
                       <span className="muted">Chưa có</span>
                     ) : (
@@ -117,7 +117,7 @@ export default async function EnforcementPage() {
                       </ul>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Nghĩa vụ">
                     {c.obligations.length === 0 ? (
                       <span className="muted">Chưa có</span>
                     ) : (
@@ -131,7 +131,7 @@ export default async function EnforcementPage() {
                       </ul>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Thao tác">
                     {c.status === 'COMPLETED' ? null : (
                       <AssignHandler
                         path={`enforcement-cases/${c.caseId}/handler`}

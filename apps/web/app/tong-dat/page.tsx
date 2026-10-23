@@ -71,7 +71,7 @@ export default async function ServicePage() {
         </div>
       ) : (
         <div className="table-wrap">
-          <table>
+          <table className="table-cards">
             <caption className="sr-only">Văn bản tống đạt</caption>
             <thead>
               <tr>
@@ -87,9 +87,9 @@ export default async function ServicePage() {
               {items.map((d) => (
                 <tr key={d.documentId}>
                   <th scope="row">{d.requestRef}</th>
-                  <td>{d.recipientName}</td>
-                  <td>{fmt.format(new Date(d.deadlineAt))}</td>
-                  <td>
+                  <td data-label="Người nhận">{d.recipientName}</td>
+                  <td data-label="Hạn">{fmt.format(new Date(d.deadlineAt))}</td>
+                  <td data-label="Trạng thái">
                     {SERVICE_STATUS_LABEL[d.status] ?? d.status}
                     {d.undeliverableReason ? (
                       <span className="muted">
@@ -98,8 +98,8 @@ export default async function ServicePage() {
                       </span>
                     ) : null}
                   </td>
-                  <td>{d.attempts}</td>
-                  <td>
+                  <td data-label="Số lần">{d.attempts}</td>
+                  <td data-label="Thao tác">
                     {d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE' ? null : (
                       <AssignHandler
                         path={`service-of-documents/documents/${d.documentId}/handler`}

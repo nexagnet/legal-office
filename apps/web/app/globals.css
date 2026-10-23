@@ -1657,3 +1657,59 @@ tr[data-selected='true'] > td {
   align-items: center;
   gap: 8px;
 }
+
+/* Điện thoại: hàng bảng gọn và căn đỉnh để ô thao tác nhiều biểu mẫu không kéo cả hàng thành khoảng trống. */
+@media (max-width: 699px) {
+  th,
+  td {
+    padding: 12px 10px;
+    vertical-align: top;
+  }
+}
+
+/* Điện thoại: bảng có cột thao tác thành thẻ, mỗi ô một dòng có nhãn, thao tác nằm dưới hàng thay vì bị cắt bên phải. */
+@media (max-width: 699px) {
+  .table-cards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .table-cards,
+  .table-cards tbody,
+  .table-cards tr,
+  .table-cards th,
+  .table-cards td {
+    display: block;
+    width: 100%;
+  }
+  .table-cards tr {
+    margin-bottom: 10px;
+    border: 1px solid var(--line, #dfe5ee);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .table-cards th,
+  .table-cards td {
+    border-radius: 0;
+    padding: 6px 14px;
+  }
+  .table-cards tbody th {
+    padding-top: 14px;
+    font-size: 15px;
+  }
+  .table-cards td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .table-cards td:last-child {
+    padding-bottom: 14px;
+  }
+}
