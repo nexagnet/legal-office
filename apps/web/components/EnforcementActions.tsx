@@ -2,14 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
-import {
-  PARTY_KIND_LABEL,
-  PARTY_ROLE_LABEL,
-  RESULT_KIND_LABEL,
-  TERMINATION_REASON_LABEL,
-  messageFor,
-} from '../lib/messages';
+import { PARTY_KIND_LABEL, PARTY_ROLE_LABEL, RESULT_KIND_LABEL, messageFor } from '../lib/messages';
 import { pickedFile, postFile } from '../lib/upload';
+import { TerminationSheet } from './TerminationSheet';
 
 interface Props {
   readonly caseId: string;
@@ -246,52 +241,7 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
           Hoàn tất hồ sơ
         </button>
       </form>
-      <form
-        className="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const form = e.currentTarget;
-          const file = pickedFile(form, 'termination');
-          if (!file) return setError(messageFor('INVALID_DOCUMENT'));
-          const f = new FormData(form);
-          void run(
-            () =>
-              postFile(`enforcement-cases/${caseId}/termination-file`, file, {
-                reason: String(f.get('reason') ?? ''),
-                basis: String(f.get('basis') ?? ''),
-              }),
-            form,
-          );
-        }}
-      >
-        <h3>Chấm dứt tổ chức thi hành án (Điều 46)</h3>
-        <label>
-          Lý do chấm dứt
-          <select name="reason" defaultValue="AGREEMENT">
-            {Object.entries(TERMINATION_REASON_LABEL).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Căn cứ pháp lý (điểm, khoản, Điều của Luật THADS hoặc thỏa thuận)
-          <input name="basis" required maxLength={2000} />
-        </label>
-        <label>
-          Văn bản chấm dứt / thanh lý hợp đồng (PDF, JPEG, PNG; tối đa 25 MB)
-          <input
-            name="termination"
-            type="file"
-            accept="application/pdf,image/jpeg,image/png"
-            required
-          />
-        </label>
-        <button type="submit" disabled={busy}>
-          Chấm dứt hồ sơ
-        </button>
-      </form>
+      <TerminationSheet caseId={caseId} />
       <p role="alert" className="error" hidden={!error}>
         {error}
       </p>
