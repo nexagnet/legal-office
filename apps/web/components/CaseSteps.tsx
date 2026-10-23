@@ -63,9 +63,12 @@ export function CaseSteps({ caseId, status, progress }: Props) {
       <ol className="steps">
         {steps.map((s) => (
           <li key={s.label} data-done={s.done}>
-            <span className="dot" aria-hidden="true" /> {s.label}
-            {s.detail ? <span className="muted"> · {s.detail}</span> : null}
-            <span className="sr-only">{s.done ? ' (đã xong)' : ' (chưa xong)'}</span>
+            <span className="dot" aria-hidden="true" />
+            <span className="step-text">
+              {s.label}
+              {s.detail ? <span className="muted"> · {s.detail}</span> : null}
+              <span className="sr-only">{s.done ? ' (đã xong)' : ' (chưa xong)'}</span>
+            </span>
           </li>
         ))}
       </ol>

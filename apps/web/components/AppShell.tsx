@@ -15,6 +15,7 @@ import {
   Mail,
   Menu,
   Package,
+  Scale,
   Search,
   Send,
   Settings,
@@ -134,7 +135,9 @@ function AuthStage({ children }: { readonly children: ReactNode }) {
   return (
     <div className="auth-stage">
       <aside className="auth-brand" aria-hidden="true">
-        <span className="auth-mark">NX</span>
+        <span className="auth-mark">
+          <Scale aria-hidden="true" />
+        </span>
         <p className="auth-title">Quản lý văn phòng thừa hành viên</p>
         <p className="auth-sub">Vi bằng · Tống đạt · Xác minh · Tổ chức thi hành án</p>
       </aside>
