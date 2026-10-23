@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StatusPill } from '../../components/StatusPill';
 import { EnforcementActions } from '../../components/EnforcementActions';
 import { NewEnforcementForm } from '../../components/NewEnforcementForm';
 import { AssignHandler } from '../../components/AssignHandler';
@@ -103,7 +104,12 @@ export default async function EnforcementPage() {
                       {c.agreementRef} · {c.decisionRef}
                     </div>
                   </th>
-                  <td data-label="Trạng thái">{ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status}</td>
+                  <td data-label="Trạng thái">
+                    <StatusPill
+                      status={c.status}
+                      label={ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status}
+                    />
+                  </td>
                   <td data-label="Đương sự">
                     {c.parties.length === 0 ? (
                       <span className="muted">Chưa có</span>
