@@ -250,4 +250,20 @@ describe('AppShell v2', () => {
     expect(screen.getByText('form đăng nhập')).toBeTruthy();
     expect(screen.getByRole('main')).toBeTruthy();
   });
+  it('hiện huy hiệu số chờ duyệt cạnh Hộp duyệt, ẩn khi bằng 0', () => {
+    const items = visibleNav(['ADMIN']);
+    const { rerender } = render(
+      <AppShell items={items} tenantName={null} badges={{ 'hop-duyet': 12 }}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(nav.getByRole('link', { name: /Hộp duyệt/ }).textContent).toContain('12');
+    rerender(
+      <AppShell items={items} tenantName={null} badges={{ 'hop-duyet': 0 }}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    expect(nav.getByRole('link', { name: 'Hộp duyệt' }).textContent).toBe('Hộp duyệt');
+  });
 });

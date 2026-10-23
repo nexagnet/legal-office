@@ -23,11 +23,14 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { NavItem } from '../app/nav';
+import { SearchPalette } from './SearchPalette';
 
 interface Props {
   readonly items: readonly NavItem[];
   readonly tenantName: string | null;
   readonly signedIn?: boolean;
+  /** Số hiện ở huy hiệu cạnh mục menu, theo `slug`; thiếu hoặc 0 thì không hiện. */
+  readonly badges?: Readonly<Record<string, number>>;
   /** Vai hiển thị ở thẻ người dùng cuối thanh bên (không phải nguồn quyền). */
   readonly roleLabel?: string | null;
   readonly children: ReactNode;
@@ -197,6 +200,7 @@ export function AppShell({
   items,
   tenantName,
   signedIn = false,
+  badges = {},
   roleLabel = null,
   children,
 }: Props) {
@@ -242,6 +246,12 @@ export function AppShell({
                       >
                         <NavIcon slug={i.slug} />
                         <span>{i.label}</span>
+                        {badges[i.slug] ? (
+                          <span className="nav-badge">
+                            <span className="sr-only">Đang chờ: </span>
+                            {badges[i.slug]}
+                          </span>
+                        ) : null}
                       </Link>
                     </li>
                   ))}
@@ -290,6 +300,7 @@ export function AppShell({
             </p>
             {head || current ? <p className="topbar-sub">{head?.sub ?? current?.summary}</p> : null}
           </div>
+          {signedIn ? <SearchPalette items={items} /> : null}
         </header>
         <main id="main" className="main" tabIndex={-1}>
           {children}

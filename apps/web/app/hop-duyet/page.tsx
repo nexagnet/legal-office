@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { KpiStrip, countStatus } from '../../components/KpiStrip';
+import { RowActions } from '../../components/RowActions';
+import { StatusPill } from '../../components/StatusPill';
 import { ApprovalActions } from '../../components/ApprovalActions';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { APPROVAL_KIND_LABEL, APPROVAL_STATE_LABEL } from '../../lib/messages';
@@ -66,38 +69,76 @@ export default async function ApprovalsPage() {
           <p>Chưa có đề xuất nào đang chờ trong phạm vi của bạn.</p>
         </div>
       ) : (
-        <div className="table-wrap">
-          <table>
-            <caption className="sr-only">Đề xuất chưa hoàn tất</caption>
-            <thead>
-              <tr>
-                <th scope="col">Loại</th>
-                <th scope="col">Trạng thái</th>
-                <th scope="col">Lý do gần nhất</th>
-                <th scope="col">Ngày đề xuất</th>
-                <th scope="col">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={`${r.kind}-${r.subjectId}`}>
-                  <th scope="row">{APPROVAL_KIND_LABEL[r.kind] ?? r.kind}</th>
-                  <td>{APPROVAL_STATE_LABEL[r.state] ?? r.state}</td>
-                  <td>{r.lastReason ?? <span className="muted">Chưa có</span>}</td>
-                  <td>{day.format(new Date(r.createdAt))}</td>
-                  <td>
-                    <ApprovalActions
-                      kind={r.kind}
-                      subjectId={r.subjectId}
-                      state={r.state}
-                      roles={session.roles}
-                    />
-                  </td>
+        <>
+          <KpiStrip
+            label="Tổng hợp đề xuất"
+            items={[
+              {
+                label: 'Chờ duyệt',
+                value: countStatus(
+                  rows.map((r) => ({ status: r.state })),
+                  'OPEN',
+                ),
+              },
+              {
+                label: 'Đã trả lại, chờ bổ sung',
+                value: countStatus(
+                  rows.map((r) => ({ status: r.state })),
+                  'RETURNED',
+                ),
+                tone: 'warn',
+              },
+              {
+                label: 'Đã từ chối',
+                value: countStatus(
+                  rows.map((r) => ({ status: r.state })),
+                  'REJECTED',
+                ),
+                tone: 'danger',
+              },
+            ]}
+          />
+          <div className="table-wrap">
+            <table>
+              <caption className="sr-only">Đề xuất chưa hoàn tất</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Loại</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">Lý do gần nhất</th>
+                  <th scope="col">Ngày đề xuất</th>
+                  <th scope="col">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={`${r.kind}-${r.subjectId}`}>
+                    <th scope="row">{APPROVAL_KIND_LABEL[r.kind] ?? r.kind}</th>
+                    <td>
+                      <StatusPill
+                        status={r.state}
+                        tone={r.state === 'REJECTED' ? 'danger' : 'warn'}
+                        label={APPROVAL_STATE_LABEL[r.state] ?? r.state}
+                      />
+                    </td>
+                    <td>{r.lastReason ?? <span className="muted">Chưa có</span>}</td>
+                    <td>{day.format(new Date(r.createdAt))}</td>
+                    <td>
+                      <RowActions>
+                        <ApprovalActions
+                          kind={r.kind}
+                          subjectId={r.subjectId}
+                          state={r.state}
+                          roles={session.roles}
+                        />
+                      </RowActions>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </section>
   );
