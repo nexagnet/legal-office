@@ -93,7 +93,7 @@ export class AuthController {
   }
 
   /**
-   * Admin đăng nhập bằng email, không cần mật khẩu: gửi link (xem `AuthService.loginByEmail`). Luôn trả cùng một
+   * Mọi tài khoản đăng nhập bằng email, không cần mật khẩu: gửi link (xem `AuthService.loginByEmail`). Luôn trả cùng một
    * phản hồi và cùng loại cookie, bất kể email có hợp lệ hay không.
    */
   @Post('login/email')

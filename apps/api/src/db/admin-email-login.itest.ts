@@ -26,7 +26,7 @@ const withDb = (url: string, db: string) => {
 const WEB = 'http://localhost:3000';
 
 describe.skipIf(!ADMIN_URL)(
-  'Admin đăng nhập bằng mật khẩu hoặc link email (HTTP + PostgreSQL)',
+  'Mọi tài khoản đăng nhập bằng mật khẩu hoặc link email (HTTP + PostgreSQL)',
   () => {
     const admin = new pg.Pool({ connectionString: ADMIN_URL, max: 1 });
     let owner: pg.Pool;
@@ -39,7 +39,7 @@ describe.skipIf(!ADMIN_URL)(
     const T = id();
     const T2 = id();
     const OFF = id();
-    const U = { admin: id(), thv: id(), admin2: id() };
+    const U = { admin: id(), thv: id(), admin2: id(), noRole: id() };
     const PW = 'mat-khau-gia-lap-1';
 
     const call = async (
@@ -124,16 +124,19 @@ describe.skipIf(!ADMIN_URL)(
         [U.admin, 'ADMIN', 'admin@example.test'],
         [U.admin2, 'ADMIN', 'admin2@example.test'],
         [U.thv, 'THV', 'thv@example.test'],
+        [U.noRole, null, 'norole@example.test'],
       ] as const) {
         await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$3)`, [
           uid,
           T,
           email,
         ]);
-        await owner.query(
-          `INSERT INTO memberships (tenant_id, user_id, office_id, role, legal_signer) VALUES ($1,$2,$3,$4,$5)`,
-          [T, uid, OFF, role, role === 'ADMIN'],
-        );
+        if (role) {
+          await owner.query(
+            `INSERT INTO memberships (tenant_id, user_id, office_id, role, legal_signer) VALUES ($1,$2,$3,$4,$5)`,
+            [T, uid, OFF, role, role === 'ADMIN'],
+          );
+        }
         await owner.query(
           `INSERT INTO auth_credentials (tenant_id, user_id, email, password_hash) VALUES ($1,$2,$3,$4)`,
           [T, uid, email, hash],
@@ -199,7 +202,7 @@ describe.skipIf(!ADMIN_URL)(
       expect(stored.rows[0].code_hash).toBeNull();
     });
 
-    it('phản hồi đồng nhất: email lạ, không phải Admin, chưa SMTP, công tắc tắt, lỗi gửi thư đều không lộ gì và không gửi thư', async () => {
+    it('phản hồi đồng nhất: email lạ, tài khoản chưa có vai, chưa SMTP, công tắc tắt, lỗi gửi thư đều không lộ gì và không gửi thư', async () => {
       const shape = (r: Awaited<ReturnType<typeof emailLogin>>) => {
         expect(r.status).toBe(200);
         expect(r.json).toEqual({ code: 'VERIFICATION_REQUIRED', label: null });
@@ -211,7 +214,7 @@ describe.skipIf(!ADMIN_URL)(
       expect(sent).toHaveLength(0);
       await enableSmtp();
       shape(await emailLogin('khong-co@example.test'));
-      shape(await emailLogin('thv@example.test'));
+      shape(await emailLogin('norole@example.test'));
       expect(sent).toHaveLength(0);
       // Công tắc tắt.
       await owner.query(
@@ -236,6 +239,19 @@ describe.skipIf(!ADMIN_URL)(
       // Cuối cùng vẫn gửi được khi mọi điều kiện đủ.
       shape(await emailLogin('admin@example.test'));
       expect(sent).toHaveLength(1);
+    });
+
+    it('vai không phải Admin (THV) cũng đăng nhập được bằng email: nhận thư, bấm link, nhập mã', async () => {
+      await enableSmtp();
+      const { challenge, redeemed } = await startAndRedeem('thv@example.test');
+      expect(sent[0]!.to).toBe('thv@example.test');
+      const code = redeemed.json.verificationCode as string;
+      const ok = await call('POST', '/auth/login/verify', { body: { code }, cookie: challenge });
+      expect(ok.status).toBe(200);
+      const me = await call('GET', '/auth/me', {
+        cookie: ok.cookies.find((c) => c.startsWith('lo_session='))!,
+      });
+      expect(me.json).toMatchObject({ userId: U.thv });
     });
 
     it('bấm link mới sinh mã; link chỉ dùng được một lần; mã + cookie đúng mới mở phiên', async () => {

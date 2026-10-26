@@ -1,7 +1,7 @@
 import pg from 'pg';
 
 /**
- * Bật/tắt đường đăng nhập Admin bằng link email của MỘT tenant (vd khi SMTP hỏng).
+ * Bật/tắt đường đăng nhập (mọi tài khoản) bằng link email của MỘT tenant (vd khi SMTP hỏng).
  * Chạy bằng tài khoản chủ DB, nên không cần đăng nhập. Đăng nhập bằng mật khẩu không bị ảnh hưởng.
  *   DATABASE_URL=... TENANT_ID=... MODE=off|on node dist/auth/admin-verification.cli.js
  */
@@ -33,7 +33,7 @@ async function main(): Promise<void> {
   } finally {
     await client.end();
   }
-  console.log(`Đăng nhập Admin bằng email: ${MODE === 'on' ? 'BẬT' : 'TẮT'}.`);
+  console.log(`Đăng nhập bằng email: ${MODE === 'on' ? 'BẬT' : 'TẮT'}.`);
 }
 
 main().catch((error: unknown) => {
