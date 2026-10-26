@@ -55,7 +55,7 @@ Sáu vai (🔒 CHỐT, `nghiệp vụ.md` §4). Tên "Thừa hành viên" (THV) 
 - Người đề nghị thu hồi MISA không tự duyệt được (mã `SELF_APPROVAL`, PR #138).
 - Menu theo vai; Kế toán chỉ thấy Vi bằng.
 
-**Đăng nhập Admin** (🟡 GIẢ ĐỊNH tham số, chủ dự án đổi hướng 23/10): Admin đăng nhập bằng mật khẩu **hoặc** bằng link gửi qua email (link dùng một lần, hết hạn 15 phút; bấm link mới sinh mã 6 số; nhập mã ở đúng trình duyệt; sai 5 lần thì huỷ; tối đa 3 lần gửi mỗi 15 phút). Email chưa gửi được ở bản chạy vì SMTP trên `lo-api` chưa cấu hình (⬜ do chủ dự án).
+**Đăng nhập** (🟡 GIẢ ĐỊNH tham số; chủ dự án đổi hướng 23/10, mở rộng cho mọi vai 26/10): **mọi tài khoản** (Admin, Trưởng VP, THV, Thư ký, Văn thư, Kế toán) đăng nhập bằng mật khẩu **hoặc** bằng link gửi qua email (link dùng một lần, hết hạn 15 phút; bấm link mới sinh mã 6 số; nhập mã ở đúng trình duyệt; sai 5 lần thì huỷ; tối đa 3 lần gửi mỗi 15 phút; phản hồi luôn như nhau để không lộ email nào có tài khoản). Email chưa gửi được ở bản chạy vì SMTP trên `lo-api` chưa cấu hình (⬜ do chủ dự án); Admin nhập SMTP ở Quản trị.
 
 **Chỗ lệch với nghiệp vụ đã biết (🟡, giữ nguyên chờ chủ dự án chỉnh):**
 - Admin hiện làm được cả việc phân công Tống đạt, Xác minh, THA, trong khi §4.1 chỉ giao Admin phân công Vi bằng (phân công Tống đạt thuộc Trưởng VP). Giữ nguyên để không phá luồng khi Trưởng VP vắng; siết lại là quyết định nghiệp vụ.

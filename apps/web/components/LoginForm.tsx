@@ -96,7 +96,7 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
       <form className="card form" onSubmit={submitCode} aria-labelledby="login-title">
         <h1 id="login-title">Xác thực đăng nhập</h1>
         <p>
-          Nếu email đúng là tài khoản quản trị, bạn sẽ nhận thư trong ít phút. Bấm link trong thư để
+          Nếu email đúng là tài khoản của bạn, bạn sẽ nhận thư trong ít phút. Bấm link trong thư để
           nhận mã 6 số, rồi nhập mã vào đây (giữ nguyên trình duyệt này).
         </p>
         <label>
@@ -132,8 +132,8 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
   if (step === 'email') {
     return (
       <form className="card form" onSubmit={submitEmail} aria-labelledby="login-title">
-        <h1 id="login-title">Đăng nhập quản trị bằng email</h1>
-        <p>Nhập email quản trị, chúng tôi sẽ gửi link đăng nhập (không cần mật khẩu).</p>
+        <h1 id="login-title">Đăng nhập bằng email</h1>
+        <p>Nhập email đăng nhập của bạn, chúng tôi sẽ gửi link đăng nhập (không cần mật khẩu).</p>
         <label>
           Email
           <input name="email" type="email" autoComplete="username" required maxLength={254} />
@@ -187,7 +187,7 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
           setStep('email');
         }}
       >
-        Admin: đăng nhập bằng email
+        Đăng nhập bằng email
       </button>
     </form>
   );

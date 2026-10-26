@@ -24,12 +24,12 @@ function fillLogin() {
 }
 
 function startEmail() {
-  fireEvent.click(screen.getByRole('button', { name: 'Admin: đăng nhập bằng email' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập bằng email' }));
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.test' } });
   fireEvent.click(screen.getByRole('button', { name: 'Gửi link qua email' }));
 }
 
-describe('LoginForm — Admin chọn mật khẩu hoặc email', () => {
+describe('LoginForm — mọi tài khoản chọn mật khẩu hoặc email', () => {
   it('mật khẩu đúng vào thẳng trang chủ, không có bước thứ hai', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')

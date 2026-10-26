@@ -99,9 +99,9 @@ export class AuthService {
   }
 
   /**
-   * Admin đăng nhập không cần mật khẩu: nhập email, hệ thống gửi link, bấm link nhận mã 6 số, nhập mã ở đúng trình
-   * duyệt này. Phản hồi luôn như nhau (kể cả email lạ, không phải Admin, chưa có SMTP, đang khoá, gửi thư lỗi, quá
-   * số lần) để không dò được email nào là Admin; chỉ Admin của tenant đã lưu SMTP mới nhận được thư. Lý do thật
+   * Mọi tài khoản (mọi vai) đăng nhập không cần mật khẩu: nhập email, hệ thống gửi link, bấm link nhận mã 6 số, nhập
+   * mã ở đúng trình duyệt này. Phản hồi luôn như nhau (kể cả email lạ, chưa có vai, chưa có SMTP, đang khoá, gửi thư
+   * lỗi, quá số lần) để không dò được email nào có tài khoản; chỉ tài khoản của tenant đã lưu SMTP mới nhận được thư. Lý do thật
    * ghi vào log máy chủ. Cookie trả về với email không hợp lệ là mồi vô dụng.
    */
   async loginByEmail(
@@ -119,7 +119,7 @@ export class AuthService {
     if (!state || state.locked) return decoy;
     const eligible = await this.pg.withTenant(tenantId, async (c) => {
       const { rows } = await c.query<{ ok: boolean }>(
-        'SELECT au_admin_verification_required($1,$2) AS ok',
+        'SELECT au_email_login_allowed($1,$2) AS ok',
         [tenantId, state.user_id],
       );
       return rows[0]?.ok === true;
@@ -127,7 +127,7 @@ export class AuthService {
     if (!eligible) return decoy;
     const result = await this.startChallenge(tenantId, state.user_id);
     if (result.status === 'sent') return { challengeCookie: result.challengeCookie };
-    this.log.warn(`Đăng nhập Admin qua email không gửi được thư: ${result.status}`);
+    this.log.warn(`Đăng nhập qua email không gửi được thư: ${result.status}`);
     return decoy;
   }
 
@@ -183,7 +183,7 @@ export class AuthService {
         to: created.email,
         subject: 'Xác thực đăng nhập Quản lý văn phòng',
         text: [
-          'Có yêu cầu đăng nhập quản trị vào hệ thống bằng email.',
+          'Có yêu cầu đăng nhập vào hệ thống bằng email.',
           '',
           `Bấm vào link sau để nhận mã đăng nhập (link dùng một lần, hết hạn sau ${LINK_TTL_MINUTES} phút):`,
           `${base}/xac-thuc?t=${tenantId}.${linkToken}`,
