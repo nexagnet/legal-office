@@ -16,9 +16,11 @@ export interface Digest {
   readonly subject: string;
   readonly text: string;
   readonly notificationIds: readonly string[];
+  /** Dữ liệu có cấu trúc, để dựng bản HTML cùng nội dung với `text`. */
+  readonly rows: readonly PendingReminder[];
 }
 
-const DOMAIN_LABEL: Record<string, string> = {
+export const DOMAIN_LABEL: Record<string, string> = {
   TONG_DAT: 'Tống đạt',
   VIBANG_CSDL: 'Đăng ký Vi bằng',
   CONG_VAN: 'Công văn',
@@ -28,7 +30,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   THA_THU_HOI: 'THA: thu hồi quyết định thi hành án',
 };
 
-const VN_DATE = new Intl.DateTimeFormat('vi-VN', {
+export const VN_DATE = new Intl.DateTimeFormat('vi-VN', {
   timeZone: 'Asia/Ho_Chi_Minh',
   day: '2-digit',
   month: '2-digit',
@@ -71,6 +73,7 @@ export function buildDigests(pending: readonly PendingReminder[]): Digest[] {
       subject: head,
       text: `${sections.join('\n\n')}\n\nThư tự động từ Legal Office. Hạn chỉ để nhắc, không thay đổi trạng thái hồ sơ.`,
       notificationIds: rows.map((r) => r.notification_id),
+      rows,
     };
   });
 }

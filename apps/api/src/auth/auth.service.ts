@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { PgService } from '../db/pg.service';
 import type { Mailer } from '../reminders/mailer';
+import { renderLoginLinkMail } from '../mail/login-link';
 import type { Op } from '../vibang/vibang.repo';
 import { dummyHash, verifyPassword } from './password';
 
@@ -195,17 +196,10 @@ export class AuthService {
     try {
       const mailer = await this.mailerFor(tenantId);
       if (!mailer || !created.email) return { status: 'mail_failed' };
+      const url = `${base}/xac-thuc?t=${tenantId}.${linkToken}`;
       await mailer.send({
         to: created.email,
-        subject: 'Xác thực đăng nhập Quản lý văn phòng',
-        text: [
-          'Có yêu cầu đăng nhập vào hệ thống bằng email.',
-          '',
-          `Bấm vào link sau để nhận mã đăng nhập (link dùng một lần, hết hạn sau ${LINK_TTL_MINUTES} phút):`,
-          `${base}/xac-thuc?t=${tenantId}.${linkToken}`,
-          '',
-          'Nếu không phải bạn yêu cầu, đừng bấm link; có thể bỏ qua thư này.',
-        ].join('\n'),
+        ...(await renderLoginLinkMail({ url, validMinutes: LINK_TTL_MINUTES })),
       });
     } catch {
       return { status: 'mail_failed' };
