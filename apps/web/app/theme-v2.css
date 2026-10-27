@@ -1182,3 +1182,62 @@ tbody tr:hover > td {
     box-shadow: 0 -6px 18px rgba(15, 45, 85, 0.12);
   }
 }
+
+/* Ô nghiệp vụ gọn trên Tổng quan (Figma N12 D3–D5). */
+.domain-chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.domain-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: var(--tone-bg);
+  color: var(--ink);
+  text-decoration: none;
+}
+.domain-chip:hover,
+.domain-chip:focus-visible {
+  box-shadow: 0 0 0 2px var(--tone);
+}
+.domain-chip svg {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  color: var(--tone);
+}
+.domain-chip strong {
+  display: block;
+  font-size: 15px;
+}
+.domain-chip span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.domain-chip[data-domain='vi-bang'] {
+  --tone: var(--d-vibang);
+  --tone-bg: var(--d-vibang-soft);
+}
+.domain-chip[data-domain='tong-dat'] {
+  --tone: var(--d-tongdat);
+  --tone-bg: var(--d-tongdat-soft);
+}
+.domain-chip[data-domain='xac-minh'] {
+  --tone: var(--d-xacminh);
+  --tone-bg: var(--d-xacminh-soft);
+}
+.domain-chip[data-domain='to-chuc-tha'] {
+  --tone: var(--d-tha);
+  --tone-bg: var(--d-tha-soft);
+}
+@media (max-width: 899px) {
+  .domain-chips {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
