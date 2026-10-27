@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import {
+  Bell,
   BookOpen,
   Building2,
   ChartColumn,
@@ -24,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { NavItem } from '../app/nav';
+import { ProfileMenu } from './ProfileMenu';
 import { SearchPalette } from './SearchPalette';
 
 interface Props {
@@ -247,7 +249,7 @@ export function AppShell({
       <aside className="side" data-open={open}>
         <div className="brand">
           <div data-testid="tenant-logo-slot" className="logo-slot" aria-hidden="true">
-            {initials(tenantName ?? 'Quản lý văn phòng')}
+            <Scale aria-hidden="true" />
           </div>
           <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
         </div>
@@ -306,6 +308,27 @@ export function AppShell({
         ) : null}
       </aside>
       <div className="content">
+        {signedIn ? (
+          <div className="appbar">
+            <SearchPalette items={items} />
+            <span className="appbar-gap" />
+            <Link
+              href="/viec-cua-toi"
+              className="appbar-icon"
+              aria-label={badges['viec-cua-toi'] ? 'Thông báo: có việc đang chờ' : 'Thông báo'}
+            >
+              <Bell aria-hidden="true" />
+              {badges['viec-cua-toi'] || badges['hop-duyet'] ? (
+                <span className="appbar-dot" aria-hidden="true" />
+              ) : null}
+            </Link>
+            <span className="appbar-divider" aria-hidden="true" />
+            <ProfileMenu
+              initials={initials(roleLabel ?? 'Nhân viên')}
+              roleLabel={roleLabel ?? 'Nhân viên văn phòng'}
+            />
+          </div>
+        ) : null}
         <header className="topbar">
           <button
             type="button"
@@ -322,7 +345,6 @@ export function AppShell({
             </p>
             {head || current ? <p className="topbar-sub">{head?.sub ?? current?.summary}</p> : null}
           </div>
-          {signedIn ? <SearchPalette items={items} /> : null}
         </header>
         <main id="main" className="main" tabIndex={-1}>
           {children}
