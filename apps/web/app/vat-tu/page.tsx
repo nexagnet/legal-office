@@ -4,7 +4,7 @@ import { StatusPill } from '../../components/StatusPill';
 import {
   AdjustBatchDialog,
   MovementSheet,
-  NewItemSheet,
+  StockMoreMenu,
   ThresholdDialog,
 } from '../../components/StockDialogs';
 import { Input } from '../../components/ui/field';
@@ -132,12 +132,12 @@ export default async function SuppliesPage({
     <section aria-labelledby="t">
       <div className="page-head">
         <div>
-          <h1 id="t">Vật tư văn phòng</h1>
+          <h1 id="t">Vật tư</h1>
         </div>
         {officeId && canManage ? (
           <div className="flex flex-wrap gap-3">
-            <NewItemSheet officeId={officeId} />
             <MovementSheet items={items} branches={session.branches} />
+            <StockMoreMenu officeId={officeId} />
           </div>
         ) : null}
       </div>

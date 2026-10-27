@@ -1472,3 +1472,113 @@ tbody tr:hover > td {
   border-left: 4px solid var(--warning, #b7791f);
   border-radius: 10px;
 }
+
+/* Nút thu gọn thanh bên (Figma N13 E11): chỉ máy tính; thu gọn còn cột biểu tượng */
+.side-collapse {
+  display: none;
+}
+@media (min-width: 900px) {
+  .side-collapse {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 14px 24px 6px;
+    border: 0;
+    border-top: 1px solid #1e3e6b;
+    background: transparent;
+    color: #a9b8d4;
+    font: 500 13px/1 var(--font);
+    cursor: pointer;
+  }
+  .side-collapse:hover,
+  .side-collapse:focus-visible {
+    color: #ffffff;
+  }
+  .side-collapse svg {
+    width: 18px;
+    height: 18px;
+  }
+  .shell[data-collapsed='true'] {
+    grid-template-columns: 72px 1fr;
+  }
+  .shell[data-collapsed='true'] .brand-name,
+  .shell[data-collapsed='true'] .nav-title,
+  .shell[data-collapsed='true'] .nav-label,
+  .shell[data-collapsed='true'] .profile-text,
+  .shell[data-collapsed='true'] .profile .link-btn {
+    display: none;
+  }
+  .shell[data-collapsed='true'] .brand {
+    justify-content: center;
+    padding: 0;
+  }
+  .shell[data-collapsed='true'] .nav a {
+    justify-content: center;
+    padding: 0;
+  }
+  .shell[data-collapsed='true'] .nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    min-width: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+  }
+  .shell[data-collapsed='true'] .profile {
+    justify-content: center;
+    padding: 8px 0;
+  }
+  .shell[data-collapsed='true'] .side-collapse {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
+
+/* Thẻ phẳng của trang chi tiết có tab (Figma N13 E11): tiêu đề + nút cùng hàng, đầu bảng không tô màu nghiệp vụ */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.panel-flat thead th {
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.shell[data-domain] .panel-flat thead th {
+  background: transparent;
+  color: var(--muted);
+}
+.shell[data-domain] .panel-flat .table-wrap tbody tr > :first-child {
+  box-shadow: none;
+}
+.panel-flat .link-btn {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+}
+.panel-flat .table-wrap {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+@media (min-width: 900px) {
+  .side-collapse {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    background: #0a1f3b;
+  }
+  .shell[data-collapsed='true'] .brand {
+    display: flex;
+  }
+}

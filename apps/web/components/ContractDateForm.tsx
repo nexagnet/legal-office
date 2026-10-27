@@ -3,10 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
+import { useDialogClose } from './StageDialog';
 
 /** Ngày ký hợp đồng dịch vụ xác minh: từ đó tính hạn 3 ngày làm việc ra quyết định xác minh (Điều 35.1). */
 export function ContractDateForm({ caseId }: { readonly caseId: string }) {
   const router = useRouter();
+  const closeDialog = useDialogClose();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -24,6 +26,7 @@ export function ContractDateForm({ caseId }: { readonly caseId: string }) {
       const json = (await res.json().catch(() => ({}))) as { code?: string };
       if (!res.ok) return setError(messageFor(json.code));
       router.refresh();
+      closeDialog?.();
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
     } finally {

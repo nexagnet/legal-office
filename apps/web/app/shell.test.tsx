@@ -31,8 +31,8 @@ describe('navigation', () => {
       for (const d of ['Vi bằng', 'Tống đạt', 'Xác minh điều kiện THA', 'Tổ chức thi hành án'])
         expect(labels).toContain(d);
     }
-    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Quản trị');
-    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Quản trị');
+    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Người dùng');
+    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Người dùng');
     expect(visibleNav([])).toEqual([]);
   });
 
