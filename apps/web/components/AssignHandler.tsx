@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
+import { toast } from 'sonner';
 import { messageFor } from '../lib/messages';
 
 export interface HandlerOption {
@@ -34,10 +35,18 @@ export function AssignHandler({ path, options, currentId }: Props) {
         body: JSON.stringify({ handlerUserId }),
       });
       const json = (await res.json().catch(() => ({}))) as { code?: string };
-      if (!res.ok) return setError(messageFor(json.code));
+      if (!res.ok) {
+        const message = messageFor(json.code);
+        setError(message);
+        toast.error(message, { duration: Infinity });
+        return;
+      }
+      toast.success('Đã giao THV phụ trách');
       router.refresh();
     } catch {
-      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
+      const message = 'Không kết nối được máy chủ. Vui lòng thử lại.';
+      setError(message);
+      toast.error(message, { duration: Infinity });
     } finally {
       setBusy(false);
     }

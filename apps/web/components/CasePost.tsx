@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useDialogClose } from './StageDialog';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { messageFor } from '../lib/messages';
 
 /** Gọi một API ghi của hồ sơ rồi làm mới trang; lỗi hiển thị bằng thông điệp tiếng Việt theo mã. */
@@ -27,14 +28,19 @@ export function useCasePost() {
       });
       const json = (await res.json().catch(() => ({}))) as { code?: string };
       if (!res.ok) {
-        setError(messageFor(json.code));
+        const message = messageFor(json.code);
+        setError(message);
+        toast.error(message, { duration: Infinity });
         return false;
       }
+      toast.success('Đã lưu');
       router.refresh();
       closeDialog?.();
       return true;
     } catch {
-      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
+      const message = 'Không kết nối được máy chủ. Vui lòng thử lại.';
+      setError(message);
+      toast.error(message, { duration: Infinity });
       return false;
     } finally {
       setBusy(false);
