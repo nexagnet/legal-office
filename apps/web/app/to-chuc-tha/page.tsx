@@ -1,13 +1,10 @@
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
-import { RowActions } from '../../components/RowActions';
 import { TabNav } from '../../components/ui/tab-nav';
 import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
-import { EnforcementActions } from '../../components/EnforcementActions';
 import { NewEnforcementSheet } from '../../components/NewCaseSheets';
-import { AssignHandler } from '../../components/AssignHandler';
-import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
+import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import {
   ENFORCEMENT_STATUS_LABEL,
   OBLIGATION_STATUS_LABEL,
@@ -80,7 +77,6 @@ export default async function EnforcementPage({
   const items = await load(cookie);
   const tab = activeTab(GROUPS, sp.tab);
   const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
-  const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
       <div className="page-head">
@@ -134,7 +130,7 @@ export default async function EnforcementPage({
                 {shown.map((c) => (
                   <tr key={c.caseId}>
                     <th scope="row">
-                      {c.caseRef}
+                      <Link href={`/to-chuc-tha/${c.caseId}`}>{c.caseRef}</Link>
                       <div className="muted">
                         {c.agreementRef} · {c.decisionRef}
                       </div>
@@ -173,20 +169,7 @@ export default async function EnforcementPage({
                       )}
                     </td>
                     <td data-label="Thao tác">
-                      <RowActions>
-                        {c.status === 'COMPLETED' ? null : (
-                          <AssignHandler
-                            path={`enforcement-cases/${c.caseId}/handler`}
-                            options={handlers}
-                            currentId={c.handlerUserId}
-                          />
-                        )}
-                        <EnforcementActions
-                          caseId={c.caseId}
-                          status={c.status}
-                          obligations={c.obligations}
-                        />
-                      </RowActions>
+                      <Link href={`/to-chuc-tha/${c.caseId}`}>Mở</Link>
                     </td>
                   </tr>
                 ))}
