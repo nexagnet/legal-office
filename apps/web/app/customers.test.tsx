@@ -135,7 +135,15 @@ describe('CustomerDirectory', () => {
 
   it('sends the contract edit body with nulls for cleared dates', async () => {
     const spy = mockOk();
-    render(<CustomerContracts customer={person} customers={[person]} contracts={[contract]} />);
+    render(
+      <CustomerContracts
+        customer={person}
+        customers={[person]}
+        contracts={[contract]}
+        baseHref="/hop-dong/khach/c1"
+        selectedId="k1"
+      />,
+    );
     const form = screen.getByRole('form', { name: 'Hợp đồng HĐ-001' });
     fireEvent.change(within(form).getByLabelText('Dịch vụ'), { target: { value: 'TONG_DAT' } });
     fireEvent.change(within(form).getByLabelText('Trạng thái'), { target: { value: 'ENDED' } });
@@ -158,9 +166,34 @@ describe('CustomerDirectory', () => {
     expect(Object.keys(r.body)).not.toContain('amount');
   });
 
+  it('shows contract cards and opens the form only for the selected contract', () => {
+    render(
+      <CustomerContracts
+        customer={person}
+        customers={[person]}
+        contracts={[contract]}
+        baseHref="/hop-dong/khach/c1"
+        selectedId={null}
+      />,
+    );
+    expect(screen.getByText('HĐ-001')).toBeTruthy();
+    expect(screen.queryByRole('form', { name: 'Hợp đồng HĐ-001' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Xem và sửa' }).getAttribute('href')).toBe(
+      '/hop-dong/khach/c1?tab=hop-dong&hd=k1',
+    );
+  });
+
   it('creates a contract for the selected customer', async () => {
     const spy = mockOk();
-    render(<CustomerContracts customer={person} customers={[person]} contracts={[]} />);
+    render(
+      <CustomerContracts
+        customer={person}
+        customers={[person]}
+        contracts={[]}
+        baseHref="/hop-dong/khach/c1"
+        selectedId={null}
+      />,
+    );
     fireEvent.change(screen.getByLabelText('Mã hợp đồng mới'), { target: { value: ' HĐ-9 ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Thêm hợp đồng' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());

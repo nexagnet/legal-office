@@ -20,11 +20,13 @@ import { CaseSteps } from '../components/CaseSteps';
 import { MisaNumberPanels, ReturnPanel, SignStampPanels } from '../components/CaseStagePanels';
 import { CaseActions } from '../components/CaseActions';
 import { ChangeDecision } from '../components/ChangeRequestRow';
-import { NewServiceForm } from '../components/NewServiceForm';
+import {
+  NewEnforcementSheet,
+  NewServiceSheet,
+  NewVerificationSheet,
+} from '../components/NewCaseSheets';
 import { ServiceRowActions } from '../components/ServiceRowActions';
-import { NewVerificationForm } from '../components/NewVerificationForm';
 import { VerificationActions } from '../components/VerificationActions';
-import { NewEnforcementForm } from '../components/NewEnforcementForm';
 import { EnforcementActions } from '../components/EnforcementActions';
 import { NewCaseForm } from '../components/NewCaseForm';
 import { messageFor } from '../lib/messages';
@@ -528,13 +530,16 @@ describe('Service of documents', () => {
     const spy = vi.spyOn(globalThis, 'fetch');
     spy.mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'r1' }));
     spy.mockImplementationOnce(() => reply(200, { code: 'ALLOWED', label: 'd1' }));
-    render(<NewServiceForm branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    render(<NewServiceSheet branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Tạo yêu cầu tống đạt' }));
     fireEvent.change(screen.getByLabelText('Mã yêu cầu'), { target: { value: 'N-01/1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Người nhận/ }));
     fireEvent.change(screen.getByLabelText('Người nhận'), { target: { value: 'Người giả lập' } });
     fireEvent.change(screen.getByLabelText('Địa chỉ'), { target: { value: 'Địa chỉ giả lập' } });
     fireEvent.change(screen.getByLabelText('Hạn tống đạt'), {
       target: { value: '2026-12-01T10:00' },
     });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Xác nhận/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Tạo yêu cầu' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(spy.mock.calls[0]![0]).toBe('/api/service-of-documents/requests');
@@ -586,8 +591,10 @@ describe('Verification', () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
-    render(<NewVerificationForm branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    render(<NewVerificationSheet branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Mở hồ sơ xác minh' }));
     fireEvent.change(screen.getByLabelText('Mã hồ sơ'), { target: { value: 'XM/1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Xác nhận/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(spy.mock.calls[0]![0]).toBe('/api/verification/cases');
@@ -633,14 +640,17 @@ describe('Enforcement', () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
-    render(<NewEnforcementForm branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    render(<NewEnforcementSheet branches={[{ id: 'b1', officeId: 'o1', name: 'CN1' }]} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Mở hồ sơ tổ chức THA' }));
     fireEvent.change(screen.getByLabelText('Mã hồ sơ'), { target: { value: 'THA/1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Căn cứ/ }));
     fireEvent.change(screen.getByLabelText('Tham chiếu hợp đồng dịch vụ'), {
       target: { value: 'HĐ-1' },
     });
     fireEvent.change(screen.getByLabelText('Tham chiếu quyết định hoặc bản án'), {
       target: { value: 'QĐ-1' },
     });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Xác nhận/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     expect(spy.mock.calls[0]![0]).toBe('/api/enforcement-cases');

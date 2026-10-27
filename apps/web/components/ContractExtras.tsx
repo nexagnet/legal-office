@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { Customer } from '../lib/customers';
 import { messageFor } from '../lib/messages';
 import { postFile } from '../lib/upload';
-import { ContractAddenda } from './ContractAddenda';
 
 interface Attachment {
   readonly id: number;
@@ -152,7 +151,6 @@ export function ContractExtras({
         </label>
         <button type="submit">Liên kết</button>
       </form>
-      <ContractAddenda contractId={contractId} active={opened} />
       <p role="alert" className="error" hidden={!error}>
         {error}
       </p>

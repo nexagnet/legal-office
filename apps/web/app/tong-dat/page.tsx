@@ -2,10 +2,9 @@ import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { RowActions } from '../../components/RowActions';
 import { TabNav } from '../../components/ui/tab-nav';
-import { CreateSheet } from '../../components/ui/create-sheet';
 import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
-import { NewServiceForm } from '../../components/NewServiceForm';
+import { NewServiceSheet } from '../../components/NewCaseSheets';
 import { ServiceRowActions } from '../../components/ServiceRowActions';
 import { AssignHandler } from '../../components/AssignHandler';
 import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
@@ -80,9 +79,7 @@ export default async function ServicePage({
           <h1 id="t">Tống đạt</h1>
           <p className="muted">Văn bản tống đạt trong phạm vi quyền của bạn.</p>
         </div>
-        <CreateSheet label="+ Tạo yêu cầu tống đạt" title="Tạo yêu cầu tống đạt">
-          <NewServiceForm branches={session.branches} />
-        </CreateSheet>
+        <NewServiceSheet branches={session.branches} />
       </div>
       {items === 'error' ? (
         <div className="state" role="alert">
