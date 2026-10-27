@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { RowActions } from '../../components/RowActions';
+import { TabNav } from '../../components/ui/tab-nav';
+import { CreateSheet } from '../../components/ui/create-sheet';
+import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
 import { NewVerificationForm } from '../../components/NewVerificationForm';
 import { VerificationActions } from '../../components/VerificationActions';
@@ -10,6 +13,11 @@ import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../.
 import { ROUND_STATUS_LABEL, VERIFICATION_STATUS_LABEL } from '../../lib/messages';
 
 export const dynamic = 'force-dynamic';
+
+const GROUPS: readonly StatusGroup[] = [
+  { key: 'dang-xac-minh', label: 'Đang xác minh', statuses: ['OPEN', 'CONCLUSION_PROPOSED'] },
+  { key: 'co-ket-qua', label: 'Có kết quả', statuses: ['CONCLUDED'] },
+];
 
 interface Round {
   readonly id: string;
@@ -40,7 +48,12 @@ async function load(cookie: string | null): Promise<Item[] | 'error'> {
   }
 }
 
-export default async function VerificationPage() {
+export default async function VerificationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const sp = await searchParams;
   const session = await currentSession();
   if (session.status !== 'authenticated') {
     return (
@@ -57,11 +70,20 @@ export default async function VerificationPage() {
   }
   const cookie = await requestCookie();
   const items = await load(cookie);
+  const tab = activeTab(GROUPS, sp.tab);
+  const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
   const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Xác minh</h1>
-      <p className="muted">Hồ sơ xác minh điều kiện thi hành án trong phạm vi quyền của bạn.</p>
+      <div className="page-head">
+        <div>
+          <h1 id="t">Xác minh</h1>
+          <p className="muted">Hồ sơ xác minh điều kiện thi hành án trong phạm vi quyền của bạn.</p>
+        </div>
+        <CreateSheet label="+ Mở hồ sơ xác minh" title="Mở hồ sơ xác minh">
+          <NewVerificationForm branches={session.branches} />
+        </CreateSheet>
+      </div>
       {items === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được danh sách</h2>
@@ -86,6 +108,11 @@ export default async function VerificationPage() {
               { label: 'Đã kết luận', value: countStatus(items, 'CONCLUDED'), tone: 'ok' },
             ]}
           />
+          <TabNav
+            label="Nhóm trạng thái"
+            tabs={statusTabs('/xac-minh', GROUPS, items)}
+            active={tab}
+          />
           <div className="table-wrap">
             <table className="table-cards">
               <caption className="sr-only">Hồ sơ xác minh</caption>
@@ -99,7 +126,7 @@ export default async function VerificationPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((c) => (
+                {shown.map((c) => (
                   <tr key={c.caseId}>
                     <th scope="row">{c.caseRef}</th>
                     <td data-label="Trạng thái">
@@ -151,7 +178,6 @@ export default async function VerificationPage() {
           </div>
         </>
       )}
-      <NewVerificationForm branches={session.branches} />
     </section>
   );
 }
