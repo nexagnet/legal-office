@@ -1895,3 +1895,561 @@ fieldset.seg legend {
 .page-head .primary {
   white-space: nowrap;
 }
+
+/* Quản trị — khớp Figma N11 (Q1–Q6) */
+.admin-main > h1,
+.admin-main .page-head {
+  display: none;
+}
+.member-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.member-bar input[type='search'] {
+  flex: 1 1 260px;
+  min-height: 44px;
+  padding: 0 16px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+}
+.bar-title {
+  flex: 1;
+  margin: 0;
+  font: 600 15px/1 var(--font);
+  color: var(--muted);
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip,
+.chip-radio span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  font: 600 14px/1 var(--font);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.chip[aria-pressed='true'] {
+  color: #fff;
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.member-card {
+  padding: 8px 24px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.member-card table {
+  border-collapse: collapse;
+}
+.member-card thead th {
+  padding: 16px 8px 12px;
+  font: 600 11px/1 var(--font);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+}
+.member-card tbody th,
+.member-card tbody td {
+  padding: 10px 8px;
+  border-top: 1px solid var(--line);
+  vertical-align: middle;
+  background: transparent;
+  text-align: left;
+}
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.person > span:last-child {
+  display: grid;
+}
+.person-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+.person-mail {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  font: 700 13px/1 var(--font);
+  color: #fff;
+  background: var(--side-bg);
+  border-radius: 50%;
+}
+.avatar[data-idle='true'] {
+  background: #a3b0c4;
+}
+.role-pill,
+.state-pill,
+.kind-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  font: 600 12px/1.2 var(--font);
+  color: var(--muted);
+  background: #eef1f6;
+  border-radius: 999px;
+}
+.role-pill[data-role='ADMIN'] {
+  color: #6d28d9;
+  background: #efe9fd;
+}
+.role-pill[data-role='TRUONG_VP'] {
+  color: var(--accent);
+  background: #e1ebfb;
+}
+.role-pill[data-role='THV'] {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+.role-pill[data-role='THU_KY'] {
+  color: var(--warn-ink);
+  background: var(--warn-bg);
+}
+.state-pill[data-tone='ok'] {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+.state-pill[data-tone='warn'] {
+  color: var(--warn-ink);
+  background: var(--warn-bg);
+}
+.ok-text {
+  color: var(--ok);
+}
+.callout {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 12px 16px;
+  color: var(--ink);
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-xs);
+}
+.callout strong {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+/* Thêm thành viên */
+.member-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+.mf-main {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.mf-main label:not(.chip-radio):not(.option-card):not(.toggle-row) {
+  display: grid;
+  gap: 6px;
+  font: 600 13px/1.2 var(--font);
+}
+.mf-main input:not([type='radio']):not([type='checkbox']) {
+  min-height: 44px;
+  padding: 0 14px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+}
+.mf-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.chip-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.chip-field legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font: 600 13px/1.2 var(--font);
+}
+.chip-radio {
+  position: relative;
+}
+.chip-radio input,
+.toggle-row input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.chip-radio input:checked + span {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.chip-radio input:focus-visible + span,
+.toggle-row input:focus-visible + .toggle,
+.chip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.toggle-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.toggle-row > span:last-child {
+  display: grid;
+}
+.toggle-row small,
+.option-card small,
+.steps small {
+  font-weight: 400;
+  color: var(--muted);
+}
+.toggle {
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #cfd7e6;
+  border-radius: 999px;
+  transition: background 150ms;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 150ms;
+}
+.toggle-row input:checked + .toggle {
+  background: var(--accent);
+}
+.toggle-row input:checked + .toggle::after {
+  transform: translateX(20px);
+}
+.option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+.option-card > span {
+  display: grid;
+  gap: 2px;
+}
+.option-card:has(input:checked) {
+  border: 2px solid var(--accent);
+  padding: 11px 15px;
+}
+.option-card input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+.mf-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+.mf-side {
+  display: grid;
+  gap: 16px;
+}
+.side-card {
+  padding: 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.side-card h2 {
+  margin: 0 0 14px;
+  font: 700 17px/1.3 var(--font-serif);
+}
+.steps {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.steps li {
+  display: grid;
+  gap: 2px;
+  padding-left: 40px;
+  position: relative;
+  counter-increment: step;
+}
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font: 700 13px/1 var(--font);
+  color: #fff;
+  background: var(--side-logo);
+  border-radius: 50%;
+}
+.steps li:nth-child(1)::before {
+  background: var(--ok);
+}
+.steps li:nth-child(3)::before {
+  background: #6b7a92;
+}
+
+/* Chi nhánh */
+.plain-list > li.branch-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+}
+.branch-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 10px;
+}
+.branch-info,
+.branch-edit {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.branch-edit {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+.branch-edit .branch-meta {
+  grid-column: 1;
+}
+.branch-edit .branch-actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  gap: 8px;
+}
+.plain-list .branch-edit input {
+  flex: none;
+  width: 100%;
+  max-width: 300px;
+  border: 2px solid var(--accent);
+  font-weight: 600;
+}
+.branch-name {
+  font: 700 16px/1.3 var(--font-serif);
+}
+.branch-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Phân quyền */
+.req-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 20px 24px;
+  border-left: 5px solid var(--brass);
+}
+.req-card[data-status='APPROVED'] {
+  border-left-color: var(--ok);
+}
+.req-card[data-status='REJECTED'] {
+  border-left-color: var(--danger);
+}
+.req-card[data-status='WITHDRAWN'] {
+  border-left-color: var(--faint);
+}
+.req-body {
+  display: grid;
+  gap: 4px;
+}
+.req-body p {
+  margin: 0;
+}
+.req-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.kind-chip {
+  color: var(--accent);
+  background: #e8e4fb;
+}
+.req-name {
+  font: 700 17px/1.3 var(--font-serif);
+}
+.req-what {
+  font-weight: 600;
+}
+.req-why,
+.req-by {
+  font-size: 13px;
+  color: var(--muted);
+}
+.req-by {
+  font-size: 12px;
+  color: var(--faint);
+}
+.req-actions {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+.req-buttons {
+  display: flex;
+  gap: 8px;
+}
+.danger-outline {
+  color: var(--danger);
+  background: var(--surface);
+  border: 1px solid var(--danger);
+}
+.reject-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  min-width: min(560px, 100%);
+  padding: 14px 16px;
+  background: #fdf5f4;
+  border: 1px solid #f0c9c6;
+  border-radius: var(--radius-xs);
+}
+.req-card:has(.reject-panel) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.reject-panel label {
+  display: grid;
+  gap: 6px;
+  font: 600 13px/1.2 var(--font);
+}
+.reject-panel input {
+  min-height: 42px;
+  padding: 0 14px;
+  font: inherit;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-xs);
+}
+.reject-panel .req-buttons {
+  justify-content: flex-end;
+}
+@media (max-width: 900px) {
+  .member-form,
+  .mf-row,
+  .req-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .req-actions {
+    justify-items: start;
+  }
+}
+.member-bar input[type='search'] {
+  flex: 1 1 180px;
+}
+.member-card .avatar {
+  color: #fff;
+  background: var(--side-bg);
+}
+.member-card .avatar[data-idle='true'] {
+  background: #a3b0c4;
+}
+.role-pill,
+.state-pill,
+.kind-chip,
+.chip {
+  white-space: nowrap;
+}
+.member-card thead th {
+  white-space: nowrap;
+}
+.side-card .steps li {
+  padding: 0 0 0 40px;
+  margin: 0;
+}
+.side-card .steps li strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+.side-card .steps li small {
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.member-bar .bar-title {
+  font: 600 15px/1.2 var(--font);
+  color: var(--muted);
+}
+section[aria-labelledby='branch-t'] {
+  display: grid;
+  gap: 16px;
+}
+section[aria-labelledby='branch-t'] .plain-list {
+  margin: 0;
+}
+.req-buttons button {
+  min-height: 44px;
+  padding: 0 20px;
+  font: 600 15px/1 var(--font);
+  border-radius: var(--radius-xs);
+}
+.req-buttons .danger-outline {
+  color: var(--danger);
+  background: var(--surface);
+  border: 1px solid var(--danger);
+}

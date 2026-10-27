@@ -62,7 +62,7 @@ describe('AddMemberForm', () => {
       target: { value: 'nhien@example.test' },
     });
     fireEvent.click(screen.getByLabelText('Văn thư'));
-    fireEvent.change(screen.getByLabelText('Địa điểm được cấp'), { target: { value: 'b1' } });
+    fireEvent.click(screen.getByLabelText('Bắc Ninh'));
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'nhân sự mới' } });
     fireEvent.click(screen.getByRole('button', { name: 'Thêm và gửi đề xuất' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
@@ -84,11 +84,11 @@ describe('AddMemberForm', () => {
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'r1' }));
     render(<AddMemberForm officeId="o1" branches={branches} />);
-    expect(screen.queryByLabelText('Cấp quyền ký pháp lý')).toBeNull();
+    expect(screen.queryByLabelText(/Cấp quyền ký pháp lý/)).toBeNull();
     expect(screen.queryByLabelText(/Mật khẩu tạm/)).toBeNull();
     fireEvent.click(screen.getByLabelText('Trưởng văn phòng'));
-    fireEvent.click(screen.getByLabelText('Cấp quyền ký pháp lý'));
-    fireEvent.click(screen.getByLabelText('Đặt mật khẩu tạm'));
+    fireEvent.click(screen.getByLabelText(/Cấp quyền ký pháp lý/));
+    fireEvent.click(screen.getByLabelText(/Đặt mật khẩu tạm/));
     fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'Trần Tuấn' } });
     fireEvent.change(screen.getByLabelText('Email đăng nhập'), {
       target: { value: 't@example.test' },
@@ -129,10 +129,11 @@ describe('BranchManager', () => {
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'b2' }));
     render(<BranchManager officeId="o1" branches={branches} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Đổi tên' }));
     fireEvent.change(screen.getByLabelText('Tên địa điểm Bắc Ninh'), {
       target: { value: 'Bắc Ninh 2' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Đổi tên' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu tên mới' }));
     await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
     expect(spy.mock.calls[0]![0]).toBe('/api/admin/branches/b1');
     expect((spy.mock.calls[0]![1] as RequestInit).method).toBe('PATCH');

@@ -1,6 +1,5 @@
-import Link from 'next/link';
 import { loadMembers, loadRequests } from '../../../lib/admin-api';
-import { MemberTable } from '../../../components/MemberTable';
+import { AddMemberLink, MemberTable } from '../../../components/MemberTable';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -25,19 +24,6 @@ export default async function MembersPage() {
       : members.map((m) => ({ ...m, pending: !m.role && pendingAdds.has(m.userId) }));
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>Nhân sự</h1>
-          <p className="muted">
-            Danh bạ thành viên văn phòng: vai trò, địa điểm được cấp và quyền ký pháp lý.
-          </p>
-        </div>
-        {session.roles.includes('ADMIN') ? (
-          <Link className="primary btn-link" href="/quan-tri/nhan-su/them">
-            + Thêm thành viên
-          </Link>
-        ) : null}
-      </div>
       {members === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được danh bạ</h2>
@@ -46,7 +32,10 @@ export default async function MembersPage() {
       ) : members.length === 0 ? (
         <p className="muted">Chỉ Admin của văn phòng xem được danh bạ thành viên.</p>
       ) : (
-        <MemberTable members={rows} />
+        <MemberTable
+          members={rows}
+          action={session.roles.includes('ADMIN') ? <AddMemberLink /> : undefined}
+        />
       )}
     </>
   );

@@ -30,16 +30,16 @@ describe('MemberTable', () => {
   it('tìm không dấu theo tên và email', () => {
     render(<MemberTable members={members} />);
     fireEvent.change(screen.getByLabelText('Tìm thành viên'), { target: { value: 'duc an' } });
-    expect(screen.getByText('Nguyễn Đức An (an@x.vn)')).toBeTruthy();
-    expect(screen.queryByText('Lê Thị Bình (binh@x.vn)')).toBeNull();
+    expect(screen.getByText('Nguyễn Đức An')).toBeTruthy();
+    expect(screen.queryByText('Lê Thị Bình')).toBeNull();
     expect(screen.getByRole('status').textContent).toBe('1/2 thành viên');
   });
 
-  it('lọc theo vai trò', () => {
-    render(<MemberTable members={members} />);
-    fireEvent.change(screen.getByLabelText('Vai trò'), { target: { value: 'VAN_THU' } });
-    expect(screen.queryByText('Nguyễn Đức An (an@x.vn)')).toBeNull();
-    expect(screen.getByText('Lê Thị Bình (binh@x.vn)')).toBeTruthy();
+  it('lọc theo trạng thái Chưa có vai', () => {
+    render(<MemberTable members={[...members, row('3', 'Mới Vào (moi@x.vn)', null, [])]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Chưa có vai 1' }));
+    expect(screen.queryByText('Lê Thị Bình')).toBeNull();
+    expect(screen.getByText('Mới Vào')).toBeTruthy();
   });
 });
 
@@ -52,6 +52,6 @@ describe('BranchManager', () => {
         memberCounts={{ 'Hà Nội': 3 }}
       />,
     );
-    expect(screen.getByText('3 thành viên')).toBeTruthy();
+    expect(screen.getByText('3 thành viên được cấp')).toBeTruthy();
   });
 });

@@ -1201,6 +1201,7 @@ describe('Access requests', () => {
     render(<AccessRequestActions id="r1" roles={['TRUONG_VP']} />);
     expect(screen.queryByRole('button', { name: 'Rút đề xuất' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Từ chối' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận từ chối' }));
     expect((await screen.findByRole('alert')).textContent).toBe('Cần nhập lý do.');
     expect(spy).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Duyệt' }));

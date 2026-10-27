@@ -15,6 +15,7 @@ export function AccessRequestActions({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const isHead = roles.includes('TRUONG_VP');
   const isAdmin = roles.includes('ADMIN');
   if (!isHead && !isAdmin) return null;
@@ -38,35 +39,56 @@ export function AccessRequestActions({
     }
   }
 
-  function decide(e: FormEvent<HTMLFormElement>) {
+  function approve() {
+    void send('decision', { approve: true });
+  }
+
+  function reject(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const approve =
-      ((e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null)?.value === 'approve';
     const note = String(new FormData(e.currentTarget).get('note') ?? '').trim();
-    if (!approve && !note) return setError(messageFor('REASON_REQUIRED'));
-    void send('decision', { approve, ...(note ? { note } : {}) });
+    if (!note) return setError(messageFor('REASON_REQUIRED'));
+    void send('decision', { approve: false, note });
   }
 
   return (
-    <div className="stack">
-      {isHead ? (
-        <form className="form" onSubmit={decide}>
+    <div className="req-actions">
+      <div className="req-buttons">
+        {isAdmin ? (
+          <button type="button" disabled={busy} onClick={() => void send('withdrawal')}>
+            Rút đề xuất
+          </button>
+        ) : null}
+        {isHead ? (
+          <>
+            <button
+              type="button"
+              className="danger-outline"
+              disabled={busy}
+              onClick={() => setRejecting(true)}
+            >
+              Từ chối
+            </button>
+            <button type="button" className="primary" disabled={busy} onClick={approve}>
+              Duyệt
+            </button>
+          </>
+        ) : null}
+      </div>
+      {isHead && rejecting ? (
+        <form className="reject-panel" onSubmit={reject}>
           <label>
-            Ghi chú (bắt buộc khi từ chối)
-            <input name="note" maxLength={1000} />
+            Lý do từ chối (bắt buộc)
+            <input name="note" maxLength={1000} autoFocus />
           </label>
-          <button type="submit" value="approve" className="primary" disabled={busy}>
-            Duyệt
-          </button>
-          <button type="submit" value="reject" disabled={busy}>
-            Từ chối
-          </button>
+          <div className="req-buttons">
+            <button type="button" onClick={() => setRejecting(false)}>
+              Hủy
+            </button>
+            <button type="submit" className="danger-outline" disabled={busy}>
+              Xác nhận từ chối
+            </button>
+          </div>
         </form>
-      ) : null}
-      {isAdmin ? (
-        <button type="button" disabled={busy} onClick={() => void send('withdrawal')}>
-          Rút đề xuất
-        </button>
       ) : null}
       <p role="alert" className="error" hidden={!error}>
         {error}
