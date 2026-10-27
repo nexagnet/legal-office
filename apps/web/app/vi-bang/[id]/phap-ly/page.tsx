@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { PlaceForm } from '../../../../components/PlaceForm';
 import { type CaseLegal, getJson } from '../../../../lib/case-api';
 import {
@@ -7,8 +6,8 @@ import {
   type ServiceKind,
 } from '../../../../lib/customers';
 import { MISA_STATUS_LABEL, PARTY_KIND_LABEL } from '../../../../lib/messages';
-import { requestCookie } from '../../../../lib/server';
-import { renderStage } from '../stage';
+import { DefList } from '../../../../components/ui/def-list';
+import { renderCaseFrame } from '../case-frame';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,25 +15,13 @@ const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString('vi-VN')
 const EMPTY = 'Chưa có';
 
 function Rows({ rows }: { rows: readonly (readonly [string, string | null | undefined])[] }) {
-  return (
-    <dl className="info">
-      {rows.map(([k, v]) => (
-        <Fragment key={k}>
-          <dt>{k}</dt>
-          <dd>{v || EMPTY}</dd>
-        </Fragment>
-      ))}
-    </dl>
-  );
+  return <DefList rows={rows.map(([k, v]) => [k, v || EMPTY] as const)} />;
 }
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return renderStage(id, 'Thông tin pháp lý của hồ sơ', async ({ c }) => {
-    const l = await getJson<CaseLegal>(
-      `/vibang/cases/${encodeURIComponent(id)}/legal`,
-      await requestCookie(),
-    );
+  return renderCaseFrame(id, 'phap-ly', async ({ c, cookie }) => {
+    const l = await getJson<CaseLegal>(`/vibang/cases/${encodeURIComponent(id)}/legal`, cookie);
     if (typeof l !== 'object') {
       return (
         <div className="state" role="alert">
@@ -45,7 +32,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     }
     const isFinal = c.status === 'RETURNED' || c.status === 'CANCELLED';
     return (
-      <div className="panels legal-grid">
+      <div className="grid grid-cols-2 gap-4 max-lg:grid-cols-1">
         <section className="panel">
           <h2>Hợp đồng và khách hàng</h2>
           <Rows

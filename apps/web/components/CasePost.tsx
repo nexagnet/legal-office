@@ -1,12 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useDialogClose } from './StageDialog';
 import { useState } from 'react';
 import { messageFor } from '../lib/messages';
 
 /** Gọi một API ghi của hồ sơ rồi làm mới trang; lỗi hiển thị bằng thông điệp tiếng Việt theo mã. */
 export function useCasePost() {
   const router = useRouter();
+  const closeDialog = useDialogClose();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -29,6 +31,7 @@ export function useCasePost() {
         return false;
       }
       router.refresh();
+      closeDialog?.();
       return true;
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');

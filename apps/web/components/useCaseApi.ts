@@ -1,12 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useDialogClose } from './StageDialog';
 import { useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
 
 /** Gọi các hành động của một hồ sơ Vi bằng; lỗi hiển thị bằng lý do tiếng Việt, quyền thật do máy chủ quyết định. */
 export function useCaseApi(caseId: string) {
   const router = useRouter();
+  const closeDialog = useDialogClose();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -21,6 +23,7 @@ export function useCaseApi(caseId: string) {
       if (!res.ok) return setError(messageFor(json.code));
       setDone(true);
       router.refresh();
+      closeDialog?.();
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
     } finally {

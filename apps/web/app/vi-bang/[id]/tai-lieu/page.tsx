@@ -1,8 +1,7 @@
 import Link from 'next/link';
-import { CheckPanel } from '../../../../components/CheckPanel';
+import { FilterChips } from '../../../../components/ui/filter-chips';
 import { getJson } from '../../../../lib/case-api';
-import { requestCookie } from '../../../../lib/server';
-import { renderStage } from '../stage';
+import { renderCaseFrame } from '../case-frame';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,16 +20,26 @@ interface Documents {
   readonly finalScan?: { readonly documentId: string; readonly lockedAt: string | null } | null;
 }
 
-const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString('vi-VN') : 'Chưa xác nhận');
+const ALL = 'tat-ca';
+const fmt = (iso: string) =>
+  new Intl.DateTimeFormat('vi-VN', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  }).format(new Date(iso));
 const kb = (n: number) => `${Math.max(1, Math.round(n / 1024))} KB`;
 
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ loai?: string }>;
+}) {
   const { id } = await params;
-  return renderStage(id, 'Kho hồ sơ, chứng cứ và bản scan cuối', async ({ c }) => {
-    const d = await getJson<Documents>(
-      `/vibang/cases/${encodeURIComponent(id)}/documents`,
-      await requestCookie(),
-    );
+  const sp = await searchParams;
+  return renderCaseFrame(id, 'tai-lieu', async ({ c, base, cookie }) => {
+    const d = await getJson<Documents>(`/vibang/cases/${encodeURIComponent(id)}/documents`, cookie);
     if (typeof d !== 'object') {
       return (
         <div className="state" role="alert">
@@ -39,52 +48,84 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         </div>
       );
     }
+    const kinds = [...new Set(d.items.map((x) => x.kind))];
+    const active = kinds.includes(sp.loai ?? '') ? (sp.loai as string) : ALL;
+    const shown = active === ALL ? d.items : d.items.filter((x) => x.kind === active);
+    const marks: [string, string | null][] = [
+      ['Chữ ký', d.signature.confirmedAt],
+      ['Đóng dấu', d.stamp.confirmedAt],
+      ['Bản scan cuối', d.finalScan?.lockedAt ?? null],
+    ];
     return (
-      <div className="panels assign-grid">
-        <section className="panel form">
-          <h2>Tài liệu hồ sơ {c.title}</h2>
-          {d.items.length === 0 ? <p className="muted">Hồ sơ chưa có tài liệu nào.</p> : null}
-          {d.items.map((x) => (
-            <label key={x.id}>
-              {x.kind} · phiên bản {x.version}
-              <input
-                readOnly
-                value={`${fmt(x.createdAt)} · ${kb(x.sizeBytes)} · SHA-256 ${x.sha256.slice(0, 12)}…`}
-              />
-              <a href={`/api/vibang/cases/${c.id}/documents/${x.id}/file`}>Tải tệp</a>
-            </label>
-          ))}
-          <label>
-            Xác nhận chữ ký
-            <input readOnly value={fmt(d.signature.confirmedAt)} />
-          </label>
-          <label>
-            Xác nhận đóng dấu
-            <input readOnly value={fmt(d.stamp.confirmedAt)} />
-          </label>
-          <label>
-            Bản scan đã ký, đóng dấu
-            <input
-              readOnly
-              value={d.finalScan ? `Đã khóa ${fmt(d.finalScan.lockedAt)}` : 'Chưa có bản scan cuối'}
-            />
-          </label>
-        </section>
-        <CheckPanel
-          title="Kiểm soát bằng chứng"
-          checks={[
-            'Phân loại nháp và bản cuối',
-            'Phiên bản và checksum mỗi tệp',
-            'Lưu người upload và thời điểm',
-            'Không ghi đè bản cuối âm thầm',
-            'Cloud quản lý; hồ sơ giấy gốc tại VP',
-          ]}
-        >
-          <Link className="primary btn-link wide" href={`/vi-bang/${c.id}/ky-dong-dau`}>
+      <section className="panel" aria-labelledby="docs-t">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 id="docs-t" className="!m-0">
+            Tài liệu hồ sơ
+          </h2>
+          <Link className="primary btn-link" href={`${base}/ky-dong-dau`}>
             Tải lên / Kiểm tra bản scan
           </Link>
-        </CheckPanel>
-      </div>
+        </div>
+        <ul className="m-0 mb-4 flex list-none flex-wrap gap-2 p-0" aria-label="Xác nhận của hồ sơ">
+          {marks.map(([label, at]) => (
+            <li key={label} className="pill" data-tone={at ? 'ok' : 'idle'}>
+              {label}: {at ? fmt(at) : 'chưa xác nhận'}
+            </li>
+          ))}
+        </ul>
+        {kinds.length > 1 ? (
+          <div className="mb-4">
+            <FilterChips
+              label="Loại tài liệu"
+              active={active}
+              chips={[
+                { key: ALL, label: 'Tất cả', href: `${base}/tai-lieu`, count: d.items.length },
+                ...kinds.map((k) => ({
+                  key: k,
+                  label: k,
+                  href: `${base}/tai-lieu?loai=${encodeURIComponent(k)}`,
+                  count: d.items.filter((x) => x.kind === k).length,
+                })),
+              ]}
+            />
+          </div>
+        ) : null}
+        {shown.length === 0 ? (
+          <p className="muted">Hồ sơ {c.title} chưa có tài liệu nào.</p>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <caption className="sr-only">Tài liệu của hồ sơ</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Loại</th>
+                  <th scope="col">Phiên bản</th>
+                  <th scope="col">Dung lượng</th>
+                  <th scope="col">Mã SHA-256</th>
+                  <th scope="col">Ngày tải</th>
+                  <th scope="col">
+                    <span className="sr-only">Tải tệp</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map((x) => (
+                  <tr key={x.id}>
+                    <th scope="row">{x.kind}</th>
+                    <td>{x.version}</td>
+                    <td>{kb(x.sizeBytes)}</td>
+                    <td className="text-muted">{x.sha256.slice(0, 12)}…</td>
+                    <td>{fmt(x.createdAt)}</td>
+                    <td>
+                      <a href={`/api/vibang/cases/${c.id}/documents/${x.id}/file`}>Tải tệp</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     );
   });
 }

@@ -149,7 +149,7 @@ describe('AppShell case detail head', () => {
         <p>nội dung</p>
       </AppShell>,
     );
-    expect(document.querySelector('.topbar-h')?.textContent).toBe('Chi tiết và tiến độ Vi bằng');
+    expect(document.querySelector('#case-banner')).not.toBeNull();
     expect(
       within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
         .getByRole('link', { name: 'Vi bằng' })
