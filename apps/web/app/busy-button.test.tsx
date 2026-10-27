@@ -47,3 +47,26 @@ describe('useAction chống bấm đúp', () => {
     expect(result.current.busy).toBe(false);
   });
 });
+
+describe('useAction toast', () => {
+  it('báo toast thành công và toast lỗi có nút thử lại', async () => {
+    const { toast } = await import('sonner');
+    const ok = vi.spyOn(toast, 'success').mockReturnValue(1);
+    const err = vi.spyOn(toast, 'error').mockReturnValue(2);
+    const { result } = renderHook(() => useAction());
+    await act(async () => {
+      await result.current.run(async () => ({ ok: true }), 'Đã lưu');
+    });
+    expect(ok).toHaveBeenCalledWith('Đã lưu');
+    await act(async () => {
+      await result.current.run(async () => ({ ok: false, code: 'X' }), 'Đã lưu');
+    });
+    expect(err).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        duration: Infinity,
+        action: expect.objectContaining({ label: 'Thử lại' }),
+      }),
+    );
+  });
+});
