@@ -101,7 +101,7 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
             ))}
           </select>
         </label>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy} aria-busy={busy}>
           Thêm đương sự
         </button>
       </form>
@@ -121,7 +121,7 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
           Nghĩa vụ
           <input name="description" required maxLength={2000} />
         </label>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy} aria-busy={busy}>
           Thêm nghĩa vụ
         </button>
       </form>
@@ -156,7 +156,7 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
             Ghi chú diễn biến
             <input name="note" required maxLength={4000} />
           </label>
-          <button type="submit" disabled={busy}>
+          <button type="submit" disabled={busy} aria-busy={busy}>
             Ghi chú
           </button>
         </form>
@@ -213,7 +213,7 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
             Tệp chứng cứ (PDF, JPEG, PNG; tối đa 25 MB)
             <input name="file" type="file" accept="application/pdf,image/jpeg,image/png" required />
           </label>
-          <button type="submit" disabled={busy}>
+          <button type="submit" disabled={busy} aria-busy={busy}>
             Ghi kết quả kèm chứng cứ
           </button>
         </form>
@@ -237,7 +237,7 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
             required
           />
         </label>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy} aria-busy={busy}>
           Hoàn tất hồ sơ
         </button>
       </form>

@@ -51,7 +51,7 @@ export function ContactLog({ caseId, contacts, canLog }: Props) {
               ))}
             </select>
           </label>
-          <button type="submit" className="primary wide" disabled={busy}>
+          <button type="submit" className="primary wide" disabled={busy} aria-busy={busy}>
             Lưu kết quả liên hệ
           </button>
           <p role="alert" className="error" hidden={!error}>

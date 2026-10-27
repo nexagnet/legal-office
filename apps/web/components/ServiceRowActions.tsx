@@ -75,6 +75,7 @@ export function ServiceRowActions({ documentId, status }: Props) {
       <button
         type="button"
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void run(() => post(`documents/${documentId}/reminders`))}
       >
         Nhắc người xử lý
@@ -90,7 +91,7 @@ export function ServiceRowActions({ documentId, status }: Props) {
             ))}
           </select>
         </label>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy} aria-busy={busy}>
           Ghi nhận lần tống đạt
         </button>
       </form>
@@ -104,7 +105,7 @@ export function ServiceRowActions({ documentId, status }: Props) {
             required
           />
         </label>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy} aria-busy={busy}>
           Ghi nhận đã tống đạt
         </button>
       </form>
@@ -119,7 +120,7 @@ export function ServiceRowActions({ documentId, status }: Props) {
             ))}
           </select>
         </label>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy} aria-busy={busy}>
           Đánh dấu không tống đạt được
         </button>
       </form>

@@ -77,7 +77,7 @@ function ThvCardRow({
               defaultValue={card?.cardNo ?? ''}
               maxLength={40}
             />
-            <button type="submit" disabled={busy}>
+            <button type="submit" disabled={busy} aria-busy={busy}>
               {busy ? 'Đang lưu…' : 'Lưu'}
             </button>
             {error ? <span role="alert">{error}</span> : null}

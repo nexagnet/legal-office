@@ -88,7 +88,7 @@ export function NewCaseForm({ branches }: Props) {
     <div className="intake">
       <div className="page-head">
         <h2 className="page-sub">Tạo hồ sơ Vi bằng</h2>
-        <button type="submit" form="tao-ho-so" className="primary" disabled={busy}>
+        <button type="submit" form="tao-ho-so" className="primary" disabled={busy} aria-busy={busy}>
           {busy ? 'Đang lưu…' : 'Tiếp nhận hồ sơ'}
         </button>
       </div>

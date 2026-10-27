@@ -84,7 +84,7 @@ export function StartRoundForm({ caseId }: { readonly caseId: string }) {
         Bên liên quan
         <input name="partyName" required maxLength={300} />
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Thêm lượt xác minh
       </button>
       <Alert error={error} />
@@ -136,7 +136,7 @@ export function SourceFileForm({ rounds }: { readonly rounds: readonly RoundLite
         Tệp nguồn (PDF, JPEG, PNG; tối đa 25 MB)
         <input name="file" type="file" accept="application/pdf,image/jpeg,image/png" required />
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Ghi nguồn kèm tệp
       </button>
       <Alert error={error} />
@@ -164,7 +164,7 @@ export function CompleteRoundForm({ rounds }: { readonly rounds: readonly RoundL
         Kết quả của lượt
         <textarea name="result" required rows={2} maxLength={4000} />
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Ghi kết quả lượt
       </button>
       <Alert error={error} />
@@ -186,7 +186,7 @@ export function ConclusionProposalForm({ caseId }: { readonly caseId: string }) 
         Đề xuất kết luận
         <textarea name="text" required rows={2} maxLength={8000} />
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Gửi đề xuất kết luận
       </button>
       <Alert error={error} />
@@ -201,10 +201,16 @@ export function ConclusionDecision({ caseId }: { readonly caseId: string }) {
   return (
     <div className="stack">
       <div>
-        <button type="button" className="primary" disabled={busy} onClick={() => decide(true)}>
+        <button
+          type="button"
+          className="primary"
+          disabled={busy}
+          aria-busy={busy}
+          onClick={() => decide(true)}
+        >
           Chấp nhận kết luận
         </button>{' '}
-        <button type="button" disabled={busy} onClick={() => decide(false)}>
+        <button type="button" disabled={busy} aria-busy={busy} onClick={() => decide(false)}>
           Trả về để xác minh tiếp
         </button>
       </div>

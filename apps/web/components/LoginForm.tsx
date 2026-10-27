@@ -113,7 +113,7 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
         <p role="alert" className="error" hidden={!error}>
           {error}
         </p>
-        <button type="submit" className="primary" disabled={busy}>
+        <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
           {busy ? 'Đang xác thực…' : 'Xác nhận'}
         </button>
         <button
@@ -141,7 +141,7 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
         <p role="alert" className="error" hidden={!error}>
           {error}
         </p>
-        <button type="submit" className="primary" disabled={busy}>
+        <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
           {busy ? 'Đang gửi…' : 'Gửi link qua email'}
         </button>
         <button
@@ -177,7 +177,7 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
       <p role="alert" className="error" hidden={!error}>
         {error}
       </p>
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         {busy ? 'Đang đăng nhập…' : 'Đăng nhập'}
       </button>
       <button

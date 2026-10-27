@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { messageFor } from '../lib/messages';
 import type { PostResult } from '../lib/post-json';
 
@@ -11,8 +11,12 @@ export function useAction() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** `busy` chỉ cập nhật sau lượt vẽ kế tiếp; cờ này chặn bấm đúp ngay lập tức. */
+  const running = useRef(false);
 
   async function run(action: () => Promise<PostResult>, ok: string): Promise<boolean> {
+    if (running.current) return false;
+    running.current = true;
     setBusy(true);
     setError(null);
     setNotice(null);
@@ -29,6 +33,7 @@ export function useAction() {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
       return false;
     } finally {
+      running.current = false;
       setBusy(false);
     }
   }

@@ -12,6 +12,7 @@ vi.mock('next/link', () => ({
       {children}
     </a>
   ),
+  useLinkStatus: () => ({ pending: false }),
 }));
 const path = vi.hoisted(() => ({ current: '/vi-bang' }));
 vi.mock('next/navigation', () => ({

@@ -67,7 +67,7 @@ export function NewItemForm({ officeId }: { readonly officeId: string }) {
         <input name="unit" required maxLength={50} />
       </label>
       <Alert error={error} />
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         Thêm
       </button>
     </form>
@@ -135,7 +135,7 @@ export function StockMovementForm({ items, branches }: MovementProps) {
         <input name="text" required maxLength={kind === 'receipts' ? 200 : 500} />
       </label>
       <Alert error={error} />
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         {kind === 'receipts' ? 'Nhập kho' : 'Xuất kho'}
       </button>
     </form>
@@ -180,7 +180,7 @@ export function AdjustBatchForm({
         <input name="reason" required maxLength={500} />
       </label>
       <Alert error={error} />
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Kiểm kê
       </button>
     </form>
@@ -217,7 +217,7 @@ export function ThresholdForm({
         />
       </label>
       <Alert error={error} />
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Lưu ngưỡng
       </button>
     </form>

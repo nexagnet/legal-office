@@ -65,7 +65,7 @@ function BranchRow({
             <button type="button" onClick={() => setEditing(false)}>
               Hủy
             </button>
-            <button type="submit" className="primary" disabled={busy}>
+            <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
               {busy ? 'Đang lưu…' : 'Lưu tên mới'}
             </button>
           </span>
@@ -175,7 +175,7 @@ export function BranchManager({
             <button type="button" onClick={() => dialog.current?.close()}>
               Hủy
             </button>
-            <button type="submit" className="primary" disabled={busy}>
+            <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
               Thêm địa điểm
             </button>
           </div>

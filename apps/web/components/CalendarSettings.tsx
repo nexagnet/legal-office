@@ -189,6 +189,7 @@ export function CalendarSettings({
                       type="button"
                       className="link-btn"
                       disabled={busy}
+                      aria-busy={busy}
                       aria-label={`Xoá ngày nghỉ ${h.label}`}
                       onClick={() => removeHoliday(h.day)}
                     >
@@ -209,7 +210,7 @@ export function CalendarSettings({
                 Tên ngày nghỉ
                 <input name="label" required maxLength={200} />
               </label>
-              <button type="submit" className="primary" disabled={busy}>
+              <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
                 Thêm ngày nghỉ
               </button>
             </form>

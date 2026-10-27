@@ -1,3 +1,4 @@
+import NextTopLoader from 'nextjs-toploader';
 import type { ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
 import '@fontsource/be-vietnam-pro/400.css';
@@ -30,6 +31,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="vi">
       <body>
+        <NextTopLoader
+          color="#c9a24a"
+          height={2}
+          showSpinner={false}
+          shadow={false}
+          crawlSpeed={300}
+        />
         <AppShell
           items={items}
           tenantName={session.status === 'authenticated' ? session.tenantName : null}

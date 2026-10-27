@@ -105,7 +105,7 @@ export function RegistrationForm(p: Props) {
         <p role="alert" className="error" hidden={!error}>
           {error}
         </p>
-        <button type="submit" className="primary wide" disabled={busy}>
+        <button type="submit" className="primary wide" disabled={busy} aria-busy={busy}>
           Ghi nhận kết quả cập nhật
         </button>
       </CheckPanel>

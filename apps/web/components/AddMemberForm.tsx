@@ -210,7 +210,7 @@ export function AddMemberForm({
           <Link className="btn-link" href="/quan-tri/nhan-su">
             Hủy
           </Link>
-          <button type="submit" className="primary" disabled={busy}>
+          <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
             Thêm và gửi đề xuất
           </button>
         </div>

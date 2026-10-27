@@ -98,7 +98,7 @@ export function AssignThv({ caseId, options, currentThvId, caseTitle }: Props) {
           <p role="status" className="success" hidden={!notice}>
             {notice}
           </p>
-          <button type="submit" className="primary wide" disabled={busy}>
+          <button type="submit" className="primary wide" disabled={busy} aria-busy={busy}>
             {busy ? 'Đang lưu…' : 'Xác nhận phân công'}
           </button>
         </CheckPanel>
@@ -130,7 +130,7 @@ export function AssignThv({ caseId, options, currentThvId, caseTitle }: Props) {
       <p role="status" className="success" hidden={!notice}>
         {notice}
       </p>
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         {busy ? 'Đang lưu…' : 'Lưu'}
       </button>
     </form>

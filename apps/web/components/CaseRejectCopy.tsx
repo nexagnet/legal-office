@@ -67,7 +67,7 @@ export function RejectCaseForm({ caseId }: { readonly caseId: string }) {
         <textarea name="reason" required rows={2} maxLength={2000} />
       </label>
       <Feedback error={api.error} done={api.done} ok="Đã ghi nhận từ chối yêu cầu." />
-      <button type="submit" disabled={api.busy}>
+      <button type="submit" disabled={api.busy} aria-busy={api.busy}>
         {api.busy ? 'Đang gửi…' : 'Từ chối yêu cầu'}
       </button>
     </form>
@@ -147,7 +147,7 @@ export function IssueCopyForm({
           ]}
         >
           <Feedback error={api.error} done={api.done} ok="Đã ghi nhận cấp bản sao." />
-          <button type="submit" className="primary wide" disabled={api.busy}>
+          <button type="submit" className="primary wide" disabled={api.busy} aria-busy={api.busy}>
             {api.busy ? 'Đang gửi…' : 'Cấp bản sao'}
           </button>
         </CheckPanel>
@@ -184,7 +184,7 @@ export function IssueCopyForm({
         <input name="receivedBy" required maxLength={500} />
       </label>
       <Feedback error={api.error} done={api.done} ok="Đã ghi nhận cấp bản sao." />
-      <button type="submit" className="primary" disabled={api.busy}>
+      <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
         {api.busy ? 'Đang gửi…' : 'Cấp bản sao'}
       </button>
     </form>

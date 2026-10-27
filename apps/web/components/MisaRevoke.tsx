@@ -110,6 +110,7 @@ export function MisaRevoke(p: Props) {
               type="button"
               className="primary wide"
               disabled={busy}
+              aria-busy={busy}
               onClick={() => void post(`cases/${p.caseId}/misa/revoke-decisions`, { accept: true })}
             >
               Phê duyệt thu hồi
@@ -118,6 +119,7 @@ export function MisaRevoke(p: Props) {
               type="button"
               className="secondary wide"
               disabled={busy}
+              aria-busy={busy}
               onClick={() =>
                 void post(`cases/${p.caseId}/misa/revoke-decisions`, { accept: false })
               }

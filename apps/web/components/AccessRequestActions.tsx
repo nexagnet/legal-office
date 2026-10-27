@@ -54,7 +54,12 @@ export function AccessRequestActions({
     <div className="req-actions">
       <div className="req-buttons">
         {isAdmin ? (
-          <button type="button" disabled={busy} onClick={() => void send('withdrawal')}>
+          <button
+            type="button"
+            disabled={busy}
+            aria-busy={busy}
+            onClick={() => void send('withdrawal')}
+          >
             Rút đề xuất
           </button>
         ) : null}
@@ -64,11 +69,18 @@ export function AccessRequestActions({
               type="button"
               className="danger-outline"
               disabled={busy}
+              aria-busy={busy}
               onClick={() => setRejecting(true)}
             >
               Từ chối
             </button>
-            <button type="button" className="primary" disabled={busy} onClick={approve}>
+            <button
+              type="button"
+              className="primary"
+              disabled={busy}
+              aria-busy={busy}
+              onClick={approve}
+            >
               Duyệt
             </button>
           </>
@@ -84,7 +96,7 @@ export function AccessRequestActions({
             <button type="button" onClick={() => setRejecting(false)}>
               Hủy
             </button>
-            <button type="submit" className="danger-outline" disabled={busy}>
+            <button type="submit" className="danger-outline" disabled={busy} aria-busy={busy}>
               Xác nhận từ chối
             </button>
           </div>

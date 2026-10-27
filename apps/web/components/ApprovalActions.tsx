@@ -55,16 +55,16 @@ export function ApprovalActions({ kind, subjectId, state, roles }: Props) {
       </label>
       {canDecide ? (
         <>
-          <button type="submit" value="RETURN" disabled={busy}>
+          <button type="submit" value="RETURN" disabled={busy} aria-busy={busy}>
             Trả lại bổ sung
           </button>
-          <button type="submit" value="REJECT" disabled={busy}>
+          <button type="submit" value="REJECT" disabled={busy} aria-busy={busy}>
             Từ chối
           </button>
         </>
       ) : null}
       {canResubmit ? (
-        <button type="submit" value="RESUBMIT" className="primary" disabled={busy}>
+        <button type="submit" value="RESUBMIT" className="primary" disabled={busy} aria-busy={busy}>
           Nộp lại
         </button>
       ) : null}
