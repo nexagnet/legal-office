@@ -109,6 +109,22 @@ export class AuthService {
     email: string,
   ): Promise<{ readonly challengeCookie: string }> {
     const decoy = { challengeCookie: `${tenantId}.${randomBytes(32).toString('base64url')}` };
+    try {
+      return (await this.tryLoginByEmail(tenantId, email)) ?? decoy;
+    } catch (err) {
+      // Lỗi hạ tầng (DB, migration chưa áp, SMTP) không được lộ ra thành 500: người ngoài sẽ phân biệt được email có tài khoản.
+      this.log.error(
+        `Đăng nhập qua email lỗi: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return decoy;
+    }
+  }
+
+  /** Trả `null` khi không đủ điều kiện hoặc không gửi được thư; ném lỗi khi hạ tầng hỏng. */
+  private async tryLoginByEmail(
+    tenantId: string,
+    email: string,
+  ): Promise<{ readonly challengeCookie: string } | null> {
     const state = await this.pg.withTenant(tenantId, async (c) => {
       const { rows } = await c.query<{ user_id: string; locked: boolean }>(
         'SELECT * FROM au_login_state($1,$2)',
@@ -116,7 +132,7 @@ export class AuthService {
       );
       return rows[0];
     });
-    if (!state || state.locked) return decoy;
+    if (!state || state.locked) return null;
     const eligible = await this.pg.withTenant(tenantId, async (c) => {
       const { rows } = await c.query<{ ok: boolean }>(
         'SELECT au_email_login_allowed($1,$2) AS ok',
@@ -124,11 +140,11 @@ export class AuthService {
       );
       return rows[0]?.ok === true;
     });
-    if (!eligible) return decoy;
+    if (!eligible) return null;
     const result = await this.startChallenge(tenantId, state.user_id);
     if (result.status === 'sent') return { challengeCookie: result.challengeCookie };
     this.log.warn(`Đăng nhập qua email không gửi được thư: ${result.status}`);
-    return decoy;
+    return null;
   }
 
   private async openSession(tenantId: string, userId: string): Promise<LoginResult> {
