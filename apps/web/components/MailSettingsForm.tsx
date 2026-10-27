@@ -167,7 +167,7 @@ export function MailSettingsForm({
           />
         </label>
         <div className="actions">
-          <button type="submit" className="primary" disabled={busy}>
+          <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
             {busy ? 'Đang xử lý…' : 'Lưu cấu hình'}
           </button>
           <button type="button" disabled={busy || !settings.configured} onClick={sendTest}>

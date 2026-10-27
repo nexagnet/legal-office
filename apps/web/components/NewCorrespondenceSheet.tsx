@@ -286,7 +286,12 @@ export function NewCorrespondenceSheet({
               Huỷ
             </Button>
           ) : (
-            <Button variant="secondary" onClick={() => setStep(step - 1)} disabled={busy}>
+            <Button
+              variant="secondary"
+              onClick={() => setStep(step - 1)}
+              disabled={busy}
+              aria-busy={busy}
+            >
               Quay lại
             </Button>
           )}
@@ -294,7 +299,7 @@ export function NewCorrespondenceSheet({
           {step < 2 ? (
             <Button onClick={next}>Tiếp tục: {STEPS[step + 1]} →</Button>
           ) : (
-            <Button onClick={() => void submit()} disabled={busy}>
+            <Button onClick={() => void submit()} disabled={busy} aria-busy={busy}>
               {busy ? 'Đang lưu…' : 'Vào sổ'}
             </Button>
           )}

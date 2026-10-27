@@ -55,7 +55,7 @@ export function AssignHandler({ path, options, currentId }: Props) {
           ))}
         </select>
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Lưu
       </button>
       <p role="alert" className="error" hidden={!error}>

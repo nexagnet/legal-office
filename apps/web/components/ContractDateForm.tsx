@@ -37,7 +37,7 @@ export function ContractDateForm({ caseId }: { readonly caseId: string }) {
         Ngày ký hợp đồng dịch vụ xác minh
         <input name="signedOn" type="date" required />
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Ghi ngày ký (tính hạn ra quyết định)
       </button>
       <p role="alert" className="error" hidden={!error}>

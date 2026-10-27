@@ -34,7 +34,7 @@ export function PlaceForm({ caseId, placeAddress, canEdit }: Props) {
         Nơi lập Vi bằng
         <input name="placeAddress" defaultValue={placeAddress ?? ''} maxLength={500} />
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Lưu nơi lập
       </button>
       <p role="alert" className="error" hidden={!error}>

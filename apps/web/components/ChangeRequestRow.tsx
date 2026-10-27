@@ -43,6 +43,7 @@ export function ChangeDecision({ requestId, canDecide, wide }: Props) {
         type="button"
         className={wide ? 'primary wide' : 'primary'}
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void decide(true)}
       >
         {wide ? 'Phê duyệt yêu cầu' : 'Duyệt'}
@@ -51,6 +52,7 @@ export function ChangeDecision({ requestId, canDecide, wide }: Props) {
         type="button"
         className={wide ? 'secondary wide' : undefined}
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void decide(false)}
       >
         Từ chối

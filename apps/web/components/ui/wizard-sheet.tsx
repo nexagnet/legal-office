@@ -164,7 +164,12 @@ export function WizardSheet({
               Huỷ
             </Button>
           ) : (
-            <Button variant="secondary" onClick={() => setStep(step - 1)} disabled={busy}>
+            <Button
+              variant="secondary"
+              onClick={() => setStep(step - 1)}
+              disabled={busy}
+              aria-busy={busy}
+            >
               Quay lại
             </Button>
           )}
@@ -174,7 +179,7 @@ export function WizardSheet({
               Tiếp tục: {names[step + 1]} →
             </Button>
           ) : (
-            <Button onClick={() => void submit()} disabled={busy}>
+            <Button onClick={() => void submit()} disabled={busy} aria-busy={busy}>
               {busy ? 'Đang lưu…' : submitLabel}
             </Button>
           )}

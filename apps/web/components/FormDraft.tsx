@@ -95,7 +95,7 @@ export function FormDraft({ officeId, code, title, fields, checks, checkTitle, a
         <p role="alert" className="error" hidden={!error}>
           {error}
         </p>
-        <button type="submit" className="primary wide" disabled={busy}>
+        <button type="submit" className="primary wide" disabled={busy} aria-busy={busy}>
           {action}
         </button>
       </CheckPanel>

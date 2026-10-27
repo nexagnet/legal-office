@@ -72,7 +72,7 @@ export function CorrespondenceActions({ id, direction, status }: Props) {
           Nơi lưu hồ sơ
           <input name="archiveRef" maxLength={500} />
         </label>
-        <button type="submit" disabled={busy}>
+        <button type="submit" disabled={busy} aria-busy={busy}>
           Ghi kết quả xử lý
         </button>
       </form>
@@ -97,13 +97,14 @@ export function CorrespondenceActions({ id, direction, status }: Props) {
             Bản cuối của công văn (PDF, JPEG, PNG; tối đa 25 MB)
             <input name="file" type="file" accept="application/pdf,image/jpeg,image/png" required />
           </label>
-          <button type="submit" disabled={busy}>
+          <button type="submit" disabled={busy} aria-busy={busy}>
             Đính kèm bản cuối
           </button>
         </form>
         <button
           type="button"
           disabled={busy}
+          aria-busy={busy}
           onClick={() => void run(() => post(`${id}/submission`))}
         >
           Trình duyệt
@@ -116,6 +117,7 @@ export function CorrespondenceActions({ id, direction, status }: Props) {
         type="button"
         className="primary"
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void run(() => post(`${id}/approval`))}
       >
         Duyệt
@@ -155,7 +157,7 @@ export function CorrespondenceActions({ id, direction, status }: Props) {
           Chứng từ gửi đi (PDF, JPEG, PNG; tối đa 25 MB)
           <input name="proof" type="file" accept="application/pdf,image/jpeg,image/png" required />
         </label>
-        <button type="submit" className="primary" disabled={busy}>
+        <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
           Ban hành
         </button>
       </form>

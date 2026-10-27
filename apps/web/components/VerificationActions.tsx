@@ -70,7 +70,7 @@ export function VerificationActions({ caseId, status, rounds }: Props) {
               Bên liên quan
               <input name="partyName" required maxLength={300} />
             </label>
-            <button type="submit" disabled={busy}>
+            <button type="submit" disabled={busy} aria-busy={busy}>
               Bắt đầu vòng xác minh
             </button>
           </form>
@@ -121,7 +121,7 @@ export function VerificationActions({ caseId, status, rounds }: Props) {
                     required
                   />
                 </label>
-                <button type="submit" disabled={busy}>
+                <button type="submit" disabled={busy} aria-busy={busy}>
                   Ghi nguồn kèm tệp
                 </button>
               </form>
@@ -142,7 +142,7 @@ export function VerificationActions({ caseId, status, rounds }: Props) {
                   Kết quả của vòng
                   <textarea name="result" required rows={2} maxLength={4000} />
                 </label>
-                <button type="submit" disabled={busy}>
+                <button type="submit" disabled={busy} aria-busy={busy}>
                   Hoàn thành vòng
                 </button>
               </form>
@@ -159,7 +159,7 @@ export function VerificationActions({ caseId, status, rounds }: Props) {
               Đề xuất kết luận
               <textarea name="text" required rows={2} maxLength={8000} />
             </label>
-            <button type="submit" disabled={busy}>
+            <button type="submit" disabled={busy} aria-busy={busy}>
               Gửi đề xuất kết luận
             </button>
           </form>
@@ -170,6 +170,7 @@ export function VerificationActions({ caseId, status, rounds }: Props) {
             type="button"
             className="primary"
             disabled={busy}
+            aria-busy={busy}
             onClick={() =>
               void run(() => post(`cases/${caseId}/conclusion-decision`, { approve: true }))
             }
@@ -179,6 +180,7 @@ export function VerificationActions({ caseId, status, rounds }: Props) {
           <button
             type="button"
             disabled={busy}
+            aria-busy={busy}
             onClick={() =>
               void run(() => post(`cases/${caseId}/conclusion-decision`, { approve: false }))
             }

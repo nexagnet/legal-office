@@ -21,14 +21,26 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   readonly asChild?: boolean;
+  /** Đang gửi: khoá nút (chống bấm đúp) và hiện vòng quay. */
+  readonly loading?: boolean;
 }
 
-export function Button({ className, variant, asChild = false, type, ...props }: ButtonProps) {
+export function Button({
+  className,
+  variant,
+  asChild = false,
+  type,
+  loading = false,
+  disabled,
+  ...props
+}: ButtonProps) {
   const Comp = asChild ? Slot : 'button';
   return (
     <Comp
       className={cn(buttonVariants({ variant }), className)}
       {...(asChild ? {} : { type: type ?? 'button' })}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
     />
   );

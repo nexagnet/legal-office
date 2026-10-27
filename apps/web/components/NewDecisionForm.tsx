@@ -113,7 +113,7 @@ export function NewDecisionForm({
       <p role="status" className="success" hidden={!done}>
         Đã vào sổ.
       </p>
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         {busy ? 'Đang lưu…' : 'Vào sổ'}
       </button>
     </form>
