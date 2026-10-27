@@ -1,6 +1,6 @@
 # Kế hoạch phản hồi tức thì và hiệu ứng tải (apps/web)
 
-> Trạng thái: **KẾ HOẠCH, chờ chủ dự án duyệt. Chưa có dòng code tính năng nào.**
+> Trạng thái: **ĐANG TRIỂN KHAI** (Figma N14 đã duyệt). Tiến độ ở mục 9.
 > Phạm vi: chỉ giao diện `apps/web`. Tối ưu backend là kế hoạch riêng (mục 6 chỉ liệt kê).
 
 ## 0. Vấn đề và nguyên nhân gốc
@@ -147,3 +147,19 @@ Tổng ước lượng khoảng 7 ngày công, nhận kết quả thấy đượ
 2. Duyệt thêm hai thư viện: `nextjs-toploader` và `sonner` (đã tìm trước; không thêm `motion` ở đợt đầu).
 3. Có cần vẽ khung Figma bổ sung (page N14: thanh tiến trình, skeleton từng khối, toast, trạng thái nút) trước khi code không? Đề xuất: **có** cho skeleton và toast để đối chiếu bố cục; thanh tiến trình và spinner nút đơn giản, không cần.
 4. Cho phép cache có tag cho dữ liệu tham chiếu (PR 8) hay giữ `no-store` toàn bộ.
+
+## 9. Tiến độ triển khai
+
+| PR | Nội dung |
+|---|---|
+| #215-#217 | Gỡ chặn layout, dedupe `/auth/me`, thanh tiến trình trên cùng, spinner menu, trạng thái nhấn |
+| #218 | Nút có `loading`, chống bấm đúp |
+| #220 | Skeleton theo từng màn (`loading.tsx`) |
+| #221 | Ghi liên hệ hiện ngay (optimistic) và toast |
+| (PR này) | `scripts/measure-latency.mjs` để đo độ trễ thật |
+
+Chưa làm, có chủ ý:
+
+- Suspense theo từng khối: chờ số đo thật từ script trên.
+- Prefetch khi rê chuột: `loading.tsx` và prefetch theo viewport đã phủ phần lớn.
+- Cache dữ liệu tham chiếu: ghi đi qua rewrite `/api` nên lớp web không huỷ cache được, có rủi ro dữ liệu cũ.
