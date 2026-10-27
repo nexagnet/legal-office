@@ -1472,3 +1472,27 @@ tbody tr:hover > td {
   border-left: 4px solid var(--warning, #b7791f);
   border-radius: 10px;
 }
+
+/* Phản hồi tức thì (Figma N14): lún nhẹ khi bấm, vòng quay trên mục menu đang chuyển trang */
+:where(button, [role='button'], .nav a, .bottom-nav a, a.row-link):not(:disabled):active {
+  transform: scale(0.98);
+  transition: transform 80ms ease-out;
+}
+.nav-pending {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: lo-spin 700ms linear infinite;
+}
+.nav a:has(.nav-pending) {
+  background: rgb(255 255 255 / 0.1);
+}
+@keyframes lo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

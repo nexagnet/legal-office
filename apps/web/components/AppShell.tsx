@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { NavItem } from '../app/nav';
+import { NavPending } from './NavPending';
 import { ProfileMenu } from './ProfileMenu';
 import { SearchPalette } from './SearchPalette';
 import { usePendingApprovals } from './usePendingApprovals';
@@ -286,6 +287,7 @@ export function AppShell({
                             {badges[i.slug]}
                           </span>
                         ) : null}
+                        <NavPending />
                       </Link>
                     </li>
                   ))}
