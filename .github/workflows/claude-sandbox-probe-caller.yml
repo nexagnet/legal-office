@@ -1,9 +1,14 @@
-name: Nexagnet V5 Legal Office Sandbox Probe (manual)
+name: Nexagnet V5 Legal Office Read and MCP Diagnostics (branch only)
 
-# R3 contract: https://github.com/nexagnet/legal-office/issues/172
-# Central diagnostic only; actual sandbox proof requires the trusted run verdict.
+# R3 contract: https://github.com/nexagnet/legal-office/issues/175
+# Review/evidence branch only: DO NOT MERGE this caller into main.
 on:
   workflow_dispatch:
+    inputs:
+      expected_consumer_sha:
+        description: Reviewed full consumer commit SHA
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -11,12 +16,27 @@ permissions:
   pull-requests: read
 
 jobs:
-  probe:
+  read:
     if: >-
       github.repository == 'nexagnet/legal-office' &&
       github.event_name == 'workflow_dispatch' &&
       github.actor == 'phungtienviet14-sketch' &&
-      github.ref == 'refs/heads/main'
-    uses: nexagnet/.github/.github/workflows/claude-sandbox-probe.yml@3a68dd94b9fd927ffd97457020a197ed0423172a
+      github.ref == 'refs/heads/codex/tool-isolation-runtime-36-37' &&
+      github.sha == inputs.expected_consumer_sha
+    uses: nexagnet/.github/.github/workflows/claude-read-isolation-probe.yml@4ad084be9039aefa9f61ea162b627b90f82dd192
+    with:
+      expected_consumer_sha: ${{ inputs.expected_consumer_sha }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+  mcp:
+    if: >-
+      github.repository == 'nexagnet/legal-office' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.actor == 'phungtienviet14-sketch' &&
+      github.ref == 'refs/heads/codex/tool-isolation-runtime-36-37' &&
+      github.sha == inputs.expected_consumer_sha
+    uses: nexagnet/.github/.github/workflows/claude-mcp-isolation-probe.yml@4ad084be9039aefa9f61ea162b627b90f82dd192
+    with:
+      expected_consumer_sha: ${{ inputs.expected_consumer_sha }}
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
