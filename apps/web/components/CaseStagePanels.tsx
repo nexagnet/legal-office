@@ -56,7 +56,7 @@ export function MisaNumberPanels({ caseId, status, progress, roles }: Props) {
                 Mã tham chiếu MISA
                 <input name="reference" required maxLength={200} />
               </label>
-              <button type="submit" className="primary" disabled={api.busy}>
+              <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
                 Xác nhận đã thu đủ trên MISA
               </button>
             </form>
@@ -82,6 +82,7 @@ export function MisaNumberPanels({ caseId, status, progress, roles }: Props) {
               type="button"
               className="primary"
               disabled={api.busy}
+              aria-busy={api.busy}
               onClick={() => void api.call('POST', 'number')}
             >
               Cấp số
@@ -121,6 +122,7 @@ export function SignStampPanels({ caseId, status, progress, roles }: Props) {
               type="button"
               className="primary"
               disabled={api.busy}
+              aria-busy={api.busy}
               onClick={() => void api.call('POST', 'signature-confirmations')}
             >
               Xác nhận đã ký
@@ -140,6 +142,7 @@ export function SignStampPanels({ caseId, status, progress, roles }: Props) {
               type="button"
               className="primary"
               disabled={api.busy}
+              aria-busy={api.busy}
               onClick={() => void api.call('POST', 'stamp-confirmations')}
             >
               Xác nhận đã đóng dấu
@@ -161,7 +164,7 @@ export function SignStampPanels({ caseId, status, progress, roles }: Props) {
                 Bản scan cuối (PDF, tối đa 25 MB)
                 <input name="scan" type="file" accept="application/pdf" required />
               </label>
-              <button type="submit" className="primary" disabled={api.busy}>
+              <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
                 Tải bản scan cuối
               </button>
             </form>
@@ -249,6 +252,7 @@ export function ReturnPanel({
                 type="button"
                 className="primary"
                 disabled={api.busy}
+                aria-busy={api.busy}
                 onClick={() => void api.call('POST', 'return')}
               >
                 Xác nhận đã trả kết quả

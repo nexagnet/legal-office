@@ -111,7 +111,7 @@ export function CaseActions({
             Nội dung cần ghi nhận
             <textarea name="description" rows={3} maxLength={5000} defaultValue={description} />
           </label>
-          <button type="submit" className="primary" disabled={busy}>
+          <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
             Lưu
           </button>
         </form>
@@ -133,7 +133,7 @@ export function CaseActions({
             Lý do
             <input name="reason" required maxLength={2000} />
           </label>
-          <button type="submit" className="primary" disabled={busy}>
+          <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
             Gửi đề nghị
           </button>
         </form>
@@ -145,7 +145,7 @@ export function CaseActions({
             Lý do huỷ
             <input name="reason" required maxLength={2000} />
           </label>
-          <button type="submit" disabled={busy}>
+          <button type="submit" disabled={busy} aria-busy={busy}>
             Huỷ hồ sơ
           </button>
         </form>

@@ -64,7 +64,7 @@ export function NewCustomerForm({ onCreated }: { readonly onCreated?: (id: strin
         <input name="externalRef" required maxLength={200} />
       </label>
       <Feedback error={api.error} notice={api.notice} />
-      <button type="submit" className="primary" disabled={api.busy}>
+      <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
         Thêm khách hàng
       </button>
     </form>
@@ -137,7 +137,7 @@ export function CustomerProfileForm({ customer }: { readonly customer: Customer 
         <input name="phone" maxLength={50} defaultValue={customer.phone ?? ''} />
       </label>
       <Feedback error={api.error} notice={api.notice} />
-      <button type="submit" className="primary" disabled={api.busy}>
+      <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
         {api.busy ? 'Đang lưu…' : 'Lưu thông tin'}
       </button>
     </form>
@@ -207,7 +207,7 @@ export function ContractForm({ contract }: { readonly contract: Contract }) {
         <textarea name="note" rows={2} maxLength={2000} defaultValue={contract.note ?? ''} />
       </label>
       <Feedback error={api.error} notice={api.notice} />
-      <button type="submit" className="primary" disabled={api.busy}>
+      <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
         Lưu hợp đồng
       </button>
     </form>
@@ -237,7 +237,7 @@ export function NewContractForm({ customerId }: { readonly customerId: string })
         <input name="externalRef" required maxLength={200} />
       </label>
       <Feedback error={api.error} notice={api.notice} />
-      <button type="submit" className="primary" disabled={api.busy}>
+      <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
         Thêm hợp đồng
       </button>
     </form>

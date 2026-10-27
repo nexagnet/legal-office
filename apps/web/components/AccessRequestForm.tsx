@@ -147,7 +147,7 @@ export function AccessRequestForm({
         <p role="status" className="success" hidden={!done}>
           Đã gửi đề xuất, chờ Trưởng văn phòng duyệt.
         </p>
-        <button type="submit" className="primary wide" disabled={busy}>
+        <button type="submit" className="primary wide" disabled={busy} aria-busy={busy}>
           Gửi đề xuất
         </button>
       </CheckPanel>

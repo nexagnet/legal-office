@@ -104,7 +104,13 @@ export function N11Correction(p: Props) {
         <p role="alert" className="error" hidden={!error}>
           {error}
         </p>
-        <button type="submit" form="de-nghi-n11" className="primary wide" disabled={busy}>
+        <button
+          type="submit"
+          form="de-nghi-n11"
+          className="primary wide"
+          disabled={busy}
+          aria-busy={busy}
+        >
           Tạo dự thảo N-11
         </button>
       </CheckPanel>

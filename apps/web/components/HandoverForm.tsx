@@ -42,7 +42,7 @@ export function HandoverForm({ caseId, recipient, handedOverOn, canRecord }: Pro
         Ngày bàn giao
         <input name="handedOverOn" type="date" required />
       </label>
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Lưu người nhận
       </button>
       <p role="alert" className="error" hidden={!error}>
