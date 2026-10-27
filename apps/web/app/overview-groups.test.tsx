@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { groupApprovals, groupMyWork } from '../lib/overview';
+import { groupApprovals, groupMisaQueue, groupMyWork } from '../lib/overview';
+import type { CaseItem } from '../lib/cases';
 import type { MyWorkItem } from '../lib/my-work-view';
 
 const now = new Date('2026-10-27T03:00:00Z');
@@ -48,5 +49,36 @@ describe('groupApprovals', () => {
     );
     expect(g.map((x) => x.title)).toEqual(['Quá 1 ngày (1)', 'Hôm nay (1)']);
     expect(g[0]!.rows[0]!.meta).toBe('Gửi 2 ngày trước');
+  });
+});
+
+describe('groupMisaQueue', () => {
+  const c = (id: string, createdAt: string, nextStep: string): CaseItem => ({
+    id,
+    title: `Hồ sơ ${id}`,
+    status: 'ASSIGNED',
+    createdAt,
+    responsibleThvUserId: null,
+    branchName: 'Hai Bà Trưng',
+    nextStep,
+  });
+  it('chỉ lấy hồ sơ chờ cấp số, cũ nhất lên trước, liên kết sang hồ sơ', () => {
+    const g = groupMisaQueue(
+      [
+        c('new', '2026-10-27T01:00:00Z', 'MISA_NUMBER'),
+        c('old', '2026-10-24T01:00:00Z', 'MISA_NUMBER'),
+        c('sign', '2026-10-20T01:00:00Z', 'SIGN'),
+      ],
+      now,
+    );
+    expect(g.map((x) => [x.title, x.rows.map((r) => r.key)])).toEqual([
+      ['Quá 1 ngày (1)', ['MISA-old']],
+      ['Hôm nay (1)', ['MISA-new']],
+    ]);
+    expect(g[0]?.rows[0]?.href).toBe('/vi-bang/old');
+    expect(g[0]?.rows[0]?.meta).toBe('Hai Bà Trưng · Tiếp nhận 3 ngày trước');
+  });
+  it('trả rỗng khi không có hồ sơ chờ', () => {
+    expect(groupMisaQueue([c('x', '2026-10-20T01:00:00Z', 'DONE')], now)).toEqual([]);
   });
 });
