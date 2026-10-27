@@ -1,13 +1,22 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { ReactNode } from 'react';
+import { CustomerContracts } from '../components/CustomerContracts';
 import { CustomerDirectory } from '../components/CustomerDirectory';
-import { NewCustomerForm } from '../components/CustomerForms';
+import { CustomerProfileForm, NewCustomerForm } from '../components/CustomerForms';
 import { IssueCopyForm, RejectCaseForm } from '../components/CaseRejectCopy';
 import type { Contract, Customer } from '../lib/customers';
 
 const push = vi.fn();
 const refresh = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push, refresh }) }));
+vi.mock('next/link', () => ({
+  default: ({ href, children, ...rest }: { href: string; children: ReactNode }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
 
 afterEach(() => {
   cleanup();
@@ -65,6 +74,9 @@ describe('CustomerDirectory', () => {
     expect(screen.getByText('HĐ-001')).toBeTruthy();
     expect(screen.getByText('Chưa gắn hợp đồng')).toBeTruthy();
     expect(screen.getByRole('cell', { name: 'Tổ chức' })).toBeTruthy();
+    expect(
+      screen.getAllByRole('link', { name: 'Xem và sửa' }).map((a) => a.getAttribute('href')),
+    ).toEqual(['/hop-dong/khach/c1', '/hop-dong/khach/c2']);
   });
 
   it('shows an honest permission-or-empty state without fabricating rows', () => {
@@ -81,8 +93,7 @@ describe('CustomerDirectory', () => {
 
   it('edits a person without sending organisation-only fields', async () => {
     const spy = mockOk();
-    render(<CustomerDirectory customers={[person]} contracts={[]} query="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xem và sửa' }));
+    render(<CustomerProfileForm customer={person} />);
     expect(screen.queryByLabelText('Mã số thuế')).toBeNull();
     fireEvent.change(screen.getByLabelText('Tên hiển thị'), { target: { value: 'Tên Mới' } });
     fireEvent.change(screen.getByLabelText('Điện thoại'), { target: { value: '' } });
@@ -100,8 +111,7 @@ describe('CustomerDirectory', () => {
 
   it('edits an organisation with tax code and representative but no id number', async () => {
     const spy = mockOk();
-    render(<CustomerDirectory customers={[org]} contracts={[]} query="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xem và sửa' }));
+    render(<CustomerProfileForm customer={org} />);
     expect(screen.queryByLabelText('Số giấy tờ tuỳ thân')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Lưu thông tin' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
@@ -118,16 +128,14 @@ describe('CustomerDirectory', () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       reply(400, { code: 'FIELD_NOT_FOR_KIND' }),
     );
-    render(<CustomerDirectory customers={[person]} contracts={[]} query="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xem và sửa' }));
+    render(<CustomerProfileForm customer={person} />);
     fireEvent.click(screen.getByRole('button', { name: 'Lưu thông tin' }));
     expect((await screen.findAllByRole('alert'))[0]!.textContent).toContain('không áp dụng');
   });
 
   it('sends the contract edit body with nulls for cleared dates', async () => {
     const spy = mockOk();
-    render(<CustomerDirectory customers={[person]} contracts={[contract]} query="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xem và sửa' }));
+    render(<CustomerContracts customer={person} customers={[person]} contracts={[contract]} />);
     const form = screen.getByRole('form', { name: 'Hợp đồng HĐ-001' });
     fireEvent.change(within(form).getByLabelText('Dịch vụ'), { target: { value: 'TONG_DAT' } });
     fireEvent.change(within(form).getByLabelText('Trạng thái'), { target: { value: 'ENDED' } });
@@ -152,8 +160,7 @@ describe('CustomerDirectory', () => {
 
   it('creates a contract for the selected customer', async () => {
     const spy = mockOk();
-    render(<CustomerDirectory customers={[person]} contracts={[]} query="" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xem và sửa' }));
+    render(<CustomerContracts customer={person} customers={[person]} contracts={[]} />);
     fireEvent.change(screen.getByLabelText('Mã hợp đồng mới'), { target: { value: ' HĐ-9 ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Thêm hợp đồng' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());

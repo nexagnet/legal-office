@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CustomerDirectory } from '../../components/CustomerDirectory';
+import { NewCustomerSheet } from '../../components/NewCustomerSheet';
 import { getJson } from '../../lib/case-api';
 import type { Contract, Customer } from '../../lib/customers';
 import { currentSession, requestCookie } from '../../lib/server';
@@ -70,9 +71,12 @@ export default async function CustomersPage({
     <section aria-labelledby="t">
       <div className="page-head">
         <h1 id="t">{ITEM.label}</h1>
-        <Link className="primary btn-link" href="/hop-dong/n-03">
-          Soạn hợp đồng N-03
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <NewCustomerSheet />
+          <Link className="primary btn-link" href="/hop-dong/n-03">
+            Soạn hợp đồng N-03
+          </Link>
+        </div>
       </div>
       <form className="filters filters-single" method="get" role="search">
         <label className="filter-search">

@@ -1,15 +1,6 @@
-'use client';
-
-import { useState } from 'react';
-import { CONTRACT_STATUS_LABEL, type Contract, type Customer } from '../lib/customers';
-import { ContractExtras } from './ContractExtras';
+import Link from 'next/link';
+import type { Contract, Customer } from '../lib/customers';
 import { PARTY_KIND_LABEL } from '../lib/messages';
-import {
-  ContractForm,
-  CustomerProfileForm,
-  NewContractForm,
-  NewCustomerForm,
-} from './CustomerForms';
 
 interface Props {
   readonly customers: readonly Customer[];
@@ -24,8 +15,6 @@ interface Props {
  * danh sách rỗng được nói rõ là rỗng hoặc không có quyền, không dựng dữ liệu thay thế.
  */
 export function CustomerDirectory({ customers, contracts, query, numberCounts = {} }: Props) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = customers.find((c) => c.id === selectedId) ?? null;
   const contractsOf = (id: string) => contracts.filter((k) => k.customerId === id);
 
   return (
@@ -57,7 +46,7 @@ export function CustomerDirectory({ customers, contracts, query, numberCounts = 
               {customers.map((c) => {
                 const ks = contractsOf(c.id);
                 return (
-                  <tr key={c.id} data-selected={c.id === selectedId}>
+                  <tr key={c.id}>
                     <th scope="row">
                       {c.displayName || <span className="muted">Chưa có tên</span>}
                       <span className="muted small-ref"> · {c.externalRef}</span>
@@ -71,14 +60,9 @@ export function CustomerDirectory({ customers, contracts, query, numberCounts = 
                     <td>{numberCounts[c.id] ?? '—'}</td>
                     <td>{c.address ?? '—'}</td>
                     <td>
-                      <button
-                        type="button"
-                        className="link-btn row-btn"
-                        aria-pressed={c.id === selectedId}
-                        onClick={() => setSelectedId(c.id === selectedId ? null : c.id)}
-                      >
-                        {c.id === selectedId ? 'Đóng' : 'Xem và sửa'}
-                      </button>
+                      <Link className="link-btn row-btn" href={`/hop-dong/khach/${c.id}`}>
+                        Xem và sửa
+                      </Link>
                     </td>
                   </tr>
                 );
@@ -87,35 +71,6 @@ export function CustomerDirectory({ customers, contracts, query, numberCounts = 
           </table>
         </div>
       )}
-      {selected ? (
-        <div className="panels customer-detail">
-          <section className="panel" aria-label={`Khách hàng ${selected.externalRef}`}>
-            <CustomerProfileForm customer={selected} />
-          </section>
-          <section className="panel" aria-labelledby="contracts-t">
-            <h2 id="contracts-t">Hợp đồng của khách</h2>
-            {contractsOf(selected.id).length === 0 ? (
-              <p className="muted">
-                Chưa gắn hợp đồng. Có thể tiếp nhận hồ sơ trước khi nhập hợp đồng.
-              </p>
-            ) : (
-              contractsOf(selected.id).map((k) => (
-                <div key={k.id} className="contract-block">
-                  <p>
-                    <span className="pill" data-tone={k.status === 'ACTIVE' ? 'ok' : 'idle'}>
-                      {CONTRACT_STATUS_LABEL[k.status] ?? k.status}
-                    </span>
-                  </p>
-                  <ContractForm contract={k} />
-                  <ContractExtras contractId={k.id} customers={customers} />
-                </div>
-              ))
-            )}
-            <NewContractForm customerId={selected.id} />
-          </section>
-        </div>
-      ) : null}
-      <NewCustomerForm onCreated={setSelectedId} />
       <section className="panel note-panel">
         <p>
           Một hợp đồng có thể liên kết nhiều Vi bằng. Có thể tiếp nhận hồ sơ trước khi nhập hợp
