@@ -21,6 +21,7 @@ import { VibangRepo } from '../vibang/vibang.repo';
 import { createSmtpMailer } from './mailer';
 import { decryptSecret, encryptSecret, keyFromEnv } from './secret-box';
 import { isInternalHost } from './smtp-host';
+import { renderTestMail } from '../mail/test-mail';
 
 const uuid = z.string().uuid();
 
@@ -172,8 +173,7 @@ export class MailSettingsController {
     try {
       await createSmtpMailer({ ...toConfig(stored), password }, stored.mail_from).send({
         to: row.actor_email,
-        subject: 'Legal Office: thư thử cấu hình email',
-        text: 'Đây là thư thử. Cấu hình SMTP đang hoạt động; email nhắc hạn sẽ gửi theo lịch đã cài.',
+        ...(await renderTestMail()),
       });
     } catch {
       return fail(HttpStatus.BAD_GATEWAY, 'MAIL_SEND_FAILED');
