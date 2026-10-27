@@ -2,6 +2,7 @@ import { type DynamicModule, Module } from '@nestjs/common';
 import type pg from 'pg';
 import { PG_POOL, PgService } from './db/pg.service';
 import { AccessController } from './admin/access.controller';
+import { MembersController } from './admin/members.controller';
 import { ApprovalController } from './approval/approval.controller';
 import { AuthController } from './auth/auth.controller';
 import {
@@ -62,6 +63,7 @@ export class AppModule {
         AssetsController,
         ApprovalController,
         AccessController,
+        MembersController,
         OfficeController,
         MailSettingsController,
         FormsController,

@@ -75,6 +75,10 @@ const MESSAGES: Record<string, string> = {
   REQUEST_FINAL: 'Đề xuất này đã được xử lý, không thay đổi thêm được.',
   ROLE_ALREADY_GRANTED: 'Người này đã có vai trò đó.',
   ROLE_NOT_HELD: 'Người này không có vai trò đó.',
+  EMAIL_IN_USE: 'Email này đã có tài khoản. Dùng "Đề xuất cấp quyền" để cấp vai cho người đó.',
+  SELF_TARGET_NOT_ALLOWED:
+    'Bạn không được duyệt đề xuất về chính mình. Cần một Trưởng văn phòng khác duyệt.',
+  BRANCH_NAME_TAKEN: 'Đã có địa điểm trùng tên trong văn phòng.',
   LAST_ADMIN: 'Không thể gỡ Admin cuối cùng của văn phòng.',
   DUPLICATE_PENDING: 'Đã có đề xuất giống hệt đang chờ duyệt.',
   SIGNER_ROLE_INVALID: 'Quyền ký pháp lý chỉ dành cho Admin hoặc Trưởng văn phòng.',
@@ -318,6 +322,7 @@ export const ACCESS_KIND_LABEL: Record<string, string> = {
   SET_LEGAL_SIGNER: 'Quyền ký pháp lý',
   GRANT_BRANCH: 'Cấp chi nhánh',
   REVOKE_BRANCH: 'Thu hồi chi nhánh',
+  ADD_MEMBER: 'Thêm thành viên',
 };
 export const ACCESS_STATUS_LABEL: Record<string, string> = {
   PENDING: 'Chờ duyệt',

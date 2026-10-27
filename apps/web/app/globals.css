@@ -1713,3 +1713,130 @@ tr[data-selected='true'] > td {
     padding-bottom: 14px;
   }
 }
+
+/* Quản trị: mỗi mục một trang (Figma N11) */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.admin-rail {
+  position: sticky;
+  top: 16px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(15, 46, 84, 0.08);
+}
+.admin-rail-title {
+  margin: 4px 12px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #5b6b82);
+}
+.admin-rail ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-rail a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-weight: 500;
+  text-decoration: none;
+  color: inherit;
+}
+.admin-rail a:hover {
+  background: #f3f6fb;
+}
+.admin-rail a[aria-current='page'] {
+  font-weight: 600;
+  color: #1f4fa8;
+  background: #e8eef9;
+  box-shadow: inset 3px 0 0 #c9a24a;
+}
+.admin-main {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.admin-crumb {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted, #5b6b82);
+}
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.seg label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid #c3d0e6;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.seg label:has(input:checked) {
+  border-color: #1f4fa8;
+  background: #e8eef9;
+  color: #1f4fa8;
+}
+.seg input {
+  accent-color: #1f4fa8;
+}
+.req-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px 24px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border-left: 5px solid #c9a24a;
+  box-shadow: 0 4px 16px rgba(15, 46, 84, 0.08);
+}
+.req-card h3 {
+  margin: 0;
+}
+.branch-dialog {
+  width: min(480px, calc(100vw - 32px));
+  padding: 28px;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+.branch-dialog::backdrop {
+  background: rgba(10, 26, 51, 0.5);
+}
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-rail {
+    position: static;
+  }
+  .admin-rail ul {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+  }
+}
