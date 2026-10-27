@@ -5,7 +5,7 @@ import type { Branch } from '../app/session';
 import { Button } from './ui/button';
 import { Modal } from './ui/dialog';
 import { Sheet, SheetBody } from './ui/sheet';
-import { AdjustBatchForm, NewItemForm, StockMovementForm } from './StockForms';
+import { AdjustBatchForm, NewItemForm, StockMovementForm, ThresholdForm } from './StockForms';
 
 /** Nhập/xuất kho trong ngăn kéo (Figma N12 D9): nút riêng, form chỉ hiện khi cần. */
 export function MovementSheet({
@@ -75,6 +75,34 @@ export function AdjustBatchDialog({
         <p className="text-[13px] text-muted">
           Chỉ Admin và Trưởng văn phòng được điều chỉnh. Thao tác được ghi vào lịch sử lô.
         </p>
+      </Modal>
+    </>
+  );
+}
+
+/** Ngưỡng "Sắp hết" của một vật tư; chỉ Admin thấy, máy chủ vẫn kiểm quyền. */
+export function ThresholdDialog({
+  itemId,
+  itemName,
+  current,
+}: {
+  readonly itemId: string;
+  readonly itemName: string;
+  readonly current: number | null;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button variant="ghost" onClick={() => setOpen(true)}>
+        {current === null ? 'Đặt ngưỡng' : `Ngưỡng ${current}`}
+      </Button>
+      <Modal
+        open={open}
+        onOpenChange={setOpen}
+        title="Ngưỡng cảnh báo tồn kho"
+        description={itemName}
+      >
+        <ThresholdForm itemId={itemId} current={current} />
       </Modal>
     </>
   );

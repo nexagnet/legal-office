@@ -1335,6 +1335,34 @@ export class OfficeController {
     return this.run(a, 'of_set_item_category', [id, b.category]);
   }
 
+  @Get('item-thresholds')
+  async itemThresholds(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{ item_id: string; low_stock_qty: number }>(
+      a,
+      'of_search_item_thresholds',
+      [officeId],
+    );
+    return rows.map((r) => ({ itemId: r.item_id, lowStockQty: r.low_stock_qty }));
+  }
+
+  /** Đặt ngưỡng "Sắp hết" của vật tư (Admin); lowStockQty null = bỏ ngưỡng. */
+  @Post('items/:id/threshold')
+  @HttpCode(HttpStatus.OK)
+  setItemThreshold(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ lowStockQty: z.number().int().min(0).max(1_000_000).nullable() }).strict(),
+      body,
+    );
+    return this.run(a, 'of_set_item_threshold', [id, b.lowStockQty]);
+  }
+
   @Get('thv-cards')
   async thvCards(
     @CurrentActor() a: AuthenticatedActor,
