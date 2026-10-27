@@ -118,10 +118,15 @@ consumer SHA and referenced central workflow SHA before accepting its output.
 Do not redispatch merely because a client polling session ended; inspect the live
 run first.
 
-The Read job uses a synthetic HOME and 15 fixed calls: positive controls plus
-Read/Glob/Grep cases for home, absolute, symlink and normalized path aliases.
-Authoritative native denial evidence is required for negative cases. Filtered-empty
-results or missing telemetry are `NOT_PROVEN`. The MCP job first requires actual
+The Read job uses a synthetic HOME and 17 fixed calls: the original 15-case matrix
+plus readable Read controls using literal `~` and `..` aliases under that HOME.
+Negative Read/Glob/Grep cases retain their original inputs. A private guard audit
+binds each decision to the corresponding SDK call without publishing raw inputs,
+paths or tool-use IDs. Accepted evidence requires one neutral guard record;
+guard-denied, missing, duplicate or invalid audit evidence is `NOT_PROVEN` and
+cannot be credited as native policy denial. Native tool/input/ID matching remains
+exact; expansion diagnostics never grant acceptance. Filtered-empty results or
+missing native telemetry are also `NOT_PROVEN`. The MCP job first requires actual
 startup, initialization and tool discovery from four benign local stdio fixtures,
 then checks a fresh candidate environment for zero starts and zero discovered MCP
 servers. Its exact-control Read guard bounds unrelated tool access; it is not
