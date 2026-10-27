@@ -44,3 +44,28 @@ describe('ContactLog', () => {
     expect(JSON.parse(String(init.body))).toEqual({ kind: 'REMINDER', outcome: 'REACHED' });
   });
 });
+
+describe('ContactLog optimistic', () => {
+  it('hiện lần liên hệ mới ngay khi gửi, trước khi máy chủ trả lời', async () => {
+    let release: (r: Response) => void = () => undefined;
+    vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise<Response>((r) => (release = r)));
+    render(<ContactLog caseId="c1" canLog contacts={[]} />);
+    expect(screen.getByText('Chưa ghi nhận lần liên hệ nào.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu kết quả liên hệ' }));
+    await waitFor(() =>
+      expect(screen.getByText(/Nhắc khách đến nhận/, { selector: 'span' })).toBeTruthy(),
+    );
+    expect(screen.queryByText('Chưa ghi nhận lần liên hệ nào.')).toBeNull();
+    release(new Response('{}', { status: 200 }));
+  });
+
+  it('gỡ dòng tạm khi máy chủ báo lỗi', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ code: 'X' }), { status: 400 }),
+    );
+    render(<ContactLog caseId="c1" canLog contacts={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu kết quả liên hệ' }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).not.toBe(''));
+    await waitFor(() => expect(screen.getByText('Chưa ghi nhận lần liên hệ nào.')).toBeTruthy());
+  });
+});

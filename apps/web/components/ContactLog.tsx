@@ -1,6 +1,6 @@
 'use client';
 
-import type { FormEvent } from 'react';
+import { startTransition, useOptimistic, type FormEvent } from 'react';
 import { CONTACT_KIND_LABEL, CONTACT_OUTCOME_LABEL, type ContactEntry } from '../lib/contacts';
 import { useCasePost } from './CasePost';
 
@@ -16,13 +16,23 @@ const fmt = (iso: string) =>
 /** Lịch sử liên hệ khách và ghi nhận lần liên hệ mới (Figma 3:676). Thời điểm do máy chủ ghi. */
 export function ContactLog({ caseId, contacts, canLog }: Props) {
   const { post, error, busy } = useCasePost();
+  /** Lần liên hệ mới hiện ngay, trước khi máy chủ xác nhận; lỗi thì tự biến mất (React hoàn về `contacts`). */
+  const [shown, addPending] = useOptimistic(contacts, (cur, next: ContactEntry) => [next, ...cur]);
 
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    void post(`cases/${caseId}/contacts`, {
-      kind: String(f.get('kind')),
-      outcome: String(f.get('outcome')),
+    const kind = String(f.get('kind'));
+    const outcome = String(f.get('outcome'));
+    startTransition(async () => {
+      addPending({
+        id: `pending-${Date.now()}`,
+        kind,
+        outcome,
+        actorUserId: '',
+        at: new Date().toISOString(),
+      });
+      await post(`cases/${caseId}/contacts`, { kind, outcome });
     });
   }
 
@@ -59,11 +69,11 @@ export function ContactLog({ caseId, contacts, canLog }: Props) {
           </p>
         </form>
       ) : null}
-      {contacts.length === 0 ? (
+      {shown.length === 0 ? (
         <p className="muted">Chưa ghi nhận lần liên hệ nào.</p>
       ) : (
         <ul className="rows contact-rows">
-          {contacts.map((c) => (
+          {shown.map((c) => (
             <li key={c.id}>
               <span>
                 {CONTACT_KIND_LABEL[c.kind] ?? c.kind}
