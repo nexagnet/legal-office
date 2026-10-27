@@ -22,7 +22,8 @@
   },
   "pnpm": {
     "overrides": {
-      "postcss": "8.5.23"
+      "postcss": "8.5.23",
+      "@nestjs/platform-express@11.2.7>multer": "2.5.0"
     }
   }
 }
