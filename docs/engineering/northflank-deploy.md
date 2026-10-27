@@ -1,6 +1,17 @@
 # Triển khai thử trên Northflank
 
-Trạng thái: **chuẩn bị xong phía repo; chưa deploy** (cần token/CLI Northflank, xem cuối trang). Không dùng dữ liệu khách thật.
+Trạng thái: **đã deploy thử** (dựng lại 27/10/2026 trên team Northflank `phungviet2s-team`, project `legal-office`, chuyển sang gói free). Không dùng dữ liệu khách thật.
+
+## Dựng lại ngày 27/10/2026 (ghi nhận thực tế)
+
+- Tài khoản/CLI: context `legal-office` (team `phungviet2s-team`). Không dùng context của BMSL; nên dùng thư mục home riêng cho CLI để không đổi context chung.
+- `lo-postgres`: addon Postgres 17, gói `nf-compute-20` (gói `nf-compute-10` bị từ chối vì addon Postgres cần tối thiểu 0.2 CPU), 4 GB.
+- Secret group `lo-secrets` (bí mật, tạo mới): `ADMIN_DATABASE_URL`, `MIGRATE_DATABASE_URL`, `DATABASE_URL` (vai `legal_app`), `LEGAL_APP_PASSWORD`, `APP_DB_ROLE`, `MAIL_SETTINGS_KEY`. Secret group `lo-config` (không bí mật): `AUTH_MODE`, `WEB_ORIGIN`, `PUBLIC_WEB_URL`, `TRUST_PROXY`, `NODE_ENV`, `FILE_STORE=local`, `FILE_STORE_DIR=/data/files`, `TENANT_ID`, `TENANT_NAME`.
+- `lo-api` và `lo-web`: service combined build từ GitHub nhánh `main` (Dockerfile target `api`/`web`, kaniko), CI/CD tự deploy khi push `main`. `lo-api` 1 instance, health `/health`; `lo-web` public, `API_URL=http://lo-api:3001`, web gọi API qua rewrite `/api/*`.
+- Volume `lo-files` (nvme, tối thiểu 6 GB) gắn vào `lo-api` tại `/data/files`.
+- Job `lo-migrate` (build riêng, lệnh tùy chỉnh) chỉ chạy một lần để tạo vai `legal_app` (`CREATE ROLE ... NOSUPERUSER NOBYPASSRLS`) rồi migrate; sau đó migration tự áp khi `lo-api` khởi động. Tenant/Admin thử được tạo bằng job tạm (đã xóa) dùng image của `lo-api` và `set-password.cli`.
+- Cổng `northflank forward` trên Windows cần quyền Administrator; thay bằng job chạy trên Northflank.
+- Kiểm tra: `GET <web>/api/health` trả `{"status":"ok"}`; `POST <web>/api/auth/login` với Admin thử trả 200 kèm cookie phiên. Mật khẩu Admin thử chỉ lưu ở file cục bộ của chủ dự án.
 
 ## Thành phần (project Northflank RIÊNG cho Legal Office, không chen vào `bmsl-website`)
 
