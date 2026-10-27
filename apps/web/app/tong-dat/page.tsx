@@ -1,13 +1,10 @@
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
-import { RowActions } from '../../components/RowActions';
 import { TabNav } from '../../components/ui/tab-nav';
 import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
 import { NewServiceSheet } from '../../components/NewCaseSheets';
-import { ServiceRowActions } from '../../components/ServiceRowActions';
-import { AssignHandler } from '../../components/AssignHandler';
-import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
+import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../lib/messages';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +21,6 @@ interface Item {
   readonly deadlineAt: string;
   readonly status: string;
   readonly undeliverableReason: string | null;
-  readonly handlerUserId: string | null;
   readonly attempts: number;
 }
 
@@ -71,7 +67,6 @@ export default async function ServicePage({
   const items = await load(cookie);
   const tab = activeTab(GROUPS, sp.tab);
   const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
-  const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
       <div className="page-head">
@@ -127,7 +122,9 @@ export default async function ServicePage({
               <tbody>
                 {shown.map((d) => (
                   <tr key={d.documentId}>
-                    <th scope="row">{d.requestRef}</th>
+                    <th scope="row">
+                      <Link href={`/tong-dat/${d.documentId}`}>{d.requestRef}</Link>
+                    </th>
                     <td data-label="Người nhận">{d.recipientName}</td>
                     <td data-label="Hạn">{fmt.format(new Date(d.deadlineAt))}</td>
                     <td data-label="Trạng thái">
@@ -144,16 +141,7 @@ export default async function ServicePage({
                     </td>
                     <td data-label="Số lần">{d.attempts}</td>
                     <td data-label="Thao tác">
-                      <RowActions>
-                        {d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE' ? null : (
-                          <AssignHandler
-                            path={`service-of-documents/documents/${d.documentId}/handler`}
-                            options={handlers}
-                            currentId={d.handlerUserId}
-                          />
-                        )}
-                        <ServiceRowActions documentId={d.documentId} status={d.status} />
-                      </RowActions>
+                      <Link href={`/tong-dat/${d.documentId}`}>Mở</Link>
                     </td>
                   </tr>
                 ))}

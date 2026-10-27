@@ -91,7 +91,8 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
 
 const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
 /** Trang dùng khung hồ sơ: banner do trang đổ vào (`CaseBanner`), không lấy tên từ đường dẫn. */
-const CASE_FRAME_PATH = /^\/vi-bang\/(?!tao-moi(?:\/|$))[^/]+(\/[a-z0-9-]+)?$/;
+const CASE_FRAME_PATH =
+  /^\/(?:vi-bang\/(?!tao-moi(?:\/|$))[^/]+(?:\/[a-z0-9-]+)?|(?:tong-dat|xac-minh|to-chuc-tha)\/[^/]+)$/;
 const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
   'duyet-sua': {
     title: 'Yêu cầu sửa hồ sơ sau 48 giờ',

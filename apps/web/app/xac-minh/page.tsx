@@ -1,14 +1,10 @@
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
-import { RowActions } from '../../components/RowActions';
 import { TabNav } from '../../components/ui/tab-nav';
 import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
 import { NewVerificationSheet } from '../../components/NewCaseSheets';
-import { VerificationActions } from '../../components/VerificationActions';
-import { AssignHandler } from '../../components/AssignHandler';
-import { ContractDateForm } from '../../components/ContractDateForm';
-import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
+import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { ROUND_STATUS_LABEL, VERIFICATION_STATUS_LABEL } from '../../lib/messages';
 
 export const dynamic = 'force-dynamic';
@@ -71,7 +67,6 @@ export default async function VerificationPage({
   const items = await load(cookie);
   const tab = activeTab(GROUPS, sp.tab);
   const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
-  const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
       <div className="page-head">
@@ -125,7 +120,9 @@ export default async function VerificationPage({
               <tbody>
                 {shown.map((c) => (
                   <tr key={c.caseId}>
-                    <th scope="row">{c.caseRef}</th>
+                    <th scope="row">
+                      <Link href={`/xac-minh/${c.caseId}`}>{c.caseRef}</Link>
+                    </th>
                     <td data-label="Trạng thái">
                       <StatusPill
                         status={c.status}
@@ -152,21 +149,7 @@ export default async function VerificationPage({
                       )}
                     </td>
                     <td data-label="Thao tác">
-                      <RowActions>
-                        {c.status === 'CONCLUDED' ? null : (
-                          <AssignHandler
-                            path={`verification/cases/${c.caseId}/handler`}
-                            options={handlers}
-                            currentId={c.handlerUserId}
-                          />
-                        )}
-                        {c.status === 'CONCLUDED' ? null : <ContractDateForm caseId={c.caseId} />}
-                        <VerificationActions
-                          caseId={c.caseId}
-                          status={c.status}
-                          rounds={c.rounds}
-                        />
-                      </RowActions>
+                      <Link href={`/xac-minh/${c.caseId}`}>Mở</Link>
                     </td>
                   </tr>
                 ))}
