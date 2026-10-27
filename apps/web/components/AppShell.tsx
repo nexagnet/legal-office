@@ -90,6 +90,8 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
 };
 
 const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
+/** Trang dùng khung hồ sơ: banner do trang đổ vào (`CaseBanner`), không lấy tên từ đường dẫn. */
+const CASE_FRAME_PATH = /^\/vi-bang\/(?!tao-moi(?:\/|$))[^/]+(\/[a-z0-9-]+)?$/;
 const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
   'duyet-sua': {
     title: 'Yêu cầu sửa hồ sơ sau 48 giờ',
@@ -237,6 +239,7 @@ export function AppShell({
     (i): i is NavItem => i !== undefined,
   );
   const domain = DOMAIN_SLUGS.has(current?.slug ?? '') ? current?.slug : undefined;
+  const caseFrame = CASE_FRAME_PATH.test(pathname);
   const head =
     SUBPAGE_HEAD[pathname] ??
     STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
@@ -339,11 +342,14 @@ export function AppShell({
           >
             {open ? 'Đóng menu' : 'Menu'}
           </button>
-          <div className="topbar-title">
-            <p className="topbar-h">
+          <div className="topbar-title" data-case={caseFrame ? 'true' : undefined}>
+            {caseFrame ? <div id="case-banner" className="case-banner" /> : null}
+            <p className="topbar-h" hidden={caseFrame}>
               {head?.title ?? current?.label ?? tenantName ?? 'Quản lý văn phòng'}
             </p>
-            {head || current ? <p className="topbar-sub">{head?.sub ?? current?.summary}</p> : null}
+            {!caseFrame && (head || current) ? (
+              <p className="topbar-sub">{head?.sub ?? current?.summary}</p>
+            ) : null}
           </div>
         </header>
         <main id="main" className="main" tabIndex={-1}>

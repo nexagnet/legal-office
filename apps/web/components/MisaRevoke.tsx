@@ -55,6 +55,10 @@ export function MisaRevoke(p: Props) {
     <form id="thu-hoi-misa" className="panels assign-grid" onSubmit={propose}>
       <section className="panel form">
         <h2>Phiếu đề nghị thu hồi xác nhận</h2>
+        <p className="stage-warn">
+          Đề nghị này chặn trả khách cho đến khi Admin duyệt. Số và bản phát hành được giữ nguyên;
+          không điều chỉnh thu/chi trên MISA.
+        </p>
         <label>
           Hồ sơ đã cấp số
           <input value={p.numberLabel ?? p.caseTitle} readOnly />
