@@ -5,11 +5,20 @@ import { useRef, useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
 import type { Branch } from '../app/session';
 
-function BranchRow({ officeId, branch }: { readonly officeId: string; readonly branch: Branch }) {
+function BranchRow({
+  officeId,
+  branch,
+  memberCount,
+}: {
+  readonly officeId: string;
+  readonly branch: Branch;
+  readonly memberCount: number;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,6 +35,7 @@ function BranchRow({ officeId, branch }: { readonly officeId: string; readonly b
       const json = (await res.json().catch(() => ({}))) as { code?: string };
       if (!res.ok) return setError(messageFor(json.code));
       setNotice('Đã lưu.');
+      setEditing(false);
       router.refresh();
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
@@ -35,21 +45,43 @@ function BranchRow({ officeId, branch }: { readonly officeId: string; readonly b
   }
 
   return (
-    <li>
-      <form className="thv-card-form" onSubmit={submit}>
-        <input
-          name="name"
-          aria-label={`Tên địa điểm ${branch.name}`}
-          defaultValue={branch.name}
-          required
-          maxLength={100}
-        />
-        <button type="submit" disabled={busy}>
-          {busy ? 'Đang lưu…' : 'Đổi tên'}
-        </button>
-        {error ? <span role="alert">{error}</span> : null}
-        {notice ? <span role="status">{notice}</span> : null}
-      </form>
+    <li className="branch-card">
+      <span className="branch-icon" aria-hidden="true">
+        ◎
+      </span>
+      {editing ? (
+        <form className="branch-edit" onSubmit={submit}>
+          <input
+            name="name"
+            aria-label={`Tên địa điểm ${branch.name}`}
+            defaultValue={branch.name}
+            required
+            maxLength={100}
+            autoFocus
+          />
+          <span className="branch-meta">{memberCount} thành viên được cấp</span>
+          {error ? <span role="alert">{error}</span> : null}
+          <span className="branch-actions">
+            <button type="button" onClick={() => setEditing(false)}>
+              Hủy
+            </button>
+            <button type="submit" className="primary" disabled={busy}>
+              {busy ? 'Đang lưu…' : 'Lưu tên mới'}
+            </button>
+          </span>
+        </form>
+      ) : (
+        <>
+          <div className="branch-info">
+            <strong className="branch-name">{branch.name}</strong>
+            <span className="branch-meta">{memberCount} thành viên được cấp</span>
+            {notice ? <span role="status">{notice}</span> : null}
+          </div>
+          <button type="button" onClick={() => setEditing(true)}>
+            Đổi tên
+          </button>
+        </>
+      )}
     </li>
   );
 }
@@ -58,9 +90,11 @@ function BranchRow({ officeId, branch }: { readonly officeId: string; readonly b
 export function BranchManager({
   officeId,
   branches,
+  memberCounts = {},
 }: {
   readonly officeId: string;
   readonly branches: readonly Branch[];
+  readonly memberCounts?: Readonly<Record<string, number>>;
 }) {
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -93,14 +127,10 @@ export function BranchManager({
 
   return (
     <section aria-labelledby="branch-t">
-      <div className="page-head">
-        <div>
-          <h1 id="branch-t">Chi nhánh</h1>
-          <p className="muted">
-            Địa điểm hoạt động của văn phòng. Thêm địa điểm mới hoặc đổi tên; địa điểm đã có hồ sơ
-            không xoá được. Cấp địa điểm cho Văn thư và Kế toán làm ở mục Phân quyền.
-          </p>
-        </div>
+      <div className="member-bar">
+        <h1 id="branch-t" className="bar-title">
+          {branches.length} địa điểm
+        </h1>
         <button
           type="button"
           className="primary"
@@ -114,9 +144,19 @@ export function BranchManager({
       </div>
       <ul className="plain-list">
         {branches.map((b) => (
-          <BranchRow key={`${b.id}-${b.name}`} officeId={officeId} branch={b} />
+          <BranchRow
+            key={`${b.id}-${b.name}`}
+            officeId={officeId}
+            branch={b}
+            memberCount={memberCounts[b.name] ?? 0}
+          />
         ))}
       </ul>
+      <p className="callout">
+        <strong>Cấp địa điểm cho Văn thư và Kế toán</strong>
+        Làm ở mục Phân quyền và đề xuất (cần Trưởng văn phòng duyệt). Thêm hoặc đổi tên địa điểm có
+        hiệu lực ngay và được ghi nhật ký.
+      </p>
       <dialog ref={dialog} className="branch-dialog" aria-labelledby="branch-add-t">
         <form className="form" onSubmit={add}>
           <h2 id="branch-add-t">Thêm địa điểm</h2>

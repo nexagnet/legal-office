@@ -15,11 +15,6 @@ export default async function AddMemberPage() {
           <Link href="/quan-tri">Quản trị</Link> › <Link href="/quan-tri/nhan-su">Nhân sự</Link> ›
           Thêm thành viên
         </p>
-        <h1>Thêm thành viên</h1>
-        <p className="muted">
-          Tạo tài khoản và gửi đề xuất cấp vai. Người mới chỉ vào được hệ thống sau khi Trưởng văn
-          phòng duyệt.
-        </p>
       </div>
       {officeId && session.roles.includes('ADMIN') ? (
         <AddMemberForm officeId={officeId} branches={session.branches} />

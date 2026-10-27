@@ -1,5 +1,6 @@
 import { BranchManager } from '../../../components/BranchManager';
-import { currentSession } from '../../../lib/server';
+import { loadMembers } from '../../../lib/admin-api';
+import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,5 +11,13 @@ export default async function BranchesPage() {
   if (!officeId || !session.roles.includes('ADMIN')) {
     return <p className="muted">Chỉ Admin quản lý được chi nhánh.</p>;
   }
-  return <BranchManager officeId={officeId} branches={session.branches} />;
+  const members = await loadMembers(await requestCookie(), officeId);
+  const counts: Record<string, number> = {};
+  if (members !== 'error') {
+    for (const m of members) {
+      if (!m.role) continue;
+      for (const name of m.branches) counts[name] = (counts[name] ?? 0) + 1;
+    }
+  }
+  return <BranchManager officeId={officeId} branches={session.branches} memberCounts={counts} />;
 }
