@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Bell,
   BookOpen,
   Building2,
   ChartColumn,
+  ChevronLeft,
+  ChevronRight,
   CircleCheckBig,
   FileText,
   FolderOpen,
@@ -42,6 +44,8 @@ interface Props {
   readonly roleLabel?: string | null;
   readonly children: ReactNode;
 }
+
+const COLLAPSE_KEY = 'lo.side.collapsed';
 
 const initials = (label: string) =>
   label
@@ -239,6 +243,24 @@ export function AppShell({
   const router = useRouter();
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === '1');
+    } catch {
+      /* không có localStorage thì giữ mặc định mở rộng */
+    }
+  }, []);
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      try {
+        window.localStorage.setItem(COLLAPSE_KEY, v ? '0' : '1');
+      } catch {
+        /* chỉ là tiện ích riêng của người xem */
+      }
+      return !v;
+    });
+  };
   const pending = usePendingApprovals(badgeOfficeId, pathname);
   const badges = pending ? { ...initialBadges, 'hop-duyet': pending } : initialBadges;
   const current = currentItem(items, pathname);
@@ -253,7 +275,7 @@ export function AppShell({
     STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
     (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
   return (
-    <div className="shell" data-domain={domain}>
+    <div className="shell" data-domain={domain} data-collapsed={collapsed ? 'true' : undefined}>
       <a className="skip" href="#main">
         Bỏ qua điều hướng
       </a>
@@ -280,7 +302,7 @@ export function AppShell({
                         onClick={() => setOpen(false)}
                       >
                         <NavIcon slug={i.slug} />
-                        <span>{i.label}</span>
+                        <span className="nav-label">{i.label}</span>
                         {badges[i.slug] ? (
                           <span className="nav-badge">
                             <span className="sr-only">Đang chờ: </span>
@@ -318,6 +340,16 @@ export function AppShell({
             </button>
           </div>
         ) : null}
+        <button
+          type="button"
+          className="side-collapse"
+          aria-pressed={collapsed}
+          aria-label={collapsed ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'}
+          onClick={toggleCollapsed}
+        >
+          {collapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
+          <span className="nav-label">Thu gọn</span>
+        </button>
       </aside>
       <div className="content">
         {signedIn ? (

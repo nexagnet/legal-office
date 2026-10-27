@@ -616,12 +616,12 @@ describe('Verification', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Gửi đề xuất kết luận' }));
     expect((await screen.findByRole('alert')).textContent).toBe(
-      'Còn vòng xác minh chưa hoàn thành.',
+      'Còn lượt xác minh chưa hoàn thành.',
     );
     expect(spy.mock.calls[0]![0]).toBe('/api/verification/cases/c1/conclusion-proposal');
     unmount();
     render(<VerificationActions caseId="c1" status="CONCLUSION_PROPOSED" rounds={[]} />);
-    expect(screen.queryByRole('button', { name: 'Bắt đầu vòng xác minh' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Thêm lượt xác minh' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Trả về để xác minh tiếp' }));
     await waitFor(() => expect(spy.mock.calls.length).toBe(2));
     expect(JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string)).toEqual({
@@ -740,10 +740,10 @@ describe('Evidence uploads', () => {
     );
     expect((init as RequestInit).body).toBe(file);
 
-    fireEvent.change(screen.getByLabelText('Kết quả của vòng'), {
+    fireEvent.change(screen.getByLabelText('Kết quả của lượt'), {
       target: { value: 'Đã đối chiếu' },
     });
-    submit('Hoàn thành vòng');
+    submit('Ghi kết quả lượt');
     await waitFor(() => expect(spy.mock.calls.length).toBe(2));
     expect(spy.mock.calls[1]![0]).toBe('/api/verification/rounds/r2/completion');
     expect(JSON.parse((spy.mock.calls[1]![1] as RequestInit).body as string)).toEqual({
@@ -754,7 +754,7 @@ describe('Evidence uploads', () => {
   it('verification: offers no round actions when every round is done', () => {
     const rounds = [{ id: 'r1', seq: 1, partyName: 'Bên A', status: 'COMPLETED' }];
     render(<VerificationActions caseId="c1" status="OPEN" rounds={rounds} />);
-    expect(screen.queryByRole('button', { name: 'Hoàn thành vòng' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Ghi kết quả lượt' })).toBeNull();
   });
 
   it('enforcement: sends a result with its file and an idempotency key', async () => {

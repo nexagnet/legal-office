@@ -1,5 +1,7 @@
 'use client';
 
+import * as Menu from '@radix-ui/react-dropdown-menu';
+import { Ellipsis } from 'lucide-react';
 import { useState } from 'react';
 import type { Branch } from '../app/session';
 import { Button } from './ui/button';
@@ -29,13 +31,33 @@ export function MovementSheet({
   );
 }
 
-export function NewItemSheet({ officeId }: { readonly officeId: string }) {
+/** Menu "…" cạnh nút chính (Figma N12 D9): việc ít dùng như thêm vật tư nằm trong menu, ngăn kéo mở khi chọn. */
+export function StockMoreMenu({ officeId }: { readonly officeId: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="secondary" onClick={() => setOpen(true)}>
-        + Thêm vật tư
-      </Button>
+      <Menu.Root>
+        <Menu.Trigger
+          aria-label="Thêm tác vụ vật tư"
+          className="inline-flex size-11 items-center justify-center rounded-[10px] border border-line-strong bg-surface text-ink hover:bg-surface-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brass"
+        >
+          <Ellipsis size={18} aria-hidden="true" />
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Content
+            align="end"
+            sideOffset={6}
+            className="z-50 w-56 rounded-xl border border-line bg-surface p-1.5 shadow-xl"
+          >
+            <Menu.Item
+              onSelect={() => setOpen(true)}
+              className="block cursor-pointer rounded-lg px-3 py-2.5 text-sm font-medium text-ink outline-none data-[highlighted]:bg-accent-soft"
+            >
+              Thêm vật tư
+            </Menu.Item>
+          </Menu.Content>
+        </Menu.Portal>
+      </Menu.Root>
       <Sheet open={open} onOpenChange={setOpen} title="Thêm vật tư">
         <SheetBody>
           <NewItemForm officeId={officeId} />

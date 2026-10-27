@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { messageFor } from '../lib/messages';
+import { useDialogClose } from './StageDialog';
 
 export interface HandlerOption {
   readonly userId: string;
@@ -19,6 +20,7 @@ interface Props {
 /** Admin giao hoặc đổi THV phụ trách một mục (văn bản tống đạt, hồ sơ xác minh, hồ sơ thi hành án). */
 export function AssignHandler({ path, options, currentId }: Props) {
   const router = useRouter();
+  const closeDialog = useDialogClose();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   if (options.length === 0) return null;
@@ -43,6 +45,7 @@ export function AssignHandler({ path, options, currentId }: Props) {
       }
       toast.success('Đã giao THV phụ trách');
       router.refresh();
+      closeDialog?.();
     } catch {
       const message = 'Không kết nối được máy chủ. Vui lòng thử lại.';
       setError(message);

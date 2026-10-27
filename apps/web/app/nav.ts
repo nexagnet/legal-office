@@ -111,14 +111,14 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'quan-tri',
-    label: 'Quản trị',
+    label: 'Người dùng',
     group: 'admin',
     roles: ['ADMIN', 'TRUONG_VP'],
     summary: 'Nhân sự, chi nhánh, phân quyền, thẻ THV, email gửi thư và lịch làm việc.',
   },
   {
     slug: 'cai-dat',
-    label: 'Cài đặt',
+    label: 'Cấu hình hệ thống',
     group: 'admin',
     roles: MANAGE,
     summary: 'Thông tin pháp lý và thiết lập toàn văn phòng.',
