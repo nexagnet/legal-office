@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { CustomerAddenda } from '../../../../components/CustomerAddenda';
 import { CustomerContracts } from '../../../../components/CustomerContracts';
 import { CustomerProfileForm } from '../../../../components/CustomerForms';
 import { StatusPill } from '../../../../components/StatusPill';
 import { TabNav } from '../../../../components/ui/tab-nav';
 import { getJson } from '../../../../lib/case-api';
+import {
+  CONTACT_KIND_LABEL,
+  CONTACT_OUTCOME_LABEL,
+  type ContactEntry,
+} from '../../../../lib/contacts';
 import { type Contract, type Customer } from '../../../../lib/customers';
 import { CASE_STATUS_LABEL, PARTY_KIND_LABEL } from '../../../../lib/messages';
 import { currentSession, requestCookie } from '../../../../lib/server';
@@ -13,8 +19,10 @@ import { NAV } from '../../../nav';
 export const dynamic = 'force-dynamic';
 
 const ITEM = NAV.find((n) => n.slug === 'hop-dong')!;
-type Tab = 'thong-tin' | 'hop-dong' | 'vi-bang';
-const TABS: readonly Tab[] = ['thong-tin', 'hop-dong', 'vi-bang'];
+type Tab = 'thong-tin' | 'hop-dong' | 'phu-luc' | 'vi-bang' | 'nhat-ky';
+const TABS: readonly Tab[] = ['thong-tin', 'hop-dong', 'phu-luc', 'vi-bang', 'nhat-ky'];
+/** Nhật ký liên hệ gom từ các hồ sơ gần nhất của khách (không có API riêng theo khách). */
+const LOG_CASES = 20;
 const day = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' });
 
 interface NumberRow {
@@ -26,13 +34,13 @@ interface NumberRow {
   readonly branchName: string | null;
 }
 
-/** Hồ sơ một khách hàng (Figma N12 D8): tab Thông tin, Hợp đồng (kèm phụ lục), Vi bằng; khung bên phải tóm tắt. */
+/** Hồ sơ một khách hàng (Figma N12 D8): tab Thông tin, Hợp đồng, Phụ lục, Vi bằng, Nhật ký liên hệ; khung bên phải tóm tắt. */
 export default async function CustomerPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; hd?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -86,6 +94,22 @@ export default async function CustomerPage({
   if (!customer) notFound();
   const list = Array.isArray(contracts) ? contracts : [];
   const vb = typeof numbers === 'object' ? numbers.items : [];
+  const log =
+    tab === 'nhat-ky'
+      ? (
+          await Promise.all(
+            vb.slice(0, LOG_CASES).map(async (r) => {
+              const res = await getJson<{ items: ContactEntry[] }>(
+                `/vibang/cases/${encodeURIComponent(r.caseId)}/contacts`,
+                cookie,
+              );
+              return typeof res === 'object' ? res.items.map((c) => ({ ...c, row: r })) : [];
+            }),
+          )
+        )
+          .flat()
+          .sort((a, b) => b.at.localeCompare(a.at))
+      : [];
   const base = `/hop-dong/khach/${customer.id}`;
   const href = (t: Tab) => (t === 'thong-tin' ? base : `${base}?tab=${t}`);
   const isPerson = customer.kind === 'PERSON';
@@ -126,7 +150,9 @@ export default async function CustomerPage({
         tabs={[
           { key: 'thong-tin', label: 'Thông tin', href: href('thong-tin') },
           { key: 'hop-dong', label: 'Hợp đồng', href: href('hop-dong'), count: list.length },
+          { key: 'phu-luc', label: 'Phụ lục', href: href('phu-luc') },
           { key: 'vi-bang', label: 'Vi bằng', href: href('vi-bang'), count: vb.length },
+          { key: 'nhat-ky', label: 'Nhật ký liên hệ', href: href('nhat-ky') },
         ]}
       />
       <div className="grid grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] items-start gap-5 max-lg:grid-cols-1">
@@ -137,7 +163,48 @@ export default async function CustomerPage({
             </section>
           ) : null}
           {tab === 'hop-dong' ? (
-            <CustomerContracts customer={customer} customers={customers} contracts={list} />
+            <CustomerContracts
+              customer={customer}
+              customers={customers}
+              contracts={list}
+              baseHref={base}
+              selectedId={sp.hd ?? null}
+            />
+          ) : null}
+          {tab === 'phu-luc' ? <CustomerAddenda contracts={list} /> : null}
+          {tab === 'nhat-ky' ? (
+            log.length === 0 ? (
+              <div className="state" role="status">
+                <h2>Chưa có liên hệ</h2>
+                <p>Chưa ghi nhận lần nhắc hoặc báo kết quả nào cho các hồ sơ của khách.</p>
+              </div>
+            ) : (
+              <div className="table-wrap">
+                <table>
+                  <caption className="sr-only">Nhật ký liên hệ khách</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Thời điểm</th>
+                      <th scope="col">Hồ sơ</th>
+                      <th scope="col">Nội dung</th>
+                      <th scope="col">Kết quả</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {log.map((c) => (
+                      <tr key={c.id}>
+                        <th scope="row">{day.format(new Date(c.at))}</th>
+                        <td>
+                          <Link href={`/vi-bang/${c.row.caseId}`}>{c.row.title}</Link>
+                        </td>
+                        <td>{CONTACT_KIND_LABEL[c.kind] ?? c.kind}</td>
+                        <td>{CONTACT_OUTCOME_LABEL[c.outcome] ?? c.outcome}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
           ) : null}
           {tab === 'vi-bang' ? (
             vb.length === 0 ? (

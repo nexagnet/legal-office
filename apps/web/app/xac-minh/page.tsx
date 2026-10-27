@@ -2,10 +2,9 @@ import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { RowActions } from '../../components/RowActions';
 import { TabNav } from '../../components/ui/tab-nav';
-import { CreateSheet } from '../../components/ui/create-sheet';
 import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
-import { NewVerificationForm } from '../../components/NewVerificationForm';
+import { NewVerificationSheet } from '../../components/NewCaseSheets';
 import { VerificationActions } from '../../components/VerificationActions';
 import { AssignHandler } from '../../components/AssignHandler';
 import { ContractDateForm } from '../../components/ContractDateForm';
@@ -80,9 +79,7 @@ export default async function VerificationPage({
           <h1 id="t">Xác minh</h1>
           <p className="muted">Hồ sơ xác minh điều kiện thi hành án trong phạm vi quyền của bạn.</p>
         </div>
-        <CreateSheet label="+ Mở hồ sơ xác minh" title="Mở hồ sơ xác minh">
-          <NewVerificationForm branches={session.branches} />
-        </CreateSheet>
+        <NewVerificationSheet branches={session.branches} />
       </div>
       {items === 'error' ? (
         <div className="state" role="alert">

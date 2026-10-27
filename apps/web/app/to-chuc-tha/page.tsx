@@ -2,11 +2,10 @@ import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { RowActions } from '../../components/RowActions';
 import { TabNav } from '../../components/ui/tab-nav';
-import { CreateSheet } from '../../components/ui/create-sheet';
 import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
 import { EnforcementActions } from '../../components/EnforcementActions';
-import { NewEnforcementForm } from '../../components/NewEnforcementForm';
+import { NewEnforcementSheet } from '../../components/NewCaseSheets';
 import { AssignHandler } from '../../components/AssignHandler';
 import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../lib/server';
 import {
@@ -92,9 +91,7 @@ export default async function EnforcementPage({
             kế toán xác nhận từ MISA.
           </p>
         </div>
-        <CreateSheet label="+ Mở hồ sơ tổ chức THA" title="Mở hồ sơ tổ chức thi hành án">
-          <NewEnforcementForm branches={session.branches} />
-        </CreateSheet>
+        <NewEnforcementSheet branches={session.branches} />
       </div>
       {items === 'error' ? (
         <div className="state" role="alert">
