@@ -250,10 +250,16 @@ Phải bao phủ cả bốn nghiệp vụ và quản lý văn phòng, **mỗi đ
 
 ## 11. Quản trị (Admin) trong app
 
-Mục **Quản trị** gom: lịch làm việc và ngày nghỉ (hạn pháp định), cấu hình văn phòng (`/office/settings`, tên pháp lý, trường cấu hình theo tenant), cấp vai/chi nhánh theo nguyên tắc hai người, thẻ THV (họ tên, số Thẻ), danh bạ thành viên (chỉ Admin đọc), cài đặt thư (SMTP) cho đăng nhập link email. Quyền ký `legal_signer` do Admin cấp.
+Mục **Quản trị** (`/quan-tri`) tách thành sáu trang, mỗi trang một việc (thiết kế Figma N11, chủ dự án chốt 27/10/2026): **Nhân sự** (`/quan-tri/nhan-su`, thêm tại `/nhan-su/them`), **Chi nhánh** (`/chi-nhanh`), **Phân quyền** (`/phan-quyen`, lập đề xuất tại `/phan-quyen/de-xuat`), **Thẻ THV**, **Email gửi thư** (SMTP cho link đăng nhập), **Lịch làm việc** (hạn pháp định). Admin thấy cả sáu; Trưởng văn phòng chỉ thấy Phân quyền để duyệt. Cấu hình văn phòng (tên pháp lý) vẫn ở Cài đặt.
+
+**Thêm thành viên** (🟡 GIẢ ĐỊNH, chủ dự án uỷ quyền chốt): Admin nhập họ tên, email, vai, quyền ký pháp lý (chỉ Admin/Trưởng VP), địa điểm (chỉ Văn thư/Kế toán) và lý do. Hệ thống tạo tài khoản ngay nhưng **chưa cấp vai**, đồng thời lập một đề xuất `ADD_MEMBER`; chỉ khi Trưởng văn phòng khác người duyệt thì vai, cờ ký và địa điểm mới có hiệu lực (cùng giao dịch). Không có đường đi tắt. Cách đăng nhập mặc định là link email (băm ngẫu nhiên, không ai biết mật khẩu); mật khẩu tạm là tuỳ chọn, Admin biết mật khẩu đó nên có rủi ro mạo danh và màn hình ghi rõ. Mỗi email một tài khoản; email đã có thì dùng đề xuất đổi quyền. Người bị từ chối hoặc rút đề xuất vẫn còn tài khoản không có vai (hiện ở Nhân sự là "Chưa có vai").
+
+**Chi nhánh / địa điểm hoạt động** (🟡): Admin thêm và đổi tên, có hiệu lực ngay và có nhật ký (không đổi quyền ai). Không xoá vì hồ sơ và sổ tham chiếu địa điểm. Tên 1–100 ký tự, không trùng trong văn phòng (không phân biệt hoa thường). Cấp địa điểm cho người vẫn qua đề xuất và duyệt.
+
+**Quy tắc hai người** (đề xuất đổi quyền, thêm thành viên): Admin đề xuất, Trưởng văn phòng duyệt, hai người phải khác nhau. 🟡 Chốt thêm 27/10/2026 (phương án an toàn): Trưởng văn phòng **không duyệt đề xuất có đối tượng là chính mình** (`SELF_TARGET_NOT_ALLOWED`), phải có Trưởng văn phòng khác duyệt. Ngoại lệ duy nhất là **quyền ký pháp lý**, vì văn phòng chỉ có một Trưởng văn phòng thì không còn ai khác để cấp cờ ký cho họ; vẫn cần Admin đề xuất và người duyệt khác người đề xuất. Nếu muốn chặn cả trường hợp này thì cần thêm một Trưởng văn phòng.
 
 - 🟡 Tên pháp lý hiển thị tạm: "Văn phòng Thi hành án dân sự Doanh nghiệp tư nhân Hai Bà Trưng" (theo báo giá); là trường cấu hình, ❓ **chờ đối chiếu giấy đăng ký** trước khi in mẫu chính thức.
-- ⬜ Quản lý "địa điểm hoạt động" (§4.1) mới ở mức chi nhánh có sẵn, chưa có màn tạo/sửa địa điểm đầy đủ. ⬜ Cron nhắc hạn, SMTP, `MAIL_SETTINGS_KEY`, `PUBLIC_WEB_URL` trên `lo-api` do chủ dự án.
+- ✅ Quản lý địa điểm hoạt động (§4.1) đã có màn thêm/đổi tên. ⬜ Cron nhắc hạn, SMTP, `MAIL_SETTINGS_KEY`, `PUBLIC_WEB_URL` trên `lo-api` do chủ dự án.
 
 ---
 
