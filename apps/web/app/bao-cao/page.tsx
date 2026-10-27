@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { StatCard } from '../../components/StatCard';
 import { ReportExport } from '../../components/ReportExport';
+import { TabNav } from '../../components/ui/tab-nav';
+import { Field, Input, Select } from '../../components/ui/field';
+import { Button } from '../../components/ui/button';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { REPORT_DOMAIN_LABEL, REPORT_UNIT_LABEL, reportStatusLabel } from '../../lib/messages';
 
@@ -15,6 +18,11 @@ interface Row {
 }
 
 type GroupBy = '' | 'thv' | 'branch';
+type Tab = 'vi-bang' | 'nghiep-vu' | 'van-phong';
+const TAB_DOMAINS: Record<Exclude<Tab, 'van-phong'>, readonly string[]> = {
+  'vi-bang': ['VIBANG'],
+  'nghiep-vu': ['TONG_DAT', 'XAC_MINH', 'THI_HANH_AN'],
+};
 const GROUP_LABEL: Record<Exclude<GroupBy, ''>, string> = {
   thv: 'Thừa hành viên',
   branch: 'Chi nhánh',
@@ -74,7 +82,13 @@ async function loadOps(
 export default async function ReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; branchId?: string; groupBy?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+    branchId?: string;
+    groupBy?: string;
+    tab?: string;
+  }>;
 }) {
   const sp = await searchParams;
   const def = defaultPeriod();
@@ -97,11 +111,19 @@ export default async function ReportPage({
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
   const branchId = session.branches.some((b) => b.id === sp.branchId) ? (sp.branchId ?? '') : '';
   const groupBy: GroupBy = sp.groupBy === 'thv' || sp.groupBy === 'branch' ? sp.groupBy : '';
+  const tab: Tab = sp.tab === 'nghiep-vu' || sp.tab === 'van-phong' ? sp.tab : 'vi-bang';
   const rows = officeId
     ? await load(await requestCookie(), officeId, from, to, branchId, groupBy)
     : [];
   const ops =
     officeId && !groupBy ? await loadOps(await requestCookie(), officeId, from, to, branchId) : [];
+  const tabHref = (t: Tab) => {
+    const p = new URLSearchParams({ from, to });
+    if (branchId) p.set('branchId', branchId);
+    if (groupBy) p.set('groupBy', groupBy);
+    if (t !== 'vi-bang') p.set('tab', t);
+    return `/bao-cao?${p.toString()}`;
+  };
   const table: string[][] =
     rows === 'error'
       ? []
@@ -130,7 +152,19 @@ export default async function ReportPage({
   const caseCancelled = cases
     .filter((r) => r.status === 'CANCELLED')
     .reduce((n, r) => n + r.total, 0);
-  const max = rows === 'error' ? 0 : Math.max(1, ...rows.map((r) => r.total));
+  const tabRows =
+    rows === 'error' || tab === 'van-phong'
+      ? []
+      : rows.filter((r) => TAB_DOMAINS[tab].includes(r.domain));
+  const max = Math.max(1, ...tabRows.map((r) => r.total));
+  const tabTable = [
+    table[0] ?? [],
+    ...table.slice(1).filter((_, i) => rows !== 'error' && tabRows.includes(rows[i]!)),
+  ];
+  const countOf = (domains: readonly string[]) =>
+    rows === 'error'
+      ? undefined
+      : rows.filter((r) => domains.includes(r.domain)).reduce((n, r) => n + r.total, 0);
   return (
     <section aria-labelledby="t">
       <div className="page-head">
@@ -156,7 +190,60 @@ export default async function ReportPage({
           />
         ) : null}
       </div>
-      {rows !== 'error' && cases.length > 0 ? (
+      <form
+        className="mb-5 flex flex-wrap items-end gap-4 rounded-2xl border border-line bg-surface p-4 shadow-[var(--shadow)] max-sm:grid"
+        method="get"
+        role="search"
+        aria-label="Bộ lọc báo cáo"
+      >
+        {tab !== 'vi-bang' ? <input type="hidden" name="tab" value={tab} /> : null}
+        <Field id="rp-from" label="Từ ngày">
+          <Input id="rp-from" name="from" type="date" defaultValue={from} required />
+        </Field>
+        <Field id="rp-to" label="Đến ngày">
+          <Input id="rp-to" name="to" type="date" defaultValue={to} required />
+        </Field>
+        <Field id="rp-branch" label="Chi nhánh">
+          <Select id="rp-branch" name="branchId" defaultValue={branchId}>
+            <option value="">Tất cả</option>
+            {session.branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field id="rp-group" label="Chia theo">
+          <Select id="rp-group" name="groupBy" defaultValue={groupBy}>
+            <option value="">Không chia</option>
+            <option value="thv">Thừa hành viên</option>
+            <option value="branch">Chi nhánh</option>
+          </Select>
+        </Field>
+        <Button type="submit" className="ml-auto max-sm:ml-0">
+          Áp dụng
+        </Button>
+      </form>
+      <TabNav
+        label="Nhóm báo cáo"
+        active={tab}
+        tabs={[
+          {
+            key: 'vi-bang',
+            label: 'Vi bằng',
+            href: tabHref('vi-bang'),
+            count: countOf(['VIBANG']),
+          },
+          {
+            key: 'nghiep-vu',
+            label: 'Tống đạt / Xác minh / THA',
+            href: tabHref('nghiep-vu'),
+            count: countOf(TAB_DOMAINS['nghiep-vu']),
+          },
+          { key: 'van-phong', label: 'Công văn, vật tư, nhân sự', href: tabHref('van-phong') },
+        ]}
+      />
+      {tab === 'vi-bang' && rows !== 'error' && cases.length > 0 ? (
         <div className="stats">
           <StatCard label="Vi bằng đã lập" value={caseTotal} note="Hồ sơ tạo trong kỳ đã chọn" />
           <StatCard
@@ -173,7 +260,7 @@ export default async function ReportPage({
           />
         </div>
       ) : null}
-      <div className="panels report-grid">
+      {tab !== 'van-phong' ? (
         <div className="panel">
           <h2>Số lượng theo nghiệp vụ</h2>
           {rows === 'error' ? (
@@ -181,7 +268,7 @@ export default async function ReportPage({
               <h3>Không tải được báo cáo</h3>
               <p>Vui lòng kiểm tra kỳ báo cáo và thử lại.</p>
             </div>
-          ) : rows.length === 0 ? (
+          ) : tabRows.length === 0 ? (
             <div className="state" role="status">
               <h3>Không có số liệu</h3>
               <p>Không có dữ liệu nào trong kỳ và phạm vi đã chọn.</p>
@@ -189,7 +276,7 @@ export default async function ReportPage({
           ) : (
             <>
               <ul className="bars" aria-hidden="true">
-                {rows.map((r, i) => (
+                {tabRows.map((r, i) => (
                   <li key={i} title={`${REPORT_DOMAIN_LABEL[r.domain] ?? r.domain}: ${r.total}`}>
                     <span className="bar-value">{r.total}</span>
                     <span
@@ -209,7 +296,7 @@ export default async function ReportPage({
                   </caption>
                   <thead>
                     <tr>
-                      {table[0]!.map((h) => (
+                      {tabTable[0]!.map((h) => (
                         <th key={h} scope="col">
                           {h}
                         </th>
@@ -217,7 +304,7 @@ export default async function ReportPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {table.slice(1).map((r, i) => (
+                    {tabTable.slice(1).map((r, i) => (
                       <tr key={i}>
                         <th scope="row">{r[0]}</th>
                         {r.slice(1).map((c, j) => (
@@ -231,41 +318,16 @@ export default async function ReportPage({
             </>
           )}
         </div>
-        <form className="panel form" method="get" role="search">
-          <h2>Bộ lọc báo cáo</h2>
-          <label>
-            Từ ngày
-            <input name="from" type="date" defaultValue={from} required />
-          </label>
-          <label>
-            Đến ngày
-            <input name="to" type="date" defaultValue={to} required />
-          </label>
-          <label>
-            Chi nhánh
-            <select name="branchId" defaultValue={branchId}>
-              <option value="">Tất cả</option>
-              {session.branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Chia theo
-            <select name="groupBy" defaultValue={groupBy}>
-              <option value="">Không chia</option>
-              <option value="thv">Thừa hành viên</option>
-              <option value="branch">Chi nhánh</option>
-            </select>
-          </label>
-          <button type="submit" className="primary">
-            Xem
-          </button>
-        </form>
-      </div>
-      {ops.length > 0 ? (
+      ) : ops.length === 0 ? (
+        <div className="state" role="status">
+          <h3>Không có số liệu</h3>
+          <p>
+            {groupBy
+              ? 'Công văn, vật tư và nhân sự không chia theo thừa hành viên hay chi nhánh; chọn "Không chia" để xem.'
+              : 'Không có dữ liệu nào trong kỳ và phạm vi đã chọn.'}
+          </p>
+        </div>
+      ) : (
         <div className="panel ops-report">
           <h2>Công văn, vật tư và nhân sự</h2>
           <p className="muted">
@@ -297,7 +359,7 @@ export default async function ReportPage({
             </table>
           </div>
         </div>
-      ) : null}
+      )}
     </section>
   );
 }
