@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { loadMembers, loadRequests } from '../../../lib/admin-api';
-import { ROLE_LABEL } from '../../../lib/messages';
+import { MemberTable } from '../../../components/MemberTable';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -19,6 +19,10 @@ export default async function MembersPage() {
           .filter((r) => r.kind === 'ADD_MEMBER' && r.status === 'PENDING')
           .map((r) => r.targetUserId),
   );
+  const rows =
+    members === 'error'
+      ? []
+      : members.map((m) => ({ ...m, pending: !m.role && pendingAdds.has(m.userId) }));
   return (
     <>
       <div className="page-head">
@@ -42,51 +46,7 @@ export default async function MembersPage() {
       ) : members.length === 0 ? (
         <p className="muted">Chỉ Admin của văn phòng xem được danh bạ thành viên.</p>
       ) : (
-        <div className="table-wrap">
-          <table>
-            <caption className="sr-only">Thành viên văn phòng</caption>
-            <thead>
-              <tr>
-                <th scope="col">Thành viên</th>
-                <th scope="col">Vai trò</th>
-                <th scope="col">Địa điểm</th>
-                <th scope="col">Quyền ký</th>
-                <th scope="col">Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((m) => (
-                <tr key={`${m.userId}-${m.role ?? 'none'}`}>
-                  <th scope="row">{m.label}</th>
-                  <td>
-                    {m.role ? (
-                      (ROLE_LABEL[m.role] ?? m.role)
-                    ) : (
-                      <span className="muted">Chưa có vai</span>
-                    )}
-                  </td>
-                  <td>
-                    {m.branches.length > 0 ? (
-                      m.branches.join(', ')
-                    ) : (
-                      <span className="muted">Không</span>
-                    )}
-                  </td>
-                  <td>{m.legalSigner ? 'Có' : '—'}</td>
-                  <td>
-                    {!m.role && pendingAdds.has(m.userId)
-                      ? 'Chờ duyệt'
-                      : m.role
-                        ? m.hasLogin
-                          ? 'Hoạt động'
-                          : 'Chưa có tài khoản'
-                        : 'Chưa có vai'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <MemberTable members={rows} />
       )}
     </>
   );

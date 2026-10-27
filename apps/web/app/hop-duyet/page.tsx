@@ -3,6 +3,7 @@ import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { RowActions } from '../../components/RowActions';
 import { StatusPill } from '../../components/StatusPill';
 import { ApprovalActions } from '../../components/ApprovalActions';
+import { loadRequests } from '../../lib/admin-api';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { APPROVAL_KIND_LABEL, APPROVAL_STATE_LABEL } from '../../lib/messages';
 
@@ -51,9 +52,21 @@ export default async function ApprovalsPage() {
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
   const rows = officeId ? await load(await requestCookie(), officeId) : [];
+  const access =
+    officeId && session.roles.includes('TRUONG_VP')
+      ? await loadRequests(await requestCookie(), officeId)
+      : [];
+  const pendingAccess =
+    access === 'error' ? 0 : access.filter((r) => r.status === 'PENDING').length;
   return (
     <section aria-labelledby="t">
       <h1 id="t">Hộp duyệt</h1>
+      {pendingAccess > 0 ? (
+        <p className="notice" role="status">
+          Có {pendingAccess} đề xuất cấp quyền (gồm thêm thành viên) đang chờ bạn duyệt.{' '}
+          <Link href="/quan-tri/phan-quyen">Mở mục Phân quyền</Link>
+        </p>
+      ) : null}
       <p className="muted">
         Duyệt trong ứng dụng khác chữ ký pháp lý. Từ chối là chấm dứt đề xuất; trả lại thì chặn hoàn
         tất cho đến khi nộp lại.

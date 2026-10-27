@@ -5,7 +5,15 @@ import { useRef, useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
 import type { Branch } from '../app/session';
 
-function BranchRow({ officeId, branch }: { readonly officeId: string; readonly branch: Branch }) {
+function BranchRow({
+  officeId,
+  branch,
+  memberCount,
+}: {
+  readonly officeId: string;
+  readonly branch: Branch;
+  readonly memberCount: number;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -47,6 +55,7 @@ function BranchRow({ officeId, branch }: { readonly officeId: string; readonly b
         <button type="submit" disabled={busy}>
           {busy ? 'Đang lưu…' : 'Đổi tên'}
         </button>
+        <span className="muted">{memberCount} thành viên</span>
         {error ? <span role="alert">{error}</span> : null}
         {notice ? <span role="status">{notice}</span> : null}
       </form>
@@ -58,9 +67,11 @@ function BranchRow({ officeId, branch }: { readonly officeId: string; readonly b
 export function BranchManager({
   officeId,
   branches,
+  memberCounts = {},
 }: {
   readonly officeId: string;
   readonly branches: readonly Branch[];
+  readonly memberCounts?: Readonly<Record<string, number>>;
 }) {
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -114,7 +125,12 @@ export function BranchManager({
       </div>
       <ul className="plain-list">
         {branches.map((b) => (
-          <BranchRow key={`${b.id}-${b.name}`} officeId={officeId} branch={b} />
+          <BranchRow
+            key={`${b.id}-${b.name}`}
+            officeId={officeId}
+            branch={b}
+            memberCount={memberCounts[b.name] ?? 0}
+          />
         ))}
       </ul>
       <dialog ref={dialog} className="branch-dialog" aria-labelledby="branch-add-t">
