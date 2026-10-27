@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { TabNav } from '../../components/ui/tab-nav';
 import { ReportExport } from '../../components/ReportExport';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 
@@ -103,17 +104,17 @@ export default async function LedgerPage({
           />
         ) : null}
       </div>
+      <TabNav
+        label="Sổ"
+        active={code}
+        tabs={LEDGERS.map(([c, label]) => ({
+          key: c,
+          label,
+          href: `/so-sach?so=${c}${year ? `&year=${year}` : ''}`,
+        }))}
+      />
       <form className="filters filters-ledger" method="get" role="search">
-        <label>
-          <span className="sr-only">Sổ</span>
-          <select name="so" defaultValue={code}>
-            {LEDGERS.map(([c, label]) => (
-              <option key={c} value={c}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <input type="hidden" name="so" value={code} />
         <label>
           <span className="sr-only">Năm</span>
           <input

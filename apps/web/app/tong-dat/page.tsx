@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { RowActions } from '../../components/RowActions';
+import { TabNav } from '../../components/ui/tab-nav';
+import { CreateSheet } from '../../components/ui/create-sheet';
+import { activeTab, filterByTab, statusTabs, type StatusGroup } from '../../lib/status-tabs';
 import { StatusPill } from '../../components/StatusPill';
 import { NewServiceForm } from '../../components/NewServiceForm';
 import { ServiceRowActions } from '../../components/ServiceRowActions';
@@ -9,6 +12,11 @@ import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../.
 import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../lib/messages';
 
 export const dynamic = 'force-dynamic';
+
+const GROUPS: readonly StatusGroup[] = [
+  { key: 'dang-xu-ly', label: 'Đang xử lý', statuses: ['PENDING', 'ASSIGNED'] },
+  { key: 'hoan-tat', label: 'Hoàn tất', statuses: ['DELIVERED', 'UNDELIVERABLE'] },
+];
 
 interface Item {
   readonly documentId: string;
@@ -40,7 +48,12 @@ async function load(cookie: string | null): Promise<Item[] | 'error'> {
   }
 }
 
-export default async function ServicePage() {
+export default async function ServicePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const sp = await searchParams;
   const session = await currentSession();
   if (session.status !== 'authenticated') {
     return (
@@ -57,11 +70,20 @@ export default async function ServicePage() {
   }
   const cookie = await requestCookie();
   const items = await load(cookie);
+  const tab = activeTab(GROUPS, sp.tab);
+  const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
   const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Tống đạt</h1>
-      <p className="muted">Văn bản tống đạt trong phạm vi quyền của bạn.</p>
+      <div className="page-head">
+        <div>
+          <h1 id="t">Tống đạt</h1>
+          <p className="muted">Văn bản tống đạt trong phạm vi quyền của bạn.</p>
+        </div>
+        <CreateSheet label="+ Tạo yêu cầu tống đạt" title="Tạo yêu cầu tống đạt">
+          <NewServiceForm branches={session.branches} />
+        </CreateSheet>
+      </div>
       {items === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được danh sách</h2>
@@ -87,6 +109,11 @@ export default async function ServicePage() {
               },
             ]}
           />
+          <TabNav
+            label="Nhóm trạng thái"
+            tabs={statusTabs('/tong-dat', GROUPS, items)}
+            active={tab}
+          />
           <div className="table-wrap">
             <table className="table-cards">
               <caption className="sr-only">Văn bản tống đạt</caption>
@@ -101,7 +128,7 @@ export default async function ServicePage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((d) => (
+                {shown.map((d) => (
                   <tr key={d.documentId}>
                     <th scope="row">{d.requestRef}</th>
                     <td data-label="Người nhận">{d.recipientName}</td>
@@ -138,7 +165,6 @@ export default async function ServicePage() {
           </div>
         </>
       )}
-      <NewServiceForm branches={session.branches} />
     </section>
   );
 }
