@@ -113,7 +113,7 @@ export default async function VerificationPage({
                   <th scope="col">Mã hồ sơ</th>
                   <th scope="col">Trạng thái</th>
                   <th scope="col">THV phụ trách</th>
-                  <th scope="col">Các vòng</th>
+                  <th scope="col">Các lượt</th>
                   <th scope="col">Thao tác</th>
                 </tr>
               </thead>
@@ -135,9 +135,9 @@ export default async function VerificationPage({
                     <td data-label="THV phụ trách">
                       {c.handlerUserId ? 'Đã phân công' : 'Chưa phân công'}
                     </td>
-                    <td data-label="Các vòng">
+                    <td data-label="Các lượt">
                       {c.rounds.length === 0 ? (
-                        <span className="muted">Chưa có vòng</span>
+                        <span className="muted">Chưa có lượt</span>
                       ) : (
                         <ul>
                           {c.rounds.map((r) => (

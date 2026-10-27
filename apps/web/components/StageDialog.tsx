@@ -5,7 +5,7 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 import { Modal } from './ui/dialog';
 import { Sheet, SheetBody } from './ui/sheet';
 
-const CloseContext = createContext<(() => void) | null>(null);
+export const CloseContext = createContext<(() => void) | null>(null);
 
 /** Hàm đóng hộp thoại thao tác (chỉ có khi thao tác một lần, tự đóng sau khi thành công). */
 export const useDialogClose = () => useContext(CloseContext);
