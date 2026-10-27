@@ -27,6 +27,7 @@ import {
 import type { NavItem } from '../app/nav';
 import { ProfileMenu } from './ProfileMenu';
 import { SearchPalette } from './SearchPalette';
+import { usePendingApprovals } from './usePendingApprovals';
 
 interface Props {
   readonly items: readonly NavItem[];
@@ -34,6 +35,8 @@ interface Props {
   readonly signedIn?: boolean;
   /** Số hiện ở huy hiệu cạnh mục menu, theo `slug`; thiếu hoặc 0 thì không hiện. */
   readonly badges?: Readonly<Record<string, number>>;
+  /** Có giá trị thì huy hiệu Hộp duyệt được nạp ở trình duyệt sau khi trang đã hiện, không chặn khung. */
+  readonly badgeOfficeId?: string;
   /** Vai hiển thị ở thẻ người dùng cuối thanh bên (không phải nguồn quyền). */
   readonly roleLabel?: string | null;
   readonly children: ReactNode;
@@ -227,13 +230,16 @@ export function AppShell({
   items,
   tenantName,
   signedIn = false,
-  badges = {},
+  badges: initialBadges = {},
+  badgeOfficeId,
   roleLabel = null,
   children,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
+  const pending = usePendingApprovals(badgeOfficeId, pathname);
+  const badges = pending ? { ...initialBadges, 'hop-duyet': pending } : initialBadges;
   const current = currentItem(items, pathname);
   if (AUTH_PATHS.has(pathname)) return <AuthStage>{children}</AuthStage>;
   const quick = QUICK_SLUGS.map((slug) => items.find((i) => i.slug === slug)).filter(

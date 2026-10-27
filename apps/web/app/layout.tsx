@@ -9,8 +9,7 @@ import './globals.css';
 import './theme-v2.css';
 import './tailwind.css';
 import { ROLE_LABEL, visibleNav } from './nav';
-import { loadPendingApprovalCount } from '../lib/pending-approvals';
-import { currentSession, requestCookie } from '../lib/server';
+import { currentSession } from '../lib/server';
 
 export const metadata = {
   title: 'Quản lý văn phòng',
@@ -26,18 +25,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     session.status === 'authenticated'
       ? (session.branches[0]?.officeId ?? session.memberships[0]?.officeId)
       : undefined;
-  const pending =
-    officeId && items.some((i) => i.slug === 'hop-duyet')
-      ? await loadPendingApprovalCount(await requestCookie(), officeId)
-      : null;
-  const badges: Record<string, number> = pending ? { 'hop-duyet': pending } : {};
+  const badgeOfficeId =
+    officeId && items.some((i) => i.slug === 'hop-duyet') ? officeId : undefined;
   return (
     <html lang="vi">
       <body>
         <AppShell
           items={items}
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
-          badges={badges}
+          badgeOfficeId={badgeOfficeId}
           signedIn={session.status === 'authenticated'}
           roleLabel={
             session.status === 'authenticated' ? (ROLE_LABEL[session.roles[0]!] ?? null) : null

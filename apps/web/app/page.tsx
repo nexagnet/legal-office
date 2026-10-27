@@ -89,7 +89,19 @@ export default async function HomePage() {
     return <ModuleState item={OVERVIEW} session={session} />;
   }
   const cookie = await requestCookie();
-  const cases = await loadCases(cookie);
+  const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
+  const canReview = (NAV.find((n) => n.slug === 'hop-duyet')?.roles ?? []).some((r) =>
+    session.roles.includes(r),
+  );
+  const [cases, deadlines, activity, myWork, approvals] = await Promise.all([
+    loadCases(cookie),
+    officeId ? loadDeadlines(cookie, officeId) : Promise.resolve('error' as const),
+    officeId ? loadActivity(cookie, officeId) : Promise.resolve([] as BranchActivity[]),
+    officeId ? loadMyWork(cookie, officeId) : Promise.resolve([] as MyWorkItem[]),
+    officeId && canReview
+      ? loadApprovals(cookie, officeId)
+      : Promise.resolve([] as PendingApproval[]),
+  ]);
   if (cases === 'error') {
     return (
       <section aria-labelledby="t">
@@ -101,18 +113,6 @@ export default async function HomePage() {
       </section>
     );
   }
-  const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
-  const canReview = (NAV.find((n) => n.slug === 'hop-duyet')?.roles ?? []).some((r) =>
-    session.roles.includes(r),
-  );
-  const [deadlines, activity, myWork, approvals] = await Promise.all([
-    officeId ? loadDeadlines(cookie, officeId) : Promise.resolve('error' as const),
-    officeId ? loadActivity(cookie, officeId) : Promise.resolve([] as BranchActivity[]),
-    officeId ? loadMyWork(cookie, officeId) : Promise.resolve([] as MyWorkItem[]),
-    officeId && canReview
-      ? loadApprovals(cookie, officeId)
-      : Promise.resolve([] as PendingApproval[]),
-  ]);
   const now = new Date();
   const activityMax = Math.max(1, ...activity.map(activityTotal));
   const sum = summarizeCases(cases);

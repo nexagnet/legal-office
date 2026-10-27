@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 import { loadSession, type Session } from '../app/session';
 
 /** Cookie của yêu cầu hiện tại, để chuyển tiếp sang API. */
@@ -7,9 +8,10 @@ export async function requestCookie(): Promise<string | null> {
   return all.length === 0 ? null : all.map((c) => `${c.name}=${c.value}`).join('; ');
 }
 
-export async function currentSession(): Promise<Session> {
-  return loadSession(await requestCookie());
-}
+/** Một yêu cầu chỉ hỏi `/auth/me` một lần: khung chung và trang con dùng chung kết quả (React.cache theo yêu cầu). */
+export const currentSession = cache(async (): Promise<Session> =>
+  loadSession(await requestCookie()),
+);
 
 export const API_URL = process.env.API_URL ?? 'http://localhost:3001';
 
