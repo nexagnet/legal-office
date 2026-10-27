@@ -33,7 +33,7 @@ export function MemberTable({ members }: { readonly members: readonly MemberRow[
 
   return (
     <>
-      <div className="admin-toolbar" role="search">
+      <div className="admin-toolbar form" role="search">
         <label>
           Tìm thành viên
           <input

@@ -1840,3 +1840,58 @@ tr[data-selected='true'] > td {
     overflow-x: auto;
   }
 }
+.admin-toolbar.form {
+  justify-content: flex-start;
+  align-items: flex-end;
+}
+.admin-toolbar.form label {
+  flex: 0 1 280px;
+  margin-bottom: 0;
+}
+fieldset.seg {
+  min-width: 0;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+fieldset.seg legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.form .seg label {
+  display: inline-flex;
+  margin-bottom: 0;
+  font-size: 14px;
+}
+.form .seg input {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+}
+.plain-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.plain-list > li {
+  padding: 12px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 10px rgba(15, 46, 84, 0.06);
+}
+.plain-list .thv-card-form input {
+  flex: 1 1 260px;
+  min-height: 40px;
+  padding: 6px 12px;
+  font: inherit;
+  border: 1px solid #c3d0e6;
+  border-radius: var(--radius-xs);
+}
+.page-head .primary {
+  white-space: nowrap;
+}
