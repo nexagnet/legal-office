@@ -254,6 +254,24 @@ describe.skipIf(!ADMIN_URL)(
       expect(me.json).toMatchObject({ userId: U.thv });
     });
 
+    it('lỗi hạ tầng (vd hàm DB thiếu) vẫn trả phản hồi đồng nhất, không phải 500', async () => {
+      await enableSmtp();
+      await owner.query(
+        'ALTER FUNCTION au_email_login_allowed(uuid, uuid) RENAME TO au_email_login_allowed_x',
+      );
+      try {
+        const r = await emailLogin('admin@example.test');
+        expect(r.status).toBe(200);
+        expect(r.json).toEqual({ code: 'VERIFICATION_REQUIRED', label: null });
+        expect(r.cookies.some((c) => c.startsWith('lo_challenge='))).toBe(true);
+        expect(sent).toHaveLength(0);
+      } finally {
+        await owner.query(
+          'ALTER FUNCTION au_email_login_allowed_x(uuid, uuid) RENAME TO au_email_login_allowed',
+        );
+      }
+    });
+
     it('bấm link mới sinh mã; link chỉ dùng được một lần; mã + cookie đúng mới mở phiên', async () => {
       await enableSmtp();
       const { challenge, link, redeemed } = await startAndRedeem();
