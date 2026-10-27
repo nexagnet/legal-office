@@ -1513,3 +1513,69 @@ button[aria-busy='true']::before {
 button[aria-busy='true']:disabled {
   cursor: progress;
 }
+
+/* Khung chờ (Figma N14 khung B): hiện sau 200 ms để điều hướng nhanh không nháy, rồi hiện dần 150 ms */
+.sk-root {
+  animation: sk-in 150ms ease-out 200ms both;
+}
+@keyframes sk-in {
+  from {
+    opacity: 0;
+  }
+}
+.sk {
+  display: block;
+  max-width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--line) 25%, var(--surface-2) 50%, var(--line) 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+.sk-banner {
+  display: grid;
+  gap: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.sk-steps {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.sk-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sk-dot {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+}
+.sk-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.sk-card {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.sk-line {
+  display: grid;
+  gap: 8px;
+}
+@media (max-width: 899px) {
+  .sk-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
