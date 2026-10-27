@@ -1,3 +1,4 @@
+import type { CaseItem } from './cases';
 import {
   MY_WORK_DOMAIN_LABEL,
   myWorkHref,
@@ -83,6 +84,29 @@ export function groupApprovals(rows: readonly PendingApproval[], now: Date): Wor
       meta: age <= 0 ? 'Gửi hôm nay' : `Gửi ${age} ngày trước`,
       href: '/hop-duyet',
       action: 'Duyệt',
+    };
+    (age >= 1 ? old : fresh).push(row);
+  }
+  return [...group('Quá 1 ngày', 'danger', old), ...group('Hôm nay', 'warn', fresh)];
+}
+
+/** Hồ sơ Vi bằng đang chờ Kế toán xác nhận MISA (bước kế tiếp = cấp số), cũ nhất lên trước. */
+export function groupMisaQueue(cases: readonly CaseItem[], now: Date): WorkGroup[] {
+  const old: WorkRow[] = [];
+  const fresh: WorkRow[] = [];
+  const queue = cases
+    .filter((c) => c.nextStep === 'MISA_NUMBER')
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  for (const c of queue) {
+    const age = dayDiff(new Date(c.createdAt), now);
+    const row: WorkRow = {
+      key: `MISA-${c.id}`,
+      title: c.title,
+      meta: [c.branchName, age <= 0 ? 'Tiếp nhận hôm nay' : `Tiếp nhận ${age} ngày trước`]
+        .filter(Boolean)
+        .join(' · '),
+      href: `/vi-bang/${c.id}`,
+      action: 'Xác nhận MISA',
     };
     (age >= 1 ? old : fresh).push(row);
   }

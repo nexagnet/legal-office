@@ -4,7 +4,7 @@ import { ModuleState } from '../components/ModuleState';
 import { WorkGroups } from '../components/WorkGroups';
 import { loadCases, summarizeCases } from '../lib/cases';
 import { loadMyWork, type MyWorkItem } from '../lib/my-work';
-import { groupApprovals, groupMyWork, type PendingApproval } from '../lib/overview';
+import { groupApprovals, groupMisaQueue, groupMyWork, type PendingApproval } from '../lib/overview';
 import { DeadlineReminders } from '../components/DeadlineReminders';
 import { loadDeadlines } from '../lib/deadlines-api';
 import { API_URL, currentSession, requestCookie } from '../lib/server';
@@ -129,7 +129,14 @@ export default async function HomePage() {
   };
   const reviewer =
     canReview && (['TRUONG_VP', 'ADMIN'] as const).some((r) => session.roles.includes(r));
-  const groups = reviewer ? groupApprovals(approvalRows, now) : groupMyWork(work, now);
+  const accountant = session.roles.every((r) => r === 'KE_TOAN');
+  const misaGroups = groupMisaQueue(cases, now);
+  const misaCount = misaGroups.reduce((n, g) => n + g.rows.length, 0);
+  const groups = accountant
+    ? misaGroups
+    : reviewer
+      ? groupApprovals(approvalRows, now)
+      : groupMyWork(work, now);
   const health = [
     {
       n: approvalRows.length,
@@ -174,16 +181,36 @@ export default async function HomePage() {
       </div>
       <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start gap-5 max-lg:grid-cols-1">
         <WorkGroups
-          title={reviewer ? 'Chờ duyệt' : 'Cần làm hôm nay'}
+          title={accountant ? 'Chờ xác nhận MISA' : reviewer ? 'Chờ duyệt' : 'Cần làm hôm nay'}
           hint={
-            reviewer
-              ? 'Việc cần quyết định của bạn, cũ nhất lên trước'
-              : 'Xếp theo độ gấp, mỗi dòng một việc'
+            accountant
+              ? 'Hồ sơ Vi bằng chờ bạn xác nhận thu đủ trên MISA, cũ nhất lên trước'
+              : reviewer
+                ? 'Việc cần quyết định của bạn, cũ nhất lên trước'
+                : 'Xếp theo độ gấp, mỗi dòng một việc'
           }
           groups={groups}
-          empty={reviewer ? 'Không có đề xuất nào chờ duyệt.' : 'Không có việc nào giao cho bạn.'}
+          empty={
+            accountant
+              ? 'Không có hồ sơ nào chờ xác nhận MISA.'
+              : reviewer
+                ? 'Không có đề xuất nào chờ duyệt.'
+                : 'Không có việc nào giao cho bạn.'
+          }
         />
-        {reviewer ? (
+        {accountant ? (
+          <section className="panel" aria-labelledby="misa-t">
+            <h2 id="misa-t">Đối soát MISA</h2>
+            <p className="muted">
+              Hệ thống không ghi số tiền; bạn xác nhận thu đủ trên MISA rồi cấp số Vi bằng.
+            </p>
+            <p className="m-0 mt-3 text-3xl font-bold text-accent">{misaCount}</p>
+            <p className="muted">hồ sơ đang chờ xác nhận</p>
+            <p>
+              <Link href="/vi-bang">Mở danh sách Vi bằng →</Link>
+            </p>
+          </section>
+        ) : reviewer ? (
           <section className="panel" aria-labelledby="health-t">
             <h2 id="health-t">Sức khoẻ văn phòng</h2>
             <p className="muted">Nhìn nhanh, chi tiết ở Báo cáo</p>
