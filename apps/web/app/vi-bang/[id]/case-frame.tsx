@@ -49,14 +49,13 @@ export async function loadCase(id: string): Promise<CaseLoad> {
   if (session.status !== 'authenticated') return { kind: 'login' };
   const cookie = await requestCookie();
   const enc = encodeURIComponent(id);
-  const c = await getJson<CaseDetail>(`/vibang/cases/${enc}`, cookie);
+  const [c, changeRes, progressRes] = await Promise.all([
+    getJson<CaseDetail>(`/vibang/cases/${enc}`, cookie),
+    getJson<{ items: ChangeItem[] }>(`/vibang/cases/${enc}/change-requests`, cookie),
+    getJson<Progress>(`/vibang/cases/${enc}/progress`, cookie),
+  ]);
   if (c === 404) notFound();
   if (c === 'error') return { kind: 'error' };
-  const changeRes = await getJson<{ items: ChangeItem[] }>(
-    `/vibang/cases/${enc}/change-requests`,
-    cookie,
-  );
-  const progressRes = await getJson<Progress>(`/vibang/cases/${enc}/progress`, cookie);
   return {
     kind: 'ok',
     ctx: {
