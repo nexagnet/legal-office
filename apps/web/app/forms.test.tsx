@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LoginForm } from '../components/LoginForm';
@@ -15,7 +15,7 @@ import { HISTORY_KIND_LABEL, reportStatusLabel } from '../lib/messages';
 import { ApprovalActions } from '../components/ApprovalActions';
 import { NewFormUpload } from '../components/NewFormUpload';
 import { NewDecisionForm } from '../components/NewDecisionForm';
-import { NewCorrespondenceForm } from '../components/NewCorrespondenceForm';
+import { NewCorrespondenceSheet } from '../components/NewCorrespondenceSheet';
 import { CaseSteps } from '../components/CaseSteps';
 import { MisaNumberPanels, ReturnPanel, SignStampPanels } from '../components/CaseStagePanels';
 import { CaseActions } from '../components/CaseActions';
@@ -826,11 +826,15 @@ describe('Correspondence', () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
-    render(<NewCorrespondenceForm branches={branches} />);
-    fireEvent.change(screen.getByLabelText('Loại văn bản'), { target: { value: 'Công văn' } });
+    render(<NewCorrespondenceSheet branches={branches} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Tạo công văn' }));
+    fireEvent.change(screen.getByLabelText(/Loại văn bản \(/), { target: { value: 'Công văn' } });
     fireEvent.change(screen.getByLabelText('Nơi gửi'), { target: { value: 'Tòa án' } });
     fireEvent.change(screen.getByLabelText('Trích yếu'), { target: { value: 'Yêu cầu' } });
-    fireEvent.change(screen.getByLabelText('Ngày nhận'), { target: { value: '2026-10-13' } });
+    fireEvent.click(screen.getByLabelText('Ngày nhận'));
+    fireEvent.click(within(screen.getByRole('grid')).getAllByRole('button')[12]!);
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Đính kèm/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Xác nhận/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Vào sổ' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     const [url, init] = spy.mock.calls[0]!;
@@ -850,12 +854,15 @@ describe('Correspondence', () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
-    render(<NewCorrespondenceForm branches={branches} />);
-    fireEvent.change(screen.getByLabelText('Loại'), { target: { value: 'OUTBOUND' } });
+    render(<NewCorrespondenceSheet branches={branches} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Tạo công văn' }));
+    fireEvent.change(screen.getByLabelText('Loại văn bản'), { target: { value: 'OUTBOUND' } });
     expect(screen.queryByLabelText('Ngày nhận')).toBeNull();
-    fireEvent.change(screen.getByLabelText('Loại văn bản'), { target: { value: 'Công văn' } });
+    fireEvent.change(screen.getByLabelText(/Loại văn bản \(/), { target: { value: 'Công văn' } });
     fireEvent.change(screen.getByLabelText('Nơi nhận'), { target: { value: 'Cơ quan A' } });
     fireEvent.change(screen.getByLabelText('Trích yếu'), { target: { value: 'Trả lời' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Đính kèm/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Xác nhận/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Vào sổ' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     const body = JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string);

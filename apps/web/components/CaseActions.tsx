@@ -12,6 +12,8 @@ interface Props {
   readonly windowOpen: boolean;
   readonly isFinal: boolean;
   readonly canCancel: boolean;
+  /** Chỉ hiện phần sửa/đề nghị, hoặc chỉ phần huỷ hồ sơ (vùng nguy hiểm); mặc định cả hai. */
+  readonly section?: 'edit' | 'cancel' | 'all';
 }
 
 async function send(method: string, path: string, body: unknown) {
@@ -25,7 +27,15 @@ async function send(method: string, path: string, body: unknown) {
 }
 
 /** Sửa nội bộ (trong 48 giờ) hoặc lập đề nghị thay đổi (sau 48 giờ); Admin huỷ hồ sơ. Quyền thật do máy chủ kiểm. */
-export function CaseActions({ caseId, title, description, windowOpen, isFinal, canCancel }: Props) {
+export function CaseActions({
+  caseId,
+  title,
+  description,
+  windowOpen,
+  isFinal,
+  canCancel,
+  section = 'all',
+}: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -88,7 +98,7 @@ export function CaseActions({ caseId, title, description, windowOpen, isFinal, c
 
   return (
     <div className="stack">
-      {isFinal ? (
+      {section === 'cancel' ? null : isFinal ? (
         <p className="muted">Hồ sơ đã kết thúc, không thể sửa.</p>
       ) : windowOpen ? (
         <form className="card form" onSubmit={edit} aria-labelledby="edit-t">
@@ -128,7 +138,7 @@ export function CaseActions({ caseId, title, description, windowOpen, isFinal, c
           </button>
         </form>
       )}
-      {canCancel && !isFinal ? (
+      {section !== 'edit' && canCancel && !isFinal ? (
         <form className="card form" onSubmit={cancel} aria-labelledby="cancel-t">
           <h2 id="cancel-t">Huỷ hồ sơ</h2>
           <label>
