@@ -332,4 +332,26 @@ describe.skipIf(!ADMIN_URL)('Stocktake sessions and item categories (HTTP + Post
       false,
     );
   });
+
+  it('item thresholds: admin sets, others read, others cannot set, invalid rejected', async () => {
+    const { item } = await setup();
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.head, { lowStockQty: 5 })).status,
+    ).toBe(403);
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.admin, { lowStockQty: -1 })).status,
+    ).toBe(400);
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.admin, { lowStockQty: 5 })).status,
+    ).toBe(200);
+    const got = await api('GET', `${O}/item-thresholds?officeId=${OFF}`, U.clerk1);
+    expect(got.json).toEqual(expect.arrayContaining([{ itemId: item, lowStockQty: 5 }]));
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.admin, { lowStockQty: null })).status,
+    ).toBe(200);
+    const after = await api('GET', `${O}/item-thresholds?officeId=${OFF}`, U.clerk1);
+    expect((after.json as unknown as { itemId: string }[]).some((r) => r.itemId === item)).toBe(
+      false,
+    );
+  });
 });

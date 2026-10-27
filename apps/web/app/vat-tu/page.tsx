@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { StatusPill } from '../../components/StatusPill';
-import { AdjustBatchDialog, MovementSheet, NewItemSheet } from '../../components/StockDialogs';
+import {
+  AdjustBatchDialog,
+  MovementSheet,
+  NewItemSheet,
+  ThresholdDialog,
+} from '../../components/StockDialogs';
 import { Input } from '../../components/ui/field';
 import { FilterChips } from '../../components/ui/filter-chips';
 import { TabNav } from '../../components/ui/tab-nav';
@@ -16,6 +21,10 @@ interface StockRow {
   readonly branchId: string | null;
   readonly branchName: string | null;
   readonly onHand: number | null;
+}
+interface ThresholdRow {
+  readonly itemId: string;
+  readonly lowStockQty: number;
 }
 interface BatchRow {
   readonly batchId: string;
@@ -44,7 +53,7 @@ async function get<T>(
 }
 
 type Tab = 'ton-kho' | 'lo';
-type Chip = 'all' | 'in' | 'out';
+type Chip = 'all' | 'in' | 'low' | 'out';
 
 const norm = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
@@ -55,7 +64,7 @@ export default async function SuppliesPage({
 }) {
   const sp = await searchParams;
   const q = (sp.q ?? '').slice(0, 200);
-  const chip: Chip = sp.chip === 'in' || sp.chip === 'out' ? sp.chip : 'all';
+  const chip: Chip = sp.chip === 'in' || sp.chip === 'low' || sp.chip === 'out' ? sp.chip : 'all';
   const session = await currentSession();
   if (session.status !== 'authenticated') {
     return (
@@ -74,6 +83,10 @@ export default async function SuppliesPage({
   const cookie = await requestCookie();
   const stock = officeId ? await get<StockRow>(cookie, 'stock', officeId) : [];
   const batches = officeId ? await get<BatchRow>(cookie, 'batches', officeId) : [];
+  const thresholds = officeId ? await get<ThresholdRow>(cookie, 'item-thresholds', officeId) : [];
+  const thresholdOf = new Map(
+    (thresholds === 'error' ? [] : thresholds).map((t) => [t.itemId, t.lowStockQty]),
+  );
   const canManage = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP' || r === 'THU_KY');
   const canAdjust = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP');
   const batchList = batches === 'error' ? [] : batches;
@@ -83,14 +96,27 @@ export default async function SuppliesPage({
     ...new Map(rows.map((r) => [r.itemId, { itemId: r.itemId, name: r.name }])).values(),
   ];
   const hasStock = (r: StockRow) => (r.onHand ?? 0) > 0;
+  const isLow = (r: StockRow) => {
+    const limit = thresholdOf.get(r.itemId);
+    return limit !== undefined && hasStock(r) && (r.onHand ?? 0) <= limit;
+  };
   const counts = {
     all: rows.length,
     in: rows.filter(hasStock).length,
+    low: rows.filter(isLow).length,
     out: rows.filter((r) => !hasStock(r)).length,
   };
   const needle = norm(q);
   const shown = rows
-    .filter((r) => (chip === 'in' ? hasStock(r) : chip === 'out' ? !hasStock(r) : true))
+    .filter((r) =>
+      chip === 'in'
+        ? hasStock(r)
+        : chip === 'low'
+          ? isLow(r)
+          : chip === 'out'
+            ? !hasStock(r)
+            : true,
+    )
     .filter((r) => !needle || norm(r.name).includes(needle));
   const href = (over: { tab?: Tab; chip?: Chip }) => {
     const p = new URLSearchParams();
@@ -141,6 +167,7 @@ export default async function SuppliesPage({
               chips={[
                 { key: 'all', label: 'Tất cả', href: href({ chip: 'all' }), count: counts.all },
                 { key: 'in', label: 'Còn tồn', href: href({ chip: 'in' }), count: counts.in },
+                { key: 'low', label: 'Sắp hết', href: href({ chip: 'low' }), count: counts.low },
                 { key: 'out', label: 'Hết tồn', href: href({ chip: 'out' }), count: counts.out },
               ]}
             />
@@ -184,6 +211,7 @@ export default async function SuppliesPage({
                     <th scope="col">Chi nhánh</th>
                     <th scope="col">Tồn kho</th>
                     <th scope="col">Đơn vị</th>
+                    <th scope="col">Ngưỡng</th>
                     <th scope="col">Trạng thái</th>
                   </tr>
                 </thead>
@@ -195,11 +223,26 @@ export default async function SuppliesPage({
                       <td>{r.onHand === null ? '' : r.onHand}</td>
                       <td>{r.unit}</td>
                       <td>
-                        <StatusPill
-                          status={hasStock(r) ? 'IN_STOCK' : 'OUT'}
-                          label={hasStock(r) ? 'Còn tồn' : 'Hết tồn'}
-                          tone={hasStock(r) ? 'ok' : 'warn'}
-                        />
+                        {canAdjust ? (
+                          <ThresholdDialog
+                            itemId={r.itemId}
+                            itemName={r.name}
+                            current={thresholdOf.get(r.itemId) ?? null}
+                          />
+                        ) : (
+                          (thresholdOf.get(r.itemId) ?? <span className="muted">—</span>)
+                        )}
+                      </td>
+                      <td>
+                        {isLow(r) ? (
+                          <StatusPill status="LOW" label="Sắp hết" tone="warn" />
+                        ) : (
+                          <StatusPill
+                            status={hasStock(r) ? 'IN_STOCK' : 'OUT'}
+                            label={hasStock(r) ? 'Còn tồn' : 'Hết tồn'}
+                            tone={hasStock(r) ? 'ok' : 'warn'}
+                          />
+                        )}
                       </td>
                     </tr>
                   ))}
