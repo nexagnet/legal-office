@@ -2,8 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { messageFor } from '../lib/messages';
 import type { PostResult } from '../lib/post-json';
+
+/** Toast lỗi không tự tắt và có nút "Thử lại"; thao tác ghi chỉ thử lại khi người dùng bấm (không tự gửi lại, tránh gửi trùng). */
+function notifyError(message: string, retry: () => void) {
+  toast.error(message, { duration: Infinity, action: { label: 'Thử lại', onClick: retry } });
+}
 
 /** Chạy một thao tác ghi: khoá nút khi đang gửi, hiện lý do tiếng Việt khi lỗi, làm mới dữ liệu khi xong. */
 export function useAction() {
@@ -23,14 +29,19 @@ export function useAction() {
     try {
       const r = await action();
       if (!r.ok) {
-        setError(messageFor(r.code));
+        const message = messageFor(r.code);
+        setError(message);
+        notifyError(message, () => void run(action, ok));
         return false;
       }
       setNotice(ok);
+      toast.success(ok);
       router.refresh();
       return true;
     } catch {
-      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
+      const message = 'Không kết nối được máy chủ. Vui lòng thử lại.';
+      setError(message);
+      notifyError(message, () => void run(action, ok));
       return false;
     } finally {
       running.current = false;
