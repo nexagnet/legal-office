@@ -1,54 +1,23 @@
 import Link from 'next/link';
-import {
-  ArrowRight,
-  BookOpen,
-  Building2,
-  ChevronRight,
-  FileText,
-  Gavel,
-  Package,
-  Search,
-  Send,
-  Settings,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
+import { FileText, Gavel, Search, Send, type LucideIcon } from 'lucide-react';
 import { ModuleState } from '../components/ModuleState';
-import { isOpenCase, loadCases, summarizeCases } from '../lib/cases';
+import { WorkGroups } from '../components/WorkGroups';
+import { loadCases, summarizeCases } from '../lib/cases';
+import { loadMyWork, type MyWorkItem } from '../lib/my-work';
+import { groupApprovals, groupMyWork, type PendingApproval } from '../lib/overview';
 import { DeadlineReminders } from '../components/DeadlineReminders';
 import { loadDeadlines } from '../lib/deadlines-api';
-import { CASE_STATUS_LABEL } from '../lib/messages';
 import { API_URL, currentSession, requestCookie } from '../lib/server';
 import { NAV, OVERVIEW } from './nav';
 
 export const dynamic = 'force-dynamic';
 
-/** Bốn nghiệp vụ trên màn Tổng quan (Figma 56:2). */
+/** Bốn nghiệp vụ trên màn Tổng quan (Figma N12 D3–D5). */
 const DOMAINS = [
-  {
-    slug: 'vi-bang',
-    name: 'VI BẰNG',
-    sub: 'Giai đoạn 1 · đã chốt nghiệp vụ',
-    meta: 'Quản lý hồ sơ, cấp số, bản scan',
-  },
-  {
-    slug: 'tong-dat',
-    name: 'TỐNG ĐẠT',
-    sub: 'Khung nghiệp vụ đã chốt · duyệt UX chi tiết',
-    meta: 'Hợp đồng N-01, biên bản N-02, S-01',
-  },
-  {
-    slug: 'xac-minh',
-    name: 'XÁC MINH',
-    sub: 'Khung nghiệp vụ đã chốt · duyệt UX chi tiết',
-    meta: 'Hợp đồng N-05, quyết định N-06, S-04',
-  },
-  {
-    slug: 'to-chuc-tha',
-    name: 'TỔ CHỨC THI HÀNH ÁN',
-    sub: 'Khung nghiệp vụ đã chốt · duyệt UX chi tiết',
-    meta: 'Hợp đồng N-07, hồ sơ N-08, S-05',
-  },
+  { slug: 'vi-bang', name: 'Vi bằng', work: 'VIBANG' },
+  { slug: 'tong-dat', name: 'Tống đạt', work: 'TONG_DAT' },
+  { slug: 'xac-minh', name: 'Xác minh THA', work: 'XAC_MINH' },
+  { slug: 'to-chuc-tha', name: 'Thi hành án', work: 'THI_HANH' },
 ] as const;
 
 const DOMAIN_ICON: Readonly<Record<string, LucideIcon>> = {
@@ -60,18 +29,8 @@ const DOMAIN_ICON: Readonly<Record<string, LucideIcon>> = {
 
 function DomainIcon({ slug }: { readonly slug: string }) {
   const Icon = DOMAIN_ICON[slug] ?? FileText;
-  return <Icon />;
+  return <Icon aria-hidden="true" />;
 }
-
-/** `href` rỗng: dòng chỉ để nhắc, không có màn riêng. */
-const COMMON_WORK: readonly { text: string; icon: LucideIcon; href: string }[] = [
-  { text: 'Khách hàng, hồ sơ và hợp đồng', icon: Users, href: '/hop-dong' },
-  { text: 'Sổ sách S-01, S-02, S-04, S-05, S-06', icon: BookOpen, href: '/so-sach' },
-  { text: 'Công văn, quyết định, kho tài liệu', icon: FileText, href: '/cong-van' },
-  { text: 'Vật tư giấy/mực theo FIFO', icon: Package, href: '/vat-tu' },
-  { text: 'Quản lý nhân sự và chi nhánh', icon: Building2, href: '/quan-tri' },
-  { text: 'Không có phân hệ kế toán; dùng MISA', icon: Settings, href: '' },
-];
 
 interface BranchActivity {
   readonly branchId: string;
@@ -102,6 +61,25 @@ async function loadActivity(cookie: string | null, officeId: string): Promise<Br
   }
 }
 
+/** Đề xuất chờ duyệt (chỉ vai có Hộp duyệt); lỗi thì 'error', không chặn trang. */
+async function loadApprovals(
+  cookie: string | null,
+  officeId: string,
+): Promise<PendingApproval[] | 'error'> {
+  try {
+    const res = await fetch(
+      `${API_URL}/approvals/pending?officeId=${encodeURIComponent(officeId)}`,
+      {
+        headers: cookie ? { cookie } : {},
+        cache: 'no-store',
+      },
+    );
+    return res.ok ? ((await res.json()) as PendingApproval[]) : 'error';
+  } catch {
+    return 'error';
+  }
+}
+
 const canSeeCases = (roles: readonly string[]) =>
   (NAV.find((n) => n.slug === 'vi-bang')?.roles ?? []).some((r) => roles.includes(r));
 
@@ -124,110 +102,126 @@ export default async function HomePage() {
     );
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
-  const deadlines = officeId ? await loadDeadlines(cookie, officeId) : 'error';
-  const activity = officeId ? await loadActivity(cookie, officeId) : [];
-  const activityMax = Math.max(1, ...activity.map(activityTotal));
-  const sum = summarizeCases(cases);
-  const today = cases.filter(isOpenCase).slice(0, 4);
-  const reminders: string[] = [
-    sum.unassigned > 0 ? `${sum.unassigned} hồ sơ chưa phân công THV` : '',
-    sum.awaitingReturn > 0 ? `${sum.awaitingReturn} hồ sơ đã ký/đóng dấu, chờ trả khách` : '',
-  ].filter(Boolean);
-  const visible = DOMAINS.filter((d) =>
-    (NAV.find((n) => n.slug === d.slug)?.roles ?? []).some((r) => session.roles.includes(r)),
-  );
   const canReview = (NAV.find((n) => n.slug === 'hop-duyet')?.roles ?? []).some((r) =>
     session.roles.includes(r),
   );
+  const [deadlines, activity, myWork, approvals] = await Promise.all([
+    officeId ? loadDeadlines(cookie, officeId) : Promise.resolve('error' as const),
+    officeId ? loadActivity(cookie, officeId) : Promise.resolve([] as BranchActivity[]),
+    officeId ? loadMyWork(cookie, officeId) : Promise.resolve([] as MyWorkItem[]),
+    officeId && canReview
+      ? loadApprovals(cookie, officeId)
+      : Promise.resolve([] as PendingApproval[]),
+  ]);
+  const now = new Date();
+  const activityMax = Math.max(1, ...activity.map(activityTotal));
+  const sum = summarizeCases(cases);
+  const work = myWork === 'error' ? [] : myWork;
+  const approvalRows = approvals === 'error' ? [] : approvals;
+  const overdueDeadlines = deadlines === 'error' ? 0 : deadlines.filter((d) => d.overdue).length;
+  const visible = DOMAINS.filter((d) =>
+    (NAV.find((n) => n.slug === d.slug)?.roles ?? []).some((r) => session.roles.includes(r)),
+  );
+  const domainNote = (d: (typeof DOMAINS)[number]) => {
+    if (d.slug === 'vi-bang') return `${sum.open} hồ sơ đang xử lý`;
+    const n = work.filter((w) => w.domain === d.work).length;
+    return n > 0 ? `${n} việc của tôi` : 'Mở danh sách';
+  };
+  const reviewer =
+    canReview && (['TRUONG_VP', 'ADMIN'] as const).some((r) => session.roles.includes(r));
+  const groups = reviewer ? groupApprovals(approvalRows, now) : groupMyWork(work, now);
+  const health = [
+    {
+      n: approvalRows.length,
+      label: 'Chờ duyệt',
+      note: 'Đề xuất chuyển giao, uỷ quyền',
+      href: '/hop-duyet',
+    },
+    {
+      n: overdueDeadlines,
+      label: 'Hạn quá',
+      note: 'Trong mục Nhắc hạn bên dưới',
+      href: '#nhac-han',
+    },
+    {
+      n: sum.unassigned,
+      label: 'Chưa phân công',
+      note: 'Hồ sơ Vi bằng chưa có THV',
+      href: '/vi-bang',
+    },
+    {
+      n: sum.awaitingReturn,
+      label: 'Chờ trả khách',
+      note: 'Đã ký hoặc đóng dấu',
+      href: '/vi-bang',
+    },
+  ];
   return (
     <section aria-labelledby="t">
       <h1 id="t" className="sr-only">
         Tổng quan hoạt động Văn phòng
       </h1>
-      <div className="domains">
+      <div className="domain-chips">
         {visible.map((d) => (
-          <Link key={d.slug} href={`/${d.slug}`} className="domain" data-domain={d.slug}>
-            <span className="domain-tile" aria-hidden="true">
-              <DomainIcon slug={d.slug} />
-            </span>
-            <ArrowRight className="domain-arrow" aria-hidden="true" />
-            <span className="domain-name">{d.name}</span>
-            <span className="domain-sub">{d.sub}</span>
-            <span className="domain-meta">
-              <span className="domain-meta-line">{d.meta}</span>
-              {d.slug === 'vi-bang' ? (
-                <span className="domain-count">
-                  {sum.open} đang xử lý · {sum.unassigned} chưa phân công · {sum.awaitingReturn} chờ
-                  trả khách
-                </span>
-              ) : null}
+          <Link key={d.slug} href={`/${d.slug}`} className="domain-chip" data-domain={d.slug}>
+            <DomainIcon slug={d.slug} />
+            <span>
+              <strong>{d.name}</strong>
+              {domainNote(d)}
             </span>
           </Link>
         ))}
       </div>
-      <div className="panel common-work">
-        <h2>Công việc chung toàn Văn phòng</h2>
-        <ul>
-          {COMMON_WORK.map(({ text, icon: Icon, href }) => (
-            <li key={text}>
-              {href ? (
-                <Link href={href}>
-                  <Icon aria-hidden="true" />
-                  <span>{text}</span>
-                  <ChevronRight className="work-chevron" aria-hidden="true" />
-                </Link>
-              ) : (
-                <span className="work-static">
-                  <Icon aria-hidden="true" />
-                  <span>{text}</span>
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="panels">
-        <div className="panel">
-          <h2>Hồ sơ cần xử lý</h2>
-          {today.length === 0 ? (
-            <p className="muted">Không có hồ sơ đang xử lý.</p>
-          ) : (
-            <ul className="rows">
-              {today.map((c) => (
-                <li key={c.id}>
-                  <Link href={`/vi-bang/${c.id}`}>{c.title}</Link>
-                  <span className="badge" data-status={c.status}>
-                    {CASE_STATUS_LABEL[c.status] ?? c.status}
-                  </span>
+      <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-start gap-5 max-lg:grid-cols-1">
+        <WorkGroups
+          title={reviewer ? 'Chờ duyệt' : 'Cần làm hôm nay'}
+          hint={
+            reviewer
+              ? 'Việc cần quyết định của bạn, cũ nhất lên trước'
+              : 'Xếp theo độ gấp, mỗi dòng một việc'
+          }
+          groups={groups}
+          empty={reviewer ? 'Không có đề xuất nào chờ duyệt.' : 'Không có việc nào giao cho bạn.'}
+        />
+        {reviewer ? (
+          <section className="panel" aria-labelledby="health-t">
+            <h2 id="health-t">Sức khoẻ văn phòng</h2>
+            <p className="muted">Nhìn nhanh, chi tiết ở Báo cáo</p>
+            <ul className="m-0 mt-3 list-none p-0">
+              {health.map((h) => (
+                <li key={h.label} className="border-b border-line">
+                  <Link
+                    href={h.href}
+                    className="flex items-center gap-4 py-3 text-ink no-underline hover:bg-surface-2"
+                  >
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-lg font-bold text-accent">
+                      {h.n}
+                    </span>
+                    <span className="grid gap-0.5">
+                      <span className="font-semibold">{h.label}</span>
+                      <span className="text-[13px] text-muted">{h.note}</span>
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
-          )}
-        </div>
-        <div className="panel">
-          <h2>Nhắc việc và cảnh báo</h2>
-          <p>
-            <Link href="/viec-cua-toi">Việc của tôi: hồ sơ đang giao cho bạn</Link>
-          </p>
-          {canReview ? (
-            <p>
-              <Link href="/hop-duyet">Hộp duyệt: đề xuất chờ duyệt, trả lại, nộp lại</Link>
-            </p>
-          ) : null}
-          {reminders.length === 0 ? (
-            <p className="muted">Không có việc cần nhắc.</p>
-          ) : (
-            <ul className="reminders">
-              {reminders.map((r) => (
-                <li key={r}>{r}</li>
-              ))}
-            </ul>
-          )}
-        </div>
+          </section>
+        ) : (
+          <div id="nhac-han">
+            <DeadlineReminders items={deadlines} />
+          </div>
+        )}
       </div>
+      {reviewer ? (
+        <div id="nhac-han" className="mt-5">
+          <DeadlineReminders items={deadlines} />
+        </div>
+      ) : null}
       {activity.length > 0 ? (
-        <section className="panel branch-activity" aria-labelledby="act-t">
-          <h2 id="act-t">Hoạt động theo địa điểm</h2>
+        <details className="panel branch-activity mt-5">
+          <summary className="cursor-pointer font-semibold">
+            Hoạt động theo địa điểm: {activity.length} trụ sở, ẩn mặc định cho gọn
+          </summary>
           <p className="muted">
             Từ đầu năm đến nay: hồ sơ Vi bằng, văn bản tống đạt, hồ sơ xác minh, thi hành án và công
             văn.
@@ -247,9 +241,11 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
-        </section>
+          <p>
+            <Link href="/bao-cao">Xem trong Báo cáo →</Link>
+          </p>
+        </details>
       ) : null}
-      <DeadlineReminders items={deadlines} />
     </section>
   );
 }
