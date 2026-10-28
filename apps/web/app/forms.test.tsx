@@ -818,7 +818,7 @@ describe('AssignHandler', () => {
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
     render(<AssignHandler path="verification/cases/c1/handler" options={options} currentId="u1" />);
-    fireEvent.change(screen.getByLabelText('Đổi THV phụ trách'), { target: { value: 'u2' } });
+    fireEvent.click(screen.getByRole('radio', { name: /thv2@example.test/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     const [url, init] = spy.mock.calls[0]!;
@@ -830,7 +830,7 @@ describe('AssignHandler', () => {
   it('explains a refusal', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(409, { code: 'INVALID_HANDLER' }));
     render(<AssignHandler path="x/handler" options={options} currentId={null} />);
-    expect(screen.getByLabelText('Giao THV phụ trách')).toBeTruthy();
+    expect(screen.getByText('Giao THV phụ trách')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
     expect((await screen.findByRole('alert')).textContent).toBe('Người này không phải THV hợp lệ.');
   });

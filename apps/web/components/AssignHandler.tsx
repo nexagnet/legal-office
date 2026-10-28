@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { messageFor } from '../lib/messages';
+import { personName } from '../lib/avatar';
 import { useDialogClose } from './StageDialog';
+import { Avatar } from './ui/avatar';
 
 export interface HandlerOption {
   readonly userId: string;
@@ -57,16 +59,32 @@ export function AssignHandler({ path, options, currentId }: Props) {
 
   return (
     <form className="form" onSubmit={submit}>
-      <label>
-        {currentId ? 'Đổi THV phụ trách' : 'Giao THV phụ trách'}
-        <select name="handler" defaultValue={currentId ?? options[0]?.userId}>
-          {options.map((o) => (
-            <option key={o.userId} value={o.userId}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <fieldset className="grid gap-2 border-0 p-0">
+        <legend className="mb-1 text-[13px] font-semibold">
+          {currentId ? 'Đổi THV phụ trách' : 'Giao THV phụ trách'}
+        </legend>
+        {options.map((o) => (
+          <label
+            key={o.userId}
+            className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface px-3 text-sm has-[:checked]:border-2 has-[:checked]:border-accent has-[:checked]:bg-accent-soft/40"
+          >
+            <input
+              type="radio"
+              name="handler"
+              value={o.userId}
+              defaultChecked={o.userId === (currentId ?? options[0]?.userId)}
+              className="size-4 accent-[var(--accent)]"
+            />
+            <Avatar name={personName(o.label)} id={o.userId} />
+            <span className="font-semibold">{personName(o.label)}</span>
+            {o.label !== personName(o.label) ? (
+              <span className="text-xs text-muted">
+                {o.label.slice(personName(o.label).length).trim()}
+              </span>
+            ) : null}
+          </label>
+        ))}
+      </fieldset>
       <button type="submit" disabled={busy} aria-busy={busy}>
         Lưu
       </button>

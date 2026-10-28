@@ -6,6 +6,7 @@ import type { DialogAction } from '../../../components/DialogActionMenu';
 import { EnforcementActions } from '../../../components/EnforcementActions';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
+import { Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
 import {
@@ -13,6 +14,7 @@ import {
   OBLIGATION_STATUS_LABEL,
   PARTY_ROLE_LABEL,
 } from '../../../lib/messages';
+import { personName } from '../../../lib/avatar';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -69,6 +71,7 @@ export default async function EnforcementDetailPage({
   const statusLabel = ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status;
   const open = c.status === 'OPEN';
   const assigned = c.handlerUserId !== null;
+  const handlerLabel = handlers.find((h) => h.userId === c.handlerUserId)?.label;
   const doneObl = c.obligations.filter((o) => o.status === 'COMPLETED').length;
   const assignPath = `enforcement-cases/${c.caseId}/handler`;
 
@@ -78,11 +81,17 @@ export default async function EnforcementDetailPage({
       role: 'Admin hoặc Trưởng VP',
       title: 'Giao Thừa hành viên phụ trách',
       state: assigned ? 'done' : open ? 'current' : 'done',
-      description: assigned
-        ? handlers.find((h) => h.userId === c.handlerUserId)?.label || 'Đã phân công'
-        : isAdmin
-          ? 'Chọn Thừa hành viên sẽ phụ trách hồ sơ này.'
-          : 'Đang chờ Admin hoặc Trưởng VP giao người phụ trách.',
+      description: assigned ? (
+        handlerLabel ? (
+          <Person name={personName(handlerLabel)} id={c.handlerUserId} />
+        ) : (
+          'Đã phân công'
+        )
+      ) : isAdmin ? (
+        'Chọn Thừa hành viên sẽ phụ trách hồ sơ này.'
+      ) : (
+        'Đang chờ Admin hoặc Trưởng VP giao người phụ trách.'
+      ),
       action:
         open && !assigned && isAdmin ? (
           <AssignHandler path={assignPath} options={handlers} currentId={null} />
