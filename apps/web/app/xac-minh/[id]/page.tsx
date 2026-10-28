@@ -19,6 +19,7 @@ import {
 import { loadItems } from '../../../lib/load-items';
 import { VERIFICATION_STATUS_LABEL } from '../../../lib/messages';
 import { personName } from '../../../lib/avatar';
+import { loadPeopleNames } from '../../../lib/people';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -137,7 +138,9 @@ export default async function VerificationDetailPage({
   }
 
   const assigned = c.handlerUserId !== null;
-  const handlerLabel = handlers.find((h) => h.userId === c.handlerUserId)?.label;
+  const handlerLabel = c.handlerUserId
+    ? (await loadPeopleNames(cookie, [c.handlerUserId])).get(c.handlerUserId)
+    : undefined;
   const allDone = c.rounds.length > 0 && open.length === 0;
   const steps: StepCard[] = [
     {
