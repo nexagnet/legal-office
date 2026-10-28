@@ -19,7 +19,7 @@ export class Guide {
   constructor(role, title) { this.role = role; this.title = title; this.sections = []; this.n = 0; fs.mkdirSync(path.join(OUT, role), { recursive: true });
     const f = path.join(OUT, role + '.json');
     if (fs.existsSync(f) && process.env.APPEND) { const j = JSON.parse(fs.readFileSync(f, 'utf8')); this.sections = j.sections; this.n = Math.max(0, ...j.sections.flatMap(x => x.steps.map(t => Number(t.img.split('/')[1].slice(0, 2))))); } }
-  section(title, intro, rules = []) { this.cur = { title, intro, rules, steps: [] }; this.sections.push(this.cur); }
+  section(title, intro, rules = []) { const cur = { title, intro, rules, steps: [] }; const i = this.sections.findIndex((x) => x.title === title); if (i >= 0) this.sections[i] = cur; else this.sections.push(cur); this.cur = cur; }
   /** marks: [{ loc: Locator, text: 'Bấm ...' }] đánh số 1..n theo thứ tự */
   async shot(page, { title, note, marks = [], full = false, clip }) {
     const boxes = [];

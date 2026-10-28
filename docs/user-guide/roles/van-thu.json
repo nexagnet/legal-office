@@ -87,9 +87,9 @@
    ],
    "steps": [
     {
-     "title": "Hồ sơ đã ký và đóng dấu, chờ bản scan",
-     "note": "Thanh tiến độ cho thấy 4 bước đã xong; bước 5 là Bản scan cuối.",
-     "img": "van-thu/06.png",
+     "title": "Hồ sơ đã ký, chờ đóng dấu",
+     "note": "Thanh tiến độ cho thấy bước kế tiếp là Ký, đóng dấu và bản scan.",
+     "img": "van-thu/22.png",
      "marks": [
       {
        "n": 1,
@@ -98,9 +98,35 @@
      ]
     },
     {
-     "title": "Sau khi tải bản scan cuối",
-     "note": "Hệ thống ghi nhận bản scan.",
-     "img": "van-thu/08.png",
+     "title": "Xác nhận đã đóng dấu",
+     "note": "Ngăn kéo hiện ba bước dạng thẻ. Bước 1 (THV ký) đã xong; bước 2 là việc của Văn thư.",
+     "img": "van-thu/23.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Xác nhận đã đóng dấu (sau khi đã đóng dấu thật)"
+      }
+     ]
+    },
+    {
+     "title": "Chọn tệp scan và tải lên",
+     "note": "Bước 3 mở ra sau khi xác nhận đóng dấu. Chọn tệp PDF đã có chữ ký và dấu.",
+     "img": "van-thu/24.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Choose File rồi chọn tệp PDF scan"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Tải bản scan cuối"
+      }
+     ]
+    },
+    {
+     "title": "Đã tải bản scan cuối",
+     "note": "Cả ba bước đã xong; bản scan được lưu kèm mã kiểm tra. Hồ sơ chuyển sang bước trả kết quả cho THV.",
+     "img": "van-thu/25.png",
      "marks": []
     }
    ]

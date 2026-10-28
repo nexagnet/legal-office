@@ -18,3 +18,8 @@ Cập nhật: 2026-10-28. Bản deploy: https://http--lo-web--8929jqrrnzyy.code.
 
 ## Còn lại
 - Soát PDF với chủ dự án; phần Tống đạt cập nhật sau khi giao diện mới deploy.
+
+## Cập nhật 2026-10-28 (sau PR #227, #228)
+- lo-web và lo-api đã deploy đúng commit 0393a35; đã chạy thử runtime: Tống đạt (3 lựa chọn kết quả, lần thử, đã tống đạt kèm bằng chứng), Xác minh (nguồn, kết quả lượt, đề xuất và quyết định kết luận), THA (nghĩa vụ, kết quả một phần), ngăn kéo Ký/đóng dấu/scan, bộ lọc Việc của tôi đều hoạt động.
+- Đã chụp lại các màn đổi giao diện và cập nhật PDF của THV, Văn thư, Trưởng VP.
+- Còn lại: API Tống đạt chưa trả lịch sử các lần, địa chỉ và tên văn bản; PDF đã ghi chú, cập nhật sau khi có PR đó.
