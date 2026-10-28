@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { CaseItem } from '../lib/cases';
 import { CASE_STATUS_LABEL, NEXT_STEP_LABEL } from '../lib/messages';
 import { PersonLabel } from './ui/avatar';
@@ -13,7 +13,14 @@ const fmt = new Intl.DateTimeFormat('vi-VN', {
 });
 
 /** Danh sách hồ sơ kiểu hàng-thẻ với ô tìm kiếm và lọc theo trạng thái/THV (lọc trên dữ liệu đã tải, Figma 3:28). */
-export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
+export function CaseTable({
+  cases,
+  action,
+}: {
+  readonly cases: readonly CaseItem[];
+  /** Nút chính của danh sách, cùng hàng với ô tìm và bộ lọc. */
+  readonly action?: ReactNode;
+}) {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [thv, setThv] = useState('');
@@ -59,6 +66,7 @@ export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
             <option value="unassigned">Chưa phân công</option>
           </select>
         </label>
+        {action}
       </div>
       {shown.length === 0 ? (
         <div className="state" role="status">
