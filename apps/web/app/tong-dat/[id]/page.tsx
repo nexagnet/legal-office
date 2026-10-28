@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { AssignHandler } from '../../../components/AssignHandler';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import type { DialogAction } from '../../../components/DialogActionMenu';
+import { CloseRequestButton, ReportResultSheet } from '../../../components/ServiceRequestActions';
 import { ServiceReminder, ServiceResultSheet } from '../../../components/ServiceResult';
 import { DefList } from '../../../components/ui/def-list';
 import { PartyName, Person } from '../../../components/ui/avatar';
@@ -29,6 +30,14 @@ interface Attempt {
   readonly hasEvidence: boolean;
 }
 
+interface Notice {
+  readonly id: string;
+  readonly agency: string;
+  readonly note: string;
+  readonly sentBy: string;
+  readonly sentAt: string;
+}
+
 const atFmt = new Intl.DateTimeFormat('vi-VN', {
   dateStyle: 'short',
   timeStyle: 'short',
@@ -37,6 +46,8 @@ const atFmt = new Intl.DateTimeFormat('vi-VN', {
 
 interface Item {
   readonly documentId: string;
+  readonly requestId: string;
+  readonly requestStatus: string;
   readonly requestRef: string;
   readonly recipientName: string;
   readonly address: string;
@@ -74,11 +85,20 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     `/service-of-documents/documents/${d.documentId}/attempts`,
     cookie,
   );
+  const siblings = items.filter((x) => x.requestId === d.requestId);
+  const allFinal = siblings.every((x) => x.status === 'DELIVERED' || x.status === 'UNDELIVERABLE');
+  const requestOpen = d.requestStatus === 'OPEN';
+  const canClose = session.roles.includes('ADMIN') || session.roles.includes('TRUONG_VP');
+  const notices = await loadItems<Notice>(
+    `/service-of-documents/requests/${d.requestId}/result-notices`,
+    cookie,
+  );
   const done = d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE';
   const statusLabel = SERVICE_STATUS_LABEL[d.status] ?? d.status;
   const people = await loadPeopleNames(cookie, [
     d.handlerUserId,
     ...(attemptList === 'error' ? [] : attemptList.map((a) => a.actorUserId)),
+    ...(notices === 'error' ? [] : notices.map((n) => n.sentBy)),
   ]);
   const handler = d.handlerUserId ? people.get(d.handlerUserId) : undefined;
   const handlerText = handler ?? (d.handlerUserId ? 'Đã phân công' : 'Chưa giao người xử lý');
@@ -184,6 +204,48 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           <h2 className="m-0 text-[13px] font-bold text-muted">Quy trình 3 bước</h2>
           <StepCards steps={steps} label="Các bước tống đạt" />
         </div>
+        <section className="panel" aria-labelledby="req-t">
+          <h2 id="req-t">Yêu cầu {d.requestRef}</h2>
+          <p className="muted">
+            {requestOpen ? 'Đang mở' : 'Đã đóng'} · {siblings.length} văn bản
+            {allFinal ? ', mọi văn bản đã có kết cục cuối.' : ', còn văn bản chưa có kết cục cuối.'}
+          </p>
+          {allFinal ? (
+            <div className="flex flex-wrap gap-2">
+              {requestOpen && canClose ? <CloseRequestButton requestId={d.requestId} /> : null}
+              <ReportResultSheet requestId={d.requestId} />
+            </div>
+          ) : (
+            <p className="muted">
+              Đóng yêu cầu và báo kết quả cho cơ quan khi mọi văn bản đã tống đạt xong hoặc kết luận
+              không tống đạt được. Báo cho cơ quan trong 2 ngày làm việc kể từ khi tống đạt xong.
+            </p>
+          )}
+          {notices === 'error' ? (
+            <p className="muted">Không tải được lịch sử báo kết quả.</p>
+          ) : notices.length === 0 ? (
+            <p className="muted">Chưa báo kết quả cho cơ quan.</p>
+          ) : (
+            <ol className="m-0 grid list-none gap-3 p-0">
+              {notices.map((n) => (
+                <li
+                  key={n.id}
+                  className="grid gap-1 border-b border-line pb-3 last:border-0 last:pb-0"
+                >
+                  <span className="font-semibold">
+                    {n.agency} · {atFmt.format(new Date(n.sentAt))}
+                  </span>
+                  <span className="text-[13px] text-muted">{n.note}</span>
+                  {labelOf(n.sentBy) ? (
+                    <span className="text-[13px]">
+                      <Person name={personName(labelOf(n.sentBy) ?? '')} id={n.sentBy} size="sm" />
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
         <section className="panel" aria-labelledby="hist-t">
           <h2 id="hist-t">Các lần tống đạt</h2>
           {attemptList === 'error' ? (
