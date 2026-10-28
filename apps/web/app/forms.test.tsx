@@ -322,15 +322,29 @@ describe('CaseSteps', () => {
   });
 });
 
+const numberExtras = {
+  thvLabel: 'THV giả lập',
+  misaReference: 'MISA-1',
+  preview: { nextLabel: '0129/2026/VB-THV', paperLastImported: true },
+};
+
 describe('MisaNumberPanels', () => {
   it('lets accounting confirm MISA with a reference', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
     render(
-      <MisaNumberPanels caseId="c1" status="INTAKE" progress={progressBase} roles={['KE_TOAN']} />,
+      <MisaNumberPanels
+        caseId="c1"
+        status="INTAKE"
+        progress={progressBase}
+        roles={['KE_TOAN']}
+        {...numberExtras}
+      />,
     );
-    expect(screen.queryByRole('button', { name: 'Cấp số' })).toBeNull();
+    expect((screen.getByRole('button', { name: 'Cấp số' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
     fireEvent.change(screen.getByLabelText('Mã tham chiếu MISA'), { target: { value: 'MISA-1' } });
     fireEvent.click(screen.getByRole('button', { name: /Xác nhận đã thu đủ/ }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
@@ -346,13 +360,32 @@ describe('MisaNumberPanels', () => {
   it('offers numbering only after MISA, to the roles that may number', () => {
     const misaDone = { ...progressBase, misaStatus: 'CONFIRMED_FULL' };
     render(
-      <MisaNumberPanels caseId="c1" status="INTAKE" progress={misaDone} roles={['VAN_THU']} />,
+      <MisaNumberPanels
+        caseId="c1"
+        status="INTAKE"
+        progress={misaDone}
+        roles={['VAN_THU']}
+        {...numberExtras}
+      />,
     );
-    expect(screen.getByRole('button', { name: 'Cấp số' })).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'Cấp số' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
+    expect(screen.getByText('0129/2026/VB-THV')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Xác nhận đã thu đủ/ })).toBeNull();
     cleanup();
-    render(<MisaNumberPanels caseId="c1" status="INTAKE" progress={misaDone} roles={['THV']} />);
-    expect(screen.queryByRole('button', { name: 'Cấp số' })).toBeNull();
+    render(
+      <MisaNumberPanels
+        caseId="c1"
+        status="INTAKE"
+        progress={misaDone}
+        roles={['THV']}
+        {...numberExtras}
+      />,
+    );
+    expect((screen.getByRole('button', { name: 'Cấp số' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
   });
 });
 
@@ -426,20 +459,34 @@ describe('ReturnPanel', () => {
       <ReturnPanel
         caseId="c1"
         status="ASSIGNED"
-        progress={stampedProgress}
+        progress={{ ...stampedProgress, hasFinalScan: true }}
         roles={[]}
         contacts={[]}
-        handover={{ recipient: null, on: null }}
+        handover={{ recipient: 'Nguyễn An', on: '2026-10-16' }}
       />,
     );
-    expect(screen.getByText('CHƯA ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã trả kết quả' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi đã trả' }));
     expect((await screen.findByRole('alert')).textContent).toBe(
       'Chưa có bản scan cuối của Vi bằng.',
     );
   });
 
-  it('says the case is ready once stamped and scanned, and offers nothing when finished', () => {
+  it('locks the return button until all five conditions hold, and offers nothing when finished', () => {
+    const missing = render(
+      <ReturnPanel
+        caseId="c1"
+        status="ASSIGNED"
+        progress={stampedProgress}
+        roles={[]}
+        contacts={[]}
+        handover={{ recipient: 'Nguyễn An', on: '2026-10-16' }}
+      />,
+    );
+    expect((screen.getByRole('button', { name: 'Ghi đã trả' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(screen.getByRole('alert').textContent).toContain('Thiếu điều kiện 4');
+    missing.unmount();
     render(
       <ReturnPanel
         caseId="c1"
@@ -447,10 +494,12 @@ describe('ReturnPanel', () => {
         progress={{ ...stampedProgress, hasFinalScan: true }}
         roles={[]}
         contacts={[]}
-        handover={{ recipient: null, on: null }}
+        handover={{ recipient: 'Nguyễn An', on: '2026-10-16' }}
       />,
     );
-    expect(screen.getByText('ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ')).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'Ghi đã trả' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
     cleanup();
     render(
       <ReturnPanel

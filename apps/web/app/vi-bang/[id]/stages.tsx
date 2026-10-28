@@ -7,6 +7,7 @@ import {
   MisaNumberPanels,
   ReturnPanel,
   SignStampPanels,
+  type NumberPreview,
 } from '../../../components/CaseStagePanels';
 import { ChangeDecision } from '../../../components/ChangeRequestRow';
 import { MisaRevoke, type RevokeProposal } from '../../../components/MisaRevoke';
@@ -61,9 +62,23 @@ export const STAGES: Readonly<Record<string, StageDef>> = {
   'cap-so': {
     title: 'Xác nhận MISA và cấp số',
     variant: 'sheet',
-    body: ({ c, progress, roles }) => (
-      <MisaNumberPanels caseId={c.id} status={c.status} progress={progress} roles={roles} />
-    ),
+    body: async ({ c, progress, roles, cookie }) => {
+      const [misa, preview] = await Promise.all([
+        getJson<{ reference: string | null }>(`/vibang/cases/${enc(c.id)}/misa`, cookie),
+        getJson<NumberPreview>(`/vibang/cases/${enc(c.id)}/number-preview`, cookie),
+      ]);
+      return (
+        <MisaNumberPanels
+          caseId={c.id}
+          status={c.status}
+          progress={progress}
+          roles={roles}
+          thvLabel={c.thvLabel ?? (c.responsibleThvUserId ? 'Đã phân công' : null)}
+          misaReference={typeof misa === 'object' ? misa.reference : null}
+          preview={typeof preview === 'object' ? preview : null}
+        />
+      );
+    },
   },
   'ky-dong-dau': {
     title: 'Ký, đóng dấu và bản scan',
