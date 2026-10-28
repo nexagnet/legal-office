@@ -369,7 +369,7 @@ export function AppShell({
             <SearchPalette items={items} />
             <span className="appbar-gap" />
             <Link
-              href="/viec-cua-toi"
+              href="/thong-bao"
               className="appbar-icon"
               aria-label={badges['viec-cua-toi'] ? 'Thông báo: có việc đang chờ' : 'Thông báo'}
             >
