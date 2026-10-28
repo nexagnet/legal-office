@@ -117,14 +117,14 @@ export function MemberTable({
               return (
                 <tr key={`${m.userId}-${m.role ?? 'none'}`}>
                   <th scope="row">
-                    <span className="person">
+                    <span className="person w-full">
                       <Avatar
                         name={name}
                         id={m.userId}
                         size="lg"
                         className={m.role ? undefined : 'opacity-50'}
                       />
-                      <span>
+                      <span className="grid min-w-0 flex-1">
                         <span className="person-name">{name}</span>
                         {email ? <span className="person-mail">{email}</span> : null}
                       </span>
@@ -133,7 +133,7 @@ export function MemberTable({
                           label="Sửa tên"
                           title="Sửa họ tên hiển thị"
                           description={email ?? undefined}
-                          className="link-btn"
+                          className="link-btn ml-auto shrink-0 whitespace-nowrap text-[13px] font-semibold"
                         >
                           <MemberNameForm
                             userId={m.userId}
