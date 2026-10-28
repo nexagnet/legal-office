@@ -6,6 +6,7 @@ import { StatusPill } from '../../components/StatusPill';
 import { NewServiceSheet } from '../../components/NewCaseSheets';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../lib/messages';
+import { deadlineView, serviceNextStep } from '../../lib/service-view';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,12 +24,6 @@ interface Item {
   readonly undeliverableReason: string | null;
   readonly attempts: number;
 }
-
-const fmt = new Intl.DateTimeFormat('vi-VN', {
-  dateStyle: 'short',
-  timeStyle: 'short',
-  timeZone: 'Asia/Ho_Chi_Minh',
-});
 
 async function load(cookie: string | null): Promise<Item[] | 'error'> {
   try {
@@ -116,35 +111,56 @@ export default async function ServicePage({
                   <th scope="col">Hạn</th>
                   <th scope="col">Trạng thái</th>
                   <th scope="col">Số lần</th>
-                  <th scope="col">Thao tác</th>
+                  <th scope="col">Việc tiếp theo</th>
                 </tr>
               </thead>
               <tbody>
-                {shown.map((d) => (
-                  <tr key={d.documentId}>
-                    <th scope="row">
-                      <Link href={`/tong-dat/${d.documentId}`}>{d.requestRef}</Link>
-                    </th>
-                    <td data-label="Người nhận">{d.recipientName}</td>
-                    <td data-label="Hạn">{fmt.format(new Date(d.deadlineAt))}</td>
-                    <td data-label="Trạng thái">
-                      <StatusPill
-                        status={d.status}
-                        label={SERVICE_STATUS_LABEL[d.status] ?? d.status}
-                      />
-                      {d.undeliverableReason ? (
-                        <span className="muted">
-                          {' '}
-                          · {UNDELIVERABLE_LABEL[d.undeliverableReason] ?? d.undeliverableReason}
+                {shown.map((d) => {
+                  const dl = deadlineView(
+                    d.deadlineAt,
+                    d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE',
+                  );
+                  return (
+                    <tr key={d.documentId}>
+                      <th scope="row">
+                        <Link href={`/tong-dat/${d.documentId}`}>{d.requestRef}</Link>
+                      </th>
+                      <td data-label="Người nhận">{d.recipientName}</td>
+                      <td data-label="Hạn">
+                        <span className="block">{dl.date}</span>
+                        <span
+                          className={
+                            dl.tone === 'overdue'
+                              ? 'text-xs font-semibold text-danger'
+                              : dl.tone === 'soon'
+                                ? 'text-xs font-semibold text-warn'
+                                : 'text-xs text-muted'
+                          }
+                        >
+                          {dl.note}
                         </span>
-                      ) : null}
-                    </td>
-                    <td data-label="Số lần">{d.attempts}</td>
-                    <td data-label="Thao tác">
-                      <Link href={`/tong-dat/${d.documentId}`}>Mở</Link>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td data-label="Trạng thái">
+                        <StatusPill
+                          status={d.status}
+                          label={SERVICE_STATUS_LABEL[d.status] ?? d.status}
+                        />
+                        {d.undeliverableReason ? (
+                          <span className="muted">
+                            {' '}
+                            · {UNDELIVERABLE_LABEL[d.undeliverableReason] ?? d.undeliverableReason}
+                          </span>
+                        ) : null}
+                      </td>
+                      <td data-label="Số lần">{d.attempts}</td>
+                      <td data-label="Việc tiếp theo">
+                        <Link className="font-semibold" href={`/tong-dat/${d.documentId}`}>
+                          {serviceNextStep(d.status)}
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

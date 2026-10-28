@@ -8,7 +8,7 @@ export interface TabItem {
   readonly count?: number;
 }
 
-/** Thanh tab theo URL (Figma N12 D6/D8): tab đang mở gạch chân đồng thau, số đếm dạng huy hiệu. Server component. */
+/** Bộ lọc theo URL dạng viên thuốc (Figma N0, N15): mục đang chọn nền xanh, số đếm dạng huy hiệu. Server component. */
 export function TabNav({
   tabs,
   active,
@@ -19,7 +19,7 @@ export function TabNav({
   readonly label: string;
 }) {
   return (
-    <nav aria-label={label} className="mb-5 flex gap-7 overflow-x-auto border-b border-line">
+    <nav aria-label={label} className="mb-5 flex flex-wrap gap-2.5">
       {tabs.map((t) => {
         const on = t.key === active;
         return (
@@ -28,8 +28,10 @@ export function TabNav({
             href={t.href}
             aria-current={on ? 'page' : undefined}
             className={cn(
-              '-mb-px inline-flex no-underline min-h-11 shrink-0 items-center gap-2 border-b-[3px] px-0.5 text-[15px] font-semibold whitespace-nowrap',
-              on ? 'border-brass text-ink' : 'border-transparent text-muted hover:text-ink',
+              'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold whitespace-nowrap no-underline',
+              on
+                ? 'border-accent bg-accent text-white'
+                : 'border-transparent bg-head text-muted hover:text-ink',
             )}
           >
             {t.label}
@@ -37,7 +39,7 @@ export function TabNav({
               <span
                 className={cn(
                   'inline-grid min-w-6 place-items-center rounded-full px-1.5 text-xs font-bold',
-                  on ? 'bg-accent text-white' : 'bg-line text-muted',
+                  on ? 'bg-white/25 text-white' : 'bg-line text-muted',
                 )}
               >
                 {t.count}
