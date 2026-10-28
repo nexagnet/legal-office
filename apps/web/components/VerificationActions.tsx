@@ -5,6 +5,8 @@ import { useState, type FormEvent } from 'react';
 import { SOURCE_CONFIDENTIALITY_LABEL, messageFor } from '../lib/messages';
 import { pickedFile, postFile } from '../lib/upload';
 import { useDialogClose } from './StageDialog';
+import { Button } from './ui/button';
+import { Field, Input, Select, Textarea } from './ui/field';
 
 export interface RoundLite {
   readonly id: string;
@@ -74,20 +76,23 @@ export function StartRoundForm({ caseId }: { readonly caseId: string }) {
   const { run, error, busy } = useRun();
   return (
     <form
-      className="form"
+      className="grid gap-4"
       onSubmit={(e) => {
         const partyName = value(e, 'partyName');
         void run(() => post(`cases/${caseId}/rounds`, { partyName }));
       }}
     >
-      <label>
-        Bên liên quan
-        <input name="partyName" required maxLength={300} />
-      </label>
-      <button type="submit" disabled={busy} aria-busy={busy}>
-        Thêm lượt xác minh
-      </button>
+      <p className="muted m-0">
+        Mỗi bên được xác minh là một lượt riêng, có nguồn và kết quả riêng. Kết luận chỉ đề xuất
+        được khi mọi lượt đã có kết quả.
+      </p>
+      <Field id="vx-party" label="Bên liên quan">
+        <Input id="vx-party" name="partyName" required maxLength={300} />
+      </Field>
       <Alert error={error} />
+      <Button type="submit" loading={busy}>
+        Thêm lượt xác minh
+      </Button>
     </form>
   );
 }
@@ -97,7 +102,7 @@ export function SourceFileForm({ rounds }: { readonly rounds: readonly RoundLite
   const { run, error, busy, setError } = useRun();
   return (
     <form
-      className="form"
+      className="grid gap-4"
       onSubmit={(e) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -114,32 +119,38 @@ export function SourceFileForm({ rounds }: { readonly rounds: readonly RoundLite
       }}
     >
       <RoundSelect rounds={rounds} />
-      <label>
-        Loại nguồn
-        <input name="kind" required maxLength={200} />
-      </label>
-      <label>
-        Mức bảo mật
-        <select name="confidentiality" defaultValue="CONFIDENTIAL">
+      <Field id="vx-kind" label="Loại nguồn">
+        <Input id="vx-kind" name="kind" required maxLength={200} />
+      </Field>
+      <Field
+        id="vx-conf"
+        label="Mức bảo mật"
+        help="Nguồn không công khai phải nêu mục đích mỗi lần mở; mọi lần mở đều được lưu nhật ký."
+      >
+        <Select id="vx-conf" name="confidentiality" defaultValue="CONFIDENTIAL">
           {Object.entries(SOURCE_CONFIDENTIALITY_LABEL).map(([k, v]) => (
             <option key={k} value={k}>
               {v}
             </option>
           ))}
-        </select>
-      </label>
-      <label>
-        Mục đích sử dụng
-        <input name="purpose" required maxLength={500} />
-      </label>
-      <label>
-        Tệp nguồn (PDF, JPEG, PNG; tối đa 25 MB)
-        <input name="file" type="file" accept="application/pdf,image/jpeg,image/png" required />
-      </label>
-      <button type="submit" disabled={busy} aria-busy={busy}>
-        Ghi nguồn kèm tệp
-      </button>
+        </Select>
+      </Field>
+      <Field id="vx-purpose" label="Mục đích sử dụng">
+        <Input id="vx-purpose" name="purpose" required maxLength={500} />
+      </Field>
+      <Field id="vx-file" label="Tệp nguồn (PDF, JPEG, PNG; tối đa 25 MB)">
+        <Input
+          id="vx-file"
+          name="file"
+          type="file"
+          accept="application/pdf,image/jpeg,image/png"
+          required
+        />
+      </Field>
       <Alert error={error} />
+      <Button type="submit" loading={busy}>
+        Ghi nguồn kèm tệp
+      </Button>
     </form>
   );
 }
@@ -148,7 +159,7 @@ export function CompleteRoundForm({ rounds }: { readonly rounds: readonly RoundL
   const { run, error, busy } = useRun();
   return (
     <form
-      className="form"
+      className="grid gap-4"
       onSubmit={(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);
@@ -160,14 +171,17 @@ export function CompleteRoundForm({ rounds }: { readonly rounds: readonly RoundL
       }}
     >
       <RoundSelect rounds={rounds} />
-      <label>
-        Kết quả của lượt
-        <textarea name="result" required rows={2} maxLength={4000} />
-      </label>
-      <button type="submit" disabled={busy} aria-busy={busy}>
-        Ghi kết quả lượt
-      </button>
+      <Field
+        id="vx-result"
+        label="Kết quả của lượt"
+        help="Mỗi lượt cần ít nhất một nguồn trước khi ghi kết quả."
+      >
+        <Textarea id="vx-result" name="result" required rows={2} maxLength={4000} />
+      </Field>
       <Alert error={error} />
+      <Button type="submit" loading={busy}>
+        Ghi kết quả lượt
+      </Button>
     </form>
   );
 }
@@ -250,15 +264,14 @@ function RoundSelect({ rounds }: { readonly rounds: readonly RoundLite[] }) {
   const only = rounds.length === 1 ? rounds[0] : undefined;
   if (only) return <input type="hidden" name="roundId" value={only.id} />;
   return (
-    <label>
-      Lượt xác minh
-      <select name="roundId" defaultValue={rounds[0]?.id}>
+    <Field id="vx-round" label="Lượt xác minh">
+      <Select id="vx-round" name="roundId" defaultValue={rounds[0]?.id}>
         {rounds.map((r) => (
           <option key={r.id} value={r.id}>
             {r.seq}. {r.partyName}
           </option>
         ))}
-      </select>
-    </label>
+      </Select>
+    </Field>
   );
 }

@@ -235,7 +235,7 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     await admin.end();
   });
 
-  it('có đủ bốn sổ, số cột và thứ tự khoá khớp mẫu; sổ khác (S-03/S-06) không có', async () => {
+  it('có đủ bốn sổ, số cột và thứ tự khoá khớp mẫu; S-03 không có, S-06 dựng từ hồ sơ lao động', async () => {
     expect(LEDGERS.map((l) => [l.code, l.columns.length])).toEqual([
       ['S-01', 10],
       ['S-02', 7],
@@ -254,7 +254,10 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
       expect(res.json.notice).toMatch(/không phải biểu mẫu chính thức/);
     }
     expect((await ledger('s-03', U.admin)).status).toBe(404);
-    expect((await ledger('s-06', U.admin)).status).toBe(404);
+    const s06 = await ledger('s-06', U.admin);
+    expect(s06.status).toBe(200);
+    expect((s06.json.columns as unknown[]).length).toBe(11);
+    expect(await rowsOf('s-06', U.secretary)).toEqual([]);
   });
 
   it('S-01: dòng theo thứ tự, ngày tống đạt/hình thức/ghi chú có dữ liệu thật, cột thiếu nguồn là null', async () => {

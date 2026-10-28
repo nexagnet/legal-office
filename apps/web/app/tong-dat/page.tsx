@@ -21,6 +21,7 @@ interface Item {
   readonly documentId: string;
   readonly requestRef: string;
   readonly recipientName: string;
+  readonly documentTitle?: string | null;
   readonly deadlineAt: string;
   readonly status: string;
   readonly undeliverableReason: string | null;
@@ -71,13 +72,11 @@ export default async function ServicePage({
   const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
   return (
     <section aria-labelledby="t">
-      <div className="page-head">
-        <div>
-          <h1 id="t">Tống đạt</h1>
-          <p className="muted">Văn bản tống đạt trong phạm vi quyền của bạn.</p>
+      {items === 'error' || items.length === 0 ? (
+        <div className="mb-4 flex justify-end">
+          <NewServiceSheet branches={session.branches} />
         </div>
-        <NewServiceSheet branches={session.branches} />
-      </div>
+      ) : null}
       {items === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được danh sách</h2>
@@ -107,6 +106,7 @@ export default async function ServicePage({
             label="Nhóm trạng thái"
             tabs={statusTabs('/tong-dat', GROUPS, items)}
             active={tab}
+            action={<NewServiceSheet branches={session.branches} />}
           />
           <div className="table-wrap">
             <table className="table-cards">
@@ -135,6 +135,9 @@ export default async function ServicePage({
                       </th>
                       <td data-label="Người nhận">
                         <PartyName name={d.recipientName} />
+                        {d.documentTitle ? (
+                          <span className="block text-xs text-muted">{d.documentTitle}</span>
+                        ) : null}
                       </td>
                       <td data-label="Hạn">
                         <span className="block">{dl.date}</span>

@@ -189,6 +189,10 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
       >
         Đăng nhập bằng email
       </button>
+      <p className="muted">
+        Quên mật khẩu? Dùng &quot;Đăng nhập bằng email&quot;: nhận link qua email, không cần mật
+        khẩu. Admin đặt lại mật khẩu cho bạn nếu cần.
+      </p>
     </form>
   );
 }

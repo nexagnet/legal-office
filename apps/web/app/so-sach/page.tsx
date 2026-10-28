@@ -10,6 +10,7 @@ const LEDGERS = [
   ['s-02', 'S-02 · Vi bằng'],
   ['s-04', 'S-04 · Xác minh điều kiện THA'],
   ['s-05', 'S-05 · Thi hành án'],
+  ['s-06', 'S-06 · Sử dụng lao động'],
 ] as const;
 const CODES = new Set<string>(LEDGERS.map(([c]) => c));
 const EMPTY = '—';
@@ -113,22 +114,29 @@ export default async function LedgerPage({
           href: `/so-sach?so=${c}${year ? `&year=${year}` : ''}`,
         }))}
       />
-      <form className="filters filters-ledger" method="get" role="search">
-        <input type="hidden" name="so" value={code} />
-        <label>
-          <span className="sr-only">Năm</span>
-          <input
-            name="year"
-            inputMode="numeric"
-            maxLength={4}
-            defaultValue={year}
-            placeholder="Năm"
-          />
-        </label>
-        <button type="submit" className="primary">
-          Xem
-        </button>
-      </form>
+      {code === 's-06' ? (
+        <p className="muted">
+          Sổ S-06 dựng từ <Link href="/quan-tri/ho-so-lao-dong">Hồ sơ lao động</Link> (bản mới nhất
+          của mỗi người), không theo năm. Chỉ Admin và Trưởng văn phòng xem được.
+        </p>
+      ) : (
+        <form className="filters filters-ledger" method="get" role="search">
+          <input type="hidden" name="so" value={code} />
+          <label>
+            <span className="sr-only">Năm</span>
+            <input
+              name="year"
+              inputMode="numeric"
+              maxLength={4}
+              defaultValue={year}
+              placeholder="Năm"
+            />
+          </label>
+          <button type="submit" className="primary">
+            Xem
+          </button>
+        </form>
+      )}
       {ledger === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được sổ</h2>
