@@ -154,6 +154,13 @@ const MESSAGES: Record<string, string> = {
   HANDOVER_N08_MISSING: 'Chưa có biên bản bàn giao N-08.',
   TRANSFER_NOT_FOUND: 'Không tìm thấy đề nghị chuyển hồ sơ này.',
   INVALID_STEP: 'Bước không hợp lệ.',
+  STEP_ALREADY_RECORDED: 'Bước này đã được ghi.',
+  DELEGATION_NOT_PENDING: 'Ủy quyền này không còn ở trạng thái chờ.',
+  DELEGATION_NOT_FOUND: 'Không tìm thấy ủy quyền này.',
+  CONSENT_MISSING: 'Chưa có văn bản đồng ý của người yêu cầu.',
+  LEGAL_SIGNATURE_MISSING: 'Chưa có ủy quyền có chữ ký pháp lý.',
+  HANDOVER_MISSING: 'Chưa có biên bản bàn giao.',
+  SOURCE_NOT_FOUND: 'Không tìm thấy nguồn này.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
@@ -241,6 +248,16 @@ export const TRANSFER_STEP_LABEL: Record<string, string> = {
   APP_APPROVAL: 'Duyệt trong ứng dụng (Admin hoặc Trưởng VP)',
   LEGAL_DECISION: 'Quyết định pháp lý (người có quyền ký)',
   HANDOVER_N08: 'Biên bản bàn giao N-08',
+};
+export const DELEGATION_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Đang hoàn thiện hồ sơ ủy quyền',
+  ACTIVE: 'Đã kích hoạt',
+};
+export const DELEGATION_STEP_LABEL: Record<string, string> = {
+  CONSENT: 'Văn bản đồng ý của người yêu cầu',
+  APP_APPROVAL: 'Duyệt trong ứng dụng (Admin hoặc Trưởng VP)',
+  LEGAL_SIGNATURE: 'Ủy quyền có chữ ký pháp lý',
+  HANDOVER: 'Biên bản bàn giao',
 };
 export const RESULT_KIND_LABEL: Record<string, string> = {
   PARTIAL_RESULT: 'Kết quả một phần',

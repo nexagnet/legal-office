@@ -10,6 +10,15 @@ import { PartyName, Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
+  DelegationList,
+  RecordDecisionSheet,
+  RequestDelegationSheet,
+  SourceList,
+  type Decision,
+  type Delegation,
+  type Source,
+} from '../../../components/VerificationExtras';
+import {
   CompleteRoundForm,
   ConclusionDecision,
   ConclusionProposalForm,
@@ -20,7 +29,7 @@ import { loadItems } from '../../../lib/load-items';
 import { VERIFICATION_STATUS_LABEL } from '../../../lib/messages';
 import { personName } from '../../../lib/avatar';
 import { loadPeopleNames } from '../../../lib/people';
-import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
+import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +52,8 @@ interface Item {
 const TABS = [
   { key: 'tong-quan', label: 'Tổng quan' },
   { key: 'luot', label: 'Các lượt xác minh' },
+  { key: 'nguon', label: 'Nguồn' },
+  { key: 'uy-quyen', label: 'Ủy quyền' },
   { key: 'ket-luan', label: 'Kết luận' },
   { key: 'lich-su', label: 'Lịch sử' },
 ] as const;
@@ -84,6 +95,23 @@ export default async function VerificationDetailPage({
   const tab: Tab = TABS.find((t) => t.key === rawTab)?.key ?? 'luot';
   const isAdmin = session.roles.includes('ADMIN');
   const handlers = isAdmin ? await loadHandlerOptions(cookie) : [];
+  const sources = await loadItems<Source>(`/verification/cases/${c.caseId}/sources`, cookie);
+  const delegations = await loadItems<Delegation>(
+    `/verification/cases/${c.caseId}/delegations`,
+    cookie,
+  );
+  const decisionRes = await fetch(`${API_URL}/verification/cases/${c.caseId}/decision`, {
+    headers: cookie ? { cookie } : {},
+    cache: 'no-store',
+  }).catch(() => null);
+  const decision = decisionRes?.ok
+    ? ((await decisionRes.json()) as { decision: Decision | null }).decision
+    : null;
+  const canSign = session.roles.includes('ADMIN') || session.roles.includes('TRUONG_VP');
+  const peopleNames = await loadPeopleNames(cookie, [
+    ...(sources === 'error' ? [] : sources.flatMap((s) => s.accesses.map((a) => a.actorUserId))),
+    ...(delegations === 'error' ? [] : delegations.map((d) => d.delegateUserId)),
+  ]);
   const concluded = c.status === 'CONCLUDED';
   const proposed = c.status === 'CONCLUSION_PROPOSED';
   const statusLabel = VERIFICATION_STATUS_LABEL[c.status] ?? c.status;
@@ -241,6 +269,70 @@ export default async function VerificationDetailPage({
               ['Kết luận', c.conclusionText ?? 'Chưa có'],
             ]}
           />
+        </section>
+      ) : null}
+      {tab === 'tong-quan' ? (
+        <section className="panel" aria-labelledby="n06-t">
+          <h2 id="n06-t">Quyết định xác minh (N-06)</h2>
+          {decision ? (
+            <DefList
+              rows={[
+                ['Số quyết định', decision.decisionNo],
+                ['Ngày ký', decision.signedOn],
+              ]}
+            />
+          ) : (
+            <p className="muted">
+              Chưa ghi quyết định. Trưởng VP có quyền ký pháp lý ra quyết định trong 3 ngày làm việc
+              kể từ ngày ký hợp đồng; thiếu căn cứ thì không kết luận.
+            </p>
+          )}
+          {!decision && canSign && !concluded ? <RecordDecisionSheet caseId={c.caseId} /> : null}
+        </section>
+      ) : null}
+      {tab === 'nguon' ? (
+        <section className="panel" aria-labelledby="src-t">
+          <h2 id="src-t">Nguồn xác minh</h2>
+          <p className="muted">
+            Nguồn không công khai phải nêu mục đích khi mở; mọi lần mở đều được lưu nhật ký. Thêm
+            nguồn mới ở tab Các lượt xác minh.
+          </p>
+          {sources === 'error' ? (
+            <p className="muted">Không tải được danh sách nguồn. Vui lòng thử lại sau.</p>
+          ) : (
+            <SourceList
+              sources={sources}
+              names={Object.fromEntries(peopleNames)}
+              canOpen={!concluded}
+            />
+          )}
+        </section>
+      ) : null}
+      {tab === 'uy-quyen' ? (
+        <section className="panel" aria-labelledby="dg-t">
+          <h2 id="dg-t">Ủy quyền thực hiện</h2>
+          <p className="muted">
+            Ủy quyền cho THV khác chỉ có hiệu lực khi đủ bốn bước; kích hoạt xong thì THV được ủy
+            quyền trở thành người phụ trách.
+          </p>
+          {delegations === 'error' ? (
+            <p className="muted">Không tải được ủy quyền. Vui lòng thử lại sau.</p>
+          ) : (
+            <DelegationList
+              delegations={delegations}
+              names={Object.fromEntries(peopleNames)}
+              canWrite={!concluded}
+              canActivate={canSign}
+            />
+          )}
+          {!concluded && handlers.length > 0 ? (
+            <div>
+              <RequestDelegationSheet
+                caseId={c.caseId}
+                options={handlers.filter((h) => h.userId !== c.handlerUserId)}
+              />
+            </div>
+          ) : null}
         </section>
       ) : null}
       {tab === 'luot' ? (
