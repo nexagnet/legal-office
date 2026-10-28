@@ -2,7 +2,9 @@
 
 import { useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
-import { CheckPanel } from './CheckPanel';
+import { Button } from './ui/button';
+import { ConditionList } from './ui/condition-list';
+import { Field, Input, Textarea } from './ui/field';
 
 export interface DraftField {
   /** Đường dẫn trường trong đầu vào biểu mẫu, ví dụ `requester.organization.name`. */
@@ -72,33 +74,58 @@ export function FormDraft({ officeId, code, title, fields, checks, checkTitle, a
   }
 
   return (
-    <form className="panels assign-grid" onSubmit={submit}>
-      <section className="panel form">
-        <h2>{title}</h2>
-        {fields.map((f) => (
-          <label key={f.path}>
-            {f.label}
-            {f.type === 'textarea' ? (
-              <textarea name={f.path} rows={3} placeholder={f.placeholder} maxLength={4000} />
-            ) : (
-              <input
-                name={f.path}
-                type={f.type === 'date' ? 'date' : 'text'}
-                placeholder={f.placeholder}
-                maxLength={500}
-              />
-            )}
-          </label>
-        ))}
+    <form
+      className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]"
+      onSubmit={submit}
+    >
+      <section className="panel grid gap-4">
+        <h2 className="!m-0">{title}</h2>
+        {fields.map((f) => {
+          const id = `draft-${f.path}`;
+          return (
+            <Field key={f.path} id={id} label={f.label}>
+              {f.type === 'textarea' ? (
+                <Textarea
+                  id={id}
+                  name={f.path}
+                  rows={3}
+                  placeholder={f.placeholder}
+                  maxLength={4000}
+                />
+              ) : (
+                <Input
+                  id={id}
+                  name={f.path}
+                  type={f.type === 'date' ? 'date' : 'text'}
+                  placeholder={f.placeholder}
+                  maxLength={500}
+                />
+              )}
+            </Field>
+          );
+        })}
       </section>
-      <CheckPanel title={checkTitle} checks={checks}>
-        <p role="alert" className="error" hidden={!error}>
-          {error}
+      <aside className="panel grid gap-4" aria-labelledby="draft-rules">
+        <h2 id="draft-rules" className="!m-0">
+          {checkTitle}
+        </h2>
+        <ConditionList
+          label={checkTitle}
+          conditions={checks.map((c) => ({ key: c, title: c, met: true }))}
+        />
+        <p className="m-0 rounded-xl bg-accent-soft px-4 py-3 text-[13px] text-accent">
+          Chỉ soạn bản nháp Word từ mẫu. Không lưu tệp, không ký, không phát hành; ô để trống giữ
+          chỗ chấm trong mẫu gốc.
         </p>
-        <button type="submit" className="primary wide" disabled={busy} aria-busy={busy}>
+        {error ? (
+          <p role="alert" className="m-0 text-[13px] font-semibold text-danger">
+            {error}
+          </p>
+        ) : null}
+        <Button type="submit" loading={busy}>
           {action}
-        </button>
-      </CheckPanel>
+        </Button>
+      </aside>
     </form>
   );
 }
