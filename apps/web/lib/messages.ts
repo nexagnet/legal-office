@@ -176,6 +176,12 @@ export const ATTEMPT_OUTCOME_LABEL: Record<string, string> = {
   WRONG_ADDRESS: 'Sai địa chỉ',
   OTHER_FAILURE: 'Lý do khác',
 };
+/** Nhãn kết quả của một lần đã ghi (kể cả lần thành công và niêm yết, không có trong biểu mẫu ghi lần chưa thành công). */
+export const ATTEMPT_RESULT_LABEL: Record<string, string> = {
+  ...ATTEMPT_OUTCOME_LABEL,
+  SERVED: 'Đã tống đạt',
+  POSTED_NOTICE: 'Niêm yết (chưa phải tống đạt thành công)',
+};
 export const UNDELIVERABLE_LABEL: Record<string, string> = {
   NO_RECIPIENT: 'Không có người nhận',
   ADDRESS_NOT_FOUND: 'Không tìm thấy địa chỉ',
