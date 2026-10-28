@@ -1,6 +1,6 @@
 # Triển khai thử trên Northflank
 
-Trạng thái: **chuẩn bị xong phía repo; chưa deploy** (cần token/CLI Northflank, xem cuối trang). Không dùng dữ liệu khách thật.
+Trạng thái: **đã deploy thử** (project `legal-office`, CLI context `legal-office`; không dùng context `bmsl`). Không dùng dữ liệu khách thật.
 
 ## Thành phần (project Northflank RIÊNG cho Legal Office, không chen vào `bmsl-website`)
 
@@ -37,3 +37,12 @@ Job `lo-migrate` không tự chạy khi có bản mới (Northflank CLI không l
 ## Kiểm tra sau deploy
 
 `GET /health` của API trả `{"status":"ok"}`; mở web, đăng nhập Admin thử; kiểm tra RLS: vai `legal_app` không đọc được dòng khi chưa đặt `app.tenant_id`.
+
+## Vận hành CD (build và deploy tự động)
+
+- `lo-api` và `lo-web` là service *combined* (build từ `nexagnet/legal-office`, nhánh `main`) với **CI và CD bật**: mỗi lần push `main`, Northflank tự build rồi deploy. Xác nhận bằng `northflank get service deployment --projectId legal-office --serviceId lo-api` (trường `deployedSHA` phải trùng commit của `main`).
+- `lo-migrate` là job thủ công dùng chính image của `lo-api`, nên luôn khớp commit với API. Chạy tay: `northflank start job run --projectId legal-office --jobId lo-migrate --input '{}'`. Xem kết quả: `northflank get job runs --projectId legal-office --jobId lo-migrate`.
+- **Migration tự chạy:** đặt `runOnSourceChange` của `lo-migrate` thành `always` (`northflank update job settings --projectId legal-office --jobId lo-migrate --input '{"backoffLimit":0,"runOnSourceChange":"always"}'`). Khi image của `lo-api` đổi, job chạy lại; migrate idempotent nên lần không có migration mới chỉ là no-op.
+- **Thứ tự:** migrate và deploy API được kích hoạt cùng lúc bởi một bản build, nên API mới có thể chạy vài chục giây trước migration. Vì vậy migration phải **cộng thêm** (thêm bảng/cột nullable), không đổi tên hoặc xóa cột trong cùng bản phát hành với code dùng nó (làm hai bước expand rồi contract).
+- Kiểm tra sau mỗi lần deploy: `deployedSHA` của `lo-api` và `lo-web`, lần chạy gần nhất của `lo-migrate` là SUCCESS, và `/api/health` trả `{"status":"ok"}`.
+- Không đổi secret, không xóa dịch vụ khi vận hành thường ngày.
