@@ -81,16 +81,11 @@ export default async function EnforcementPage({
   const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
   return (
     <section aria-labelledby="t">
-      <div className="page-head">
-        <div>
-          <h1 id="t">Tổ chức THA</h1>
-          <p className="muted">
-            Hồ sơ tổ chức thi hành án trong phạm vi quyền của bạn. Không ghi số tiền; thanh toán do
-            kế toán xác nhận từ MISA.
-          </p>
+      {items === 'error' || items.length === 0 ? (
+        <div className="mb-4 flex justify-end">
+          <NewEnforcementSheet branches={session.branches} />
         </div>
-        <NewEnforcementSheet branches={session.branches} />
-      </div>
+      ) : null}
       {items === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được danh sách</h2>
@@ -115,6 +110,7 @@ export default async function EnforcementPage({
             label="Nhóm trạng thái"
             tabs={statusTabs('/to-chuc-tha', GROUPS, items)}
             active={tab}
+            action={<NewEnforcementSheet branches={session.branches} />}
           />
           <div className="table-wrap">
             <table className="table-cards">
@@ -147,7 +143,7 @@ export default async function EnforcementPage({
                       {c.parties.length === 0 ? (
                         <span className="muted">Chưa có</span>
                       ) : (
-                        <ul>
+                        <ul className="m-0 grid list-none gap-1 p-0">
                           {c.parties.map((p) => (
                             <li key={p.id}>
                               <PartyName name={p.displayName} person={p.kind === 'PERSON'} /> ·{' '}
@@ -161,7 +157,7 @@ export default async function EnforcementPage({
                       {c.obligations.length === 0 ? (
                         <span className="muted">Chưa có</span>
                       ) : (
-                        <ul>
+                        <ul className="m-0 grid list-none gap-1 p-0">
                           {c.obligations.map((o) => (
                             <li key={o.id}>
                               {o.seq}. {o.description} ·{' '}
