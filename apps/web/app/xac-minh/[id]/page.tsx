@@ -6,6 +6,7 @@ import { type DialogAction } from '../../../components/DialogActionMenu';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
+import { Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
@@ -17,6 +18,8 @@ import {
 } from '../../../components/VerificationActions';
 import { loadItems } from '../../../lib/load-items';
 import { VERIFICATION_STATUS_LABEL } from '../../../lib/messages';
+import { personName } from '../../../lib/avatar';
+import { loadPeopleNames } from '../../../lib/people';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -135,6 +138,9 @@ export default async function VerificationDetailPage({
   }
 
   const assigned = c.handlerUserId !== null;
+  const handlerLabel = c.handlerUserId
+    ? (await loadPeopleNames(cookie, [c.handlerUserId])).get(c.handlerUserId)
+    : undefined;
   const allDone = c.rounds.length > 0 && open.length === 0;
   const steps: StepCard[] = [
     {
@@ -142,11 +148,17 @@ export default async function VerificationDetailPage({
       role: 'Admin hoặc Trưởng VP',
       title: 'Giao Thừa hành viên phụ trách',
       state: assigned || concluded ? 'done' : 'current',
-      description: assigned
-        ? (handlers.find((h) => h.userId === c.handlerUserId)?.label ?? 'Đã phân công')
-        : isAdmin
-          ? 'Chọn Thừa hành viên sẽ phụ trách hồ sơ này.'
-          : 'Đang chờ Admin hoặc Trưởng VP giao người phụ trách.',
+      description: assigned ? (
+        handlerLabel ? (
+          <Person name={personName(handlerLabel)} id={c.handlerUserId} />
+        ) : (
+          'Đã phân công'
+        )
+      ) : isAdmin ? (
+        'Chọn Thừa hành viên sẽ phụ trách hồ sơ này.'
+      ) : (
+        'Đang chờ Admin hoặc Trưởng VP giao người phụ trách.'
+      ),
       action:
         !assigned && !concluded && isAdmin ? (
           <AssignHandler

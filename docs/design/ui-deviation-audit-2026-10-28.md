@@ -47,3 +47,10 @@ Quy tắc mẫu stepper dạng thẻ: mỗi bước một thẻ có viền, số
 4. Giữ hay bỏ lý do "Lý do khác" (tập mã tối thiểu hiện có).
 5. Quyền giao việc: UI chỉ cho Admin, nghiệp vụ nói Admin hoặc Trưởng VP.
 6. Báo kết quả cho cơ quan trong 2 ngày làm việc: chưa vẽ vì số điều luật còn chờ đối chiếu (nghiep-vu-toan-du-an.md, mục 5).
+
+## Quyết định đã chốt sau thiết kế N15 (2026-10-28)
+
+- **Avatar và họ tên người**: avatar chữ viết tắt (Figma N0, node `292:2`) ở mọi chỗ hiện một con người; không có tính năng đổi ảnh. Họ tên lấy từ `users.full_name` (Admin nhập khi thêm thành viên, sửa được ở Quản trị › Nhân sự › "Sửa tên"). Tài khoản chưa có họ tên hiện phần trước `@` của email.
+- **Phạm vi hiển thị tên (giả định, do Claude chốt theo ủy quyền)**: mọi vai thấy tên người xử lý, người ghi lần tống đạt trong phạm vi hồ sơ họ xem được. API `GET /people/names?ids=` chỉ trả tên người cùng văn phòng với người hỏi và chỉ khi biết mã; không có endpoint liệt kê danh bạ.
+- Tài khoản thử giả lập `*@example.invalid` được điền họ tên mẫu bằng migration 0058 (chỉ khi chưa có họ tên).
+- Chưa có: tên văn bản và ghi chú mỗi lần đi (CSDL chưa có cột); người tạo/người duyệt ở Hộp duyệt (API chưa trả mã người).

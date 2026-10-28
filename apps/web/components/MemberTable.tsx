@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ROLE_LABEL } from '../lib/messages';
 import type { Member } from '../lib/admin-api';
+import { CaseActionDialog } from './CaseActionDialog';
+import { MemberNameForm } from './MemberNameForm';
+import { Avatar } from './ui/avatar';
 
 export interface MemberRow extends Member {
   readonly pending: boolean;
@@ -22,15 +25,6 @@ function splitLabel(label: string): { name: string; email: string | null } {
   return name && email ? { name, email } : { name: email ?? label, email: null };
 }
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  const pick = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts;
-  return pick
-    .map((p) => p?.charAt(0) ?? '')
-    .join('')
-    .toUpperCase();
-}
-
 function statusOf(m: MemberRow): { label: string; tone: 'ok' | 'warn' | 'idle' } {
   if (!m.role)
     return m.pending
@@ -45,9 +39,12 @@ function statusOf(m: MemberRow): { label: string; tone: 'ok' | 'warn' | 'idle' }
 export function MemberTable({
   members,
   action,
+  officeId,
 }: {
   readonly members: readonly MemberRow[];
   readonly action?: ReactNode;
+  /** Có mã văn phòng thì Admin sửa được họ tên từng người. */
+  readonly officeId?: string;
 }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -121,13 +118,30 @@ export function MemberTable({
                 <tr key={`${m.userId}-${m.role ?? 'none'}`}>
                   <th scope="row">
                     <span className="person">
-                      <span className="avatar" aria-hidden="true" data-idle={!m.role}>
-                        {initialsOf(name)}
-                      </span>
+                      <Avatar
+                        name={name}
+                        id={m.userId}
+                        size="lg"
+                        className={m.role ? undefined : 'opacity-50'}
+                      />
                       <span>
                         <span className="person-name">{name}</span>
                         {email ? <span className="person-mail">{email}</span> : null}
                       </span>
+                      {officeId && m.role ? (
+                        <CaseActionDialog
+                          label="Sửa tên"
+                          title="Sửa họ tên hiển thị"
+                          description={email ?? undefined}
+                          className="link-btn"
+                        >
+                          <MemberNameForm
+                            userId={m.userId}
+                            officeId={officeId}
+                            currentName={name}
+                          />
+                        </CaseActionDialog>
+                      ) : null}
                     </span>
                   </th>
                   <td>

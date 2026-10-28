@@ -6,6 +6,8 @@ import { StatusPill } from '../../components/StatusPill';
 import { NewServiceSheet } from '../../components/NewCaseSheets';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../lib/messages';
+import { Person } from '../../components/ui/avatar';
+import { loadPeopleNames } from '../../lib/people';
 import { deadlineView, serviceNextStep } from '../../lib/service-view';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +25,7 @@ interface Item {
   readonly status: string;
   readonly undeliverableReason: string | null;
   readonly attempts: number;
+  readonly handlerUserId: string | null;
 }
 
 async function load(cookie: string | null): Promise<Item[] | 'error'> {
@@ -60,6 +63,10 @@ export default async function ServicePage({
   }
   const cookie = await requestCookie();
   const items = await load(cookie);
+  const people = await loadPeopleNames(
+    cookie,
+    items === 'error' ? [] : items.map((i) => i.handlerUserId),
+  );
   const tab = activeTab(GROUPS, sp.tab);
   const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
   return (
@@ -110,6 +117,7 @@ export default async function ServicePage({
                   <th scope="col">Người nhận</th>
                   <th scope="col">Hạn</th>
                   <th scope="col">Trạng thái</th>
+                  <th scope="col">Người xử lý</th>
                   <th scope="col">Số lần</th>
                   <th scope="col">Việc tiếp theo</th>
                 </tr>
@@ -151,6 +159,19 @@ export default async function ServicePage({
                             · {UNDELIVERABLE_LABEL[d.undeliverableReason] ?? d.undeliverableReason}
                           </span>
                         ) : null}
+                      </td>
+                      <td data-label="Người xử lý">
+                        {d.handlerUserId && people.get(d.handlerUserId) ? (
+                          <Person
+                            name={people.get(d.handlerUserId) ?? ''}
+                            id={d.handlerUserId}
+                            size="sm"
+                          />
+                        ) : (
+                          <span className="muted">
+                            {d.handlerUserId ? 'Đã phân công' : 'Chưa giao'}
+                          </span>
+                        )}
                       </td>
                       <td data-label="Số lần">{d.attempts}</td>
                       <td data-label="Việc tiếp theo">
