@@ -1,6 +1,6 @@
 {
  "role": "thua-hanh-vien",
- "title": "Hướng dẫn dành cho Thừa hành viên",
+ "title": "x",
  "sections": [
   {
    "title": "Việc của tôi: hồ sơ đang giao cho bạn",
@@ -12,7 +12,7 @@
     {
      "title": "Trang Việc của tôi",
      "note": "Ba thẻ trên cùng cho biết số việc quá hạn, đang xử lý và tổng số việc. Các nút lọc theo nghiệp vụ nằm ngay dưới.",
-     "img": "thua-hanh-vien/27.png",
+     "img": "thua-hanh-vien/52.png",
      "marks": [
       {
        "n": 1,
@@ -27,7 +27,7 @@
     {
      "title": "Lọc theo một nghiệp vụ",
      "note": "Sau khi chọn Tống đạt, danh sách chỉ còn các văn bản tống đạt được giao cho bạn; bấm Tất cả để quay lại.",
-     "img": "thua-hanh-vien/28.png",
+     "img": "thua-hanh-vien/53.png",
      "marks": [
       {
        "n": 1,
@@ -48,7 +48,7 @@
     {
      "title": "Mở Thêm thao tác, chọn Ký và đóng dấu",
      "note": "Hồ sơ đã có số và đang chờ ký.",
-     "img": "thua-hanh-vien/37.png",
+     "img": "thua-hanh-vien/62.png",
      "marks": [
       {
        "n": 1,
@@ -59,7 +59,7 @@
     {
      "title": "Bấm Xác nhận đã ký",
      "note": "Ngăn kéo hiện ba bước dạng thẻ: bước 1 của THV, bước 2 và 3 của Văn thư (mờ cho tới khi tới bước).",
-     "img": "thua-hanh-vien/38.png",
+     "img": "thua-hanh-vien/63.png",
      "marks": [
       {
        "n": 1,
@@ -70,7 +70,7 @@
     {
      "title": "Đã xác nhận ký",
      "note": "Bước 1 chuyển sang Đã xong; bước kế tiếp là Văn thư đóng dấu.",
-     "img": "thua-hanh-vien/39.png",
+     "img": "thua-hanh-vien/64.png",
      "marks": []
     }
    ]
@@ -86,7 +86,7 @@
     {
      "title": "Ghi lần liên hệ khách",
      "note": "Chọn loại liên hệ và kết quả liên hệ rồi lưu. Nhật ký liên hệ ghi ngày, người và kết quả.",
-     "img": "thua-hanh-vien/14.png",
+     "img": "thua-hanh-vien/77.png",
      "marks": [
       {
        "n": 1,
@@ -105,7 +105,7 @@
     {
      "title": "Ghi người nhận và ngày bàn giao",
      "note": "Khi khách đến nhận bản gốc: nhập người nhận kết quả và ngày bàn giao thực tế.",
-     "img": "thua-hanh-vien/15.png",
+     "img": "thua-hanh-vien/78.png",
      "marks": [
       {
        "n": 1,
@@ -128,14 +128,14 @@
     {
      "title": "Hồ sơ đã trả kết quả",
      "note": "Hệ thống chỉ cho trả khi đủ điều kiện; thiếu một điều kiện sẽ báo lý do bằng chữ đỏ ngay dưới nút.",
-     "img": "thua-hanh-vien/16.png",
+     "img": "thua-hanh-vien/79.png",
      "marks": []
     }
    ]
   },
   {
    "title": "Tống đạt: ghi từng lần đi giao văn bản",
-   "intro": "Tống đạt là giao văn bản cho đúng người, đúng nơi, đúng hạn. Mỗi lần đi giao đều phải ghi lại. Không gặp người nhận KHÔNG phải là tống đạt thành công; chỉ khi có bằng chứng đã giao mới kết thúc việc. Lưu ý: màn chi tiết hiện chưa hiện lịch sử từng lần, địa chỉ và tên văn bản; phần này sẽ bổ sung ở bản sau.",
+   "intro": "Tống đạt là giao văn bản cho đúng người, đúng nơi, đúng hạn. Mỗi lần đi giao đều phải ghi lại. Không gặp người nhận KHÔNG phải là tống đạt thành công; chỉ khi có bằng chứng đã giao mới kết thúc việc. Màn chi tiết hiện địa chỉ, người xử lý (kèm avatar) và lịch sử từng lần đi giao.",
    "rules": [
     "Chưa được giao làm thì không ghi được lần tống đạt.",
     "\"Không thể tống đạt được\" chỉ chọn được sau ít nhất một lần đã thử.",
@@ -145,7 +145,7 @@
     {
      "title": "Danh sách văn bản tống đạt",
      "note": "Cột \"Việc tiếp theo\" cho biết việc cần làm; văn bản đã xong hiện \"Hoàn tất · xem bằng chứng\".",
-     "img": "thua-hanh-vien/29.png",
+     "img": "thua-hanh-vien/54.png",
      "marks": [
       {
        "n": 1,
@@ -156,7 +156,7 @@
     {
      "title": "Trang chi tiết: quy trình 3 bước",
      "note": "Bước 1 do Admin hoặc Trưởng VP giao người xử lý (đã xong); bước 2 là việc của bạn; bước 3 mở khi có bằng chứng hoặc kết luận.",
-     "img": "thua-hanh-vien/30.png",
+     "img": "thua-hanh-vien/55.png",
      "marks": [
       {
        "n": 1,
@@ -171,7 +171,7 @@
     {
      "title": "Chọn một trong ba kết quả",
      "note": "Ba lựa chọn: đã đưa được văn bản (kết thúc việc, cần bằng chứng); chưa gặp được người nhận (việc vẫn mở, chọn lý do); không thể tống đạt được (chỉ chọn được sau ít nhất một lần đã thử).",
-     "img": "thua-hanh-vien/31.png",
+     "img": "thua-hanh-vien/56.png",
      "marks": [
       {
        "n": 1,
@@ -190,7 +190,7 @@
     {
      "title": "Chưa gặp được: chọn lý do rồi lưu lần thử",
      "note": "Chọn lý do chưa gặp được (từ chối, vắng mặt, không có người nhận, sai địa chỉ, lý do khác). Giờ ghi nhận do hệ thống tự lấy.",
-     "img": "thua-hanh-vien/32.png",
+     "img": "thua-hanh-vien/57.png",
      "marks": [
       {
        "n": 1,
@@ -205,13 +205,28 @@
     {
      "title": "Đã ghi lần thử",
      "note": "Số lần đã thử tăng; việc vẫn mở. Sau ít nhất một lần thử, lựa chọn \"Không thể tống đạt được\" được mở.",
-     "img": "thua-hanh-vien/33.png",
+     "img": "thua-hanh-vien/58.png",
      "marks": []
+    },
+    {
+     "title": "Lịch sử các lần tống đạt",
+     "note": "Mỗi lần đi giao được lưu cùng giờ ghi nhận và kết quả (ví dụ vắng mặt). Kéo xuống dưới quy trình để xem mục Các lần tống đạt.",
+     "img": "thua-hanh-vien/80.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Mục Các lần tống đạt: giờ và kết quả từng lần đi giao"
+      },
+      {
+       "n": 2,
+       "text": "Địa chỉ người nhận hiện ngay trong thông tin văn bản"
+      }
+     ]
     },
     {
      "title": "Kết luận không thể tống đạt được",
      "note": "Chỉ chọn được sau ít nhất một lần đã thử. Nêu lý do rồi xác nhận; kết luận này kết thúc việc.",
-     "img": "thua-hanh-vien/34.png",
+     "img": "thua-hanh-vien/59.png",
      "marks": [
       {
        "n": 1,
@@ -222,7 +237,7 @@
     {
      "title": "Đã đưa được văn bản: tải bằng chứng",
      "note": "Tải biên bản hoặc ảnh bằng chứng (PDF, JPEG, PNG, tối đa 25 MB). Sau khi xác nhận, việc chuyển sang Đã tống đạt và không sửa được.",
-     "img": "thua-hanh-vien/35.png",
+     "img": "thua-hanh-vien/60.png",
      "marks": [
       {
        "n": 1,
@@ -237,7 +252,7 @@
     {
      "title": "Văn bản đã được tống đạt",
      "note": "Bước 3 hoàn tất; số lần và bằng chứng được lưu.",
-     "img": "thua-hanh-vien/36.png",
+     "img": "thua-hanh-vien/61.png",
      "marks": []
     }
    ]
@@ -253,7 +268,7 @@
     {
      "title": "Quy trình 3 bước và các lượt xác minh",
      "note": "Đầu trang là quy trình 3 bước (giao THV, xác minh các bên, kết luận) kèm số lượt đã có kết quả. Bên dưới là bảng các lượt.",
-     "img": "thua-hanh-vien/40.png",
+     "img": "thua-hanh-vien/65.png",
      "marks": [
       {
        "n": 1,
@@ -268,7 +283,7 @@
     {
      "title": "Ghi nguồn kèm tệp",
      "note": "Nhập loại nguồn, mức bảo mật, mục đích và tải tệp. Nguồn nhạy cảm chọn Mật hoặc Có dữ liệu cá nhân.",
-     "img": "thua-hanh-vien/41.png",
+     "img": "thua-hanh-vien/66.png",
      "marks": [
       {
        "n": 1,
@@ -295,7 +310,7 @@
     {
      "title": "Ghi kết quả của lượt",
      "note": "Sau khi có nguồn, nhập kết quả của lượt rồi ghi. Kết quả lượt không đồng nghĩa với kết luận cuối.",
-     "img": "thua-hanh-vien/42.png",
+     "img": "thua-hanh-vien/67.png",
      "marks": [
       {
        "n": 1,
@@ -320,7 +335,7 @@
     {
      "title": "Chọn Đề xuất kết luận",
      "note": "Menu Thêm thao tác của hồ sơ xác minh gồm: Thêm lượt, Đề xuất kết luận, Quyết định kết luận (Trưởng VP), Phân công, Ngày ký hợp đồng.",
-     "img": "thua-hanh-vien/43.png",
+     "img": "thua-hanh-vien/68.png",
      "marks": [
       {
        "n": 1,
@@ -331,7 +346,7 @@
     {
      "title": "Nhập nội dung đề xuất kết luận",
      "note": "Ghi ngắn gọn kết luận dựa trên các lượt đã có kết quả.",
-     "img": "thua-hanh-vien/44.png",
+     "img": "thua-hanh-vien/69.png",
      "marks": [
       {
        "n": 1,
@@ -356,7 +371,7 @@
     {
      "title": "Trang chi tiết hồ sơ THA: quy trình 3 bước",
      "note": "Quy trình gồm giao THV, thực hiện các nghĩa vụ (kèm số nghĩa vụ đã hoàn tất) và hoàn tất hoặc chấm dứt hồ sơ. Mọi thao tác nằm sau nút Cập nhật hồ sơ.",
-     "img": "thua-hanh-vien/45.png",
+     "img": "thua-hanh-vien/70.png",
      "marks": [
       {
        "n": 1,
@@ -371,7 +386,7 @@
     {
      "title": "Ghi kết quả một phần kèm chứng cứ",
      "note": "Trong ngăn kéo: chọn nghĩa vụ, loại kết quả (một phần hoặc hoàn tất nghĩa vụ), nội dung và tệp chứng cứ. Kết quả được lưu bất biến.",
-     "img": "thua-hanh-vien/46.png",
+     "img": "thua-hanh-vien/71.png",
      "marks": [
       {
        "n": 1,
@@ -394,7 +409,7 @@
     {
      "title": "Nghĩa vụ đã ghi nhận một phần",
      "note": "Trạng thái nghĩa vụ chuyển sang Thực hiện một phần; hồ sơ chỉ hoàn tất khi mọi nghĩa vụ xong.",
-     "img": "thua-hanh-vien/47.png",
+     "img": "thua-hanh-vien/72.png",
      "marks": []
     }
    ]
@@ -410,7 +425,7 @@
     {
      "title": "Tab Thông tin",
      "note": "Thông tin hồ sơ và người phụ trách.",
-     "img": "thua-hanh-vien/48.png",
+     "img": "thua-hanh-vien/73.png",
      "marks": [
       {
        "n": 1,
@@ -421,7 +436,7 @@
     {
      "title": "Tab Tài liệu",
      "note": "Kho chứng cứ và bản scan có phiên bản và mã kiểm tra.",
-     "img": "thua-hanh-vien/49.png",
+     "img": "thua-hanh-vien/74.png",
      "marks": [
       {
        "n": 1,
@@ -432,7 +447,7 @@
     {
      "title": "Tab Pháp lý",
      "note": "Người yêu cầu, địa điểm, sự kiện chứng kiến, người tham gia: dữ liệu cho văn bản N-04.",
-     "img": "thua-hanh-vien/50.png",
+     "img": "thua-hanh-vien/75.png",
      "marks": [
       {
        "n": 1,
@@ -443,7 +458,7 @@
     {
      "title": "Tab Lịch sử",
      "note": "Nhật ký ai làm gì, lúc nào; chỉ ghi thêm, không sửa.",
-     "img": "thua-hanh-vien/51.png",
+     "img": "thua-hanh-vien/76.png",
      "marks": [
       {
        "n": 1,

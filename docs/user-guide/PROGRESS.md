@@ -23,3 +23,8 @@ Cập nhật: 2026-10-28. Bản deploy: https://http--lo-web--8929jqrrnzyy.code.
 - lo-web và lo-api đã deploy đúng commit 0393a35; đã chạy thử runtime: Tống đạt (3 lựa chọn kết quả, lần thử, đã tống đạt kèm bằng chứng), Xác minh (nguồn, kết quả lượt, đề xuất và quyết định kết luận), THA (nghĩa vụ, kết quả một phần), ngăn kéo Ký/đóng dấu/scan, bộ lọc Việc của tôi đều hoạt động.
 - Đã chụp lại các màn đổi giao diện và cập nhật PDF của THV, Văn thư, Trưởng VP.
 - Còn lại: API Tống đạt chưa trả lịch sử các lần, địa chỉ và tên văn bản; PDF đã ghi chú, cập nhật sau khi có PR đó.
+
+## Cập nhật 2026-10-28 (sau PR #229 và #233)
+- lo-web và lo-api đã deploy commit 6911925. Đã chụp lại cả 6 vai trên dữ liệu DEMO mới: avatar và họ tên hiển thị, Tống đạt có địa chỉ và lịch sử các lần, phân công THV, bảng Nhân sự (Sửa tên).
+- Đã bỏ ghi chú "chờ API" của Tống đạt. Chưa có: tên văn bản tống đạt (CSDL chưa lưu), người tạo/người duyệt ở Hộp duyệt.
+- Lỗi hiển thị thấy ở bảng Nhân sự: họ tên và email dính liền một dòng, nút "Sửa tên" bị xuống dòng.

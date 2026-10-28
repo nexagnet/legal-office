@@ -13,7 +13,7 @@
     {
      "title": "Tổng quan và thanh bên của Thư ký",
      "note": "Thư ký thấy bốn nghiệp vụ, khách hàng và hợp đồng, sổ sách, biểu mẫu, công văn. Mục Người dùng (nhân sự, phân quyền) chỉ dành cho Admin và Trưởng văn phòng.",
-     "img": "thu-ky/01.png",
+     "img": "thu-ky/30.png",
      "marks": [
       {
        "n": 1,
@@ -34,7 +34,7 @@
     {
      "title": "Bấm Tạo hồ sơ Vi bằng",
      "note": "Nút nằm ở góc phải phía trên danh sách.",
-     "img": "thu-ky/02.png",
+     "img": "thu-ky/31.png",
      "marks": [
       {
        "n": 1,
@@ -45,7 +45,7 @@
     {
      "title": "Nhập thông tin khách và yêu cầu",
      "note": "Chọn loại khách (cá nhân hoặc tổ chức) và địa điểm tiếp nhận, nhập mã tham chiếu khách, tên, điện thoại, tiêu đề và nội dung yêu cầu.",
-     "img": "thu-ky/03.png",
+     "img": "thu-ky/32.png",
      "marks": [
       {
        "n": 1,
@@ -76,7 +76,7 @@
     {
      "title": "Đã tiếp nhận hồ sơ",
      "note": "Hệ thống báo \"Đã tiếp nhận hồ sơ\" và mở trang hồ sơ. Chờ Admin phân công Thừa hành viên.",
-     "img": "thu-ky/04.png",
+     "img": "thu-ky/33.png",
      "marks": []
     }
    ]
@@ -92,7 +92,7 @@
     {
      "title": "Danh bạ khách hàng và hợp đồng",
      "note": "Tìm khách ở ô tìm kiếm, mở khách để cập nhật thông tin và thêm hợp đồng.",
-     "img": "thu-ky/05.png",
+     "img": "thu-ky/34.png",
      "marks": [
       {
        "n": 1,

@@ -1,6 +1,6 @@
 import { browser, asRole, BASE } from './lib.mjs';
 import { Guide } from './guide.mjs';
-const C3 = '02127160-0cca-4f52-8f71-457f86904879';
+const C3 = process.env.CASE;
 const b = await browser(); const { page } = await asRole(b, 'ADMIN');
 const g = new Guide('admin', 'Hướng dẫn dành cho Admin');
 const go = async (p) => { await page.goto(BASE + p, { waitUntil: 'networkidle' }); await page.waitForTimeout(900); };

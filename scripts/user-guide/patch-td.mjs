@@ -1,0 +1,16 @@
+import { browser, asRole, BASE } from './lib.mjs';
+import { Guide } from './guide.mjs';
+process.env.APPEND = '1';
+const TD = process.env.TD.split(',')[0];
+const b = await browser(); const { page } = await asRole(b, 'THV');
+const g = new Guide('thua-hanh-vien', 'x');
+const sec = g.sections.find((s) => s.title.startsWith('Tống đạt: ghi từng lần'));
+sec.intro = sec.intro.replace(' Lưu ý: màn chi tiết hiện chưa hiện lịch sử từng lần, địa chỉ và tên văn bản; phần này sẽ bổ sung ở bản sau.', ' Màn chi tiết hiện địa chỉ, người xử lý (kèm avatar) và lịch sử từng lần đi giao.');
+g.cur = sec;
+await page.goto(BASE + '/tong-dat/' + TD, { waitUntil: 'domcontentloaded' }); await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(1500);
+const before = sec.steps.length;
+await g.shot(page, { title: 'Lịch sử các lần tống đạt', note: 'Mỗi lần đi giao được lưu cùng giờ ghi nhận và kết quả (ví dụ vắng mặt). Kéo xuống dưới quy trình để xem mục Các lần tống đạt.', marks: [{ loc: page.getByText('Các lần tống đạt').first(), text: 'Mục Các lần tống đạt: giờ và kết quả từng lần đi giao' }, { loc: page.getByText('Địa chỉ').first(), text: 'Địa chỉ người nhận hiện ngay trong thông tin văn bản' }] });
+const st = sec.steps.pop();
+const idx = sec.steps.findIndex((x) => x.title === 'Đã ghi lần thử');
+sec.steps.splice(idx + 1, 0, st);
+g.save(); await b.close(); console.log('ok', idx);

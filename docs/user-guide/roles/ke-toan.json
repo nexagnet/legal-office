@@ -13,7 +13,7 @@
     {
      "title": "Trang Tổng quan của Kế toán",
      "note": "Thanh bên của Kế toán rất gọn: Tổng quan và Vi bằng.",
-     "img": "ke-toan/01.png",
+     "img": "ke-toan/11.png",
      "marks": [
       {
        "n": 1,
@@ -24,7 +24,7 @@
     {
      "title": "Danh sách Vi bằng",
      "note": "Tìm hồ sơ cần xác nhận: cột Bước tiếp theo cho biết hồ sơ nào đang chờ xác nhận MISA.",
-     "img": "ke-toan/02.png",
+     "img": "ke-toan/12.png",
      "marks": [
       {
        "n": 1,
@@ -45,7 +45,7 @@
     {
      "title": "Mở hồ sơ và bấm Thêm thao tác",
      "note": "Bước kế tiếp của hồ sơ là Xác nhận MISA và cấp số.",
-     "img": "ke-toan/03.png",
+     "img": "ke-toan/13.png",
      "marks": [
       {
        "n": 1,
@@ -56,7 +56,7 @@
     {
      "title": "Chọn Cấp số MISA",
      "note": "Mục này gồm cả xác nhận thanh toán (việc của Kế toán) và cấp số (việc của Văn thư).",
-     "img": "ke-toan/04.png",
+     "img": "ke-toan/14.png",
      "marks": [
       {
        "n": 1,
@@ -67,7 +67,7 @@
     {
      "title": "Nhập mã tham chiếu và xác nhận",
      "note": "Chỉ nhập mã tham chiếu của chứng từ trên MISA, không nhập số tiền.",
-     "img": "ke-toan/05.png",
+     "img": "ke-toan/15.png",
      "marks": [
       {
        "n": 1,
@@ -82,7 +82,7 @@
     {
      "title": "Đã xác nhận thanh toán đủ",
      "note": "Trạng thái chuyển sang đã xác nhận; Văn thư giờ có thể cấp số. Hệ thống ghi lại người xác nhận và thời điểm.",
-     "img": "ke-toan/06.png",
+     "img": "ke-toan/16.png",
      "marks": []
     }
    ]

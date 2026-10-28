@@ -13,7 +13,7 @@
     {
      "title": "Tổng quan và thanh bên của Admin",
      "note": "Admin thấy đủ mục, gồm cả nhóm Quản trị ở cuối thanh bên: Người dùng và Cấu hình hệ thống.",
-     "img": "admin/01.png",
+     "img": "admin/18.png",
      "marks": [
       {
        "n": 1,
@@ -33,7 +33,7 @@
     {
      "title": "Mở hồ sơ, bấm Thêm thao tác, chọn Phân công",
      "note": "Mục Phân công thừa phát lại nằm trong nhóm Hồ sơ của menu.",
-     "img": "admin/02.png",
+     "img": "admin/19.png",
      "marks": [
       {
        "n": 1,
@@ -44,7 +44,7 @@
     {
      "title": "Chọn THV và xác nhận phân công",
      "note": "Chọn Thừa hành viên trong danh sách rồi xác nhận. Khi đổi người phải nhập lý do.",
-     "img": "admin/03.png",
+     "img": "admin/20.png",
      "marks": [
       {
        "n": 1,
@@ -59,7 +59,7 @@
     {
      "title": "Hồ sơ đã được phân công",
      "note": "Trạng thái chuyển sang Đã phân công THV; lịch sử ghi người phân công.",
-     "img": "admin/04.png",
+     "img": "admin/21.png",
      "marks": []
     }
    ]
@@ -75,7 +75,7 @@
     {
      "title": "Nhân sự",
      "note": "Danh bạ thành viên: vai trò, địa điểm, quyền ký pháp lý và trạng thái. Tìm theo tên hoặc email, lọc theo vai trò.",
-     "img": "admin/05.png",
+     "img": "admin/22.png",
      "marks": [
       {
        "n": 1,
@@ -90,13 +90,13 @@
     {
      "title": "Thêm thành viên",
      "note": "Nhập họ tên, email, vai trò (Văn thư, Kế toán chọn thêm địa điểm), chọn cách đăng nhập (link qua email là khuyến nghị) và lý do. Hệ thống lập đề xuất chờ Trưởng văn phòng duyệt.",
-     "img": "admin/06.png",
+     "img": "admin/23.png",
      "marks": []
     },
     {
      "title": "Phân quyền: đề xuất đã xử lý",
      "note": "Mọi đề xuất thêm thành viên, đổi vai, cấp địa điểm, cấp hoặc thu hồi quyền ký đều lưu ở đây. Từ chối bắt buộc ghi chú; Admin có thể rút đề xuất của mình.",
-     "img": "admin/07.png",
+     "img": "admin/24.png",
      "marks": [
       {
        "n": 1,
@@ -107,19 +107,19 @@
     {
      "title": "Chi nhánh (địa điểm hoạt động)",
      "note": "Thêm hoặc đổi tên địa điểm; không xoá được vì hồ sơ và sổ tham chiếu địa điểm. Tên không trùng trong văn phòng.",
-     "img": "admin/08.png",
+     "img": "admin/25.png",
      "marks": []
     },
     {
      "title": "Email gửi thư",
      "note": "Cấu hình SMTP để hệ thống gửi link đăng nhập qua email cho mọi tài khoản.",
-     "img": "admin/09.png",
+     "img": "admin/26.png",
      "marks": []
     },
     {
      "title": "Lịch làm việc",
      "note": "Ngày làm việc trong tuần và danh sách ngày nghỉ, lễ. Hạn pháp định tính theo lịch này; hệ thống chỉ nhắc, không tự đổi trạng thái hồ sơ.",
-     "img": "admin/10.png",
+     "img": "admin/27.png",
      "marks": []
     }
    ]
@@ -134,7 +134,7 @@
     {
      "title": "Cấu hình văn phòng",
      "note": "Sửa thông tin rồi bấm Lưu thay đổi.",
-     "img": "admin/11.png",
+     "img": "admin/28.png",
      "marks": [
       {
        "n": 1,

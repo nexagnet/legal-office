@@ -13,7 +13,7 @@
     {
      "title": "Tổng quan hoạt động Văn phòng",
      "note": "Thẻ bốn nghiệp vụ, khối Chờ duyệt (việc cần bạn quyết định), Sức khoẻ văn phòng (chưa phân công, chờ trả khách, hạn quá) và Nhắc hạn.",
-     "img": "truong-van-phong/01.png",
+     "img": "truong-van-phong/09.png",
      "marks": [
       {
        "n": 1,
@@ -28,7 +28,7 @@
     {
      "title": "Hộp duyệt",
      "note": "Mỗi đề nghị có ba lựa chọn: duyệt, trả lại để bổ sung (chặn hoàn tất cho tới khi nộp lại) hoặc từ chối (chấm dứt đề nghị). Người đề nghị không tự duyệt đề nghị của mình.",
-     "img": "truong-van-phong/02.png",
+     "img": "truong-van-phong/10.png",
      "marks": []
     }
    ]
@@ -44,7 +44,7 @@
     {
      "title": "Tab Kết luận: xem đề xuất của THV",
      "note": "Đọc kỹ nội dung kết luận đề xuất và các lượt xác minh ở tab bên cạnh trước khi quyết định.",
-     "img": "truong-van-phong/03.png",
+     "img": "truong-van-phong/11.png",
      "marks": [
       {
        "n": 1,
@@ -55,7 +55,7 @@
     {
      "title": "Chấp nhận hoặc trả về",
      "note": "Chọn Chấp nhận kết luận nếu đủ căn cứ; chọn Trả về để xác minh tiếp nếu còn thiếu.",
-     "img": "truong-van-phong/04.png",
+     "img": "truong-van-phong/12.png",
      "marks": [
       {
        "n": 1,
@@ -70,7 +70,7 @@
     {
      "title": "Hồ sơ xác minh đã có kết luận",
      "note": "Trạng thái chuyển sang Đã kết luận; lịch sử ghi người quyết định và thời điểm.",
-     "img": "truong-van-phong/05.png",
+     "img": "truong-van-phong/13.png",
      "marks": []
     }
    ]
@@ -86,7 +86,7 @@
     {
      "title": "Tồn kho vật tư",
      "note": "Bốn bộ lọc: Tất cả, Còn tồn, Sắp hết, Hết tồn. Cột Ngưỡng cho phép đặt số cảnh báo.",
-     "img": "truong-van-phong/06.png",
+     "img": "truong-van-phong/14.png",
      "marks": [
       {
        "n": 1,
@@ -111,7 +111,7 @@
     {
      "title": "Báo cáo hoạt động",
      "note": "Chọn khoảng ngày, chi nhánh và cách chia (theo Thừa hành viên hoặc chi nhánh) rồi bấm Áp dụng.",
-     "img": "truong-van-phong/07.png",
+     "img": "truong-van-phong/15.png",
      "marks": [
       {
        "n": 1,
@@ -126,7 +126,7 @@
     {
      "title": "Sổ theo dõi việc lập Vi bằng (S-02)",
      "note": "Chọn sổ và năm. Cột chưa có dữ liệu hiển thị dấu —.",
-     "img": "truong-van-phong/08.png",
+     "img": "truong-van-phong/16.png",
      "marks": [
       {
        "n": 1,

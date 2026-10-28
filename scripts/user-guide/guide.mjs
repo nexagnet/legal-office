@@ -27,7 +27,7 @@ export class Guide {
       const loc = m.loc.first();
       await loc.scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
     }
-    await page.evaluate(() => { const map = [['phungtienviet14@gmail.com', 'admin-demo@example.invalid'], ['phungtienviet14', 'admin-demo'], ['van-thu@van-thu.com', 'van-thu-2@example.invalid']]; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { let t = n.nodeValue; for (const [a, b] of map) t = t.split(a).join(b); if (t !== n.nodeValue) n.nodeValue = t; } });
+    await page.evaluate(() => { const map = [['phungtienviet14@gmail.com', 'admin-demo@example.invalid'], ['phungtienviet14', 'admin-demo'], ['van-thu@van-thu.com', 'van-thu-2@example.invalid'], ['phungvietdz@gmail.com', 'thv-2@example.invalid'], ['Phùng Việt', 'DEMO Thừa hành viên 2'], ['Nguyễn Văn Thư', 'DEMO Văn thư 2']]; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { let t = n.nodeValue; for (const [a, b] of map) t = t.split(a).join(b); if (t !== n.nodeValue) n.nodeValue = t; } });
     await page.waitForTimeout(250);
     for (const [i, m] of marks.entries()) {
       const bb = await m.loc.first().boundingBox({ timeout: 5000 }).catch(() => null);

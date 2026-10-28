@@ -89,7 +89,7 @@
     {
      "title": "Hồ sơ đã ký, chờ đóng dấu",
      "note": "Thanh tiến độ cho thấy bước kế tiếp là Ký, đóng dấu và bản scan.",
-     "img": "van-thu/22.png",
+     "img": "van-thu/29.png",
      "marks": [
       {
        "n": 1,
@@ -100,7 +100,7 @@
     {
      "title": "Xác nhận đã đóng dấu",
      "note": "Ngăn kéo hiện ba bước dạng thẻ. Bước 1 (THV ký) đã xong; bước 2 là việc của Văn thư.",
-     "img": "van-thu/23.png",
+     "img": "van-thu/30.png",
      "marks": [
       {
        "n": 1,
@@ -111,7 +111,7 @@
     {
      "title": "Chọn tệp scan và tải lên",
      "note": "Bước 3 mở ra sau khi xác nhận đóng dấu. Chọn tệp PDF đã có chữ ký và dấu.",
-     "img": "van-thu/24.png",
+     "img": "van-thu/31.png",
      "marks": [
       {
        "n": 1,
@@ -126,7 +126,7 @@
     {
      "title": "Đã tải bản scan cuối",
      "note": "Cả ba bước đã xong; bản scan được lưu kèm mã kiểm tra. Hồ sơ chuyển sang bước trả kết quả cho THV.",
-     "img": "van-thu/25.png",
+     "img": "van-thu/32.png",
      "marks": []
     }
    ]
@@ -142,7 +142,7 @@
     {
      "title": "Bấm Cấp số khi đã có xác nhận thanh toán",
      "note": "Trạng thái đã chuyển sang Đã xác nhận thanh toán đủ; nút Cấp số đã sẵn sàng.",
-     "img": "van-thu/09.png",
+     "img": "van-thu/26.png",
      "marks": [
       {
        "n": 1,
@@ -153,7 +153,7 @@
     {
      "title": "Số Vi bằng đã được cấp",
      "note": "Số có dạng số thứ tự/năm/VB-THV. Hồ sơ chuyển sang bước Thừa hành viên ký.",
-     "img": "van-thu/10.png",
+     "img": "van-thu/27.png",
      "marks": []
     }
    ]
@@ -168,7 +168,7 @@
     {
      "title": "Màn Công văn đi / đến",
      "note": "Danh sách văn bản đã vào sổ và nút tạo văn bản mới.",
-     "img": "van-thu/11.png",
+     "img": "van-thu/28.png",
      "marks": []
     }
    ]

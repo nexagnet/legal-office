@@ -1,9 +1,9 @@
 import { browser, asRole, BASE } from './lib.mjs';
 import { Guide } from './guide.mjs';
 process.env.APPEND = '1';
-const TD4 = 'd18059f6-9e96-4fa1-9e7e-7110ece2434d', TD5 = '9e7ed9b0-9857-4350-a0d8-8ebf74175c8b';
-const XM = '4a7d1364-b6cc-43ea-9af2-6af59ddeb422', THA = 'fcb640a3-b742-457b-8e55-bda3fcdf4cd8';
-const C2 = '19f2f142-e7c2-48ee-83d8-c2e25d23a71d', C4 = '85d55d26-5a60-40cb-87a2-402ee4bc0ccd', C1 = '64ce003a-1556-49f6-a8e1-29294dc4c77b';
+const [TD4, TD5] = process.env.TD.split(',');
+const XM = process.env.XM, THA = process.env.THA;
+const C2 = process.env.CASE, C4 = process.env.CASE, C1 = '64ce003a-1556-49f6-a8e1-29294dc4c77b';
 const b = await browser();
 const only = process.argv[2];
 const run = async (role, slug, title, fn) => {
