@@ -4,15 +4,19 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Branch } from '../../app/session';
 import { Button } from './button';
-import { Field, Input, Select } from './field';
+import { Field, Input, Select, Textarea } from './field';
 import { Notice, Sheet, SheetBody, SheetFooter } from './sheet';
 import { Stepper } from './step-sheet';
 
 export interface WizardField {
   readonly name: string;
   readonly label: string;
-  readonly kind?: 'text' | 'datetime';
+  readonly kind?: 'text' | 'datetime' | 'select' | 'textarea';
   readonly max?: number;
+  /** Không bắt buộc nhập: bỏ qua kiểm tra rỗng, hiện "(không bắt buộc)" cạnh nhãn. */
+  readonly optional?: boolean;
+  /** Với kind 'select': các lựa chọn `[giá trị, nhãn]`; lựa chọn đầu là mặc định. */
+  readonly options?: readonly (readonly [string, string])[];
 }
 export interface WizardStep {
   readonly title: string;
@@ -71,7 +75,8 @@ export function WizardSheet({
   function validate(s: number) {
     const e: Record<string, string> = {};
     for (const f of steps[s]?.fields ?? []) {
-      if (!(values[f.name] ?? '').trim()) e[f.name] = `Nhập ${f.label.toLowerCase()}.`;
+      if (!f.optional && f.kind !== 'select' && !(values[f.name] ?? '').trim())
+        e[f.name] = `Nhập ${f.label.toLowerCase()}.`;
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -102,7 +107,9 @@ export function WizardSheet({
         f.label,
         f.kind === 'datetime'
           ? new Date(values[f.name] ?? '').toLocaleString('vi-VN')
-          : (values[f.name] ?? ''),
+          : f.kind === 'select'
+            ? (f.options?.find(([v]) => v === (values[f.name] ?? f.options?.[0]?.[0]))?.[1] ?? '')
+            : values[f.name] || '—',
       ]),
     ),
   ];
@@ -130,15 +137,42 @@ export function WizardSheet({
                 </Field>
               ) : null}
               {steps[step]?.fields.map((f) => (
-                <Field key={f.name} id={`wz-${f.name}`} label={f.label} error={errors[f.name]}>
-                  <Input
-                    id={`wz-${f.name}`}
-                    type={f.kind === 'datetime' ? 'datetime-local' : 'text'}
-                    maxLength={f.max}
-                    value={values[f.name] ?? ''}
-                    invalid={!!errors[f.name]}
-                    onChange={(e) => setValues((p) => ({ ...p, [f.name]: e.target.value }))}
-                  />
+                <Field
+                  key={f.name}
+                  id={`wz-${f.name}`}
+                  label={f.optional ? `${f.label} (không bắt buộc)` : f.label}
+                  error={errors[f.name]}
+                >
+                  {f.kind === 'select' ? (
+                    <Select
+                      id={`wz-${f.name}`}
+                      value={values[f.name] ?? f.options?.[0]?.[0] ?? ''}
+                      onChange={(e) => setValues((p) => ({ ...p, [f.name]: e.target.value }))}
+                    >
+                      {f.options?.map(([v, l]) => (
+                        <option key={v} value={v}>
+                          {l}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : f.kind === 'textarea' ? (
+                    <Textarea
+                      id={`wz-${f.name}`}
+                      maxLength={f.max}
+                      value={values[f.name] ?? ''}
+                      invalid={!!errors[f.name]}
+                      onChange={(e) => setValues((p) => ({ ...p, [f.name]: e.target.value }))}
+                    />
+                  ) : (
+                    <Input
+                      id={`wz-${f.name}`}
+                      type={f.kind === 'datetime' ? 'datetime-local' : 'text'}
+                      maxLength={f.max}
+                      value={values[f.name] ?? ''}
+                      invalid={!!errors[f.name]}
+                      onChange={(e) => setValues((p) => ({ ...p, [f.name]: e.target.value }))}
+                    />
+                  )}
                 </Field>
               ))}
             </>

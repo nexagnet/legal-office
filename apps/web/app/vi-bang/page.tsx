@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { KpiStrip } from '../../components/KpiStrip';
 import { CaseTable } from '../../components/CaseTable';
+import { NewViBangSheet } from '../../components/NewCaseSheets';
 import { loadCases, summarizeCases } from '../../lib/cases';
 import { currentSession, requestCookie } from '../../lib/server';
 
@@ -32,9 +33,7 @@ export default async function ViBangPage() {
             Hồ sơ bạn được phép xem. Chưa ghi nhận số tiền; thanh toán do kế toán xác nhận từ MISA.
           </p>
         </div>
-        <a className="primary btn-link" href="/vi-bang/tao-moi">
-          + Tạo hồ sơ Vi bằng
-        </a>
+        <NewViBangSheet branches={session.branches} />
       </div>
       {cases === 'error' ? (
         <div className="state" role="alert">
