@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
 export interface TabItem {
@@ -13,13 +14,16 @@ export function TabNav({
   tabs,
   active,
   label,
+  action,
 }: {
   readonly tabs: readonly TabItem[];
   readonly active: string;
   readonly label: string;
+  /** Nút chính của danh sách (vd. "+ Tạo ..."), nằm cùng hàng với bộ lọc ở bên phải. */
+  readonly action?: ReactNode;
 }) {
-  return (
-    <nav aria-label={label} className="mb-5 flex flex-wrap gap-2.5">
+  const nav = (
+    <nav aria-label={label} className="flex flex-wrap gap-2.5">
       {tabs.map((t) => {
         const on = t.key === active;
         return (
@@ -49,5 +53,11 @@ export function TabNav({
         );
       })}
     </nav>
+  );
+  return (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      {nav}
+      {action}
+    </div>
   );
 }

@@ -26,15 +26,11 @@ export default async function ViBangPage() {
   const sum = cases === 'error' ? null : summarizeCases(cases);
   return (
     <section aria-labelledby="t">
-      <div className="page-head">
-        <div>
-          <h1 id="t">Danh sách hồ sơ Vi bằng</h1>
-          <p className="muted">
-            Hồ sơ bạn được phép xem. Chưa ghi nhận số tiền; thanh toán do kế toán xác nhận từ MISA.
-          </p>
+      {cases === 'error' || cases.length === 0 ? (
+        <div className="mb-4 flex justify-end">
+          <NewViBangSheet branches={session.branches} />
         </div>
-        <NewViBangSheet branches={session.branches} />
-      </div>
+      ) : null}
       {cases === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được hồ sơ</h2>
@@ -56,7 +52,10 @@ export default async function ViBangPage() {
               { label: 'Đã trả khách', value: sum.returned, tone: 'ok' },
             ]}
           />
-          <CaseTable cases={cases} />
+          <CaseTable cases={cases} action={<NewViBangSheet branches={session.branches} />} />
+          <p className="muted mt-3">
+            Hồ sơ bạn được phép xem. Chưa ghi nhận số tiền; thanh toán do kế toán xác nhận từ MISA.
+          </p>
         </>
       )}
     </section>
