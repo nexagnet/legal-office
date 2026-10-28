@@ -80,6 +80,9 @@ describe('Chấm dứt tổ chức thi hành án (Điều 46)', () => {
     fireEvent.change(screen.getByLabelText('Căn cứ pháp lý'), {
       target: { value: 'Điều 46 Luật THADS' },
     });
+    fireEvent.change(screen.getByLabelText('Kết quả thực tế'), {
+      target: { value: 'Đã báo đương sự' },
+    });
     const file = new File(['x'], 'thanh-ly.pdf', { type: 'application/pdf' });
     fireEvent.change(screen.getByLabelText('Văn bản chấm dứt / thanh lý hợp đồng'), {
       target: { files: [file] },
@@ -89,7 +92,7 @@ describe('Chấm dứt tổ chức thi hành án (Điều 46)', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(String(url)).toBe(
-      '/api/enforcement-cases/c1/termination-file?reason=NO_CONDITIONS&basis=%C4%90i%E1%BB%81u+46+Lu%E1%BA%ADt+THADS',
+      '/api/enforcement-cases/c1/termination-file?reason=NO_CONDITIONS&basis=%C4%90i%E1%BB%81u+46+Lu%E1%BA%ADt+THADS&outcome=%C4%90%C3%A3+b%C3%A1o+%C4%91%C6%B0%C6%A1ng+s%E1%BB%B1',
     );
     expect((init as RequestInit).headers).toEqual({ 'content-type': 'application/pdf' });
   });

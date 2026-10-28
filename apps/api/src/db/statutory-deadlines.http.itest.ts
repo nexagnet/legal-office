@@ -217,6 +217,7 @@ describe.skipIf(!ADMIN_URL)('UAT HTTP: hạn pháp định Xác minh và THA (sy
     const body = {
       reason: 'AGREEMENT',
       basis: 'Điều 46',
+      outcome: 'Đã gửi thông báo cho đương sự (giả lập)',
       evidenceKey: 'k/term.pdf',
       evidenceSha256: SHA,
     };
@@ -231,9 +232,29 @@ describe.skipIf(!ADMIN_URL)('UAT HTTP: hạn pháp định Xác minh và THA (sy
         })
       ).status,
     ).toBe(422);
+    const noOutcome = await api('POST', `/enforcement-cases/${caseId}/termination`, U.head, {
+      ...body,
+      outcome: ' ',
+    });
+    expect(noOutcome.status).toBe(422);
+    expect(noOutcome.json.code).toBe('OUTCOME_REQUIRED');
+    expect(
+      (
+        (await api('GET', `/enforcement-cases/${caseId}/termination`, U.head)).json as {
+          termination: unknown;
+        }
+      ).termination,
+    ).toBeNull();
     expect(
       (await api('POST', `/enforcement-cases/${caseId}/termination`, U.head, body)).status,
     ).toBe(200);
+    expect(
+      (await api('GET', `/enforcement-cases/${caseId}/termination`, U.head)).json.termination,
+    ).toMatchObject({
+      reason: 'AGREEMENT',
+      basis: 'Điều 46',
+      outcome: 'Đã gửi thông báo cho đương sự (giả lập)',
+    });
     expect(
       (await api('POST', `/enforcement-cases/${caseId}/termination`, U.head, body)).status,
     ).toBe(409);

@@ -112,7 +112,10 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
           const f = data(e);
           void run(
             () =>
-              post(`${caseId}/obligations`, { description: String(f.get('description') ?? '') }),
+              post(`${caseId}/obligations`, {
+                description: String(f.get('description') ?? ''),
+                ...(String(f.get('dueOn') ?? '') ? { dueOn: String(f.get('dueOn')) } : {}),
+              }),
             form,
           );
         }}
@@ -120,6 +123,10 @@ export function EnforcementActions({ caseId, status, obligations }: Props) {
         <label>
           Nghĩa vụ
           <input name="description" required maxLength={2000} />
+        </label>
+        <label>
+          Hạn thực hiện (không bắt buộc)
+          <input name="dueOn" type="date" />
         </label>
         <button type="submit" disabled={busy} aria-busy={busy}>
           Thêm nghĩa vụ
