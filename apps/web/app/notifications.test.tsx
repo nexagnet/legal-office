@@ -5,7 +5,7 @@ import {
   notificationHref,
   parseTab,
   type NotificationItem,
-} from '../lib/notifications';
+} from '../lib/notifications-view';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 

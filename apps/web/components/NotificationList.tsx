@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from './ui/button';
 import { DEADLINE_DOMAIN_LABEL, formatDay } from '../lib/deadlines';
-import { notificationHref, type NotificationItem } from '../lib/notifications';
+import { notificationHref, type NotificationItem } from '../lib/notifications-view';
 import { postJson } from '../lib/post-json';
 
 /** Danh sách nhắc hạn trong ứng dụng; quá hạn ghi bằng chữ, chưa đọc có chữ cho trình đọc màn hình. */
