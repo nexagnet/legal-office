@@ -45,6 +45,7 @@ export default async function AdminLayout({ children }: { readonly children: Rea
         ]
       : []),
     { href: '/quan-tri/phan-quyen', label: 'Phân quyền', badge: pending },
+    { href: '/quan-tri/ho-so-lao-dong', label: 'Hồ sơ lao động' },
     ...(isAdmin
       ? [
           { href: '/quan-tri/the-thv', label: 'Thẻ THV' },

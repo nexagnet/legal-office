@@ -1439,12 +1439,32 @@ export class OfficeController {
     ]);
   }
 
+  /** Bản mới nhất của mỗi người; lọc tuỳ chọn theo chi nhánh và trạng thái làm việc (ACTIVE/LEFT). */
   @Get('personnel')
-  readPersonnel(
+  async readPersonnel(
     @CurrentActor() a: AuthenticatedActor,
     @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('branchId') branchId?: string,
+    @Query('workStatus') workStatus?: string,
   ) {
-    return this.read(a, 'of_s06_read', [officeId]);
+    const branch = branchId ? parse(uuid, branchId) : null;
+    const status = workStatus ? parse(z.enum(['ACTIVE', 'LEFT']), workStatus) : null;
+    const rows = await this.read<{ branch_id: string; work_status: string }>(a, 'of_s06_read', [
+      officeId,
+    ]);
+    return rows.filter(
+      (r) => (!branch || r.branch_id === branch) && (!status || r.work_status === status),
+    );
+  }
+
+  /** Mọi phiên bản của một người, mới nhất trước (chỉ Admin và Trưởng văn phòng). */
+  @Get('personnel/:personId/versions')
+  readPersonnelVersions(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('personId', ParseUUIDPipe) personId: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    return this.read(a, 'of_s06_versions', [officeId, personId]);
   }
 
   /**
