@@ -6,7 +6,8 @@ import { StatusPill } from '../../components/StatusPill';
 import { NewVerificationSheet } from '../../components/NewCaseSheets';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { ROUND_STATUS_LABEL, VERIFICATION_STATUS_LABEL } from '../../lib/messages';
-import { PartyName } from '../../components/ui/avatar';
+import { PartyName, Person } from '../../components/ui/avatar';
+import { loadPeopleNames } from '../../lib/people';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,17 +67,19 @@ export default async function VerificationPage({
   }
   const cookie = await requestCookie();
   const items = await load(cookie);
+  const names = await loadPeopleNames(
+    cookie,
+    items === 'error' ? [] : items.map((i) => i.handlerUserId),
+  );
   const tab = activeTab(GROUPS, sp.tab);
   const shown = items === 'error' ? [] : filterByTab(items, GROUPS, tab);
   return (
     <section aria-labelledby="t">
-      <div className="page-head">
-        <div>
-          <h1 id="t">Xác minh</h1>
-          <p className="muted">Hồ sơ xác minh điều kiện thi hành án trong phạm vi quyền của bạn.</p>
+      {items === 'error' || items.length === 0 ? (
+        <div className="mb-4 flex justify-end">
+          <NewVerificationSheet branches={session.branches} />
         </div>
-        <NewVerificationSheet branches={session.branches} />
-      </div>
+      ) : null}
       {items === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được danh sách</h2>
@@ -105,6 +108,7 @@ export default async function VerificationPage({
             label="Nhóm trạng thái"
             tabs={statusTabs('/xac-minh', GROUPS, items)}
             active={tab}
+            action={<NewVerificationSheet branches={session.branches} />}
           />
           <div className="table-wrap">
             <table className="table-cards">
@@ -134,13 +138,23 @@ export default async function VerificationPage({
                       ) : null}
                     </td>
                     <td data-label="THV phụ trách">
-                      {c.handlerUserId ? 'Đã phân công' : 'Chưa phân công'}
+                      {c.handlerUserId && names.get(c.handlerUserId) ? (
+                        <Person
+                          name={names.get(c.handlerUserId) ?? ''}
+                          id={c.handlerUserId}
+                          size="sm"
+                        />
+                      ) : c.handlerUserId ? (
+                        'Đã phân công'
+                      ) : (
+                        'Chưa phân công'
+                      )}
                     </td>
                     <td data-label="Các lượt">
                       {c.rounds.length === 0 ? (
                         <span className="muted">Chưa có lượt</span>
                       ) : (
-                        <ul>
+                        <ul className="m-0 grid list-none gap-1 p-0">
                           {c.rounds.map((r) => (
                             <li key={r.id}>
                               {r.seq}. <PartyName name={r.partyName} /> ·{' '}
