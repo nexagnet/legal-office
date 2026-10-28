@@ -104,6 +104,29 @@ export class ServiceOfDocumentsController {
     };
   }
 
+  /** Các lần tống đạt của một văn bản, cũ đến mới. Cùng phạm vi quyền với `GET documents`; ngoài phạm vi thì rỗng. */
+  @Get('documents/:id/attempts')
+  async attempts(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{
+      seq: number;
+      outcome: string;
+      late: boolean;
+      at: Date;
+      actor_user_id: string;
+      has_evidence: boolean;
+    }>(a.tenantId, 'td_list_attempts', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        seq: r.seq,
+        outcome: r.outcome,
+        late: r.late,
+        at: r.at,
+        actorUserId: r.actor_user_id,
+        hasEvidence: r.has_evidence,
+      })),
+    };
+  }
+
   @Post('requests')
   @HttpCode(HttpStatus.OK)
   createRequest(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
