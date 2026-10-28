@@ -33,7 +33,7 @@ export class VibangRepo {
     args: readonly unknown[],
   ): Promise<T[]> {
     if (
-      !/^of_(search|s06)_[a-z0-9_]+$|^of_list_correspondence$|^of_get_correspondence$|^of_s06_read$|^of_list_signers$|^of_ledger_s0[1245]$|^vb_list_(cases|case_view|changes|thv|customers|contracts|revokes|n11|documents|registrations|contacts)$|^vb_case_(progress|misa|evidence|legal|history)$|^vb_list_customer_numbers$|^of_mail_settings_get$|^vb_document_file$|^as_list_(transfers|assets)$|^td_list_(documents|attempts|result_notices)$|^of_people_names$|^vx_list_cases$|^th_list_cases$/.test(
+      !/^of_(search|s06)_[a-z0-9_]+$|^of_list_correspondence$|^of_get_correspondence$|^of_s06_read$|^of_list_signers$|^of_ledger_s0[1245]$|^vb_list_(cases|case_view|changes|thv|customers|contracts|revokes|n11|documents|registrations|contacts)$|^vb_case_(progress|misa|evidence|legal|history)$|^vb_list_customer_numbers$|^of_mail_settings_get$|^vb_document_file$|^as_list_(transfers|assets)$|^td_list_(documents|attempts|result_notices)$|^of_people_names$|^vx_list_(cases|sources|delegations)$|^vx_get_decision$|^th_list_cases$/.test(
         fn,
       )
     )
