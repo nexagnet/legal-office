@@ -25,7 +25,7 @@ import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { addWorkingDays } from '../deadlines/working-days';
-import { LEDGER_BY_CODE, shapeLedgerRow, withThvLabel } from './ledgers';
+import { LEDGER_BY_CODE, S06_LEDGER, shapeLedgerRow, shapeS06Rows, withThvLabel } from './ledgers';
 import { buildPdf, PDF_MIME } from './pdf-export';
 import { buildXlsx, XLSX_MIME, type SheetSpec } from './xlsx-export';
 import { recordWithUpload } from '../storage/evidence';
@@ -1543,6 +1543,10 @@ export class OfficeController {
     year?: string,
     limit?: string,
   ) {
+    if (code.toLowerCase() === 's-06') {
+      const people = await this.read(a, S06_LEDGER.fn, [officeId]);
+      return { def: S06_LEDGER, rows: shapeS06Rows(people) };
+    }
     const def = LEDGER_BY_CODE.get(code.toLowerCase());
     if (!def) throw new HttpException({ code: 'LEDGER_NOT_FOUND', label: null }, 404);
     const y =
