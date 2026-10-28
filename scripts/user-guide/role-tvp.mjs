@@ -1,6 +1,6 @@
 import { browser, asRole, BASE } from './lib.mjs';
 import { Guide } from './guide.mjs';
-const XM = '80b4e63f-7631-4fec-a37c-6de9197ee05f';
+const XM = '4a7d1364-b6cc-43ea-9af2-6af59ddeb422';
 const b = await browser(); const { page } = await asRole(b, 'TRUONG_VP');
 const g = new Guide('truong-van-phong', 'Hướng dẫn dành cho Trưởng văn phòng');
 const go = async (p) => { await page.goto(BASE + p, { waitUntil: 'networkidle' }); await page.waitForTimeout(900); };

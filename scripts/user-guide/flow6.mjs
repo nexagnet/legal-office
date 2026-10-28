@@ -1,0 +1,17 @@
+import { browser, asRole, BASE } from './lib.mjs';
+const b = await browser(); const s = {};
+const api = async (role, method, path, data) => { s[role] ??= await asRole(b, role); const r = await s[role].ctx.request.fetch(BASE + '/api' + path, { method, data, headers: { 'content-type': 'application/json' } }); const t = await r.text(); let j; try { j = JSON.parse(t); } catch { j = t; } return { s: r.status(), j }; };
+const office = 'cd3e75c3-487e-4ed5-835f-ef954e005e29', branch = '2fa21040-323d-4a04-914e-1ee1af815c9e', thv = 'e9560730-691b-46f4-89a3-1eb4643fb399';
+const n = process.argv[2];
+let r = await api('THU_KY', 'POST', '/verification/cases', { officeId: office, branchId: branch, caseRef: 'DEMO-XM-' + n }); const xm = r.j.label;
+await api('TRUONG_VP', 'PUT', `/verification/cases/${xm}/handler`, { handlerUserId: thv });
+await api('THV', 'PUT', `/verification/cases/${xm}/contract-date`, { signedOn: new Date().toISOString().slice(0, 10) });
+await api('THV', 'POST', `/verification/cases/${xm}/rounds`, { partyName: 'DEMO Phạm Văn G (người phải thi hành)' });
+await api('THV', 'POST', `/verification/cases/${xm}/rounds`, { partyName: 'DEMO Công ty CP Hạ tầng Mẫu' });
+r = await api('THU_KY', 'POST', '/enforcement-cases', { officeId: office, branchId: branch, caseRef: 'DEMO-THA-' + n, agreementRef: 'DEMO-HD-002', decisionRef: 'DEMO Quyết định số 45/2026/QĐ-THA' }); const th = r.j.label;
+await api('TRUONG_VP', 'PUT', `/enforcement-cases/${th}/handler`, { handlerUserId: thv });
+await api('THV', 'POST', `/enforcement-cases/${th}/parties`, { displayName: 'DEMO Hoàng Thị H', kind: 'PERSON', role: 'CREDITOR' });
+const p2 = await api('THV', 'POST', `/enforcement-cases/${th}/parties`, { displayName: 'DEMO Công ty TNHH Thương mại Mẫu', kind: 'ORGANIZATION', role: 'DEBTOR' });
+await api('THV', 'POST', `/enforcement-cases/${th}/obligations`, { description: 'DEMO: Bàn giao tài sản theo quyết định thi hành án', obligorPartyId: p2.j.label });
+console.log(xm, th);
+await b.close();
