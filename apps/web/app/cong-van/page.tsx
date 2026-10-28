@@ -293,7 +293,11 @@ export default async function CorrespondencePage({
                 <tbody>
                   {shown.map((c) => (
                     <tr key={c.id}>
-                      <th scope="row">{c.refNo ?? <span className="muted">Chưa có số</span>}</th>
+                      <th scope="row">
+                        <Link href={`/cong-van/${c.id}`}>
+                          {c.refNo ?? <span className="muted">Chưa có số</span>}
+                        </Link>
+                      </th>
                       <td>
                         {c.subject} <span className="muted">· {c.docType}</span>
                       </td>
