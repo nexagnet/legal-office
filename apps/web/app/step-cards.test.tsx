@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 import { StepCards } from '../components/ui/step-cards';
+
+afterEach(cleanup);
 
 describe('StepCards', () => {
   it('marks the current step and states every status in words', () => {
