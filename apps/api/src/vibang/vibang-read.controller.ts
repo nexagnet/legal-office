@@ -36,6 +36,36 @@ export class VibangReadController {
     return this.repo.rows<T>(a.tenantId, fn, [a.tenantId, a.userId, caseId, ...extra]);
   }
 
+  /** Kế hoạch lập Vi bằng: thời gian dự kiến, ghi chú nội bộ, người tham gia. Ngoài phạm vi xem thì 404. */
+  @Get('cases/:id/plan')
+  async plan(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const [r] = await this.read<{
+      scheduled_at: Date | null;
+      internal_note: string | null;
+      parties: unknown;
+    }>(a, 'vb_case_plan', id);
+    if (!r) throw caseNotFound();
+    return { scheduledAt: r.scheduled_at, internalNote: r.internal_note, parties: r.parties };
+  }
+
+  /**
+   * Số dự kiến sẽ cấp cho hồ sơ và việc đã nhập số cuối sổ giấy của năm hiện tại chưa. Chỉ xem trước, không cấp số;
+   * số thật có thể khác nếu hồ sơ khác được cấp trước.
+   */
+  @Get('cases/:id/number-preview')
+  async numberPreview(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const [r] = await this.read<{ next_label: string; paper_last_imported: boolean }>(
+      a,
+      'vb_number_preview',
+      id,
+    );
+    if (!r) throw caseNotFound();
+    return { nextLabel: r.next_label, paperLastImported: r.paper_last_imported };
+  }
+
   /** Trạng thái/tham chiếu MISA hiện tại + các đề xuất thu hồi (mới nhất trước). */
   @Get('cases/:id/misa')
   async misa(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {

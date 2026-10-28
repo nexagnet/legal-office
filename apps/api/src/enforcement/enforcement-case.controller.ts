@@ -154,10 +154,24 @@ export class EnforcementCaseController {
     @Body() body: unknown,
   ) {
     const b = parse(
-      z.object({ description: z.string().max(2000), obligorPartyId: uuid.nullish() }).strict(),
+      z
+        .object({
+          description: z.string().max(2000),
+          obligorPartyId: uuid.nullish(),
+          dueOn: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .nullish(),
+        })
+        .strict(),
       body,
     );
-    return this.run(a, 'th_add_obligation', [id, b.description, b.obligorPartyId ?? null]);
+    return this.run(a, 'th_add_obligation', [
+      id,
+      b.description,
+      b.obligorPartyId ?? null,
+      b.dueOn ?? null,
+    ]);
   }
 
   @Post('obligations/:id/events')
@@ -216,6 +230,7 @@ export class EnforcementCaseController {
         .object({
           reason: z.string().max(40),
           basis: z.string().max(2000),
+          outcome: z.string().max(2000),
           evidenceKey: z.string().max(500),
           evidenceSha256: z.string().max(64),
         })
@@ -228,7 +243,34 @@ export class EnforcementCaseController {
       b.basis,
       b.evidenceKey,
       b.evidenceSha256,
+      b.outcome,
     ]);
+  }
+
+  /** Thông tin chấm dứt của hồ sơ (lý do, căn cứ, kết quả thực tế, thời điểm); chưa chấm dứt thì `termination: null`. */
+  @Get(':id/termination')
+  async terminationInfo(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const [r] = await this.repo.rows<{
+      reason: string;
+      basis: string;
+      outcome: string | null;
+      terminated_at: Date;
+      terminated_by: string;
+    }>(a.tenantId, 'th_get_termination', [a.tenantId, a.userId, id]);
+    return {
+      termination: r
+        ? {
+            reason: r.reason,
+            basis: r.basis,
+            outcome: r.outcome,
+            terminatedAt: r.terminated_at,
+            terminatedBy: r.terminated_by,
+          }
+        : null,
+    };
   }
 
   /** Như trên nhưng tải thẳng tệp văn bản chấm dứt; lý do và căn cứ đi theo query. */
@@ -243,14 +285,21 @@ export class EnforcementCaseController {
     @Req() req: RawBody,
   ) {
     const q = parse(
-      z.object({ reason: z.string().max(40), basis: z.string().max(2000) }).strict(),
+      z
+        .object({
+          reason: z.string().max(40),
+          basis: z.string().max(2000),
+          outcome: z.string().max(2000),
+        })
+        .strict(),
       query,
     );
     return recordWithUpload(
       this.store,
       { contentType, contentLength, body: req },
       (f) => `t/${a.tenantId}/th/cases/${id}/termination/${randomUUID()}.${f.extension}`,
-      (key, f) => this.run(a, 'th_terminate_case', [id, q.reason, q.basis, key, f.sha256]),
+      (key, f) =>
+        this.run(a, 'th_terminate_case', [id, q.reason, q.basis, key, f.sha256, q.outcome]),
     );
   }
 

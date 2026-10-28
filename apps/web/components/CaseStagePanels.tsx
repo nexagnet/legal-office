@@ -5,6 +5,7 @@ import { HandoverForm } from './HandoverForm';
 import { ContactLog } from './ContactLog';
 import type { Progress } from './CaseSteps';
 import { useCaseApi } from './useCaseApi';
+import { ConditionList, type Condition } from './ui/condition-list';
 import { StepCards } from './ui/step-cards';
 
 interface Props {
@@ -18,14 +19,6 @@ interface Props {
 const hasRole = (roles: readonly string[], ...r: string[]) => r.some((x) => roles.includes(x));
 const isFinished = (status: string) => status === 'RETURNED' || status === 'CANCELLED';
 
-function Pill({ tone, children }: { tone: 'ok' | 'warn' | 'idle'; children: string }) {
-  return (
-    <span className="pill" data-tone={tone}>
-      {children}
-    </span>
-  );
-}
-
 function ErrorLine({ error }: { error: string | null }) {
   return (
     <p role="alert" className="error" hidden={!error}>
@@ -34,75 +27,102 @@ function ErrorLine({ error }: { error: string | null }) {
   );
 }
 
-/** Xác nhận MISA và cấp số (Figma 3:106). MISA là sổ duy nhất về tiền; hệ thống không quản lý số tiền. */
-export function MisaNumberPanels({ caseId, status, progress, roles }: Props) {
+export interface NumberPreview {
+  readonly nextLabel: string;
+  readonly paperLastImported: boolean;
+}
+
+/**
+ * Xác nhận MISA và cấp số (Figma V2): danh sách điều kiện, khung "Số sẽ cấp", nút Cấp số khoá đến khi đủ điều kiện.
+ * MISA là sổ duy nhất về tiền; hệ thống không quản lý số tiền. Quyền thật do DB quyết định.
+ */
+export function MisaNumberPanels({
+  caseId,
+  status,
+  progress,
+  roles,
+  thvLabel,
+  misaReference,
+  preview,
+}: Props & {
+  readonly thvLabel: string | null;
+  readonly misaReference: string | null;
+  readonly preview: NumberPreview | null;
+}) {
   const api = useCaseApi(caseId);
   const misaOk = progress.misaStatus === 'CONFIRMED_FULL';
   const finished = isFinished(status);
+  const issued = !!progress.numberLabel;
+  const canIssue =
+    misaOk && !issued && !finished && hasRole(roles, 'VAN_THU', 'THU_KY', 'ADMIN', 'TRUONG_VP');
+  const conditions: Condition[] = [
+    {
+      key: 'thv',
+      title: 'Có THV phụ trách',
+      hint: thvLabel ?? 'Chưa phân công',
+      met: !!thvLabel,
+    },
+    {
+      key: 'misa',
+      title: 'Kế toán đã xác nhận thanh toán đủ',
+      hint: misaOk ? `Tham chiếu MISA ${misaReference ?? ''}`.trim() : 'Chưa xác nhận',
+      met: misaOk,
+    },
+    {
+      key: 'free',
+      title: 'Hồ sơ chưa có số',
+      hint: issued ? `Đã cấp ${progress.numberLabel}` : 'Không dùng lại số của hồ sơ huỷ',
+      met: !issued,
+    },
+  ];
   return (
-    <>
-      <div className="panels stage-grid">
-        <section className="panel" aria-labelledby="misa-t">
-          <h2 id="misa-t">Xác nhận thanh toán đủ</h2>
-          <p>
-            <Pill tone={misaOk ? 'ok' : 'warn'}>{misaOk ? 'Đã xác nhận đủ' : 'Chưa xác nhận'}</Pill>
-          </p>
+    <div className="grid gap-5">
+      <ConditionList conditions={conditions} label="Điều kiện cấp số" />
+      {!misaOk && !finished && hasRole(roles, 'KE_TOAN', 'ADMIN') ? (
+        <form className="form" onSubmit={api.recordMisa}>
+          <label>
+            Mã tham chiếu MISA
+            <input name="reference" required maxLength={200} />
+          </label>
+          <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
+            Xác nhận đã thu đủ trên MISA
+          </button>
           <p className="muted">
-            Thông tin kế toán do nhân viên đối chiếu trên MISA. Hệ thống KHÔNG quản lý số tiền, công
-            nợ hay thu chi.
+            Hệ thống KHÔNG quản lý số tiền, công nợ hay thu chi; chỉ ghi tham chiếu do kế toán đối
+            chiếu trên MISA.
           </p>
-          {!misaOk && !finished && hasRole(roles, 'KE_TOAN', 'ADMIN') ? (
-            <form className="form" onSubmit={api.recordMisa}>
-              <label>
-                Mã tham chiếu MISA
-                <input name="reference" required maxLength={200} />
-              </label>
-              <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
-                Xác nhận đã thu đủ trên MISA
-              </button>
-            </form>
-          ) : null}
-          {!misaOk && !finished && !hasRole(roles, 'KE_TOAN', 'ADMIN') ? (
-            <p className="muted">Kế toán xác nhận thanh toán trên MISA.</p>
-          ) : null}
-        </section>
-        <section className="panel" aria-labelledby="number-t">
-          <h2 id="number-t">Cấp số Vi bằng</h2>
-          <p className="muted">Số chỉ được cấp sau khi xác nhận thanh toán đủ.</p>
-          {progress.numberLabel ? (
-            <p>
-              <span className="muted">Số đã cấp: </span>
-              <strong>{progress.numberLabel}</strong>
-            </p>
-          ) : null}
-          {!progress.numberLabel &&
-          misaOk &&
-          !finished &&
-          hasRole(roles, 'VAN_THU', 'THU_KY', 'ADMIN', 'TRUONG_VP') ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={api.busy}
-              aria-busy={api.busy}
-              onClick={() => void api.call('POST', 'number')}
-            >
-              Cấp số
-            </button>
-          ) : null}
-          {!progress.numberLabel && !misaOk ? (
-            <p className="muted">Cần xác nhận thanh toán đủ trước khi cấp số.</p>
-          ) : null}
-        </section>
-      </div>
-      <ErrorLine error={api.error} />
-      <section className="panel notice" aria-labelledby="rule-t">
-        <h2 id="rule-t">Nguyên tắc đánh số</h2>
-        <p>
-          Số được cấp duy nhất trên toàn Văn phòng theo năm; không tái sử dụng, kể cả khi hồ sơ hủy.
-          Không có bước duyệt dự thảo riêng trên phần mềm.
+        </form>
+      ) : null}
+      {issued || preview ? (
+        <div className="grid gap-1 rounded-xl bg-accent-soft px-5 py-4">
+          <span className="text-[13px] text-muted">{issued ? 'Số đã cấp' : 'Số sẽ cấp'}</span>
+          <strong className="font-serif text-[28px] leading-9 text-accent">
+            {progress.numberLabel ?? preview?.nextLabel}
+          </strong>
+          <span className="text-[13px] text-muted">
+            Một dãy toàn Văn phòng, tăng dần trong năm. Số thật do máy chủ cấp khi bấm Cấp số.
+          </span>
+        </div>
+      ) : null}
+      {!issued && preview && !preview.paperLastImported ? (
+        <p role="note" className="m-0 text-[13px] text-danger">
+          Chưa nhập số cuối của sổ giấy thì không cấp được số thật. Admin nhập ở Cấu hình hệ thống.
         </p>
-      </section>
-    </>
+      ) : null}
+      <ErrorLine error={api.error} />
+      <button
+        type="button"
+        className="primary"
+        disabled={!canIssue || api.busy}
+        aria-busy={api.busy}
+        onClick={() => void api.call('POST', 'number')}
+      >
+        Cấp số
+      </button>
+      {!issued && !canIssue && !finished && misaOk ? (
+        <p className="muted">Văn thư hoặc Thư ký cấp số.</p>
+      ) : null}
+    </div>
   );
 }
 
@@ -212,7 +232,10 @@ export function SignStampPanels({ caseId, status, progress, roles }: Props) {
   );
 }
 
-/** Trả kết quả (Figma 3:158). Chỉ phần máy chủ đã hỗ trợ: xác nhận đã trả; chưa có nhật ký liên hệ/người nhận. */
+/**
+ * Trả kết quả (Figma V3): năm điều kiện, nhật ký liên hệ và ô người nhận, nút Ghi đã trả khoá đến khi đủ điều kiện.
+ * Liên hệ khách chưa phải là đã trả; phải có bàn giao thực tế. Máy chủ vẫn kiểm lại từng điều kiện.
+ */
 export function ReturnPanel({
   caseId,
   status,
@@ -226,57 +249,62 @@ export function ReturnPanel({
 }) {
   const api = useCaseApi(caseId);
   const returned = status === 'RETURNED';
-  const ready = !!progress.stampedAt && progress.hasFinalScan;
   const finished = isFinished(status);
+  const conditions: Condition[] = [
+    {
+      key: 'misa',
+      title: 'Xác nhận thanh toán còn hợp lệ',
+      met: progress.misaStatus === 'CONFIRMED_FULL' && progress.misaRevokeStatus === 'NONE',
+    },
+    { key: 'signed', title: 'Thừa hành viên đã ký', met: !!progress.signedAt },
+    { key: 'stamped', title: 'Văn thư đã đóng dấu', met: !!progress.stampedAt },
+    { key: 'scan', title: 'Bản scan cuối đủ chữ ký và dấu', met: progress.hasFinalScan },
+    { key: 'handover', title: 'Bàn giao thực tế đã xảy ra', met: !!handover.recipient },
+  ];
+  const missing = conditions.findIndex((c) => !c.met);
+  const ready = missing === -1;
   return (
-    <>
-      <section className="panel ready" data-ready={ready || returned} aria-labelledby="ready-t">
-        <h2 id="ready-t">
-          {returned
-            ? 'ĐÃ TRẢ KẾT QUẢ'
-            : ready
-              ? 'ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ'
-              : 'CHƯA ĐỦ ĐIỀU KIỆN TRẢ KẾT QUẢ'}
-        </h2>
-        <p>
-          {ready || returned
-            ? 'Đã xác nhận ký, đóng dấu, tải và kiểm tra bản scan cuối. Không phụ thuộc trạng thái cập nhật với Sở.'
-            : 'Cần xác nhận đã đóng dấu và tải bản scan cuối trước khi trả kết quả.'}
+    <div className="grid gap-5">
+      <ConditionList conditions={conditions} label="Điều kiện trả kết quả" />
+      {returned ? <p className="m-0 font-semibold text-ok">Đã trả kết quả.</p> : null}
+      {finished && !returned ? null : (
+        <div className="grid gap-3">
+          <p className="muted m-0">Đã liên hệ không đồng nghĩa đã bàn giao.</p>
+          {progress.stampedAt ? (
+            <HandoverForm
+              caseId={caseId}
+              recipient={handover.recipient}
+              handedOverOn={handover.on}
+              canRecord={hasRole(roles, 'ADMIN', 'THV', 'VAN_THU')}
+            />
+          ) : null}
+        </div>
+      )}
+      <ContactLog
+        caseId={caseId}
+        contacts={contacts}
+        canLog={!finished && hasRole(roles, 'ADMIN', 'THV', 'THU_KY', 'VAN_THU')}
+      />
+      {!returned && !finished && !ready ? (
+        <p
+          role="alert"
+          className="m-0 rounded-lg bg-danger-soft px-4 py-3 text-[14px] font-semibold text-danger"
+        >
+          Thiếu điều kiện {missing + 1}: {conditions[missing]?.title.toLowerCase()}.
         </p>
-      </section>
-      <div className="panels return-grid">
-        <ContactLog
-          caseId={caseId}
-          contacts={contacts}
-          canLog={!finished && hasRole(roles, 'ADMIN', 'THV', 'THU_KY', 'VAN_THU')}
-        />
-        {finished && !returned ? null : (
-          <section className="panel" aria-labelledby="handover-t">
-            <h2 id="handover-t">Bàn giao Vi bằng</h2>
-            <p className="muted">Đã liên hệ không đồng nghĩa đã bàn giao.</p>
-            {progress.stampedAt ? (
-              <HandoverForm
-                caseId={caseId}
-                recipient={handover.recipient}
-                handedOverOn={handover.on}
-                canRecord={hasRole(roles, 'ADMIN', 'THV', 'VAN_THU')}
-              />
-            ) : null}
-            {progress.stampedAt && !returned ? (
-              <button
-                type="button"
-                className="primary"
-                disabled={api.busy}
-                aria-busy={api.busy}
-                onClick={() => void api.call('POST', 'return')}
-              >
-                Xác nhận đã trả kết quả
-              </button>
-            ) : null}
-            <ErrorLine error={api.error} />
-          </section>
-        )}
-      </div>
-    </>
+      ) : null}
+      <ErrorLine error={api.error} />
+      {returned || finished ? null : (
+        <button
+          type="button"
+          className="primary"
+          disabled={!ready || api.busy}
+          aria-busy={api.busy}
+          onClick={() => void api.call('POST', 'return')}
+        >
+          Ghi đã trả
+        </button>
+      )}
+    </div>
   );
 }

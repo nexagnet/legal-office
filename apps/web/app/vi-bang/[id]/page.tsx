@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CaseActionDialog } from '../../../components/CaseActionDialog';
 import { CaseActions } from '../../../components/CaseActions';
+import { CasePlanView, EditPlanSheet, type Plan } from '../../../components/CasePlan';
 import { CHANGE_FIELD_LABEL } from '../../../lib/change-fields';
 import { ChangeDecision } from '../../../components/ChangeRequestRow';
 import { StatusPill } from '../../../components/StatusPill';
@@ -46,6 +47,11 @@ export default async function CasePage({
           )
         : null;
     const events = history && typeof history === 'object' ? history.items : [];
+    const planRes =
+      tab === 'thong-tin'
+        ? await getJson<Plan>(`/vibang/cases/${encodeURIComponent(id)}/plan`, cookie)
+        : null;
+    const plan: Plan | null = planRes && typeof planRes === 'object' ? planRes : null;
     if (tab === 'tien-do') {
       return (
         <section className="panel" aria-labelledby="act-t">
@@ -108,6 +114,19 @@ export default async function CasePage({
                 )}
               </div>
               <DefList rows={shown} />
+            </section>
+            <section className="panel" aria-labelledby="plan-t">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h2 id="plan-t" className="!m-0">
+                  Kế hoạch lập Vi bằng
+                </h2>
+                {plan && !isFinal ? <EditPlanSheet caseId={c.id} plan={plan} /> : null}
+              </div>
+              {plan ? (
+                <CasePlanView plan={plan} />
+              ) : (
+                <p className="muted">Không tải được kế hoạch. Vui lòng thử lại sau.</p>
+              )}
             </section>
             <section className="panel" aria-labelledby="who-t">
               <h2 id="who-t">Người phụ trách</h2>

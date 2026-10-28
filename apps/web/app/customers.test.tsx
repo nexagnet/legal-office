@@ -5,6 +5,7 @@ import { CustomerContracts } from '../components/CustomerContracts';
 import { CustomerDirectory } from '../components/CustomerDirectory';
 import { CustomerProfileForm, NewCustomerForm } from '../components/CustomerForms';
 import { IssueCopyForm, RejectCaseForm } from '../components/CaseRejectCopy';
+import { NewViBangSheet } from '../components/NewCaseSheets';
 import type { Contract, Customer } from '../lib/customers';
 
 const push = vi.fn();
@@ -217,12 +218,50 @@ describe('NewCustomerForm', () => {
   });
 });
 
+describe('NewViBangSheet', () => {
+  const branches = [{ id: 'b1', name: 'Trụ sở chính', officeId: 'o1' }] as never;
+
+  it('creates the customer, saves the profile and creates the case in three steps', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'new-id' }));
+    render(<NewViBangSheet branches={branches} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Tạo hồ sơ Vi bằng' }));
+    fireEvent.change(screen.getByLabelText('Mã tham chiếu khách hàng'), {
+      target: { value: 'KH-9' },
+    });
+    fireEvent.change(screen.getByLabelText(/Tên khách hàng/), { target: { value: 'Nguyễn A' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục/ }));
+    fireEvent.change(screen.getByLabelText('Tiêu đề hồ sơ'), { target: { value: 'Giao nhận' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp nhận hồ sơ' }));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(3));
+    expect(sent(spy, 0).url).toBe('/api/vibang/customers');
+    expect(sent(spy, 0).body).toEqual({ kind: 'PERSON', externalRef: 'KH-9' });
+    expect(sent(spy, 1).url).toBe('/api/vibang/customers/new-id/profile');
+    expect(sent(spy, 1).body).toEqual({ displayName: 'Nguyễn A' });
+    expect(sent(spy, 2).url).toBe('/api/vibang/cases');
+    expect(sent(spy, 2).body).toMatchObject({ customerId: 'new-id', title: 'Giao nhận' });
+  });
+
+  it('does not ask for the optional fields before continuing', () => {
+    mockOk();
+    render(<NewViBangSheet branches={branches} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Tạo hồ sơ Vi bằng' }));
+    fireEvent.change(screen.getByLabelText('Mã tham chiếu khách hàng'), {
+      target: { value: 'KH-9' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục/ }));
+    expect(screen.getByLabelText('Tiêu đề hồ sơ')).toBeTruthy();
+  });
+});
+
 describe('RejectCaseForm', () => {
   it('offers the eight Điều 28 clauses and posts the chosen clause with the reason', async () => {
     const spy = mockOk();
     render(<RejectCaseForm caseId="case-1" />);
-    expect(screen.getAllByRole('option')).toHaveLength(8);
-    fireEvent.change(screen.getByLabelText('Trường hợp từ chối'), { target: { value: '3' } });
+    expect(screen.getAllByRole('radio')).toHaveLength(8);
+    fireEvent.click(screen.getByLabelText('Đời tư, trái đạo đức xã hội'));
     fireEvent.change(screen.getByLabelText('Lý do từ chối'), { target: { value: 'đời tư' } });
     fireEvent.click(screen.getByRole('button', { name: 'Từ chối yêu cầu' }));
     await waitFor(() => expect(refresh).toHaveBeenCalled());
@@ -238,7 +277,7 @@ describe('RejectCaseForm', () => {
     render(<RejectCaseForm caseId="case-1" />);
     const basis = screen.getByLabelText('Căn cứ') as HTMLInputElement;
     expect(basis.required).toBe(false);
-    fireEvent.change(screen.getByLabelText('Trường hợp từ chối'), { target: { value: '8' } });
+    fireEvent.click(screen.getByLabelText('Căn cứ khác có cơ sở'));
     const basis8 = screen.getByLabelText(/Căn cứ \(bắt buộc/) as HTMLInputElement;
     expect(basis8.required).toBe(true);
     fireEvent.change(screen.getByLabelText('Lý do từ chối'), { target: { value: 'lý do' } });

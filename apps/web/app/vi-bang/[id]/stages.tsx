@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ConditionList, type Condition } from '../../../components/ui/condition-list';
 import { AssignThv, type ThvOption } from '../../../components/AssignThv';
 import { CaseActions } from '../../../components/CaseActions';
 import { CHANGE_FIELD_LABEL } from '../../../lib/change-fields';
@@ -7,6 +8,7 @@ import {
   MisaNumberPanels,
   ReturnPanel,
   SignStampPanels,
+  type NumberPreview,
 } from '../../../components/CaseStagePanels';
 import { ChangeDecision } from '../../../components/ChangeRequestRow';
 import { MisaRevoke, type RevokeProposal } from '../../../components/MisaRevoke';
@@ -42,6 +44,36 @@ const fmtDay = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString('vi-VN') : null;
 const enc = (id: string) => encodeURIComponent(id);
 
+/** Hộp thoại thao tác theo Figma N18: danh sách điều kiện, biểu mẫu, ghi chú. Quyền và điều kiện thật vẫn do máy chủ kiểm. */
+function Conditioned({
+  label,
+  conditions,
+  notice,
+  tone = 'blue',
+  children,
+}: {
+  readonly label: string;
+  readonly conditions: readonly Condition[];
+  readonly notice?: string;
+  readonly tone?: 'blue' | 'amber' | 'red';
+  readonly children: ReactNode;
+}) {
+  const toneClass = {
+    blue: 'bg-accent-soft text-accent',
+    amber: 'notice-amber',
+    red: 'bg-danger-soft text-danger',
+  }[tone];
+  return (
+    <div className="grid gap-5">
+      <ConditionList conditions={conditions} label={label} />
+      {children}
+      {notice ? (
+        <p className={`m-0 rounded-xl px-4 py-3 text-[14px] ${toneClass}`}>{notice}</p>
+      ) : null}
+    </div>
+  );
+}
+
 const loadError = (what: string) => (
   <div className="state" role="alert">
     <h2>Không tải được {what}</h2>
@@ -61,9 +93,23 @@ export const STAGES: Readonly<Record<string, StageDef>> = {
   'cap-so': {
     title: 'Xác nhận MISA và cấp số',
     variant: 'sheet',
-    body: ({ c, progress, roles }) => (
-      <MisaNumberPanels caseId={c.id} status={c.status} progress={progress} roles={roles} />
-    ),
+    body: async ({ c, progress, roles, cookie }) => {
+      const [misa, preview] = await Promise.all([
+        getJson<{ reference: string | null }>(`/vibang/cases/${enc(c.id)}/misa`, cookie),
+        getJson<NumberPreview>(`/vibang/cases/${enc(c.id)}/number-preview`, cookie),
+      ]);
+      return (
+        <MisaNumberPanels
+          caseId={c.id}
+          status={c.status}
+          progress={progress}
+          roles={roles}
+          thvLabel={c.thvLabel ?? (c.responsibleThvUserId ? 'Đã phân công' : null)}
+          misaReference={typeof misa === 'object' ? misa.reference : null}
+          preview={typeof preview === 'object' ? preview : null}
+        />
+      );
+    },
   },
   'ky-dong-dau': {
     title: 'Ký, đóng dấu và bản scan',
@@ -194,36 +240,63 @@ export const STAGES: Readonly<Record<string, StageDef>> = {
   'cap-ban-sao': {
     title: 'Cấp bản sao Vi bằng',
     variant: 'modal',
-    body: ({ c, progress }) =>
-      c.status === 'RETURNED' ? (
-        <IssueCopyForm caseId={c.id} caseTitle={progress.numberLabel ?? c.title} />
-      ) : (
-        <div className="state" role="status">
-          <h2>Chưa cấp được bản sao</h2>
-          <p>Chỉ cấp bản sao cho Vi bằng đã trả kết quả.</p>
-        </div>
-      ),
+    body: ({ c, progress }) => (
+      <Conditioned
+        label="Điều kiện cấp bản sao"
+        conditions={[
+          {
+            key: 'returned',
+            title: 'Hồ sơ đã trả kết quả',
+            hint:
+              c.status === 'RETURNED'
+                ? 'Đủ điều kiện cấp bản sao'
+                : 'Điều 32: chỉ cấp cho hồ sơ đã trả',
+            met: c.status === 'RETURNED',
+          },
+        ]}
+        notice="Chi phí bản sao quản lý trên MISA, không nhập ở đây."
+      >
+        {c.status === 'RETURNED' ? (
+          <IssueCopyForm caseId={c.id} caseTitle={progress.numberLabel ?? c.title} />
+        ) : null}
+      </Conditioned>
+    ),
   },
   'phan-cong': {
     title: 'Phân công thừa phát lại',
     variant: 'modal',
     body: async ({ c, roles, cookie }) => {
-      if (!roles.includes('ADMIN')) {
-        return (
-          <div className="state" role="status">
-            <h2>Chỉ Admin phân công</h2>
-            <p>Mỗi Vi bằng có một Thừa hành viên phụ trách do Admin giao.</p>
-          </div>
-        );
-      }
-      const thv = await getJson<{ items: ThvOption[] }>('/vibang/thv', cookie);
+      const isAdmin = roles.includes('ADMIN');
+      const unsigned = c.status === 'INTAKE' || c.status === 'ASSIGNED';
+      const thv = isAdmin ? await getJson<{ items: ThvOption[] }>('/vibang/thv', cookie) : null;
       return (
-        <AssignThv
-          caseId={c.id}
-          caseTitle={c.title}
-          options={typeof thv === 'object' ? thv.items : []}
-          currentThvId={c.responsibleThvUserId}
-        />
+        <Conditioned
+          label="Điều kiện phân công"
+          conditions={[
+            {
+              key: 'unsigned',
+              title: 'Hồ sơ chưa ký',
+              hint: 'Đã phân công thì vẫn đổi được cho tới khi ký',
+              met: unsigned,
+            },
+            {
+              key: 'admin',
+              title: 'Bạn là Admin',
+              hint: 'Mỗi Vi bằng có một Thừa hành viên phụ trách do Admin giao',
+              met: isAdmin,
+            },
+          ]}
+          notice="Thừa hành viên nhận việc ở Việc của tôi. Lịch sử hồ sơ ghi người phân công và thời điểm."
+        >
+          {isAdmin ? (
+            <AssignThv
+              caseId={c.id}
+              caseTitle={c.title}
+              options={thv && typeof thv === 'object' ? thv.items : []}
+              currentThvId={c.responsibleThvUserId}
+            />
+          ) : null}
+        </Conditioned>
       );
     },
   },
@@ -232,22 +305,33 @@ export const STAGES: Readonly<Record<string, StageDef>> = {
     variant: 'modal',
     body: async ({ c, cookie }) => {
       const r = await getJson<Registration>(`/vibang/cases/${enc(c.id)}/registration`, cookie);
-      if (typeof r !== 'object') {
-        return (
-          <div className="state" role="status">
-            <h2>Chưa có theo dõi cập nhật Sở</h2>
-            <p>Chỉ Vi bằng đã cấp số mới có mục theo dõi cập nhật CSDL / Sở.</p>
-          </div>
-        );
-      }
+      const has = typeof r === 'object';
       return (
-        <RegistrationForm
-          caseId={c.id}
-          numberLabel={r.numberLabel}
-          madeAt={r.madeAt}
-          regStatus={r.regStatus}
-          deadlineAt={r.deadlineAt}
-        />
+        <Conditioned
+          label="Điều kiện cập nhật Sở"
+          conditions={[
+            {
+              key: 'number',
+              title: 'Hồ sơ đã có số',
+              hint: has
+                ? r.numberLabel
+                : 'Chỉ Vi bằng đã cấp số mới có mục theo dõi cập nhật CSDL / Sở',
+              met: has,
+            },
+          ]}
+          tone="amber"
+          notice="Hạn 3 ngày làm việc. Chưa cập nhật không chặn trả kết quả; sự cố được ghi nhận vào nhật ký và hiện ở Thông báo."
+        >
+          {has ? (
+            <RegistrationForm
+              caseId={c.id}
+              numberLabel={r.numberLabel}
+              madeAt={r.madeAt}
+              regStatus={r.regStatus}
+              deadlineAt={r.deadlineAt}
+            />
+          ) : null}
+        </Conditioned>
       );
     },
   },
@@ -293,23 +377,39 @@ export const STAGES: Readonly<Record<string, StageDef>> = {
   'huy-ho-so': {
     title: 'Huỷ hồ sơ',
     variant: 'modal',
-    body: ({ c, isAdmin, isFinal, windowOpen }) =>
-      isAdmin && !isFinal ? (
-        <CaseActions
-          caseId={c.id}
-          title={c.title}
-          description={c.description ?? ''}
-          windowOpen={windowOpen}
-          isFinal={isFinal}
-          canCancel
-          section="cancel"
-        />
-      ) : (
-        <div className="state" role="status">
-          <h2>Không huỷ được hồ sơ</h2>
-          <p>Chỉ Admin huỷ hồ sơ chưa kết thúc.</p>
-        </div>
-      ),
+    body: ({ c, isAdmin, isFinal, windowOpen }) => (
+      <Conditioned
+        label="Điều kiện huỷ hồ sơ"
+        conditions={[
+          {
+            key: 'open',
+            title: 'Hồ sơ chưa trả kết quả',
+            hint: isFinal ? 'Hồ sơ đã kết thúc' : 'Chưa kết thúc',
+            met: !isFinal,
+          },
+          {
+            key: 'admin',
+            title: 'Bạn là Admin',
+            hint: 'Chỉ Admin huỷ hồ sơ chưa kết thúc',
+            met: isAdmin,
+          },
+        ]}
+        tone="red"
+        notice="Huỷ không hoàn tác. Số đã cấp (nếu có) không được dùng lại và hồ sơ vẫn nằm trong sổ; lý do và người huỷ được ghi nhật ký."
+      >
+        {isAdmin && !isFinal ? (
+          <CaseActions
+            caseId={c.id}
+            title={c.title}
+            description={c.description ?? ''}
+            windowOpen={windowOpen}
+            isFinal={isFinal}
+            canCancel
+            section="cancel"
+          />
+        ) : null}
+      </Conditioned>
+    ),
   },
   'tu-choi': {
     title: 'Từ chối yêu cầu',

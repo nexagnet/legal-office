@@ -189,6 +189,45 @@ export class VibangController {
     return this.run(a, 'vb_set_case_place', [a.userId, id, b.placeAddress]);
   }
 
+  /**
+   * Kế hoạch lập Vi bằng: thời gian dự kiến, ghi chú nội bộ và người tham gia (thay toàn bộ danh sách).
+   * Hồ sơ đã trả hoặc huỷ không sửa được. Quyền do `vb_set_case_plan` quyết định.
+   */
+  @Post('cases/:id/plan')
+  @HttpCode(HttpStatus.OK)
+  setPlan(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          scheduledAt: z.string().datetime({ offset: true }).nullish(),
+          internalNote: z.string().max(2000).nullish(),
+          parties: z
+            .array(
+              z
+                .object({
+                  name: z.string().max(300),
+                  role: z.enum(['SELLER', 'BUYER', 'WITNESS', 'OTHER']),
+                })
+                .strict(),
+            )
+            .max(20),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'vb_set_case_plan', [
+      a.userId,
+      id,
+      b.scheduledAt ?? null,
+      b.internalNote ?? null,
+      JSON.stringify(b.parties),
+    ]);
+  }
+
   @Put('cases/:id/registration')
   setRegistration(
     @CurrentActor() a: AuthenticatedActor,
