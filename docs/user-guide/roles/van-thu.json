@@ -146,6 +146,91 @@
      "marks": []
     }
    ]
+  },
+  {
+   "title": "Công văn đi và đến: tạo công văn",
+   "intro": "Công văn đến được vào sổ với loại văn bản, nơi gửi, trích yếu, số ký hiệu và ngày nhận. Mỗi công văn có thể giao người xử lý, đặt hạn, đính kèm tài liệu và liên kết với hồ sơ.",
+   "rules": [
+    "Công văn đi tự cấp số dạng số/năm/CV-THV.",
+    "Phân biệt soạn, duyệt nội bộ và ký ban hành."
+   ],
+   "steps": [
+    {
+     "title": "Màn Công văn",
+     "note": "Ba tab: Công văn đến, Công văn đi, Sổ quyết định; bộ lọc Chờ xử lý, Quá hạn, Đã xử lý.",
+     "img": "van-thu/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo công văn"
+      }
+     ]
+    },
+    {
+     "title": "Nhập thông tin công văn đến",
+     "note": "Điền loại văn bản, nơi gửi, trích yếu, số ký hiệu và ngày nhận, sau đó bấm Tiếp tục để đính kèm tài liệu và vào sổ.",
+     "img": "van-thu/18.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Công văn đến hoặc đi"
+      },
+      {
+       "n": 2,
+       "text": "Nhập nơi gửi"
+      },
+      {
+       "n": 3,
+       "text": "Nhập trích yếu"
+      },
+      {
+       "n": 4,
+       "text": "Bấm Tiếp tục: Đính kèm"
+      }
+     ]
+    },
+    {
+     "title": "Đính kèm và vào sổ",
+     "note": "Đính kèm bản scan công văn (nếu có) rồi hoàn tất để vào sổ.",
+     "img": "van-thu/19.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Thư viện biểu mẫu và sổ sách",
+   "intro": "Văn thư dùng thư viện biểu mẫu để tra cứu và tải phụ lục, và theo dõi sổ S-01, S-02, S-04, S-05. Mục Theo dõi cập nhật CSDL / Sở liệt kê hồ sơ chờ cập nhật theo hạn 3 ngày làm việc.",
+   "rules": [
+    "Sổ điện tử hỗ trợ theo dõi; bản in chính thức phải đóng dấu giáp lai hằng tháng."
+   ],
+   "steps": [
+    {
+     "title": "Sổ theo dõi Vi bằng (S-02)",
+     "note": "Chọn sổ và năm rồi bấm Xem; xuất Excel, PDF hoặc CSV.",
+     "img": "van-thu/20.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Xuất sổ ra tệp"
+      },
+      {
+       "n": 2,
+       "text": "Mở danh sách hồ sơ chờ cập nhật Sở"
+      }
+     ]
+    },
+    {
+     "title": "Thư viện biểu mẫu",
+     "note": "Tìm và tải biểu mẫu; soạn dữ liệu pháp lý N-04.",
+     "img": "van-thu/21.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Soạn N-04"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

@@ -12,7 +12,7 @@
    "steps": [
     {
      "title": "Tổng quan và thanh bên của Thư ký",
-     "note": "Thư ký thấy bốn nghiệp vụ, khách hàng và hợp đồng, sổ sách, biểu mẫu, công văn. Mục Quản trị không hiện với Thư ký.",
+     "note": "Thư ký thấy bốn nghiệp vụ, khách hàng và hợp đồng, sổ sách, biểu mẫu, công văn. Mục Người dùng (nhân sự, phân quyền) chỉ dành cho Admin và Trưởng văn phòng.",
      "img": "thu-ky/01.png",
      "marks": [
       {
@@ -97,6 +97,127 @@
       {
        "n": 1,
        "text": "Bấm Xem và sửa để mở khách"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tống đạt: tạo yêu cầu tống đạt",
+   "intro": "Thư ký, THV, Văn thư và Admin được tạo yêu cầu tống đạt. Một yêu cầu có thể gồm nhiều văn bản; mỗi văn bản có người nhận, địa chỉ và hạn riêng. Việc giao người xử lý do Admin hoặc Trưởng văn phòng làm.",
+   "rules": [
+    "Chưa giao người xử lý thì chưa ghi được lần tống đạt.",
+    "Hạn tống đạt là hạn nhắc, hệ thống không tự đổi trạng thái."
+   ],
+   "steps": [
+    {
+     "title": "Danh sách Tống đạt và nút tạo yêu cầu",
+     "note": "Danh sách chỉ tóm tắt; bấm Mở để vào trang chi tiết của từng văn bản.",
+     "img": "thu-ky/16.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo yêu cầu tống đạt"
+      }
+     ]
+    },
+    {
+     "title": "Bước 1: nhập mã yêu cầu",
+     "note": "Trình tạo gồm ba bước: Yêu cầu, Người nhận, Xác nhận.",
+     "img": "thu-ky/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập Mã yêu cầu"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Tiếp tục: Người nhận"
+      }
+     ]
+    },
+    {
+     "title": "Bước 2: nhập người nhận, địa chỉ và hạn",
+     "note": "Mỗi văn bản một người nhận; hạn tống đạt chọn theo ngày.",
+     "img": "thu-ky/18.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập tên người nhận"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Khách hàng và hợp đồng chi tiết",
+   "intro": "Mở một khách để xem thông tin, hợp đồng, phụ lục, Vi bằng liên quan và nhật ký liên hệ. Hợp đồng có thể gắn nhiều hồ sơ Vi bằng; phụ lục chỉ ghi thêm, không sửa, không xoá.",
+   "rules": [
+    "Bản scan hợp đồng và phụ lục đã ký là PDF, JPEG hoặc PNG, tối đa 25 MB.",
+    "Không có số tiền ở bất kỳ ô nào."
+   ],
+   "steps": [
+    {
+     "title": "Hồ sơ khách hàng: các tab",
+     "note": "Các tab: Thông tin, Hợp đồng, Phụ lục, Vi bằng, Nhật ký liên hệ.",
+     "img": "thu-ky/19.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Hợp đồng"
+      },
+      {
+       "n": 2,
+       "text": "Sửa thông tin cá nhân rồi bấm Lưu thông tin"
+      }
+     ]
+    },
+    {
+     "title": "Tab Hợp đồng",
+     "note": "Chọn dịch vụ (Vi bằng, Tống đạt, Xác minh, Tổ chức THA), trạng thái, ngày ký, hiệu lực, ghi chú rồi lưu hợp đồng; có thể tải bản scan hợp đồng và liên kết người tham gia.",
+     "img": "thu-ky/20.png",
+     "marks": []
+    },
+    {
+     "title": "Tab Phụ lục",
+     "note": "Mỗi phụ lục có loại (gia hạn, bổ sung phạm vi, đổi bên tham gia, khác), ngày hiệu lực, nội dung và bản scan đã ký bắt buộc.",
+     "img": "thu-ky/21.png",
+     "marks": []
+    },
+    {
+     "title": "Soạn hợp đồng N-03",
+     "note": "Sinh bản nháp Word hợp đồng lập Vi bằng từ dữ liệu khách; người dùng rà soát trước khi ký.",
+     "img": "thu-ky/22.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Thư viện biểu mẫu",
+   "intro": "Đăng ký và tải các phụ lục của Thông tư, tìm biểu mẫu và soạn bản nháp Word cho các mẫu N. Thư viện chỉ để tra cứu và tải; không tự điền, ký hay ban hành.",
+   "rules": [
+    "Bản nháp phải được người có thẩm quyền rà soát và ký."
+   ],
+   "steps": [
+    {
+     "title": "Thư viện biểu mẫu",
+     "note": "Tìm biểu mẫu theo tên; nút Soạn nội dung Vi bằng N-04 mở màn soạn dữ liệu pháp lý.",
+     "img": "thu-ky/23.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Soạn nội dung Vi bằng N-04"
+      }
+     ]
+    },
+    {
+     "title": "Soạn dữ liệu pháp lý N-04",
+     "note": "Nhập người yêu cầu, người tham gia, địa điểm, ngày bắt đầu và sự kiện chứng kiến; sau đó xuất dự thảo Word. Checklist hoàn tất nhắc việc ký, đóng dấu và ảnh THV chứng kiến.",
+     "img": "thu-ky/24.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Xuất dự thảo Word"
       }
      ]
     }

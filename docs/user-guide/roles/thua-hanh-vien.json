@@ -329,6 +329,60 @@
      ]
     }
    ]
+  },
+  {
+   "title": "Các tab của hồ sơ Vi bằng",
+   "intro": "Trang hồ sơ có banner (mã, trạng thái, Thêm thao tác) và các tab: Tiến độ, Thông tin, Tài liệu, Pháp lý, Lịch sử, Đề nghị thay đổi. Chỉ nội dung tab đang chọn hiện ra.",
+   "rules": [
+    "Trong 48 giờ đầu sửa trực tiếp ở tab Thông tin; sau đó gửi đề nghị thay đổi cho Admin.",
+    "Hồ sơ đã có giá trị pháp lý không xoá, không sửa âm thầm."
+   ],
+   "steps": [
+    {
+     "title": "Tab Thông tin",
+     "note": "Thông tin hồ sơ và người phụ trách.",
+     "img": "thua-hanh-vien/23.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Thông tin"
+      }
+     ]
+    },
+    {
+     "title": "Tab Tài liệu",
+     "note": "Kho chứng cứ và bản scan có phiên bản và mã kiểm tra.",
+     "img": "thua-hanh-vien/24.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Tài liệu"
+      }
+     ]
+    },
+    {
+     "title": "Tab Pháp lý",
+     "note": "Người yêu cầu, địa điểm, sự kiện chứng kiến, người tham gia: dữ liệu cho văn bản N-04.",
+     "img": "thua-hanh-vien/25.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Pháp lý"
+      }
+     ]
+    },
+    {
+     "title": "Tab Lịch sử",
+     "note": "Nhật ký ai làm gì, lúc nào; chỉ ghi thêm, không sửa.",
+     "img": "thua-hanh-vien/26.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Lịch sử"
+      }
+     ]
+    }
+   ]
   }
  ]
 }

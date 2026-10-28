@@ -17,5 +17,4 @@ Cập nhật: 2026-10-28. Bản deploy: https://http--lo-web--8929jqrrnzyy.code.
 - Các script ghi dữ liệu thật vào DB thử nên chạy lại cần dữ liệu DEMO mới.
 
 ## Còn lại
-- Soát từng PDF với chủ dự án; bổ sung ảnh Tống đạt tạo yêu cầu, Công văn đến, Biểu mẫu, Hợp đồng và phụ lục chi tiết, THA hoàn tất.
-- So Figma N12–N14; đo độ trễ có đăng nhập (`scripts/measure-latency.mjs`).
+- Soát PDF với chủ dự án; phần Tống đạt cập nhật sau khi giao diện mới deploy.

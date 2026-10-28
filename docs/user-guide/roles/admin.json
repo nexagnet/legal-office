@@ -143,6 +143,39 @@
      ]
     }
    ]
+  },
+  {
+   "title": "Hộp duyệt, báo cáo và thẻ THV",
+   "intro": "Admin quyết định đề nghị thu hồi xác nhận MISA, duyệt hoặc từ chối đề nghị sửa sau 48 giờ ở Hộp duyệt; xem Báo cáo hoạt động; quản lý Thẻ THV (họ tên và số thẻ in lên sổ).",
+   "rules": [
+    "Mỗi đề nghị có ba lựa chọn: duyệt, trả lại, từ chối.",
+    "Người đề nghị không tự duyệt đề nghị của mình."
+   ],
+   "steps": [
+    {
+     "title": "Hộp duyệt của Admin",
+     "note": "Các đề nghị đang chờ hiện theo thứ tự cũ nhất lên trước.",
+     "img": "admin/15.png",
+     "marks": []
+    },
+    {
+     "title": "Thẻ THV",
+     "note": "Nhập họ tên và số thẻ của từng Thừa hành viên để in vào cột THV của sổ.",
+     "img": "admin/16.png",
+     "marks": []
+    },
+    {
+     "title": "Báo cáo hoạt động",
+     "note": "Số liệu theo ngày tạo, đếm riêng từng nghiệp vụ, không cộng chéo, không có số tiền.",
+     "img": "admin/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Xuất báo cáo ra Excel, PDF hoặc CSV"
+      }
+     ]
+    }
+   ]
   }
  ]
 }
