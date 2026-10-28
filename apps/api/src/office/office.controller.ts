@@ -854,6 +854,7 @@ export class OfficeController {
       deadline_at: Date | null;
       created_at: Date;
       overdue: boolean;
+      created_by: string | null;
     }>(a, 'of_search_my_work', [officeId]);
     return {
       items: rows.map((r) => ({
@@ -864,6 +865,7 @@ export class OfficeController {
         deadlineAt: r.deadline_at,
         createdAt: r.created_at,
         overdue: r.overdue,
+        createdBy: r.created_by,
       })),
     };
   }

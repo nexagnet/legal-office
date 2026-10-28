@@ -4,6 +4,8 @@ import { RowActions } from '../../components/RowActions';
 import { StatusPill } from '../../components/StatusPill';
 import { ApprovalActions } from '../../components/ApprovalActions';
 import { loadRequests } from '../../lib/admin-api';
+import { Person } from '../../components/ui/avatar';
+import { loadPeopleNames } from '../../lib/people';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { APPROVAL_KIND_LABEL, APPROVAL_STATE_LABEL } from '../../lib/messages';
 
@@ -14,6 +16,7 @@ interface Row {
   readonly subjectId: string;
   readonly state: string;
   readonly lastReason: string | null;
+  readonly proposedBy: string;
   readonly createdAt: string;
 }
 
@@ -51,7 +54,12 @@ export default async function ApprovalsPage() {
     );
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
-  const rows = officeId ? await load(await requestCookie(), officeId) : [];
+  const cookie = await requestCookie();
+  const rows = officeId ? await load(cookie, officeId) : [];
+  const names = await loadPeopleNames(
+    cookie,
+    rows === 'error' ? [] : rows.map((r) => r.proposedBy),
+  );
   const access =
     officeId && session.roles.includes('TRUONG_VP')
       ? await loadRequests(await requestCookie(), officeId)
@@ -117,6 +125,7 @@ export default async function ApprovalsPage() {
               <thead>
                 <tr>
                   <th scope="col">Loại</th>
+                  <th scope="col">Người đề xuất</th>
                   <th scope="col">Trạng thái</th>
                   <th scope="col">Lý do gần nhất</th>
                   <th scope="col">Ngày đề xuất</th>
@@ -127,6 +136,13 @@ export default async function ApprovalsPage() {
                 {rows.map((r) => (
                   <tr key={`${r.kind}-${r.subjectId}`}>
                     <th scope="row">{APPROVAL_KIND_LABEL[r.kind] ?? r.kind}</th>
+                    <td>
+                      {names.get(r.proposedBy) ? (
+                        <Person name={names.get(r.proposedBy) ?? ''} id={r.proposedBy} size="sm" />
+                      ) : (
+                        <span className="muted">—</span>
+                      )}
+                    </td>
                     <td>
                       <StatusPill
                         status={r.state}
