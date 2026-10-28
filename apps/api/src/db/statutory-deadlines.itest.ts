@@ -334,6 +334,48 @@ describe.skipIf(!ADMIN_URL)('hạn pháp định NĐ 151 và chấm dứt THA (P
         )
       ).rows[0].id as string;
 
+    it('nghĩa vụ có hạn và chấm dứt có kết quả thực tế (bản 8 tham số) hiện trong đọc hồ sơ', async () => {
+      const c = await newCase('THA-T2');
+      expect(
+        await fn('th_add_obligation', T, U.admin, c, 'Nghĩa vụ có hạn', null, '2026-11-30'),
+      ).toMatchObject({ ok: true });
+      expect(await fn('th_add_obligation', T, U.thv2, c, 'x', null, '2026-11-30')).toMatchObject({
+        ok: false,
+      });
+      expect(
+        (await owner.query(`SELECT due_on::text d FROM th_obligations WHERE case_id = $1`, [c]))
+          .rows,
+      ).toEqual([{ d: '2026-11-30' }]);
+      const listed = await owner.query(`SELECT obligations FROM th_list_cases($1,$2,10)`, [
+        T,
+        U.admin,
+      ]);
+      const mine = listed.rows.find((r) =>
+        (r.obligations as { description: string }[]).some(
+          (o) => o.description === 'Nghĩa vụ có hạn',
+        ),
+      );
+      expect(mine.obligations[0]).toMatchObject({ dueOn: '2026-11-30', events: [] });
+      expect(
+        await fn('th_terminate_case', T, U.admin, c, 'AGREEMENT', 'điểm b', 'k/t', sha('b'), ' '),
+      ).toMatchObject({ ok: false, code: 'OUTCOME_REQUIRED' });
+      expect(
+        await fn(
+          'th_terminate_case',
+          T,
+          U.admin,
+          c,
+          'AGREEMENT',
+          'điểm b',
+          'k/t',
+          sha('b'),
+          'Đã báo đương sự',
+        ),
+      ).toMatchObject({ ok: true });
+      const info = await owner.query(`SELECT * FROM th_get_termination($1,$2,$3)`, [T, U.admin, c]);
+      expect(info.rows[0]).toMatchObject({ reason: 'AGREEMENT', outcome: 'Đã báo đương sự' });
+    });
+
     it('chấm dứt sớm cần lý do có mã, căn cứ và tệp; sinh hạn thu hồi quyết định THA; hồ sơ bị khóa', async () => {
       const c = await newCase('THA-T1');
       await owner.query(

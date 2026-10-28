@@ -12,6 +12,8 @@ import {
 import { EnforcementActions } from '../../../components/EnforcementActions';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
+import { TabNav } from '../../../components/ui/tab-nav';
+import { TerminationSheet } from '../../../components/TerminationSheet';
 import { PartyName, Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
@@ -19,10 +21,12 @@ import {
   ENFORCEMENT_STATUS_LABEL,
   OBLIGATION_STATUS_LABEL,
   PARTY_ROLE_LABEL,
+  RESULT_KIND_LABEL,
+  TERMINATION_REASON_LABEL,
 } from '../../../lib/messages';
 import { personName } from '../../../lib/avatar';
 import { loadPeopleNames } from '../../../lib/people';
-import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
+import { API_URL, currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,12 +36,39 @@ interface Party {
   readonly displayName: string;
   readonly role: string;
 }
+interface ObligationEvent {
+  readonly kind: string;
+  readonly note: string;
+  readonly at: string;
+  readonly hasEvidence: boolean;
+}
 interface Obligation {
   readonly id: string;
   readonly seq: number;
   readonly description: string;
   readonly status: string;
+  readonly obligorPartyId: string | null;
+  readonly dueOn: string | null;
+  readonly events: readonly ObligationEvent[];
 }
+interface Termination {
+  readonly reason: string;
+  readonly basis: string;
+  readonly outcome: string | null;
+  readonly terminatedAt: string;
+}
+
+const TABS = [
+  { key: 'duong-su', label: 'Đương sự và nghĩa vụ' },
+  { key: 'tai-san', label: 'Tài sản và biện pháp' },
+  { key: 'chuyen-ho-so', label: 'Chuyển hồ sơ' },
+  { key: 'cham-dut', label: 'Chấm dứt' },
+] as const;
+type Tab = (typeof TABS)[number]['key'];
+const dayFmt = new Intl.DateTimeFormat('vi-VN', {
+  dateStyle: 'short',
+  timeZone: 'Asia/Ho_Chi_Minh',
+});
 interface Item {
   readonly caseId: string;
   readonly caseRef: string;
@@ -51,10 +82,14 @@ interface Item {
 
 export default async function EnforcementDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const { tab: rawTab } = await searchParams;
+  const tab: Tab = TABS.find((t) => t.key === rawTab)?.key ?? 'duong-su';
   const session = await currentSession();
   if (session.status !== 'authenticated') {
     return <DetailSignIn title="Hồ sơ tổ chức thi hành án" what="hồ sơ tổ chức thi hành án" />;
@@ -93,6 +128,18 @@ export default async function EnforcementDetailPage({
         );
   const thvOptions = (await loadHandlerOptions(cookie)).filter((o) => o.userId !== c.handlerUserId);
   const canOrder = session.roles.includes('ADMIN') || session.roles.includes('TRUONG_VP');
+  const termRes =
+    c.status === 'TERMINATED'
+      ? await fetch(`${API_URL}/enforcement-cases/${c.caseId}/termination`, {
+          headers: cookie ? { cookie } : {},
+          cache: 'no-store',
+        }).catch(() => null)
+      : null;
+  const termination = termRes?.ok
+    ? ((await termRes.json()) as { termination: Termination | null }).termination
+    : null;
+  const partyName = (pid: string | null) =>
+    c.parties.find((x) => x.id === pid)?.displayName ?? 'Chưa gắn đương sự';
   const doneObl = c.obligations.filter((o) => o.status === 'COMPLETED').length;
   const assignPath = `enforcement-cases/${c.caseId}/handler`;
 
@@ -180,89 +227,160 @@ export default async function EnforcementDetailPage({
           <h2 className="m-0 text-[13px] font-bold text-muted">Quy trình 3 bước</h2>
           <StepCards steps={steps} label="Các bước tổ chức thi hành án" />
         </div>
-        <section className="panel" aria-labelledby="parties-t">
-          <h2 id="parties-t">Đương sự</h2>
-          {c.parties.length === 0 ? (
-            <p className="muted">Chưa có đương sự.</p>
-          ) : (
-            <ul className="m-0 grid list-none gap-3 p-0">
-              {c.parties.map((p) => (
-                <li key={p.id} className="grid border-b border-line pb-3 last:border-0 last:pb-0">
-                  <strong>
-                    <PartyName name={p.displayName} person={p.kind === 'PERSON'} size="md" />
-                  </strong>
-                  <span className="text-[13px] text-muted">
-                    {PARTY_ROLE_LABEL[p.role] ?? p.role}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section className="panel" aria-labelledby="obl-t">
-          <h2 id="obl-t">Nghĩa vụ</h2>
-          {c.obligations.length === 0 ? (
-            <p className="muted">Chưa có nghĩa vụ.</p>
-          ) : (
-            <ol className="m-0 grid list-none gap-3 p-0">
-              {c.obligations.map((o) => (
-                <li
-                  key={o.id}
-                  className="grid gap-1 border-b border-line pb-3 last:border-0 last:pb-0"
-                >
-                  <span>
-                    {o.seq}. {o.description}
-                  </span>
-                  <span>
-                    <StatusPill
-                      status={o.status}
-                      label={OBLIGATION_STATUS_LABEL[o.status] ?? o.status}
-                    />
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
-        <section className="panel" aria-labelledby="asset-t">
-          <h2 id="asset-t">Tài sản và biện pháp</h2>
-          <p className="muted">
-            Đề xuất biện pháp chỉ trở thành đã áp dụng khi có lệnh có chữ ký của cơ quan có thẩm
-            quyền; hệ thống không tự đóng băng hay kê biên.
-          </p>
-          {assets === 'error' ? (
-            <p className="muted">Không tải được danh sách tài sản. Vui lòng thử lại sau.</p>
-          ) : (
-            <AssetList assets={assets} canWrite={open && assigned} canOrder={canOrder} />
-          )}
-          {open && assigned ? (
-            <div>
-              <AddAssetSheet caseId={c.caseId} />
-            </div>
-          ) : null}
-        </section>
-        <section className="panel" aria-labelledby="transfer-t">
-          <h2 id="transfer-t">Chuyển hồ sơ</h2>
-          <p className="muted">
-            Đề nghị, duyệt trong ứng dụng, quyết định pháp lý, biên bản bàn giao N-08 rồi mới hoàn
-            tất. Hoàn tất thì THV nhận hồ sơ trở thành người phụ trách.
-          </p>
-          {transfers === 'error' ? (
-            <p className="muted">Không tải được các đề nghị chuyển hồ sơ.</p>
-          ) : (
-            <TransferList
-              transfers={transfers}
-              names={Object.fromEntries(transferNames)}
-              canWrite={open}
-              canComplete={canOrder}
-            />
-          )}
-          {open && assigned && thvOptions.length > 0 ? (
-            <div>
-              <ProposeTransferSheet caseId={c.caseId} options={thvOptions} />
-            </div>
-          ) : null}
-        </section>
+        <TabNav
+          label="Mục của hồ sơ thi hành án"
+          active={tab}
+          tabs={TABS.map((t) => ({
+            key: t.key,
+            label: t.label,
+            href: `/to-chuc-tha/${c.caseId}?tab=${t.key}`,
+          }))}
+        />
+        {tab === 'duong-su' ? (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+            <section className="panel" aria-labelledby="parties-t">
+              <h2 id="parties-t">Đương sự</h2>
+              {c.parties.length === 0 ? (
+                <p className="muted">Chưa có đương sự.</p>
+              ) : (
+                <ul className="m-0 grid list-none gap-3 p-0">
+                  {c.parties.map((p) => (
+                    <li
+                      key={p.id}
+                      className="grid border-b border-line pb-3 last:border-0 last:pb-0"
+                    >
+                      <strong>
+                        <PartyName name={p.displayName} person={p.kind === 'PERSON'} size="md" />
+                      </strong>
+                      <span className="text-[13px] text-muted">
+                        {PARTY_ROLE_LABEL[p.role] ?? p.role}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            <section className="panel" aria-labelledby="obl-t">
+              <h2 id="obl-t">Nghĩa vụ và kết quả từng phần</h2>
+              {c.obligations.length === 0 ? (
+                <p className="muted">Chưa có nghĩa vụ.</p>
+              ) : (
+                <ol className="m-0 grid list-none gap-4 p-0">
+                  {c.obligations.map((o) => (
+                    <li
+                      key={o.id}
+                      className="grid gap-1.5 border-b border-line pb-4 last:border-0 last:pb-0"
+                    >
+                      <span className="font-semibold">
+                        {o.seq}. {o.description}
+                      </span>
+                      <span className="text-[13px] text-muted">
+                        {partyName(o.obligorPartyId)}
+                        {o.dueOn ? ` · hạn ${dayFmt.format(new Date(o.dueOn))}` : ''}
+                      </span>
+                      <span>
+                        <StatusPill
+                          status={o.status}
+                          label={OBLIGATION_STATUS_LABEL[o.status] ?? o.status}
+                        />
+                      </span>
+                      {o.events.length > 0 ? (
+                        <ul className="m-0 grid list-none gap-0.5 p-0 text-[13px]">
+                          {o.events.map((e, i) => (
+                            <li key={i}>
+                              {dayFmt.format(new Date(e.at))} ·{' '}
+                              {RESULT_KIND_LABEL[e.kind] ?? 'Ghi chú'}: {e.note}
+                              {e.hasEvidence ? ' · kèm biên bản' : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <p className="muted m-0 text-[13px]">
+                Kết quả ghi rồi bất biến, không sửa. Hoàn thành một nghĩa vụ không làm xong cả vụ;
+                số tiền trong bản án chỉ là nội dung nghĩa vụ, không phải sổ thu chi.
+              </p>
+            </section>
+          </div>
+        ) : null}
+        {tab === 'tai-san' ? (
+          <section className="panel" aria-labelledby="asset-t">
+            <h2 id="asset-t">Tài sản và biện pháp</h2>
+            <p className="muted">
+              Đề xuất biện pháp chỉ trở thành đã áp dụng khi có lệnh có chữ ký của cơ quan có thẩm
+              quyền; hệ thống không tự đóng băng hay kê biên.
+            </p>
+            {assets === 'error' ? (
+              <p className="muted">Không tải được danh sách tài sản. Vui lòng thử lại sau.</p>
+            ) : (
+              <AssetList assets={assets} canWrite={open && assigned} canOrder={canOrder} />
+            )}
+            {open && assigned ? (
+              <div>
+                <AddAssetSheet caseId={c.caseId} />
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+        {tab === 'chuyen-ho-so' ? (
+          <section className="panel" aria-labelledby="transfer-t">
+            <h2 id="transfer-t">Chuyển hồ sơ</h2>
+            <p className="muted">
+              Đề nghị, duyệt trong ứng dụng, quyết định pháp lý, biên bản bàn giao N-08 rồi mới hoàn
+              tất. Hoàn tất thì THV nhận hồ sơ trở thành người phụ trách.
+            </p>
+            {transfers === 'error' ? (
+              <p className="muted">Không tải được các đề nghị chuyển hồ sơ.</p>
+            ) : (
+              <TransferList
+                transfers={transfers}
+                names={Object.fromEntries(transferNames)}
+                canWrite={open}
+                canComplete={canOrder}
+              />
+            )}
+            {open && assigned && thvOptions.length > 0 ? (
+              <div>
+                <ProposeTransferSheet caseId={c.caseId} options={thvOptions} />
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+        {tab === 'cham-dut' ? (
+          <section className="panel" aria-labelledby="term-t">
+            <h2 id="term-t">Chấm dứt vụ việc</h2>
+            {c.status === 'TERMINATED' ? (
+              termination ? (
+                <DefList
+                  rows={[
+                    ['Lý do', TERMINATION_REASON_LABEL[termination.reason] ?? termination.reason],
+                    ['Căn cứ pháp lý', termination.basis],
+                    ['Kết quả thực tế', termination.outcome ?? 'Không ghi'],
+                    ['Thời điểm', dayFmt.format(new Date(termination.terminatedAt))],
+                  ]}
+                />
+              ) : (
+                <p className="muted">Hồ sơ đã chấm dứt.</p>
+              )
+            ) : (
+              <>
+                <p className="muted">
+                  Cần căn cứ pháp lý và kết quả thực tế. Chỉ Admin hoặc Trưởng văn phòng ghi. Sau
+                  khi chấm dứt, Trưởng văn phòng ký quyết định thu hồi trong 2 ngày làm việc (NĐ 151
+                  Điều 46).
+                </p>
+                {open && canOrder ? (
+                  <div>
+                    <TerminationSheet caseId={c.caseId} />
+                  </div>
+                ) : null}
+              </>
+            )}
+          </section>
+        ) : null}
       </div>
       <section className="panel" aria-labelledby="info-t">
         <h2 id="info-t">Thông tin hồ sơ</h2>

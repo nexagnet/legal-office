@@ -17,6 +17,7 @@ const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png'];
 const schema = z.object({
   reason: z.enum(Object.keys(TERMINATION_REASON_LABEL) as [string, ...string[]]),
   basis: z.string().trim().min(1, 'Hãy ghi căn cứ pháp lý').max(2000, 'Tối đa 2.000 ký tự'),
+  outcome: z.string().trim().min(1, 'Hãy ghi kết quả thực tế').max(2000, 'Tối đa 2.000 ký tự'),
   file: z
     .custom<ArrayLike<File>>(
       (v) => v != null && typeof (v as ArrayLike<File>).length === 'number',
@@ -42,7 +43,7 @@ export function TerminationSheet({ caseId }: { readonly caseId: string }) {
     formState: { errors, isSubmitting },
   } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { reason: 'AGREEMENT', basis: '' },
+    defaultValues: { reason: 'AGREEMENT', basis: '', outcome: '' },
   });
 
   const close = () => {
@@ -57,6 +58,7 @@ export function TerminationSheet({ caseId }: { readonly caseId: string }) {
       const r = await postFile(`enforcement-cases/${caseId}/termination-file`, v.file[0]!, {
         reason: v.reason,
         basis: v.basis,
+        outcome: v.outcome,
       });
       if (!r.ok) return setError(messageFor(r.code));
       close();
@@ -105,6 +107,24 @@ export function TerminationSheet({ caseId }: { readonly caseId: string }) {
                 {...register('basis')}
               />
             </Field>
+            <Field
+              id="term-outcome"
+              label="Kết quả thực tế"
+              help="Việc đã làm, ví dụ: đã gửi thông báo cho đương sự"
+              error={errors.outcome?.message}
+            >
+              <Input
+                id="term-outcome"
+                invalid={!!errors.outcome}
+                maxLength={2000}
+                {...register('outcome')}
+              />
+            </Field>
+            <Notice tone="warn" title="Hạn thu hồi quyết định">
+              Hệ thống không tự suy ra điểm của khoản 5 Điều 31 Luật THADS; người ghi nhập vào căn
+              cứ. Sau khi chấm dứt, Trưởng văn phòng ký quyết định thu hồi trong 2 ngày làm việc (NĐ
+              151 Điều 46); hạn hiện ở Thông báo.
+            </Notice>
             <Field
               id="term-file"
               label="Văn bản chấm dứt / thanh lý hợp đồng"
