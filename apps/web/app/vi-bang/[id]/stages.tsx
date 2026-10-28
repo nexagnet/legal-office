@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { AssignThv, type ThvOption } from '../../../components/AssignThv';
 import { CaseActions } from '../../../components/CaseActions';
+import { CHANGE_FIELD_LABEL } from '../../../lib/change-fields';
 import { IssueCopyForm, RejectCaseForm } from '../../../components/CaseRejectCopy';
 import {
   MisaNumberPanels,
@@ -31,7 +32,6 @@ export interface StageDef {
   readonly body: (ctx: StageCtx) => ReactNode | Promise<ReactNode>;
 }
 
-const FIELD_LABEL: Record<string, string> = { title: 'Tiêu đề', description: 'Nội dung' };
 const MISA_LABEL: Record<string, string> = {
   CONFIRMED_FULL: 'Đã xác nhận thanh toán đủ',
   NOT_CONFIRMED: 'Chưa xác nhận',
@@ -274,7 +274,7 @@ export const STAGES: Readonly<Record<string, StageDef>> = {
                   <dt>Hồ sơ</dt>
                   <dd>{c.title}</dd>
                   <dt>Trường dữ liệu</dt>
-                  <dd>{FIELD_LABEL[field] ?? field}</dd>
+                  <dd>{CHANGE_FIELD_LABEL[field] ?? field}</dd>
                   <dt>Giá trị cũ</dt>
                   <dd>{r.before[field] ?? ''}</dd>
                   <dt>Giá trị mới</dt>
