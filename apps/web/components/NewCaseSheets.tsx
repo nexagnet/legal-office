@@ -2,7 +2,7 @@
 
 import type { Branch } from '../app/session';
 import { messageFor } from '../lib/messages';
-import { WizardSheet } from './ui/wizard-sheet';
+import { WizardSheet, parseParties } from './ui/wizard-sheet';
 
 async function post(path: string, body: unknown) {
   const res = await fetch(`/api${path}`, {
@@ -117,6 +117,7 @@ export function NewViBangSheet({ branches }: { readonly branches: readonly Branc
               kind: 'datetime',
               optional: true,
             },
+            { name: 'parties', label: 'Người tham gia', kind: 'parties', optional: true },
             { name: 'internalNote', label: 'Ghi chú nội bộ', max: 2000, optional: true },
             {
               name: 'description',
@@ -164,11 +165,14 @@ export function NewViBangSheet({ branches }: { readonly branches: readonly Branc
           const r = await post(`/vibang/cases/${created.label}/place`, { placeAddress: place });
           if (!r.ok) return r;
         }
-        if (when || note) {
+        const people = parseParties(v.parties)
+          .filter((p) => p.name.trim())
+          .map((p) => ({ name: p.name.trim(), role: p.role }));
+        if (when || note || people.length > 0) {
           return post(`/vibang/cases/${created.label}/plan`, {
             scheduledAt: when ? new Date(when).toISOString() : null,
             internalNote: note || null,
-            parties: [],
+            parties: people,
           });
         }
         return created;
