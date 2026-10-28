@@ -148,6 +148,12 @@ const MESSAGES: Record<string, string> = {
   PROPOSAL_NOT_FOUND: 'Không tìm thấy đề xuất này.',
   LINK_NOT_FOUND: 'Nghĩa vụ hoặc đương sự không thuộc hồ sơ này.',
   IDEMPOTENCY_KEY_REQUIRED: 'Thiếu khoá chống trùng. Vui lòng tải lại trang.',
+  TRANSFER_NOT_PENDING: 'Đề nghị chuyển hồ sơ này không còn ở trạng thái chờ.',
+  APP_APPROVAL_MISSING: 'Chưa có bước duyệt trong ứng dụng.',
+  LEGAL_DECISION_MISSING: 'Chưa có quyết định pháp lý của người có quyền ký.',
+  HANDOVER_N08_MISSING: 'Chưa có biên bản bàn giao N-08.',
+  TRANSFER_NOT_FOUND: 'Không tìm thấy đề nghị chuyển hồ sơ này.',
+  INVALID_STEP: 'Bước không hợp lệ.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
@@ -226,6 +232,15 @@ export const MEASURE_STATUS_LABEL: Record<string, string> = {
   PROPOSED: 'Đã đề xuất, chờ lệnh cơ quan',
   WITHDRAWN: 'Đã rút',
   APPLIED: 'Đã áp dụng (có lệnh)',
+};
+export const TRANSFER_STATUS_LABEL: Record<string, string> = {
+  PROPOSED: 'Đang thực hiện',
+  COMPLETED: 'Đã hoàn tất',
+};
+export const TRANSFER_STEP_LABEL: Record<string, string> = {
+  APP_APPROVAL: 'Duyệt trong ứng dụng (Admin hoặc Trưởng VP)',
+  LEGAL_DECISION: 'Quyết định pháp lý (người có quyền ký)',
+  HANDOVER_N08: 'Biên bản bàn giao N-08',
 };
 export const RESULT_KIND_LABEL: Record<string, string> = {
   PARTIAL_RESULT: 'Kết quả một phần',

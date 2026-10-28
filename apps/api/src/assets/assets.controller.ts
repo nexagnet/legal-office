@@ -294,6 +294,26 @@ export class AssetsController {
     return this.run(a, 'as_transfer_step', [id, b.step, b.evidenceKey, b.evidenceSha256]);
   }
 
+  /** Như `transfers/:id/steps` nhưng tải thẳng tệp bằng chứng của bước (PDF/JPEG/PNG); bước đi theo query. */
+  @Post('transfers/:id/step-files')
+  @HttpCode(HttpStatus.OK)
+  transferStepFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(z.object({ step: z.string() }).strict(), query);
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/th/transfers/${id}/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'as_transfer_step', [id, q.step, key, f.sha256]),
+    );
+  }
+
   @Post('transfers/:id/completion')
   @HttpCode(HttpStatus.OK)
   completeTransfer(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {

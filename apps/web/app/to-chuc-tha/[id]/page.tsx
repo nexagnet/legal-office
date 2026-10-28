@@ -4,6 +4,11 @@ import { CaseActionDialog } from '../../../components/CaseActionDialog';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import type { DialogAction } from '../../../components/DialogActionMenu';
 import { AddAssetSheet, AssetList, type Asset } from '../../../components/EnforcementAssets';
+import {
+  ProposeTransferSheet,
+  TransferList,
+  type Transfer,
+} from '../../../components/EnforcementTransfer';
 import { EnforcementActions } from '../../../components/EnforcementActions';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
@@ -78,6 +83,15 @@ export default async function EnforcementDetailPage({
     ? (await loadPeopleNames(cookie, [c.handlerUserId])).get(c.handlerUserId)
     : undefined;
   const assets = await loadItems<Asset>(`/enforcement/cases/${c.caseId}/assets`, cookie);
+  const transfers = await loadItems<Transfer>(`/enforcement/cases/${c.caseId}/transfers`, cookie);
+  const transferNames =
+    transfers === 'error'
+      ? new Map<string, string>()
+      : await loadPeopleNames(
+          cookie,
+          transfers.map((t) => t.toUserId),
+        );
+  const thvOptions = (await loadHandlerOptions(cookie)).filter((o) => o.userId !== c.handlerUserId);
   const canOrder = session.roles.includes('ADMIN') || session.roles.includes('TRUONG_VP');
   const doneObl = c.obligations.filter((o) => o.status === 'COMPLETED').length;
   const assignPath = `enforcement-cases/${c.caseId}/handler`;
@@ -224,6 +238,28 @@ export default async function EnforcementDetailPage({
           {open && assigned ? (
             <div>
               <AddAssetSheet caseId={c.caseId} />
+            </div>
+          ) : null}
+        </section>
+        <section className="panel" aria-labelledby="transfer-t">
+          <h2 id="transfer-t">Chuyển hồ sơ</h2>
+          <p className="muted">
+            Đề nghị, duyệt trong ứng dụng, quyết định pháp lý, biên bản bàn giao N-08 rồi mới hoàn
+            tất. Hoàn tất thì THV nhận hồ sơ trở thành người phụ trách.
+          </p>
+          {transfers === 'error' ? (
+            <p className="muted">Không tải được các đề nghị chuyển hồ sơ.</p>
+          ) : (
+            <TransferList
+              transfers={transfers}
+              names={Object.fromEntries(transferNames)}
+              canWrite={open}
+              canComplete={canOrder}
+            />
+          )}
+          {open && assigned && thvOptions.length > 0 ? (
+            <div>
+              <ProposeTransferSheet caseId={c.caseId} options={thvOptions} />
             </div>
           ) : null}
         </section>
