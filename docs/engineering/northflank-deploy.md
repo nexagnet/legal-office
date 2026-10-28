@@ -37,3 +37,19 @@ Job `lo-migrate` không tự chạy khi có bản mới (Northflank CLI không l
 ## Kiểm tra sau deploy
 
 `GET /health` của API trả `{"status":"ok"}`; mở web, đăng nhập Admin thử; kiểm tra RLS: vai `legal_app` không đọc được dòng khi chưa đặt `app.tenant_id`.
+
+## Tên miền riêng nexagnet.com
+
+Địa chỉ chính thức: **https://www.nexagnet.com** (gắn vào cổng `http` của `lo-web`, TLS do Northflank cấp tự động). URL `*.code.run` cũ vẫn chạy song song. Web gọi API qua địa chỉ nội bộ nên không cần domain `api`.
+
+- Domain `nexagnet.com` đăng ký ở Northflank (account), xác minh bằng TXT; subdomain `www` xác minh bằng CNAME rồi gán `lo-web`.
+- DNS đặt ở zonedns.vn (không có ALIAS/ANAME nên gốc không CNAME được):
+
+| Loại | Tên | Giá trị |
+|---|---|---|
+| TXT | `verify-6d55w7j2x5u3dizwx7atlnsq` | token xác minh Northflank (xem `northflank get domain --domain nexagnet.com`) |
+| CNAME | `www` | `www.nexagnet.com.phun-pgcd.dns.northflank.app` |
+| URL Redirect | `@` | `https://www.nexagnet.com` |
+
+- Hạn chế: `https://nexagnet.com` (không www) không có TLS của Northflank; `http://nexagnet.com` chuyển sang www. Muốn gốc chạy https đầy đủ thì chuyển nameserver sang nhà cung cấp có CNAME flattening (ví dụ Cloudflare) rồi trỏ gốc tới `nexagnet.com.phun-pgcd.dns.northflank.app`.
+- Secret group `lo-config` (không bí mật): `WEB_ORIGIN=https://http--lo-web--8929jqrrnzyy.code.run,https://www.nexagnet.com` (danh sách origin cách nhau dấu phẩy, dùng cho kiểm tra CSRF), `PUBLIC_WEB_URL=https://www.nexagnet.com` (link trong email xác thực). Đổi xong phải khởi động lại `lo-api`.
