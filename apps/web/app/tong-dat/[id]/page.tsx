@@ -51,6 +51,7 @@ interface Item {
   readonly requestRef: string;
   readonly recipientName: string;
   readonly address: string;
+  readonly documentTitle?: string | null;
   readonly deadlineAt: string;
   readonly status: string;
   readonly undeliverableReason: string | null;
@@ -289,6 +290,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             ['Số yêu cầu', d.requestRef],
             ['Người nhận', <PartyName key="rcp" name={d.recipientName} size="md" />],
             ['Địa chỉ', d.address],
+            ['Văn bản', d.documentTitle ?? 'Chưa ghi tên văn bản'],
             ['Hạn tống đạt', `${dl.date}${dl.note ? ` · ${dl.note}` : ''}`],
             ['Số lần đã thử', String(d.attempts)],
             ['Người xử lý', handlerView],

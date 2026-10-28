@@ -21,6 +21,7 @@ interface Item {
   readonly documentId: string;
   readonly requestRef: string;
   readonly recipientName: string;
+  readonly documentTitle?: string | null;
   readonly deadlineAt: string;
   readonly status: string;
   readonly undeliverableReason: string | null;
@@ -134,6 +135,9 @@ export default async function ServicePage({
                       </th>
                       <td data-label="Người nhận">
                         <PartyName name={d.recipientName} />
+                        {d.documentTitle ? (
+                          <span className="block text-xs text-muted">{d.documentTitle}</span>
+                        ) : null}
                       </td>
                       <td data-label="Hạn">
                         <span className="block">{dl.date}</span>
