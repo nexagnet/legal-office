@@ -53,7 +53,7 @@ const atFmt = new Intl.DateTimeFormat('vi-VN', {
 });
 
 /** Ngăn kéo có một biểu mẫu: khoá nút khi đang gửi, hiện lỗi tiếng Việt, làm mới trang khi xong. */
-function FormSheet({
+export function FormSheet({
   trigger,
   title,
   description,
@@ -122,7 +122,7 @@ function FormSheet({
   );
 }
 
-const text = (form: HTMLFormElement, name: string) =>
+export const text = (form: HTMLFormElement, name: string) =>
   String(new FormData(form).get(name) ?? '').trim();
 
 /** Thêm một tài sản vào hồ sơ. Nhãn tài sản nhạy cảm sẽ bị ẩn ở danh sách. */
