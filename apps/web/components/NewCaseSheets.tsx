@@ -31,6 +31,7 @@ export function NewServiceSheet({ branches }: { readonly branches: readonly Bran
           fields: [
             { name: 'recipientName', label: 'Người nhận', max: 300 },
             { name: 'address', label: 'Địa chỉ', max: 500 },
+            { name: 'title', label: 'Tên văn bản', max: 300, optional: true },
             { name: 'deadline', label: 'Hạn tống đạt', kind: 'datetime' },
           ],
         },
@@ -45,6 +46,7 @@ export function NewServiceSheet({ branches }: { readonly branches: readonly Bran
         return post(`/service-of-documents/requests/${req.label}/documents`, {
           recipientName: v.recipientName,
           address: v.address,
+          title: v.title?.trim() || null,
           deadlineAt: new Date(v.deadline ?? '').toISOString(),
         });
       }}
