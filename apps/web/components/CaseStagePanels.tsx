@@ -5,6 +5,7 @@ import { HandoverForm } from './HandoverForm';
 import { ContactLog } from './ContactLog';
 import type { Progress } from './CaseSteps';
 import { useCaseApi } from './useCaseApi';
+import { StepCards } from './ui/step-cards';
 
 interface Props {
   readonly caseId: string;
@@ -113,74 +114,88 @@ export function SignStampPanels({ caseId, status, progress, roles }: Props) {
   const stamped = !!progress.stampedAt;
   return (
     <>
-      <div className="panels stage-cards">
-        <section className="panel" aria-labelledby="sign-t">
-          <p className="eyebrow">01 · Thừa hành viên</p>
-          <h2 id="sign-t">Xác nhận đã ký</h2>
-          {progress.numberLabel && !signed && !finished && hasRole(roles, 'THV') ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={api.busy}
-              aria-busy={api.busy}
-              onClick={() => void api.call('POST', 'signature-confirmations')}
-            >
-              Xác nhận đã ký
-            </button>
-          ) : null}
-          {!progress.numberLabel ? <p className="muted">Cần cấp số trước khi ký.</p> : null}
-          <Pill tone={signed ? 'ok' : 'warn'}>{signed ? 'Đã hoàn tất' : 'Chờ xác nhận ký'}</Pill>
-        </section>
-        <section className="panel" aria-labelledby="stamp-t">
-          <p className="eyebrow">02 · Văn thư</p>
-          <h2 id="stamp-t">Xác nhận đã đóng dấu</h2>
-          {signed &&
-          !stamped &&
-          !finished &&
-          hasRole(roles, 'VAN_THU', 'THU_KY', 'ADMIN', 'TRUONG_VP') ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={api.busy}
-              aria-busy={api.busy}
-              onClick={() => void api.call('POST', 'stamp-confirmations')}
-            >
-              Xác nhận đã đóng dấu
-            </button>
-          ) : null}
-          {!signed ? (
-            <p className="muted">Đóng dấu sau khi Thừa hành viên xác nhận đã ký.</p>
-          ) : null}
-          <Pill tone={stamped ? 'ok' : signed ? 'warn' : 'idle'}>
-            {stamped ? 'Đã hoàn tất' : signed ? 'Chờ đóng dấu' : 'Chưa đến bước này'}
-          </Pill>
-        </section>
-        <section className="panel" aria-labelledby="scan-t">
-          <p className="eyebrow">03 · Hồ sơ scan cuối</p>
-          <h2 id="scan-t">Tải bản scan đã ký &amp; đóng dấu</h2>
-          {!progress.hasFinalScan && stamped && !finished && hasRole(roles, 'VAN_THU', 'THV') ? (
-            <form className="form" onSubmit={api.uploadScan}>
-              <label>
-                Bản scan cuối (PDF, tối đa 25 MB)
-                <input name="scan" type="file" accept="application/pdf" required />
-              </label>
-              <button type="submit" className="primary" disabled={api.busy} aria-busy={api.busy}>
-                Tải bản scan cuối
-              </button>
-            </form>
-          ) : null}
-          {!progress.hasFinalScan && !stamped ? (
-            <p className="muted">Bản scan cuối tải lên được sau khi xác nhận đã đóng dấu.</p>
-          ) : null}
-          <Pill tone={progress.hasFinalScan ? 'ok' : stamped ? 'warn' : 'idle'}>
-            {progress.hasFinalScan
-              ? 'Đã hoàn tất'
+      <StepCards
+        label="Ba bước ký, đóng dấu và bản scan"
+        steps={[
+          {
+            key: 'sign',
+            role: 'Thừa hành viên',
+            title: 'Xác nhận đã ký',
+            state: signed ? 'done' : progress.numberLabel ? 'current' : 'todo',
+            description: signed
+              ? 'Đã ký.'
+              : progress.numberLabel
+                ? 'Thừa hành viên xác nhận đã ký bản giấy.'
+                : 'Cần cấp số trước khi ký.',
+            action:
+              progress.numberLabel && !signed && !finished && hasRole(roles, 'THV') ? (
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={api.busy}
+                  aria-busy={api.busy}
+                  onClick={() => void api.call('POST', 'signature-confirmations')}
+                >
+                  Xác nhận đã ký
+                </button>
+              ) : undefined,
+          },
+          {
+            key: 'stamp',
+            role: 'Văn thư',
+            title: 'Xác nhận đã đóng dấu',
+            state: stamped ? 'done' : signed ? 'current' : 'todo',
+            description: stamped
+              ? 'Đã đóng dấu.'
+              : signed
+                ? 'Đóng dấu lên bản giấy, rồi xác nhận tại đây.'
+                : 'Đóng dấu sau khi Thừa hành viên xác nhận đã ký.',
+            action:
+              signed &&
+              !stamped &&
+              !finished &&
+              hasRole(roles, 'VAN_THU', 'THU_KY', 'ADMIN', 'TRUONG_VP') ? (
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={api.busy}
+                  aria-busy={api.busy}
+                  onClick={() => void api.call('POST', 'stamp-confirmations')}
+                >
+                  Xác nhận đã đóng dấu
+                </button>
+              ) : undefined,
+          },
+          {
+            key: 'scan',
+            role: 'Hồ sơ scan cuối',
+            title: 'Tải bản scan đã ký & đóng dấu',
+            state: progress.hasFinalScan ? 'done' : stamped ? 'current' : 'todo',
+            description: progress.hasFinalScan
+              ? 'Đã tải bản scan cuối.'
               : stamped
-                ? 'Chờ tải bản scan'
-                : 'Chưa đến bước này'}
-          </Pill>
-        </section>
-      </div>
+                ? 'Tải bản scan PDF đầy đủ các trang.'
+                : 'Bản scan cuối tải lên được sau khi xác nhận đã đóng dấu.',
+            action:
+              !progress.hasFinalScan && stamped && !finished && hasRole(roles, 'VAN_THU', 'THV') ? (
+                <form className="form" onSubmit={api.uploadScan}>
+                  <label>
+                    Bản scan cuối (PDF, tối đa 25 MB)
+                    <input name="scan" type="file" accept="application/pdf" required />
+                  </label>
+                  <button
+                    type="submit"
+                    className="primary"
+                    disabled={api.busy}
+                    aria-busy={api.busy}
+                  >
+                    Tải bản scan cuối
+                  </button>
+                </form>
+              ) : undefined,
+          },
+        ]}
+      />
       <ErrorLine error={api.error} />
       <section className="panel" aria-labelledby="issued-t">
         <h2 id="issued-t">Tài liệu phát hành</h2>

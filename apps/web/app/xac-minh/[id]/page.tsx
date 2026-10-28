@@ -6,6 +6,7 @@ import { type DialogAction } from '../../../components/DialogActionMenu';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
+import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
   CompleteRoundForm,
@@ -133,6 +134,70 @@ export default async function VerificationDetailPage({
     });
   }
 
+  const assigned = c.handlerUserId !== null;
+  const allDone = c.rounds.length > 0 && open.length === 0;
+  const steps: StepCard[] = [
+    {
+      key: 'assign',
+      role: 'Admin hoặc Trưởng VP',
+      title: 'Giao Thừa hành viên phụ trách',
+      state: assigned || concluded ? 'done' : 'current',
+      description: assigned
+        ? (handlers.find((h) => h.userId === c.handlerUserId)?.label ?? 'Đã phân công')
+        : isAdmin
+          ? 'Chọn Thừa hành viên sẽ phụ trách hồ sơ này.'
+          : 'Đang chờ Admin hoặc Trưởng VP giao người phụ trách.',
+      action:
+        !assigned && !concluded && isAdmin ? (
+          <AssignHandler
+            path={`verification/cases/${c.caseId}/handler`}
+            options={handlers}
+            currentId={null}
+          />
+        ) : undefined,
+    },
+    {
+      key: 'rounds',
+      role: 'Thừa hành viên',
+      title: 'Xác minh các bên',
+      state: concluded || proposed ? 'done' : assigned ? 'current' : 'todo',
+      description: `${c.rounds.length} lượt, ${done} lượt đã có kết quả.`,
+      action:
+        c.status === 'OPEN' && assigned ? (
+          allDone ? (
+            <CaseActionDialog
+              label="Đề xuất kết luận"
+              title="Đề xuất kết luận"
+              description="Chỉ đề xuất được khi mọi lượt đã có kết quả."
+              primary
+            >
+              <ConclusionProposalForm caseId={c.caseId} />
+            </CaseActionDialog>
+          ) : (
+            <CaseActionDialog label="Thêm lượt xác minh" title="Thêm lượt xác minh" primary>
+              <StartRoundForm caseId={c.caseId} />
+            </CaseActionDialog>
+          )
+        ) : undefined,
+    },
+    {
+      key: 'conclusion',
+      role: 'Kết luận',
+      title: concluded ? 'Đã kết luận' : proposed ? 'Chờ quyết định kết luận' : 'Kết luận',
+      state: concluded ? 'done' : proposed ? 'current' : 'todo',
+      description: concluded
+        ? (c.conclusionText ?? 'Hồ sơ đã kết luận.')
+        : proposed
+          ? 'Đã có đề xuất kết luận, đang chờ người có thẩm quyền quyết định.'
+          : 'Mở khi mọi lượt đã có kết quả và có đề xuất kết luận.',
+      action: proposed ? (
+        <CaseActionDialog label="Quyết định kết luận" title="Quyết định kết luận" primary>
+          <ConclusionDecision caseId={c.caseId} />
+        </CaseActionDialog>
+      ) : undefined,
+    },
+  ];
+
   const base = `/xac-minh/${c.caseId}`;
   return (
     <DetailFrame
@@ -143,6 +208,10 @@ export default async function VerificationDetailPage({
       actions={actions}
       single
     >
+      <div className="grid gap-3">
+        <h2 className="m-0 text-[13px] font-bold text-muted">Quy trình 3 bước</h2>
+        <StepCards steps={steps} label="Các bước xác minh" row />
+      </div>
       <TabNav
         label="Mục của hồ sơ xác minh"
         active={tab}
