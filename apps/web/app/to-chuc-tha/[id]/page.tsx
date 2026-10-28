@@ -1,8 +1,12 @@
 import { notFound } from 'next/navigation';
 import { AssignHandler } from '../../../components/AssignHandler';
+import { CaseActionDialog } from '../../../components/CaseActionDialog';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
+import type { DialogAction } from '../../../components/DialogActionMenu';
 import { EnforcementActions } from '../../../components/EnforcementActions';
 import { StatusPill } from '../../../components/StatusPill';
+import { DefList } from '../../../components/ui/def-list';
+import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
 import {
   ENFORCEMENT_STATUS_LABEL,
@@ -60,8 +64,77 @@ export default async function EnforcementDetailPage({
   }
   const c = items.find((x) => x.caseId === id);
   if (!c) notFound();
-  const handlers = session.roles.includes('ADMIN') ? await loadHandlerOptions(cookie) : [];
+  const isAdmin = session.roles.includes('ADMIN');
+  const handlers = isAdmin ? await loadHandlerOptions(cookie) : [];
   const statusLabel = ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status;
+  const open = c.status === 'OPEN';
+  const assigned = c.handlerUserId !== null;
+  const doneObl = c.obligations.filter((o) => o.status === 'COMPLETED').length;
+  const assignPath = `enforcement-cases/${c.caseId}/handler`;
+
+  const steps: StepCard[] = [
+    {
+      key: 'assign',
+      role: 'Admin hoặc Trưởng VP',
+      title: 'Giao Thừa hành viên phụ trách',
+      state: assigned ? 'done' : open ? 'current' : 'done',
+      description: assigned
+        ? handlers.find((h) => h.userId === c.handlerUserId)?.label || 'Đã phân công'
+        : isAdmin
+          ? 'Chọn Thừa hành viên sẽ phụ trách hồ sơ này.'
+          : 'Đang chờ Admin hoặc Trưởng VP giao người phụ trách.',
+      action:
+        open && !assigned && isAdmin ? (
+          <AssignHandler path={assignPath} options={handlers} currentId={null} />
+        ) : undefined,
+    },
+    {
+      key: 'run',
+      role: 'Thừa hành viên',
+      title: 'Thực hiện các nghĩa vụ',
+      state: !open ? 'done' : assigned ? 'current' : 'todo',
+      description: `${c.parties.length} đương sự, ${doneObl}/${c.obligations.length} nghĩa vụ đã hoàn tất.`,
+      action:
+        open && assigned ? (
+          <CaseActionDialog
+            label="Cập nhật hồ sơ"
+            title="Cập nhật hồ sơ thi hành án"
+            description="Thêm đương sự, nghĩa vụ, ghi diễn biến, ghi kết quả hoặc hoàn tất hồ sơ."
+            primary
+          >
+            <EnforcementActions caseId={c.caseId} status={c.status} obligations={c.obligations} />
+          </CaseActionDialog>
+        ) : undefined,
+    },
+    {
+      key: 'finish',
+      role: 'Hoàn tất',
+      title:
+        c.status === 'TERMINATED'
+          ? 'Hồ sơ đã chấm dứt'
+          : c.status === 'COMPLETED'
+            ? 'Hồ sơ đã hoàn tất'
+            : 'Hoàn tất hoặc chấm dứt hồ sơ',
+      state: open ? 'todo' : 'done',
+      failed: c.status === 'TERMINATED',
+      description: open ? 'Mở khi mọi nghĩa vụ đã xong hoặc có lý do chấm dứt.' : statusLabel,
+    },
+  ];
+
+  const actions: DialogAction[] =
+    open && assigned && isAdmin
+      ? [
+          {
+            key: 'reassign',
+            label: 'Đổi người phụ trách',
+            title: 'Đổi người phụ trách',
+            body: (
+              <AssignHandler path={assignPath} options={handlers} currentId={c.handlerUserId} />
+            ),
+          },
+        ]
+      : [];
+
   return (
     <DetailFrame
       title={c.caseRef}
@@ -70,8 +143,13 @@ export default async function EnforcementDetailPage({
       statusLabel={statusLabel}
       backHref="/to-chuc-tha"
       backLabel="Tổ chức thi hành án"
+      actions={actions}
     >
       <div className="grid gap-4">
+        <div className="grid gap-3">
+          <h2 className="m-0 text-[13px] font-bold text-muted">Quy trình 3 bước</h2>
+          <StepCards steps={steps} label="Các bước tổ chức thi hành án" />
+        </div>
         <section className="panel" aria-labelledby="parties-t">
           <h2 id="parties-t">Đương sự</h2>
           {c.parties.length === 0 ? (
@@ -115,25 +193,17 @@ export default async function EnforcementDetailPage({
           )}
         </section>
       </div>
-      <div className="grid gap-4">
-        <section className="panel" aria-labelledby="act-t">
-          <h2 id="act-t">Thao tác</h2>
-          <p>
-            <StatusPill status={c.status} label={statusLabel} />
-          </p>
-          <EnforcementActions caseId={c.caseId} status={c.status} obligations={c.obligations} />
-        </section>
-        {c.status === 'COMPLETED' ? null : (
-          <section className="panel" aria-labelledby="assign-t">
-            <h2 id="assign-t">Phân công</h2>
-            <AssignHandler
-              path={`enforcement-cases/${c.caseId}/handler`}
-              options={handlers}
-              currentId={c.handlerUserId}
-            />
-          </section>
-        )}
-      </div>
+      <section className="panel" aria-labelledby="info-t">
+        <h2 id="info-t">Thông tin hồ sơ</h2>
+        <DefList
+          rows={[
+            ['Mã hồ sơ', c.caseRef],
+            ['Hợp đồng', c.agreementRef],
+            ['Quyết định', c.decisionRef],
+            ['Trạng thái', <StatusPill key="s" status={c.status} label={statusLabel} />],
+          ]}
+        />
+      </section>
     </DetailFrame>
   );
 }
