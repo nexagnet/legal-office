@@ -4,16 +4,16 @@ import { useState, type FormEvent } from 'react';
 import { CheckPanel } from './CheckPanel';
 import { useCaseApi } from './useCaseApi';
 
-/** Tám trường hợp từ chối theo Điều 28, nhãn rút gọn. Số khoản gửi lên máy chủ; máy chủ là bên quyết định. */
+/** Tám trường hợp từ chối theo Điều 28 (nhãn theo Figma V4). Số khoản gửi lên máy chủ; máy chủ là bên quyết định. */
 export const REJECT_CLAUSES: readonly { readonly value: number; readonly label: string }[] = [
-  { value: 1, label: 'Khoản 1: liên quan người thân' },
-  { value: 2, label: 'Khoản 2: an ninh, bí mật nhà nước' },
-  { value: 3, label: 'Khoản 3: đời tư, trái đạo đức' },
-  { value: 4, label: 'Khoản 4: thuộc phạm vi công chứng, chứng thực, dịch, sao y' },
-  { value: 5, label: 'Khoản 5: chuyển quyền đất, tài sản không giấy tờ' },
-  { value: 6, label: 'Khoản 6: giao dịch trái pháp luật' },
-  { value: 7, label: 'Khoản 7: công vụ quân đội, công an' },
-  { value: 8, label: 'Khoản 8: trường hợp khác (bắt buộc nhập căn cứ)' },
+  { value: 1, label: 'Liên quan đến người thân theo quy định' },
+  { value: 2, label: 'An ninh, bí mật nhà nước' },
+  { value: 3, label: 'Đời tư, trái đạo đức xã hội' },
+  { value: 4, label: 'Thuộc phạm vi công chứng, chứng thực, dịch, sao y' },
+  { value: 5, label: 'Chuyển quyền đất, tài sản không có giấy tờ hợp pháp' },
+  { value: 6, label: 'Giao dịch trái pháp luật' },
+  { value: 7, label: 'Công vụ của quân đội, công an' },
+  { value: 8, label: 'Căn cứ khác có cơ sở' },
 ];
 
 function Feedback({ error, done, ok }: { error: string | null; done: boolean; ok: string }) {
@@ -31,7 +31,10 @@ function Feedback({ error, done, ok }: { error: string | null; done: boolean; ok
 
 const text = (f: FormData, k: string) => String(f.get(k) ?? '').trim();
 
-/** Từ chối yêu cầu lập Vi bằng (Điều 28) cho hồ sơ chưa ký. Quyền thật do máy chủ kiểm. */
+/**
+ * Từ chối yêu cầu lập Vi bằng (Điều 28, Figma V4) cho hồ sơ chưa ký: chọn một trong tám căn cứ, ghi lý do cụ thể.
+ * Quyền và điều kiện thật do máy chủ kiểm; nút xác nhận màu đỏ vì sau khi từ chối hồ sơ đóng ở trạng thái Từ chối.
+ */
 export function RejectCaseForm({ caseId }: { readonly caseId: string }) {
   const api = useCaseApi(caseId);
   const [clause, setClause] = useState(1);
@@ -46,28 +49,43 @@ export function RejectCaseForm({ caseId }: { readonly caseId: string }) {
     });
   }
   return (
-    <form className="card form" onSubmit={submit} aria-labelledby="reject-t">
-      <h2 id="reject-t">Từ chối yêu cầu (Điều 28)</h2>
+    <form className="grid gap-4" onSubmit={submit} aria-label="Từ chối yêu cầu (Điều 28)">
+      <p className="muted m-0">
+        Chọn căn cứ theo Điều 28 NĐ 151 và ghi lý do. Không từ chối được hồ sơ đã có số.
+      </p>
+      <fieldset className="m-0 grid gap-0.5 border-0 p-0">
+        <legend className="sr-only">Trường hợp từ chối</legend>
+        {REJECT_CLAUSES.map((c) => (
+          <label
+            key={c.value}
+            className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-1 text-[15px]"
+          >
+            <input
+              type="radio"
+              name="clause"
+              value={c.value}
+              checked={clause === c.value}
+              onChange={() => setClause(c.value)}
+              className="size-5 accent-[var(--accent)]"
+            />
+            <span className={clause === c.value ? 'font-semibold' : undefined}>{c.label}</span>
+          </label>
+        ))}
+      </fieldset>
       <label>
-        Trường hợp từ chối
-        <select name="clause" value={clause} onChange={(e) => setClause(Number(e.target.value))}>
-          {REJECT_CLAUSES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {clause === 8 ? 'Căn cứ (bắt buộc với khoản 8)' : 'Căn cứ'}
+        {clause === 8 ? 'Căn cứ (bắt buộc với căn cứ khác)' : 'Căn cứ'}
         <input name="basis" maxLength={2000} required={clause === 8} />
       </label>
       <label>
         Lý do từ chối
         <textarea name="reason" required rows={2} maxLength={2000} />
       </label>
+      <p className="notice-amber m-0">
+        Mã khoản, lý do và người ghi được lưu vào nhật ký. Sau khi từ chối, hồ sơ đóng ở trạng thái
+        Từ chối.
+      </p>
       <Feedback error={api.error} done={api.done} ok="Đã ghi nhận từ chối yêu cầu." />
-      <button type="submit" disabled={api.busy} aria-busy={api.busy}>
+      <button type="submit" className="danger-outline" disabled={api.busy} aria-busy={api.busy}>
         {api.busy ? 'Đang gửi…' : 'Từ chối yêu cầu'}
       </button>
     </form>

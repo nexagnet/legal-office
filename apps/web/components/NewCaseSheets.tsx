@@ -74,6 +74,85 @@ export function NewVerificationSheet({ branches }: { readonly branches: readonly
   );
 }
 
+/**
+ * Tạo hồ sơ Vi bằng theo từng giai đoạn (Figma N17 V1: ngăn kéo 3 bước, không bắt buộc đủ mọi trường ngay).
+ * Tạo khách, lưu hồ sơ khách nếu có tên, rồi tạo hồ sơ (INTAKE). Quyền do máy chủ kiểm.
+ */
+export function NewViBangSheet({ branches }: { readonly branches: readonly Branch[] }) {
+  return (
+    <WizardSheet
+      trigger="+ Tạo hồ sơ Vi bằng"
+      title="Tạo hồ sơ Vi bằng"
+      branches={branches}
+      messageFor={messageFor}
+      submitLabel="Tiếp nhận hồ sơ"
+      failTitle="Chưa tạo được hồ sơ"
+      steps={[
+        {
+          title: 'Khách hàng',
+          fields: [
+            {
+              name: 'kind',
+              label: 'Loại khách hàng',
+              kind: 'select',
+              options: [
+                ['PERSON', 'Cá nhân'],
+                ['ORGANIZATION', 'Tổ chức'],
+              ],
+            },
+            { name: 'customerRef', label: 'Mã tham chiếu khách hàng', max: 200 },
+            { name: 'displayName', label: 'Tên khách hàng', max: 300, optional: true },
+            { name: 'phone', label: 'Số điện thoại', max: 50, optional: true },
+            { name: 'idNumber', label: 'Số định danh cá nhân', max: 100, optional: true },
+          ],
+        },
+        {
+          title: 'Nội dung yêu cầu',
+          fields: [
+            { name: 'title', label: 'Tiêu đề hồ sơ', max: 300 },
+            {
+              name: 'description',
+              label: 'Nội dung yêu cầu lập Vi bằng',
+              kind: 'textarea',
+              max: 5000,
+              optional: true,
+            },
+          ],
+        },
+      ]}
+      onSubmit={async (v, branch) => {
+        const kind = v.kind ?? 'PERSON';
+        const displayName = (v.displayName ?? '').trim();
+        const phone = (v.phone ?? '').trim();
+        const idNumber = kind === 'PERSON' ? (v.idNumber ?? '').trim() : '';
+        if ((phone || idNumber) && !displayName) {
+          return { ok: false, code: 'DISPLAY_NAME_REQUIRED' };
+        }
+        const customer = await post('/vibang/customers', {
+          kind,
+          externalRef: v.customerRef ?? '',
+        });
+        if (!customer.ok || !customer.label) return customer;
+        if (displayName) {
+          const saved = await post(`/vibang/customers/${customer.label}/profile`, {
+            displayName,
+            ...(phone ? { phone } : {}),
+            ...(idNumber ? { idNumber } : {}),
+          });
+          if (!saved.ok) return saved;
+        }
+        return post('/vibang/cases', {
+          officeId: branch.officeId,
+          branchId: branch.id,
+          customerId: customer.label,
+          title: v.title ?? '',
+          description: v.description ?? '',
+        });
+      }}
+    />
+  );
+}
+
 /** Mở hồ sơ tổ chức thi hành án. */
 export function NewEnforcementSheet({ branches }: { readonly branches: readonly Branch[] }) {
   return (

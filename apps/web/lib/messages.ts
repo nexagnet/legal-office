@@ -161,6 +161,7 @@ const MESSAGES: Record<string, string> = {
   LEGAL_SIGNATURE_MISSING: 'Chưa có ủy quyền có chữ ký pháp lý.',
   HANDOVER_MISSING: 'Chưa có biên bản bàn giao.',
   SOURCE_NOT_FOUND: 'Không tìm thấy nguồn này.',
+  DISPLAY_NAME_REQUIRED: 'Cần nhập tên khách hàng khi nhập số điện thoại hoặc số định danh.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
