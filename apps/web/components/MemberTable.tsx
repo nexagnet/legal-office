@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ROLE_LABEL } from '../lib/messages';
 import type { Member } from '../lib/admin-api';
+import { CaseActionDialog } from './CaseActionDialog';
+import { MemberNameForm } from './MemberNameForm';
 import { Avatar } from './ui/avatar';
 
 export interface MemberRow extends Member {
@@ -37,9 +39,12 @@ function statusOf(m: MemberRow): { label: string; tone: 'ok' | 'warn' | 'idle' }
 export function MemberTable({
   members,
   action,
+  officeId,
 }: {
   readonly members: readonly MemberRow[];
   readonly action?: ReactNode;
+  /** Có mã văn phòng thì Admin sửa được họ tên từng người. */
+  readonly officeId?: string;
 }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -123,6 +128,20 @@ export function MemberTable({
                         <span className="person-name">{name}</span>
                         {email ? <span className="person-mail">{email}</span> : null}
                       </span>
+                      {officeId && m.role ? (
+                        <CaseActionDialog
+                          label="Sửa tên"
+                          title="Sửa họ tên hiển thị"
+                          description={email ?? undefined}
+                          className="link-btn"
+                        >
+                          <MemberNameForm
+                            userId={m.userId}
+                            officeId={officeId}
+                            currentName={name}
+                          />
+                        </CaseActionDialog>
+                      ) : null}
                     </span>
                   </th>
                   <td>

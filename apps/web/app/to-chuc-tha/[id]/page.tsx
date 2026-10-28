@@ -15,6 +15,7 @@ import {
   PARTY_ROLE_LABEL,
 } from '../../../lib/messages';
 import { personName } from '../../../lib/avatar';
+import { loadPeopleNames } from '../../../lib/people';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -71,7 +72,9 @@ export default async function EnforcementDetailPage({
   const statusLabel = ENFORCEMENT_STATUS_LABEL[c.status] ?? c.status;
   const open = c.status === 'OPEN';
   const assigned = c.handlerUserId !== null;
-  const handlerLabel = handlers.find((h) => h.userId === c.handlerUserId)?.label;
+  const handlerLabel = c.handlerUserId
+    ? (await loadPeopleNames(cookie, [c.handlerUserId])).get(c.handlerUserId)
+    : undefined;
   const doneObl = c.obligations.filter((o) => o.status === 'COMPLETED').length;
   const assignPath = `enforcement-cases/${c.caseId}/handler`;
 

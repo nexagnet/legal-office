@@ -15,6 +15,7 @@ import {
 } from '../../../lib/messages';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 import { personName } from '../../../lib/avatar';
+import { loadPeopleNames } from '../../../lib/people';
 import { deadlineView } from '../../../lib/service-view';
 
 export const dynamic = 'force-dynamic';
@@ -75,9 +76,13 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   );
   const done = d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE';
   const statusLabel = SERVICE_STATUS_LABEL[d.status] ?? d.status;
-  const handler = handlers.find((h) => h.userId === d.handlerUserId)?.label;
+  const people = await loadPeopleNames(cookie, [
+    d.handlerUserId,
+    ...(attemptList === 'error' ? [] : attemptList.map((a) => a.actorUserId)),
+  ]);
+  const handler = d.handlerUserId ? people.get(d.handlerUserId) : undefined;
   const handlerText = handler ?? (d.handlerUserId ? 'Đã phân công' : 'Chưa giao người xử lý');
-  const labelOf = (uid: string | null) => handlers.find((h) => h.userId === uid)?.label;
+  const labelOf = (uid: string | null) => (uid ? people.get(uid) : undefined);
   const handlerView = handler ? (
     <Person name={personName(handler)} id={d.handlerUserId} />
   ) : (

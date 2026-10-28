@@ -34,6 +34,7 @@ export default async function MembersPage() {
       ) : (
         <MemberTable
           members={rows}
+          officeId={session.roles.includes('ADMIN') ? officeId : undefined}
           action={session.roles.includes('ADMIN') ? <AddMemberLink /> : undefined}
         />
       )}
