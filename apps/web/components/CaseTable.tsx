@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { CaseItem } from '../lib/cases';
 import { CASE_STATUS_LABEL, NEXT_STEP_LABEL } from '../lib/messages';
+import { PersonLabel } from './ui/avatar';
 
 const fmt = new Intl.DateTimeFormat('vi-VN', {
   dateStyle: 'short',
@@ -94,7 +95,11 @@ export function CaseTable({ cases }: { readonly cases: readonly CaseItem[] }) {
                     </span>
                   </td>
                   <td>
-                    {c.thvLabel ?? (c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công')}
+                    <PersonLabel
+                      label={c.thvLabel}
+                      id={c.responsibleThvUserId}
+                      fallback={c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công'}
+                    />
                   </td>
                   <td>{c.nextStep ? (NEXT_STEP_LABEL[c.nextStep] ?? c.nextStep) : '—'}</td>
                   <td>{fmt.format(new Date(c.createdAt))}</td>

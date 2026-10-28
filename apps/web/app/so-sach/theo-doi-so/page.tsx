@@ -3,6 +3,7 @@ import { StatCard } from '../../../components/StatCard';
 import { getJson } from '../../../lib/case-api';
 import { REG_STATUS_LABEL, fmtDateTime, type Registration } from '../../../lib/registration';
 import { currentSession, requestCookie } from '../../../lib/server';
+import { PersonLabel } from '../../../components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -115,7 +116,9 @@ export default async function Page({
                 <td>
                   <strong>{r.numberLabel}</strong>
                 </td>
-                <td>{r.thvLabel ?? '—'}</td>
+                <td>
+                  <PersonLabel label={r.thvLabel} fallback="—" />
+                </td>
                 <td>{fmtDateTime(r.madeAt)}</td>
                 <td>{REG_STATUS_LABEL[r.regStatus] ?? r.regStatus}</td>
                 <td>

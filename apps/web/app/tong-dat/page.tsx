@@ -6,7 +6,7 @@ import { StatusPill } from '../../components/StatusPill';
 import { NewServiceSheet } from '../../components/NewCaseSheets';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../lib/messages';
-import { Person } from '../../components/ui/avatar';
+import { PartyName, Person } from '../../components/ui/avatar';
 import { loadPeopleNames } from '../../lib/people';
 import { deadlineView, serviceNextStep } from '../../lib/service-view';
 
@@ -133,7 +133,9 @@ export default async function ServicePage({
                       <th scope="row">
                         <Link href={`/tong-dat/${d.documentId}`}>{d.requestRef}</Link>
                       </th>
-                      <td data-label="Người nhận">{d.recipientName}</td>
+                      <td data-label="Người nhận">
+                        <PartyName name={d.recipientName} />
+                      </td>
                       <td data-label="Hạn">
                         <span className="block">{dl.date}</span>
                         <span

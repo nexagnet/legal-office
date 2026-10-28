@@ -1,5 +1,6 @@
 import type { HistoryEntry } from '../../../lib/case-api';
 import { HISTORY_KIND_LABEL } from '../../../lib/messages';
+import { PersonLabel } from '../../../components/ui/avatar';
 
 const fmt = new Intl.DateTimeFormat('vi-VN', {
   dateStyle: 'short',
@@ -24,10 +25,15 @@ export function HistoryTimeline({ events }: { readonly events: readonly HistoryE
         {events.map((e, i) => (
           <li key={`${e.at}-${e.kind}-${i}`}>
             <span className="history-title">{HISTORY_KIND_LABEL[e.kind] ?? e.kind}</span>
-            <span className="muted">
-              {fmt.format(new Date(e.at))}
-              {e.actorLabel ? ` · ${e.actorLabel}` : ''}
-              {e.detail ? ` · ${e.detail}` : ''}
+            <span className="muted inline-flex flex-wrap items-center gap-x-1.5">
+              <span>{fmt.format(new Date(e.at))}</span>
+              {e.actorLabel ? (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <PersonLabel label={e.actorLabel} id={e.actorUserId} />
+                </>
+              ) : null}
+              {e.detail ? <span>· {e.detail}</span> : null}
             </span>
           </li>
         ))}

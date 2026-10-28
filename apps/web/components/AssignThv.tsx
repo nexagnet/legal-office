@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
 import { CheckPanel } from './CheckPanel';
+import { PersonRadioList } from './PersonRadioList';
 
 export interface ThvOption {
   readonly userId: string;
@@ -61,16 +62,7 @@ export function AssignThv({ caseId, options, currentThvId, caseTitle }: Props) {
             Mã hồ sơ
             <input value={caseTitle} readOnly />
           </label>
-          <label>
-            THV
-            <select name="thv" required defaultValue={currentThvId ?? options[0]?.userId}>
-              {options.map((o) => (
-                <option key={o.userId} value={o.userId}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <PersonRadioList legend="THV" name="thv" options={options} defaultId={currentThvId} />
           <label>
             Trạng thái
             <input value={currentThvId ? 'Đã phân công' : 'Chưa phân công'} readOnly />
@@ -108,16 +100,7 @@ export function AssignThv({ caseId, options, currentThvId, caseTitle }: Props) {
   return (
     <form className="card form" onSubmit={submit} aria-labelledby="thv-t">
       <h2 id="thv-t">{currentThvId ? 'Đổi THV phụ trách' : 'Giao THV phụ trách'}</h2>
-      <label>
-        THV
-        <select name="thv" required defaultValue={currentThvId ?? options[0]?.userId}>
-          {options.map((o) => (
-            <option key={o.userId} value={o.userId}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <PersonRadioList legend="THV" name="thv" options={options} defaultId={currentThvId} />
       {currentThvId ? (
         <label>
           Lý do đổi

@@ -5,7 +5,7 @@ import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import type { DialogAction } from '../../../components/DialogActionMenu';
 import { ServiceReminder, ServiceResultSheet } from '../../../components/ServiceResult';
 import { DefList } from '../../../components/ui/def-list';
-import { Person } from '../../../components/ui/avatar';
+import { PartyName, Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
 import {
@@ -225,7 +225,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         <DefList
           rows={[
             ['Số yêu cầu', d.requestRef],
-            ['Người nhận', d.recipientName],
+            ['Người nhận', <PartyName key="rcp" name={d.recipientName} size="md" />],
             ['Địa chỉ', d.address],
             ['Hạn tống đạt', `${dl.date}${dl.note ? ` · ${dl.note}` : ''}`],
             ['Số lần đã thử', String(d.attempts)],

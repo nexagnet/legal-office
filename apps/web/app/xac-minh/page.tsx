@@ -6,6 +6,7 @@ import { StatusPill } from '../../components/StatusPill';
 import { NewVerificationSheet } from '../../components/NewCaseSheets';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 import { ROUND_STATUS_LABEL, VERIFICATION_STATUS_LABEL } from '../../lib/messages';
+import { PartyName } from '../../components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -142,7 +143,8 @@ export default async function VerificationPage({
                         <ul>
                           {c.rounds.map((r) => (
                             <li key={r.id}>
-                              {r.seq}. {r.partyName} · {ROUND_STATUS_LABEL[r.status] ?? r.status}
+                              {r.seq}. <PartyName name={r.partyName} /> ·{' '}
+                              {ROUND_STATUS_LABEL[r.status] ?? r.status}
                             </li>
                           ))}
                         </ul>

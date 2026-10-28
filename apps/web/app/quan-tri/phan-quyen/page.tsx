@@ -4,6 +4,7 @@ import { loadRequests } from '../../../lib/admin-api';
 import { describeRequest } from '../../../lib/admin-describe';
 import { ACCESS_KIND_LABEL, ACCESS_STATUS_LABEL } from '../../../lib/messages';
 import { currentSession, requestCookie } from '../../../lib/server';
+import { PersonLabel } from '../../../components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,7 +64,9 @@ export default async function AccessPage({
             <div className="req-body">
               <p className="req-head">
                 <span className="kind-chip">{ACCESS_KIND_LABEL[r.kind] ?? r.kind}</span>
-                <strong className="req-name">{r.targetLabel}</strong>
+                <strong className="req-name inline-flex items-center gap-2">
+                  <PersonLabel label={r.targetLabel} id={r.targetUserId} size="md" />
+                </strong>
               </p>
               <p className="req-what">{describeRequest(r)}</p>
               <p className="req-why">
@@ -71,7 +74,7 @@ export default async function AccessPage({
                 {r.decisionNote ? ` · ${r.decisionNote}` : ''}
               </p>
               <p className="req-by">
-                {r.proposedBy} đề xuất
+                <PersonLabel label={r.proposedBy} /> đề xuất
                 {r.status === 'PENDING' ? '' : ` · ${ACCESS_STATUS_LABEL[r.status] ?? r.status}`}
               </p>
             </div>

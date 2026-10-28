@@ -38,3 +38,15 @@ describe('Avatar', () => {
     expect(screen.getByRole('img', { name: 'Người dùng' }).textContent).toBe('');
   });
 });
+
+describe('looksLikeOrganization', () => {
+  it('tells organisations from people by name when the data has no kind flag', async () => {
+    const { looksLikeOrganization } = await import('../lib/avatar');
+    expect(looksLikeOrganization('Công ty TNHH An Phát')).toBe(true);
+    expect(looksLikeOrganization('Cty CP Minh Long')).toBe(true);
+    expect(looksLikeOrganization('UBND quận Hoàn Kiếm')).toBe(true);
+    expect(looksLikeOrganization('Ông Trần Văn B')).toBe(false);
+    expect(looksLikeOrganization('Sơn Tùng')).toBe(false);
+    expect(looksLikeOrganization('Cục Văn')).toBe(true);
+  });
+});

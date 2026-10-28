@@ -265,6 +265,19 @@ export class AuthService {
     );
   }
 
+  /** Họ tên hiển thị của người đăng nhập (users.full_name, chưa có thì phần trước @ của email). */
+  async displayName(tenantId: string, userId: string): Promise<string | null> {
+    return this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ name: string | null }>(
+        `SELECT coalesce(u.full_name, nullif(split_part(coalesce(ac.email, u.external_ref), '@', 1), '')) AS name
+           FROM users u LEFT JOIN auth_credentials ac ON ac.user_id = u.id AND ac.tenant_id = u.tenant_id
+          WHERE u.tenant_id = $1 AND u.id = $2`,
+        [tenantId, userId],
+      );
+      return rows[0]?.name ?? null;
+    });
+  }
+
   async memberships(tenantId: string, userId: string): Promise<Membership[]> {
     return this.pg.withTenant(tenantId, async (c) => {
       const { rows } = await c.query<{ office_id: string; role: string; legal_signer: boolean }>(

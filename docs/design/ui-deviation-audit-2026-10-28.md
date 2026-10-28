@@ -54,3 +54,11 @@ Quy tắc mẫu stepper dạng thẻ: mỗi bước một thẻ có viền, số
 - **Phạm vi hiển thị tên (giả định, do Claude chốt theo ủy quyền)**: mọi vai thấy tên người xử lý, người ghi lần tống đạt trong phạm vi hồ sơ họ xem được. API `GET /people/names?ids=` chỉ trả tên người cùng văn phòng với người hỏi và chỉ khi biết mã; không có endpoint liệt kê danh bạ.
 - Tài khoản thử giả lập `*@example.invalid` được điền họ tên mẫu bằng migration 0058 (chỉ khi chưa có họ tên).
 - Chưa có: tên văn bản và ghi chú mỗi lần đi (CSDL chưa có cột); người tạo/người duyệt ở Hộp duyệt (API chưa trả mã người).
+
+## Avatar: các chỗ đã áp (2026-10-28)
+
+Có avatar: topbar và thẻ người dùng (họ tên trong phiên đăng nhập `GET /auth/me`), bảng Nhân sự, phân công THV (Vi bằng, Xác minh, THA, Tống đạt) dạng danh sách chọn, người xử lý và người ghi lần ở Tống đạt, THV và người tạo ở Vi bằng (danh sách, chi tiết, Lịch sử, Pháp lý, Theo dõi số), người nhận bàn giao, khách cá nhân (danh sách, chi tiết), đương sự THA loại cá nhân, bên được xác minh, người nhận tống đạt, Phân quyền (người được đề xuất, người đề xuất).
+
+Giả định: người nhận tống đạt và bên được xác minh không có cờ loại, nên nhận diện tổ chức theo tiền tố tên (Công ty, Cty, UBND, Tòa án, Sở, ...). Tên không rõ thì coi là cá nhân. Nhãn người trong các hàm đọc của Vi bằng đổi thành "Họ tên (email)" bằng migration 0059.
+
+Không áp dụng: Hộp duyệt và Việc của tôi (dữ liệu không có người), Vật tư, Công văn (đối tác là cơ quan/tổ chức), Báo cáo, ô chọn gốc trong form đề xuất quyền, dòng phụ đề trên banner (chỉ là chữ), nhật ký liên hệ khách (chưa hiển thị người ghi).
