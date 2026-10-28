@@ -9,6 +9,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { formatDay } from '../lib/deadlines';
+import { Person } from './ui/avatar';
 import {
   MY_WORK_DOMAIN_LABEL,
   myWorkHref,
@@ -18,6 +19,17 @@ import {
 
 const col = createColumnHelper<MyWorkItem>();
 const ALL = 'ALL';
+
+type Names = Readonly<Record<string, string>>;
+
+function Creator({ it, names }: { readonly it: MyWorkItem; readonly names: Names }) {
+  const name = it.createdBy ? names[it.createdBy] : undefined;
+  return name ? (
+    <Person name={name} id={it.createdBy} size="sm" />
+  ) : (
+    <span className="muted">—</span>
+  );
+}
 
 function DeadlineCell({ it }: { readonly it: MyWorkItem }) {
   if (!it.deadlineAt) return <span className="muted">—</span>;
@@ -36,27 +48,45 @@ function Ref({ it }: { readonly it: MyWorkItem }) {
   return href ? <Link href={href}>{it.label}</Link> : <span>{it.label}</span>;
 }
 
-const columns = [
-  col.accessor((it) => MY_WORK_DOMAIN_LABEL[it.domain] ?? it.domain, {
-    id: 'domain',
-    header: 'Nghiệp vụ',
-    cell: (c) => <span className="my-work-domain">{c.getValue()}</span>,
-  }),
-  col.display({ id: 'ref', header: 'Hồ sơ', cell: (c) => <Ref it={c.row.original} /> }),
-  col.accessor((it) => myWorkStatusLabel(it), {
-    id: 'status',
-    header: 'Trạng thái',
-    cell: (c) => <span className="muted">{c.getValue()}</span>,
-  }),
-  col.display({ id: 'deadline', header: 'Hạn', cell: (c) => <DeadlineCell it={c.row.original} /> }),
-];
+function makeColumns(names: Names) {
+  return [
+    col.accessor((it) => MY_WORK_DOMAIN_LABEL[it.domain] ?? it.domain, {
+      id: 'domain',
+      header: 'Nghiệp vụ',
+      cell: (c) => <span className="my-work-domain">{c.getValue()}</span>,
+    }),
+    col.display({ id: 'ref', header: 'Hồ sơ', cell: (c) => <Ref it={c.row.original} /> }),
+    col.accessor((it) => myWorkStatusLabel(it), {
+      id: 'status',
+      header: 'Trạng thái',
+      cell: (c) => <span className="muted">{c.getValue()}</span>,
+    }),
+    col.display({
+      id: 'creator',
+      header: 'Người tạo',
+      cell: (c) => <Creator it={c.row.original} names={names} />,
+    }),
+    col.display({
+      id: 'deadline',
+      header: 'Hạn',
+      cell: (c) => <DeadlineCell it={c.row.original} />,
+    }),
+  ];
+}
 
 /**
  * Việc của tôi. Máy tính: dải số liệu + lọc theo nghiệp vụ + bảng TanStack; điện thoại: thẻ một cột.
  * Chỉ đọc: mỗi việc dẫn về màn nghiệp vụ, nơi thao tác vẫn qua API kiểm quyền.
  * Quá hạn được ghi bằng chữ, không chỉ bằng màu.
  */
-export function MyWorkList({ items }: { readonly items: readonly MyWorkItem[] | 'error' }) {
+export function MyWorkList({
+  items,
+  names = {},
+}: {
+  readonly items: readonly MyWorkItem[] | 'error';
+  /** Họ tên người tạo theo mã người dùng. */
+  readonly names?: Names;
+}) {
   const [domain, setDomain] = useState(ALL);
   const all = useMemo(() => (items === 'error' ? [] : items), [items]);
   const rows = useMemo(
@@ -65,7 +95,7 @@ export function MyWorkList({ items }: { readonly items: readonly MyWorkItem[] | 
   );
   const table = useReactTable({
     data: rows as MyWorkItem[],
-    columns,
+    columns: makeColumns(names),
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -150,6 +180,7 @@ export function MyWorkList({ items }: { readonly items: readonly MyWorkItem[] | 
               <span className="muted">{myWorkStatusLabel(it)}</span>
               <DeadlineCell it={it} />
             </span>
+            <Creator it={it} names={names} />
           </li>
         ))}
       </ul>

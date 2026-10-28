@@ -12,6 +12,8 @@ export interface MyWorkItem {
   readonly status: string;
   readonly deadlineAt: string | null;
   readonly overdue: boolean;
+  /** Người tạo hồ sơ/yêu cầu (mã người dùng); họ tên tra qua `loadPeopleNames`. */
+  readonly createdBy?: string | null;
 }
 
 export const MY_WORK_DOMAIN_LABEL: Record<string, string> = {
