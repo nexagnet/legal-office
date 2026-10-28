@@ -1,0 +1,227 @@
+{
+ "role": "thu-ky",
+ "title": "Hướng dẫn dành cho Thư ký",
+ "sections": [
+  {
+   "title": "Vai trò của Thư ký",
+   "intro": "Thư ký là người tiếp nhận: tạo hồ sơ, nhập và hoàn thiện thông tin, chuẩn bị hợp đồng và chứng cứ, liên hệ khách, đề nghị sửa sau 48 giờ. Thư ký xem được cả ba địa điểm nhưng KHÔNG làm hành vi pháp lý chỉ dành cho Thừa hành viên (ký, tống đạt, ghi kết quả).",
+   "rules": [
+    "Chỉ cần thông tin tối thiểu khi tiếp nhận; thông tin pháp lý bổ sung trước khi hoàn tất văn bản N-04.",
+    "Ô \"Thừa hành viên phụ trách\" luôn để trống: chỉ Admin phân công."
+   ],
+   "steps": [
+    {
+     "title": "Tổng quan và thanh bên của Thư ký",
+     "note": "Thư ký thấy bốn nghiệp vụ, khách hàng và hợp đồng, sổ sách, biểu mẫu, công văn. Mục Người dùng (nhân sự, phân quyền) chỉ dành cho Admin và Trưởng văn phòng.",
+     "img": "thu-ky/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Vi bằng để bắt đầu tiếp nhận hồ sơ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tiếp nhận hồ sơ Vi bằng mới",
+   "intro": "Khách đến yêu cầu lập Vi bằng. Thư ký ghi nhận thông tin ban đầu của khách và nội dung yêu cầu để mở hồ sơ. Hồ sơ nhận số tiếp nhận dạng 1/2026/TN và được ghi người tạo.",
+   "rules": [
+    "Không nhập số tiền hay thông tin thanh toán.",
+    "Dùng dữ liệu giả khi chạy thử."
+   ],
+   "steps": [
+    {
+     "title": "Bấm Tạo hồ sơ Vi bằng",
+     "note": "Nút nằm ở góc phải phía trên danh sách.",
+     "img": "thu-ky/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo hồ sơ Vi bằng"
+      }
+     ]
+    },
+    {
+     "title": "Nhập thông tin khách và yêu cầu",
+     "note": "Chọn loại khách (cá nhân hoặc tổ chức) và địa điểm tiếp nhận, nhập mã tham chiếu khách, tên, điện thoại, tiêu đề và nội dung yêu cầu.",
+     "img": "thu-ky/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn loại khách hàng"
+      },
+      {
+       "n": 2,
+       "text": "Chọn địa điểm tiếp nhận"
+      },
+      {
+       "n": 3,
+       "text": "Nhập mã tham chiếu và tên khách"
+      },
+      {
+       "n": 4,
+       "text": "Nhập tiêu đề hồ sơ"
+      },
+      {
+       "n": 5,
+       "text": "Mô tả ngắn nội dung cần lập Vi bằng"
+      },
+      {
+       "n": 6,
+       "text": "Bấm Tiếp nhận hồ sơ"
+      }
+     ]
+    },
+    {
+     "title": "Đã tiếp nhận hồ sơ",
+     "note": "Hệ thống báo \"Đã tiếp nhận hồ sơ\" và mở trang hồ sơ. Chờ Admin phân công Thừa hành viên.",
+     "img": "thu-ky/04.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Khách hàng và hợp đồng dịch vụ",
+   "intro": "Danh bạ khách (cá nhân hoặc tổ chức) và hợp đồng. Một khách có nhiều hợp đồng; một hợp đồng có thể gắn nhiều hồ sơ Vi bằng. Văn phòng lưu hồ sơ hợp đồng, không phải phần mềm kế toán.",
+   "rules": [
+    "Khách hàng và hợp đồng dành cho vai tiếp nhận: Admin, Trưởng VP, Thư ký.",
+    "Phụ lục hợp đồng chỉ ghi thêm, không sửa, không xoá; bắt buộc có bản scan đã ký."
+   ],
+   "steps": [
+    {
+     "title": "Danh bạ khách hàng và hợp đồng",
+     "note": "Tìm khách ở ô tìm kiếm, mở khách để cập nhật thông tin và thêm hợp đồng.",
+     "img": "thu-ky/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Xem và sửa để mở khách"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tống đạt: tạo yêu cầu tống đạt",
+   "intro": "Thư ký, THV, Văn thư và Admin được tạo yêu cầu tống đạt. Một yêu cầu có thể gồm nhiều văn bản; mỗi văn bản có người nhận, địa chỉ và hạn riêng. Việc giao người xử lý do Admin hoặc Trưởng văn phòng làm.",
+   "rules": [
+    "Chưa giao người xử lý thì chưa ghi được lần tống đạt.",
+    "Hạn tống đạt là hạn nhắc, hệ thống không tự đổi trạng thái."
+   ],
+   "steps": [
+    {
+     "title": "Danh sách Tống đạt và nút tạo yêu cầu",
+     "note": "Danh sách chỉ tóm tắt; bấm Mở để vào trang chi tiết của từng văn bản.",
+     "img": "thu-ky/16.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo yêu cầu tống đạt"
+      }
+     ]
+    },
+    {
+     "title": "Bước 1: nhập mã yêu cầu",
+     "note": "Trình tạo gồm ba bước: Yêu cầu, Người nhận, Xác nhận.",
+     "img": "thu-ky/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập Mã yêu cầu"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Tiếp tục: Người nhận"
+      }
+     ]
+    },
+    {
+     "title": "Bước 2: nhập người nhận, địa chỉ và hạn",
+     "note": "Mỗi văn bản một người nhận; hạn tống đạt chọn theo ngày.",
+     "img": "thu-ky/18.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập tên người nhận"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Khách hàng và hợp đồng chi tiết",
+   "intro": "Mở một khách để xem thông tin, hợp đồng, phụ lục, Vi bằng liên quan và nhật ký liên hệ. Hợp đồng có thể gắn nhiều hồ sơ Vi bằng; phụ lục chỉ ghi thêm, không sửa, không xoá.",
+   "rules": [
+    "Bản scan hợp đồng và phụ lục đã ký là PDF, JPEG hoặc PNG, tối đa 25 MB.",
+    "Không có số tiền ở bất kỳ ô nào."
+   ],
+   "steps": [
+    {
+     "title": "Hồ sơ khách hàng: các tab",
+     "note": "Các tab: Thông tin, Hợp đồng, Phụ lục, Vi bằng, Nhật ký liên hệ.",
+     "img": "thu-ky/19.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Hợp đồng"
+      },
+      {
+       "n": 2,
+       "text": "Sửa thông tin cá nhân rồi bấm Lưu thông tin"
+      }
+     ]
+    },
+    {
+     "title": "Tab Hợp đồng",
+     "note": "Chọn dịch vụ (Vi bằng, Tống đạt, Xác minh, Tổ chức THA), trạng thái, ngày ký, hiệu lực, ghi chú rồi lưu hợp đồng; có thể tải bản scan hợp đồng và liên kết người tham gia.",
+     "img": "thu-ky/20.png",
+     "marks": []
+    },
+    {
+     "title": "Tab Phụ lục",
+     "note": "Mỗi phụ lục có loại (gia hạn, bổ sung phạm vi, đổi bên tham gia, khác), ngày hiệu lực, nội dung và bản scan đã ký bắt buộc.",
+     "img": "thu-ky/21.png",
+     "marks": []
+    },
+    {
+     "title": "Soạn hợp đồng N-03",
+     "note": "Sinh bản nháp Word hợp đồng lập Vi bằng từ dữ liệu khách; người dùng rà soát trước khi ký.",
+     "img": "thu-ky/22.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Thư viện biểu mẫu",
+   "intro": "Đăng ký và tải các phụ lục của Thông tư, tìm biểu mẫu và soạn bản nháp Word cho các mẫu N. Thư viện chỉ để tra cứu và tải; không tự điền, ký hay ban hành.",
+   "rules": [
+    "Bản nháp phải được người có thẩm quyền rà soát và ký."
+   ],
+   "steps": [
+    {
+     "title": "Thư viện biểu mẫu",
+     "note": "Tìm biểu mẫu theo tên; nút Soạn nội dung Vi bằng N-04 mở màn soạn dữ liệu pháp lý.",
+     "img": "thu-ky/23.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Soạn nội dung Vi bằng N-04"
+      }
+     ]
+    },
+    {
+     "title": "Soạn dữ liệu pháp lý N-04",
+     "note": "Nhập người yêu cầu, người tham gia, địa điểm, ngày bắt đầu và sự kiện chứng kiến; sau đó xuất dự thảo Word. Checklist hoàn tất nhắc việc ký, đóng dấu và ảnh THV chứng kiến.",
+     "img": "thu-ky/24.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Xuất dự thảo Word"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

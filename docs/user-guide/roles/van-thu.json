@@ -1,0 +1,236 @@
+{
+ "role": "van-thu",
+ "title": "Hướng dẫn dành cho Văn thư",
+ "sections": [
+  {
+   "title": "Việc đầu ngày: xem hồ sơ cần mình xử lý",
+   "intro": "Văn thư là người giữ số và con dấu của Văn phòng. Hằng ngày bạn bắt đầu từ Tổng quan và Vi bằng để biết hồ sơ nào đang chờ cấp số, chờ đóng dấu hoặc chờ tải bản scan.",
+   "rules": [],
+   "steps": [
+    {
+     "title": "Trang Tổng quan",
+     "note": "Thanh bên chỉ hiện mục thuộc vai Văn thư. Thẻ Vi bằng cho biết số hồ sơ đang xử lý.",
+     "img": "van-thu/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Vi bằng ở thanh bên để mở danh sách hồ sơ"
+      }
+     ]
+    },
+    {
+     "title": "Danh sách hồ sơ Vi bằng",
+     "note": "Cột \"Bước tiếp theo\" cho biết việc kế tiếp của từng hồ sơ. Hồ sơ cần cấp số hoặc đóng dấu sẽ ghi rõ ở đây.",
+     "img": "van-thu/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm vào tên hồ sơ để mở"
+      },
+      {
+       "n": 2,
+       "text": "Văn thư cũng được tạo hồ sơ mới"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Cấp số Vi bằng",
+   "intro": "Số Vi bằng dạng 1/2026/VB-THV chạy một dãy chung cho toàn Văn phòng, tăng dần trong năm. Chỉ cấp khi Kế toán đã xác nhận thanh toán đủ trên MISA; phần mềm không ghi số tiền.",
+   "rules": [
+    "Chưa có xác nhận thanh toán thì không cấp số.",
+    "Mỗi hồ sơ chỉ cấp một số; số của hồ sơ huỷ không dùng lại."
+   ],
+   "steps": [
+    {
+     "title": "Mở hồ sơ chờ cấp số",
+     "note": "Hồ sơ đã giao THV nhưng Kế toán chưa xác nhận MISA, nên bước kế tiếp là \"Xác nhận MISA và cấp số\".",
+     "img": "van-thu/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Thêm thao tác"
+      }
+     ]
+    },
+    {
+     "title": "Chọn Cấp số MISA",
+     "note": "Việc chưa tới bước vẫn hiện nhưng mờ, kèm lý do ngắn.",
+     "img": "van-thu/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Cấp số MISA"
+      }
+     ]
+    },
+    {
+     "title": "Ngăn kéo Cấp số: chưa thanh toán thì không cấp",
+     "note": "Hệ thống chặn cấp số khi chưa có xác nhận của Kế toán và nói rõ lý do ngay trên màn hình.",
+     "img": "van-thu/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Đọc lý do bị chặn; chờ Kế toán xác nhận rồi quay lại"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Xác nhận đã đóng dấu và tải bản scan cuối",
+   "intro": "Sau khi Thừa hành viên ký trên văn bản giấy, Văn thư đóng dấu thật, bấm xác nhận trên phần mềm, rồi scan bản đã ký và đóng dấu để tải lên. Bản gốc giấy vẫn lưu tại Văn phòng; bản scan chỉ để quản lý.",
+   "rules": [
+    "Chỉ bấm \"Đã đóng dấu\" khi đã đóng dấu thật.",
+    "Bản scan cuối là PDF, tối đa 25 MB."
+   ],
+   "steps": [
+    {
+     "title": "Hồ sơ đã ký và đóng dấu, chờ bản scan",
+     "note": "Thanh tiến độ cho thấy 4 bước đã xong; bước 5 là Bản scan cuối.",
+     "img": "van-thu/06.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Tiếp tục: Ký, đóng dấu và bản scan"
+      }
+     ]
+    },
+    {
+     "title": "Sau khi tải bản scan cuối",
+     "note": "Hệ thống ghi nhận bản scan.",
+     "img": "van-thu/08.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Cấp số khi Kế toán đã xác nhận thanh toán",
+   "intro": "Sau khi Kế toán xác nhận thanh toán đủ trên MISA, nút Cấp số mở ra. Hệ thống tự cấp số kế tiếp trong dãy chung của Văn phòng.",
+   "rules": [
+    "Mỗi hồ sơ chỉ cấp một lần.",
+    "Không có ô nhập số: số do hệ thống cấp, tránh trùng."
+   ],
+   "steps": [
+    {
+     "title": "Bấm Cấp số khi đã có xác nhận thanh toán",
+     "note": "Trạng thái đã chuyển sang Đã xác nhận thanh toán đủ; nút Cấp số đã sẵn sàng.",
+     "img": "van-thu/09.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Cấp số"
+      }
+     ]
+    },
+    {
+     "title": "Số Vi bằng đã được cấp",
+     "note": "Số có dạng số thứ tự/năm/VB-THV. Hồ sơ chuyển sang bước Thừa hành viên ký.",
+     "img": "van-thu/10.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Vào sổ công văn đến",
+   "intro": "Văn thư theo dõi sổ văn bản của Văn phòng. Công văn đến được vào sổ với loại văn bản, nơi gửi, trích yếu, số ký hiệu và ngày nhận.",
+   "rules": [
+    "Công văn có hạn xử lý sẽ được nhắc ở Tổng quan."
+   ],
+   "steps": [
+    {
+     "title": "Màn Công văn đi / đến",
+     "note": "Danh sách văn bản đã vào sổ và nút tạo văn bản mới.",
+     "img": "van-thu/11.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Công văn đi và đến: tạo công văn",
+   "intro": "Công văn đến được vào sổ với loại văn bản, nơi gửi, trích yếu, số ký hiệu và ngày nhận. Mỗi công văn có thể giao người xử lý, đặt hạn, đính kèm tài liệu và liên kết với hồ sơ.",
+   "rules": [
+    "Công văn đi tự cấp số dạng số/năm/CV-THV.",
+    "Phân biệt soạn, duyệt nội bộ và ký ban hành."
+   ],
+   "steps": [
+    {
+     "title": "Màn Công văn",
+     "note": "Ba tab: Công văn đến, Công văn đi, Sổ quyết định; bộ lọc Chờ xử lý, Quá hạn, Đã xử lý.",
+     "img": "van-thu/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo công văn"
+      }
+     ]
+    },
+    {
+     "title": "Nhập thông tin công văn đến",
+     "note": "Điền loại văn bản, nơi gửi, trích yếu, số ký hiệu và ngày nhận, sau đó bấm Tiếp tục để đính kèm tài liệu và vào sổ.",
+     "img": "van-thu/18.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Công văn đến hoặc đi"
+      },
+      {
+       "n": 2,
+       "text": "Nhập nơi gửi"
+      },
+      {
+       "n": 3,
+       "text": "Nhập trích yếu"
+      },
+      {
+       "n": 4,
+       "text": "Bấm Tiếp tục: Đính kèm"
+      }
+     ]
+    },
+    {
+     "title": "Đính kèm và vào sổ",
+     "note": "Đính kèm bản scan công văn (nếu có) rồi hoàn tất để vào sổ.",
+     "img": "van-thu/19.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Thư viện biểu mẫu và sổ sách",
+   "intro": "Văn thư dùng thư viện biểu mẫu để tra cứu và tải phụ lục, và theo dõi sổ S-01, S-02, S-04, S-05. Mục Theo dõi cập nhật CSDL / Sở liệt kê hồ sơ chờ cập nhật theo hạn 3 ngày làm việc.",
+   "rules": [
+    "Sổ điện tử hỗ trợ theo dõi; bản in chính thức phải đóng dấu giáp lai hằng tháng."
+   ],
+   "steps": [
+    {
+     "title": "Sổ theo dõi Vi bằng (S-02)",
+     "note": "Chọn sổ và năm rồi bấm Xem; xuất Excel, PDF hoặc CSV.",
+     "img": "van-thu/20.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Xuất sổ ra tệp"
+      },
+      {
+       "n": 2,
+       "text": "Mở danh sách hồ sơ chờ cập nhật Sở"
+      }
+     ]
+    },
+    {
+     "title": "Thư viện biểu mẫu",
+     "note": "Tìm và tải biểu mẫu; soạn dữ liệu pháp lý N-04.",
+     "img": "van-thu/21.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Soạn N-04"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,45 @@
+import { browser, asRole, BASE } from './lib.mjs';
+import { Guide } from './guide.mjs';
+const C1 = '64ce003a-1556-49f6-a8e1-29294dc4c77b', C2 = '19f2f142-e7c2-48ee-83d8-c2e25d23a71d', XM = '80b4e63f-7631-4fec-a37c-6de9197ee05f';
+const b = await browser(); const { page } = await asRole(b, 'THV');
+const g = new Guide('thua-hanh-vien', 'Hướng dẫn dành cho Thừa hành viên');
+const go = async (p) => { await page.goto(BASE + p, { waitUntil: 'networkidle' }); await page.waitForTimeout(900); };
+const btn = (n) => page.getByRole('button', { name: n });
+const menu = async () => { await btn(/Thêm thao tác/).click(); await page.waitForTimeout(450); };
+const item = (n) => page.getByRole('menuitem', { name: new RegExp(n) });
+
+g.section('Vi bằng: xác nhận đã ký', 'Sau khi Văn thư cấp số, Thừa hành viên phụ trách ký thật trên văn bản giấy, rồi bấm xác nhận trên phần mềm. Phần mềm chỉ ghi nhận hành vi đã xảy ra; chữ ký pháp lý là chữ ký trên giấy.', ['Chỉ THV được giao phụ trách hồ sơ mới xác nhận ký.', 'Văn thư chỉ đóng dấu được sau khi THV xác nhận đã ký.']);
+await go('/vi-bang/' + C2);
+await menu();
+await g.shot(page, { title: 'Mở Thêm thao tác, chọn Ký và đóng dấu', note: 'Hồ sơ đã có số và đang chờ ký.', marks: [{ loc: item('Ký và đóng dấu'), text: 'Chọn Ký và đóng dấu' }] });
+await item('Ký và đóng dấu').click(); await page.waitForTimeout(1800);
+await g.shot(page, { title: 'Bấm Xác nhận đã ký', note: 'Mục 01 là việc của THV; mục 02 và 03 là việc của Văn thư, hiện mờ cho tới khi tới bước.', marks: [{ loc: btn('Xác nhận đã ký'), text: 'Bấm Xác nhận đã ký (sau khi đã ký thật trên giấy)' }] });
+await btn('Xác nhận đã ký').click(); await page.waitForTimeout(2500);
+await g.shot(page, { title: 'Đã xác nhận ký', note: 'Trạng thái chuyển sang Đã hoàn tất. Lượt tiếp theo là Văn thư đóng dấu.', marks: [] });
+await page.keyboard.press('Escape');
+
+g.section('Vi bằng: liên hệ khách và trả kết quả', 'Trả kết quả là bước cuối của Vi bằng. Để được ghi "Đã trả" phải đủ năm điều kiện: thanh toán còn hợp lệ, THV đã ký, Văn thư đã đóng dấu, đã có bản scan cuối và việc bàn giao thực tế đã xảy ra. Liên hệ khách không đồng nghĩa với đã trả.', ['Ghi từng lần liên hệ (nhắc nhận, báo kết quả) và kết quả liên hệ.', 'Cập nhật cơ sở dữ liệu hoặc gửi Sở Tư pháp là việc riêng, không chặn việc trả khách.']);
+await go('/vi-bang/' + C1);
+await menu();
+await item('Trả kết quả').click(); await page.waitForTimeout(1800);
+await page.locator('select[name=kind]').selectOption({ index: 1 });
+await g.shot(page, { title: 'Ghi lần liên hệ khách', note: 'Chọn loại liên hệ và kết quả liên hệ rồi lưu. Nhật ký liên hệ ghi ngày, người và kết quả.', marks: [{ loc: page.locator('select[name=kind]'), text: 'Chọn loại liên hệ' }, { loc: page.locator('select[name=outcome]'), text: 'Chọn kết quả liên hệ' }, { loc: btn('Lưu kết quả liên hệ'), text: 'Bấm Lưu kết quả liên hệ' }] });
+await btn('Lưu kết quả liên hệ').click(); await page.waitForTimeout(2000);
+await page.locator('input[name=recipientName]').fill('DEMO Nguyễn Văn A');
+await page.locator('input[name=handedOverOn]').fill(new Date().toISOString().slice(0, 10));
+await g.shot(page, { title: 'Ghi người nhận và ngày bàn giao', note: 'Khi khách đến nhận bản gốc: nhập người nhận kết quả và ngày bàn giao thực tế.', marks: [{ loc: page.locator('input[name=recipientName]'), text: 'Nhập người nhận kết quả' }, { loc: page.locator('input[name=handedOverOn]'), text: 'Chọn ngày bàn giao' }, { loc: btn('Lưu người nhận'), text: 'Bấm Lưu người nhận' }, { loc: btn('Xác nhận đã trả kết quả'), text: 'Cuối cùng bấm Xác nhận đã trả kết quả' }] });
+await btn('Lưu người nhận').click(); await page.waitForTimeout(2000);
+await btn('Xác nhận đã trả kết quả').click(); await page.waitForTimeout(2500);
+await g.shot(page, { title: 'Hồ sơ đã trả kết quả', note: 'Hệ thống chỉ cho trả khi đủ điều kiện; thiếu một điều kiện sẽ báo lý do bằng chữ đỏ ngay dưới nút.', marks: [] });
+await page.keyboard.press('Escape');
+
+g.section('Xác minh: đề xuất kết luận', 'Khi mọi lượt xác minh đã có kết quả, THV đề xuất kết luận gửi Trưởng văn phòng. Duyệt kết luận trong phần mềm khác với ký quyết định pháp lý.', ['Chưa có kết quả ở mọi lượt thì không gửi được đề xuất.', 'Thiếu căn cứ thì không tự kết luận xong.']);
+await go('/xac-minh/' + XM);
+await menu();
+await g.shot(page, { title: 'Chọn Đề xuất kết luận', note: 'Menu Thêm thao tác của hồ sơ xác minh gồm: Thêm lượt, Đề xuất kết luận, Quyết định kết luận (Trưởng VP), Phân công, Ngày ký hợp đồng.', marks: [{ loc: item('Đề xuất kết luận'), text: 'Chọn Đề xuất kết luận' }] });
+await item('Đề xuất kết luận').click(); await page.waitForTimeout(1800);
+const ta = page.locator('[role=dialog] textarea').first();
+await ta.fill('DEMO: Người phải thi hành có tài khoản ngân hàng và không có bất động sản đứng tên; đề nghị tiếp tục thi hành.');
+await g.shot(page, { title: 'Nhập nội dung đề xuất kết luận', note: 'Ghi ngắn gọn kết luận dựa trên các lượt đã có kết quả.', marks: [{ loc: ta, text: 'Nhập nội dung kết luận đề xuất' }, { loc: page.locator('[role=dialog] button[type=submit], [role=dialog] button').last(), text: 'Bấm gửi đề xuất' }] });
+await page.locator('[role=dialog] button[type=submit], [role=dialog] button').last().click(); await page.waitForTimeout(2500);
+g.save(); await b.close(); console.log('done', g.n);

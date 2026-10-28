@@ -1,0 +1,144 @@
+{
+ "role": "truong-van-phong",
+ "title": "Hướng dẫn dành cho Trưởng văn phòng",
+ "sections": [
+  {
+   "title": "Vai trò của Trưởng văn phòng",
+   "intro": "Trưởng văn phòng theo dõi toàn bộ bốn nghiệp vụ, duyệt các đề nghị nội bộ (chuyển hồ sơ, uỷ quyền, cấp quyền), quyết định kết luận xác minh và ký các văn bản thuộc thẩm quyền của mình. Quan trọng: \"duyệt\" trong phần mềm là duyệt nội bộ, không thay chữ ký pháp lý.",
+   "rules": [
+    "Không nhầm duyệt nội bộ với ký pháp lý.",
+    "Không duyệt đề xuất có đối tượng là chính mình."
+   ],
+   "steps": [
+    {
+     "title": "Tổng quan hoạt động Văn phòng",
+     "note": "Thẻ bốn nghiệp vụ, khối Chờ duyệt (việc cần bạn quyết định), Sức khoẻ văn phòng (chưa phân công, chờ trả khách, hạn quá) và Nhắc hạn.",
+     "img": "truong-van-phong/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Việc cần bạn quyết định, cũ nhất lên trước"
+      },
+      {
+       "n": 2,
+       "text": "Hồ sơ Vi bằng chưa có THV: nhắc Admin phân công"
+      }
+     ]
+    },
+    {
+     "title": "Hộp duyệt",
+     "note": "Mỗi đề nghị có ba lựa chọn: duyệt, trả lại để bổ sung (chặn hoàn tất cho tới khi nộp lại) hoặc từ chối (chấm dứt đề nghị). Người đề nghị không tự duyệt đề nghị của mình.",
+     "img": "truong-van-phong/02.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Xác minh: quyết định kết luận",
+   "intro": "THV đã đề xuất kết luận sau khi mọi lượt xác minh có kết quả. Trưởng văn phòng quyết định chấp nhận hoặc trả về để xác minh tiếp. Hạn ra quyết định xác minh là 3 ngày làm việc kể từ ngày ký hợp đồng.",
+   "rules": [
+    "Duyệt kết luận trong phần mềm khác với ký quyết định pháp lý.",
+    "Thiếu căn cứ thì trả về, không chấp nhận."
+   ],
+   "steps": [
+    {
+     "title": "Tab Kết luận: xem đề xuất của THV",
+     "note": "Đọc kỹ nội dung kết luận đề xuất và các lượt xác minh ở tab bên cạnh trước khi quyết định.",
+     "img": "truong-van-phong/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Thêm thao tác"
+      }
+     ]
+    },
+    {
+     "title": "Chấp nhận hoặc trả về",
+     "note": "Chọn Chấp nhận kết luận nếu đủ căn cứ; chọn Trả về để xác minh tiếp nếu còn thiếu.",
+     "img": "truong-van-phong/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Chấp nhận kết luận"
+      },
+      {
+       "n": 2,
+       "text": "Hoặc Trả về để xác minh tiếp (kèm ghi chú)"
+      }
+     ]
+    },
+    {
+     "title": "Hồ sơ xác minh đã có kết luận",
+     "note": "Trạng thái chuyển sang Đã kết luận; lịch sử ghi người quyết định và thời điểm.",
+     "img": "truong-van-phong/05.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Vật tư văn phòng và ngưỡng Sắp hết",
+   "intro": "Vật tư gồm giấy in, mực in, văn phòng phẩm. Chỉ ghi số lượng, không có giá. Xuất kho theo nguyên tắc lô nhập trước xuất trước. Admin hoặc Trưởng văn phòng đặt ngưỡng cảnh báo; khi tồn lớn hơn 0 và không vượt ngưỡng, dòng hiện nhãn Sắp hết.",
+   "rules": [
+    "Để trống ngưỡng thì không cảnh báo.",
+    "Kiểm kê theo phiên: Trưởng văn phòng duyệt thì mới ghi phiếu điều chỉnh."
+   ],
+   "steps": [
+    {
+     "title": "Tồn kho vật tư",
+     "note": "Bốn bộ lọc: Tất cả, Còn tồn, Sắp hết, Hết tồn. Cột Ngưỡng cho phép đặt số cảnh báo.",
+     "img": "truong-van-phong/06.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập kho hoặc xuất kho theo chi nhánh"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Đặt ngưỡng ở dòng vật tư"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Báo cáo hoạt động và Sổ sách",
+   "intro": "Báo cáo đếm riêng từng đơn vị (hồ sơ, văn bản, lượt xác minh...), không cộng chéo và không có số tiền. Sổ S-01, S-02, S-04, S-05 xuất ra Excel, PDF hoặc CSV; sổ điện tử hỗ trợ theo dõi, bản in chính thức phải đóng dấu giáp lai hằng tháng.",
+   "rules": [
+    "Báo cáo không có thu chi, công nợ.",
+    "Mỗi dòng sổ truy được về hồ sơ gốc."
+   ],
+   "steps": [
+    {
+     "title": "Báo cáo hoạt động",
+     "note": "Chọn khoảng ngày, chi nhánh và cách chia (theo Thừa hành viên hoặc chi nhánh) rồi bấm Áp dụng.",
+     "img": "truong-van-phong/07.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Áp dụng sau khi chọn kỳ"
+      },
+      {
+       "n": 2,
+       "text": "Xuất báo cáo ra Excel, PDF hoặc CSV"
+      }
+     ]
+    },
+    {
+     "title": "Sổ theo dõi việc lập Vi bằng (S-02)",
+     "note": "Chọn sổ và năm. Cột chưa có dữ liệu hiển thị dấu —.",
+     "img": "truong-van-phong/08.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn sổ khác (S-01, S-04, S-05)"
+      },
+      {
+       "n": 2,
+       "text": "Xuất sổ ra tệp"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

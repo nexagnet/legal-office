@@ -1,0 +1,122 @@
+{
+ "role": "ke-toan",
+ "title": "Hướng dẫn dành cho Kế toán",
+ "sections": [
+  {
+   "title": "Phạm vi của Kế toán",
+   "intro": "Kế toán chỉ làm việc với Vi bằng: đối chiếu khoản thanh toán trên MISA rồi xác nhận \"đã thu đủ\" để Văn thư được cấp số. Phần mềm KHÔNG lưu số tiền, công nợ hay bút toán; MISA vẫn là sổ kế toán duy nhất.",
+   "rules": [
+    "Chỉ thấy nghiệp vụ Vi bằng, không thấy Tống đạt, Xác minh, Thi hành án.",
+    "Chỉ làm trong địa điểm Admin đã cấp cho bạn."
+   ],
+   "steps": [
+    {
+     "title": "Trang Tổng quan của Kế toán",
+     "note": "Thanh bên của Kế toán rất gọn: Tổng quan và Vi bằng.",
+     "img": "ke-toan/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Vi bằng để xem hồ sơ cần xác nhận thanh toán"
+      }
+     ]
+    },
+    {
+     "title": "Danh sách Vi bằng",
+     "note": "Tìm hồ sơ cần xác nhận: cột Bước tiếp theo cho biết hồ sơ nào đang chờ xác nhận MISA.",
+     "img": "ke-toan/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm vào hồ sơ cần xác nhận thanh toán"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Xác nhận thanh toán đủ trên MISA",
+   "intro": "Bước này là điều kiện bắt buộc để Văn thư cấp số. Bạn đối chiếu trên MISA ngoài phần mềm, sau đó ghi lại mã tham chiếu và xác nhận.",
+   "rules": [
+    "Không nhập số tiền vào bất kỳ ô nào.",
+    "Xác nhận nhầm thì gửi đề nghị Thu hồi xác nhận MISA; Admin quyết định, bạn không tự duyệt được."
+   ],
+   "steps": [
+    {
+     "title": "Mở hồ sơ và bấm Thêm thao tác",
+     "note": "Bước kế tiếp của hồ sơ là Xác nhận MISA và cấp số.",
+     "img": "ke-toan/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Thêm thao tác"
+      }
+     ]
+    },
+    {
+     "title": "Chọn Cấp số MISA",
+     "note": "Mục này gồm cả xác nhận thanh toán (việc của Kế toán) và cấp số (việc của Văn thư).",
+     "img": "ke-toan/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Cấp số MISA"
+      }
+     ]
+    },
+    {
+     "title": "Nhập mã tham chiếu và xác nhận",
+     "note": "Chỉ nhập mã tham chiếu của chứng từ trên MISA, không nhập số tiền.",
+     "img": "ke-toan/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập Mã tham chiếu MISA (ví dụ DEMO-MISA-002)"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Xác nhận đã thu đủ trên MISA"
+      }
+     ]
+    },
+    {
+     "title": "Đã xác nhận thanh toán đủ",
+     "note": "Trạng thái chuyển sang đã xác nhận; Văn thư giờ có thể cấp số. Hệ thống ghi lại người xác nhận và thời điểm.",
+     "img": "ke-toan/06.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Thu hồi xác nhận MISA khi xác nhận nhầm",
+   "intro": "Nếu đã xác nhận thanh toán nhầm, Kế toán gửi đề nghị Thu hồi xác nhận MISA kèm lý do; Admin quyết định. Người gửi không tự duyệt được đề nghị của mình. Nếu đã cấp số nhưng chưa trả khách, hệ thống tạm chặn bàn giao.",
+   "rules": [
+    "Không xoá số đã cấp, không dùng lại số, không sửa âm thầm tài liệu đã ký và đóng dấu."
+   ],
+   "steps": [
+    {
+     "title": "Chọn Thu hồi MISA trong menu",
+     "note": "Mục nằm ở nhóm Sau phát hành, chỉ mở sau khi đã cấp số.",
+     "img": "ke-toan/09.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Thu hồi MISA"
+      }
+     ]
+    },
+    {
+     "title": "Nhập lý do và gửi đề nghị",
+     "note": "Nêu rõ lý do thu hồi để Admin quyết định.",
+     "img": "ke-toan/10.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập lý do đề nghị thu hồi (không gửi nếu chỉ xem thử)"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
