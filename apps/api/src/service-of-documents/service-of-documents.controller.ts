@@ -237,4 +237,42 @@ export class ServiceOfDocumentsController {
   close(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
     return this.run(a, 'td_close_request', [id]);
   }
+
+  /** Ghi việc ĐÃ báo kết quả tống đạt cho cơ quan yêu cầu (Điều 25.2). Chỉ khi mọi văn bản đã có kết cục cuối. */
+  @Post('requests/:id/result-notices')
+  @HttpCode(HttpStatus.OK)
+  reportResult(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ agency: z.string().max(300), note: z.string().max(2000) }).strict(),
+      body,
+    );
+    return this.run(a, 'td_report_result', [id, b.agency, b.note]);
+  }
+
+  @Get('requests/:id/result-notices')
+  async resultNotices(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const rows = await this.repo.rows<{
+      id: string;
+      agency: string;
+      note: string;
+      sent_by: string;
+      sent_at: Date;
+    }>(a.tenantId, 'td_list_result_notices', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        agency: r.agency,
+        note: r.note,
+        sentBy: r.sent_by,
+        sentAt: r.sent_at,
+      })),
+    };
+  }
 }
