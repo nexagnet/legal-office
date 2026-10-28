@@ -9,6 +9,7 @@ import { type HistoryEntry, getJson } from '../../../lib/case-api';
 import { HISTORY_KIND_LABEL } from '../../../lib/messages';
 import { type CaseTab, renderCaseFrame } from './case-frame';
 import { HistoryTimeline } from './history-timeline';
+import { PersonLabel } from '../../../components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,9 +115,18 @@ export default async function CasePage({
                 rows={[
                   [
                     'Thừa phát lại',
-                    c.thvLabel ?? (c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công'),
+                    <PersonLabel
+                      key="thv"
+                      label={c.thvLabel}
+                      id={c.responsibleThvUserId}
+                      size="md"
+                      fallback={c.responsibleThvUserId ? 'Đã phân công' : 'Chưa phân công'}
+                    />,
                   ],
-                  ['Người tạo', c.createdByLabel ?? 'Không rõ'],
+                  [
+                    'Người tạo',
+                    <PersonLabel key="by" label={c.createdByLabel} size="md" fallback="Không rõ" />,
+                  ],
                 ]}
               />
             </section>

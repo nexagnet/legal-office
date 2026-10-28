@@ -10,6 +10,7 @@ import {
   OBLIGATION_STATUS_LABEL,
   PARTY_ROLE_LABEL,
 } from '../../lib/messages';
+import { PartyName } from '../../components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,7 @@ const GROUPS: readonly StatusGroup[] = [
 
 interface Party {
   readonly id: string;
+  readonly kind?: string;
   readonly displayName: string;
   readonly role: string;
 }
@@ -148,7 +150,8 @@ export default async function EnforcementPage({
                         <ul>
                           {c.parties.map((p) => (
                             <li key={p.id}>
-                              {p.displayName} · {PARTY_ROLE_LABEL[p.role] ?? p.role}
+                              <PartyName name={p.displayName} person={p.kind === 'PERSON'} /> ·{' '}
+                              {PARTY_ROLE_LABEL[p.role] ?? p.role}
                             </li>
                           ))}
                         </ul>

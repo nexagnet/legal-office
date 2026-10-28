@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { PlaceForm } from '../../../../components/PlaceForm';
 import { type CaseLegal, getJson } from '../../../../lib/case-api';
 import {
@@ -8,13 +9,14 @@ import {
 import { MISA_STATUS_LABEL, PARTY_KIND_LABEL } from '../../../../lib/messages';
 import { DefList } from '../../../../components/ui/def-list';
 import { renderCaseFrame } from '../case-frame';
+import { PersonLabel } from '../../../../components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
 const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString('vi-VN') : null);
 const EMPTY = 'Chưa có';
 
-function Rows({ rows }: { rows: readonly (readonly [string, string | null | undefined])[] }) {
+function Rows({ rows }: { rows: readonly (readonly [string, ReactNode | null | undefined])[] }) {
   return <DefList rows={rows.map(([k, v]) => [k, v || EMPTY] as const)} />;
 }
 
@@ -81,10 +83,21 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 l.misa.status ? (MISA_STATUS_LABEL[l.misa.status] ?? l.misa.status) : null,
               ],
               ['Tham chiếu MISA', l.misa.reference],
-              ['THV ký', l.signed.at ? `${fmt(l.signed.at)} · ${l.signed.byLabel ?? ''}` : null],
+              [
+                'THV ký',
+                l.signed.at ? (
+                  <span key="sg" className="inline-flex flex-wrap items-center gap-x-2">
+                    {fmt(l.signed.at)} · <PersonLabel label={l.signed.byLabel} />
+                  </span>
+                ) : null,
+              ],
               [
                 'Văn thư đóng dấu',
-                l.stamped.at ? `${fmt(l.stamped.at)} · ${l.stamped.byLabel ?? ''}` : null,
+                l.stamped.at ? (
+                  <span key="st" className="inline-flex flex-wrap items-center gap-x-2">
+                    {fmt(l.stamped.at)} · <PersonLabel label={l.stamped.byLabel} />
+                  </span>
+                ) : null,
               ],
               [
                 'Bản scan cuối',

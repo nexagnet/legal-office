@@ -17,6 +17,8 @@ export type Session =
       readonly status: 'authenticated';
       readonly roles: readonly Role[];
       readonly tenantName: string;
+      readonly userId?: string;
+      readonly displayName?: string | null;
       readonly memberships: readonly Membership[];
       readonly branches: readonly Branch[];
     };
@@ -27,6 +29,8 @@ const isRole = (r: unknown): r is Role => (ROLES as readonly unknown[]).includes
 export type Fetcher = (url: string, init: { headers: Record<string, string> }) => Promise<Response>;
 
 interface MeBody {
+  readonly userId?: string;
+  readonly displayName?: string | null;
   readonly memberships?: readonly { officeId: string; role: string; legalSigner: boolean }[];
   readonly branches?: readonly Branch[];
 }
@@ -70,6 +74,8 @@ export async function loadSession(
       status: 'authenticated',
       roles: [...new Set(memberships.map((m) => m.role))],
       tenantName,
+      userId: body.userId,
+      displayName: body.displayName ?? null,
       memberships,
       branches: body.branches ?? [],
     };

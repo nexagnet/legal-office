@@ -44,6 +44,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
           badgeOfficeId={badgeOfficeId}
           signedIn={session.status === 'authenticated'}
+          userName={session.status === 'authenticated' ? (session.displayName ?? null) : null}
+          userId={session.status === 'authenticated' ? (session.userId ?? null) : null}
           roleLabel={
             session.status === 'authenticated' ? (ROLE_LABEL[session.roles[0]!] ?? null) : null
           }

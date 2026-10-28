@@ -1,5 +1,5 @@
 import { UserRound } from 'lucide-react';
-import { avatarColor, initialsOf } from '../../lib/avatar';
+import { avatarColor, initialsOf, looksLikeOrganization, personName } from '../../lib/avatar';
 import { cn } from '../../lib/cn';
 
 const SIZE = {
@@ -56,4 +56,37 @@ export function Person({
       <span>{name}</span>
     </span>
   );
+}
+
+/** Người theo nhãn do API trả ("Họ tên (email)" hoặc email): avatar và họ tên. Thiếu nhãn thì hiện `fallback`. */
+export function PersonLabel({
+  label,
+  id,
+  size = 'sm',
+  fallback,
+}: {
+  readonly label: string | null | undefined;
+  readonly id?: string | null;
+  readonly size?: keyof typeof SIZE;
+  readonly fallback?: string;
+}) {
+  if (!label) return fallback ? <span className="text-muted">{fallback}</span> : null;
+  return <Person name={personName(label)} id={id} size={size} />;
+}
+
+/**
+ * Tên một bên trong hồ sơ (người nhận tống đạt, bên được xác minh, đương sự, khách): cá nhân có avatar, tổ chức chỉ hiện chữ.
+ * `person` là cờ loại khi dữ liệu có (PERSON/ORGANIZATION); không có thì nhận diện theo tên.
+ */
+export function PartyName({
+  name,
+  person,
+  size = 'sm',
+}: {
+  readonly name: string;
+  readonly person?: boolean;
+  readonly size?: keyof typeof SIZE;
+}) {
+  const isPerson = person ?? !looksLikeOrganization(name);
+  return isPerson ? <Person name={name} size={size} /> : <span>{name}</span>;
 }

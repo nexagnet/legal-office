@@ -2,6 +2,7 @@
 
 import type { FormEvent } from 'react';
 import { useCasePost } from './CasePost';
+import { PartyName } from './ui/avatar';
 
 interface Props {
   readonly caseId: string;
@@ -26,7 +27,10 @@ export function HandoverForm({ caseId, recipient, handedOverOn, canRecord }: Pro
   if (recipient) {
     return (
       <p>
-        Người nhận kết quả: <strong>{recipient}</strong>
+        Người nhận kết quả:{' '}
+        <strong>
+          <PartyName name={recipient} />
+        </strong>
         {handedOverOn ? <span className="muted"> · ngày bàn giao {handedOverOn}</span> : null}
       </p>
     );
