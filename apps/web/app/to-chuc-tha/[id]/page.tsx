@@ -179,7 +179,12 @@ export default async function EnforcementDetailPage({
             description="Thêm đương sự, nghĩa vụ, ghi diễn biến, ghi kết quả hoặc hoàn tất hồ sơ."
             primary
           >
-            <EnforcementActions caseId={c.caseId} status={c.status} obligations={c.obligations} />
+            <EnforcementActions
+              caseId={c.caseId}
+              status={c.status}
+              obligations={c.obligations}
+              parties={c.parties}
+            />
           </CaseActionDialog>
         ) : undefined,
     },
