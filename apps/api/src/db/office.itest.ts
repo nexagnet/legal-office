@@ -699,6 +699,12 @@ describe.skipIf(!ADMIN_URL)(
       const mine = read.filter((r) => r.person_id === p);
       expect(mine).toHaveLength(1);
       expect(mine[0]).toMatchObject({ version: 2, work_status: 'LEFT' });
+      const versions = await search(U.head, 'of_s06_versions', OFF, p);
+      expect(versions.map((r) => r.version)).toEqual([2, 1]);
+      expect(versions[0]).toMatchObject({ work_status: 'LEFT' });
+      expect(versions[0]!.saved_by).toBeTruthy();
+      expect(await search(U.secretary, 'of_s06_versions', OFF, p)).toEqual([]);
+      expect(await search(U.thvA, 'of_s06_versions', OFF, p)).toEqual([]);
       expect(await search(U.secretary, 'of_s06_read', OFF)).toEqual([]);
       expect(await search(U.thvA, 'of_s06_read', OFF)).toEqual([]);
       expect(
