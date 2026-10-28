@@ -62,3 +62,9 @@ Có avatar: topbar và thẻ người dùng (họ tên trong phiên đăng nhậ
 Giả định: người nhận tống đạt và bên được xác minh không có cờ loại, nên nhận diện tổ chức theo tiền tố tên (Công ty, Cty, UBND, Tòa án, Sở, ...). Tên không rõ thì coi là cá nhân. Nhãn người trong các hàm đọc của Vi bằng đổi thành "Họ tên (email)" bằng migration 0059.
 
 Không áp dụng: Hộp duyệt và Việc của tôi (dữ liệu không có người), Vật tư, Công văn (đối tác là cơ quan/tổ chức), Báo cáo, ô chọn gốc trong form đề xuất quyền, dòng phụ đề trên banner (chỉ là chữ), nhật ký liên hệ khách (chưa hiển thị người ghi).
+
+## Hộp duyệt và Việc của tôi: người đề xuất, người tạo (2026-10-28)
+
+- **Hộp duyệt**: API `/approvals/pending` đã trả `proposedBy` (mã người đề xuất); web tra họ tên qua `GET /people/names` và hiện avatar + tên ở cột "Người đề xuất".
+- **Việc của tôi**: `GET /office/my-work` thêm `createdBy` (migration 0065) và web hiện cột "Người tạo". Giả định: "người giao việc" không được ghi riêng ở mọi nghiệp vụ, nên dùng người tạo hồ sơ/yêu cầu; hồ sơ Vi bằng cũ chưa ghi người tạo thì để trống.
+- Phạm vi quyền không đổi: danh sách việc vẫn chỉ gồm việc của chính người đăng nhập; tên chỉ tra được với người cùng văn phòng và chỉ khi biết mã.
