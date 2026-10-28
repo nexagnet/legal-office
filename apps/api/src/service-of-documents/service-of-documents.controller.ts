@@ -84,6 +84,7 @@ export class ServiceOfDocumentsController {
       handler_user_id: string | null;
       attempts: number;
       last_attempt_at: Date | null;
+      document_title: string | null;
     }>(a.tenantId, 'td_list_documents', [a.tenantId, a.userId, 100]);
     return {
       items: rows.map((r) => ({
@@ -100,6 +101,7 @@ export class ServiceOfDocumentsController {
         handlerUserId: r.handler_user_id,
         attempts: r.attempts,
         lastAttemptAt: r.last_attempt_at,
+        documentTitle: r.document_title,
       })),
     };
   }
@@ -150,11 +152,18 @@ export class ServiceOfDocumentsController {
           recipientName: z.string().max(300),
           address: z.string().max(500),
           deadlineAt: iso,
+          title: z.string().max(300).nullish(),
         })
         .strict(),
       body,
     );
-    return this.run(a, 'td_add_document', [id, b.recipientName, b.address, b.deadlineAt]);
+    return this.run(a, 'td_add_document', [
+      id,
+      b.recipientName,
+      b.address,
+      b.deadlineAt,
+      b.title ?? null,
+    ]);
   }
 
   @Put('documents/:id/handler')
