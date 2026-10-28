@@ -1,0 +1,181 @@
+{
+ "role": "admin",
+ "title": "Hướng dẫn dành cho Admin",
+ "sections": [
+  {
+   "title": "Vai trò của Admin",
+   "intro": "Admin quản lý tài khoản, địa điểm và phân quyền; phân công Thừa hành viên (THV) cho hồ sơ Vi bằng; duyệt hoặc từ chối đề nghị sửa sau 48 giờ và đề nghị thu hồi xác nhận MISA; xem báo cáo. Admin KHÔNG đương nhiên được ký hay ban hành văn bản pháp lý.",
+   "rules": [
+    "Phân công THV cho Vi bằng chỉ Admin được làm.",
+    "Cấp hoặc đổi quyền theo nguyên tắc hai người: Admin đề xuất, Trưởng văn phòng khác người duyệt."
+   ],
+   "steps": [
+    {
+     "title": "Tổng quan và thanh bên của Admin",
+     "note": "Admin thấy đủ mục, gồm cả nhóm Quản trị ở cuối thanh bên: Người dùng và Cấu hình hệ thống.",
+     "img": "admin/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Hồ sơ Vi bằng chưa có THV: cần Admin phân công"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Phân công Thừa hành viên cho hồ sơ Vi bằng",
+   "intro": "Mỗi hồ sơ Vi bằng có đúng một THV phụ trách. Sau khi Thư ký tiếp nhận, Admin giao hồ sơ cho THV. Mọi lần đổi người sau này đều bắt buộc ghi lý do và được lưu lịch sử.",
+   "rules": [
+    "Chưa có THV phụ trách thì không làm được các bước pháp lý của THV."
+   ],
+   "steps": [
+    {
+     "title": "Mở hồ sơ, bấm Thêm thao tác, chọn Phân công",
+     "note": "Mục Phân công thừa phát lại nằm trong nhóm Hồ sơ của menu.",
+     "img": "admin/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Phân công thừa phát lại"
+      }
+     ]
+    },
+    {
+     "title": "Chọn THV và xác nhận phân công",
+     "note": "Chọn Thừa hành viên trong danh sách rồi xác nhận. Khi đổi người phải nhập lý do.",
+     "img": "admin/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Thừa hành viên"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Xác nhận phân công"
+      }
+     ]
+    },
+    {
+     "title": "Hồ sơ đã được phân công",
+     "note": "Trạng thái chuyển sang Đã phân công THV; lịch sử ghi người phân công.",
+     "img": "admin/04.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Người dùng: nhân sự, chi nhánh, phân quyền",
+   "intro": "Mục Người dùng gồm sáu trang: Nhân sự, Chi nhánh, Phân quyền, Thẻ THV, Email gửi thư, Lịch làm việc. Admin thấy cả sáu; Trưởng văn phòng chỉ thấy Phân quyền để duyệt.",
+   "rules": [
+    "Thành viên mới chưa có vai cho đến khi Trưởng văn phòng khác người duyệt.",
+    "Mỗi email một tài khoản."
+   ],
+   "steps": [
+    {
+     "title": "Nhân sự",
+     "note": "Danh bạ thành viên: vai trò, địa điểm, quyền ký pháp lý và trạng thái. Tìm theo tên hoặc email, lọc theo vai trò.",
+     "img": "admin/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Thêm thành viên để lập tài khoản mới"
+      },
+      {
+       "n": 2,
+       "text": "Lọc người đã thêm nhưng chờ duyệt"
+      }
+     ]
+    },
+    {
+     "title": "Thêm thành viên",
+     "note": "Nhập họ tên, email, vai trò (Văn thư, Kế toán chọn thêm địa điểm), chọn cách đăng nhập (link qua email là khuyến nghị) và lý do. Hệ thống lập đề xuất chờ Trưởng văn phòng duyệt.",
+     "img": "admin/06.png",
+     "marks": []
+    },
+    {
+     "title": "Phân quyền: đề xuất đã xử lý",
+     "note": "Mọi đề xuất thêm thành viên, đổi vai, cấp địa điểm, cấp hoặc thu hồi quyền ký đều lưu ở đây. Từ chối bắt buộc ghi chú; Admin có thể rút đề xuất của mình.",
+     "img": "admin/07.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Đề xuất đổi quyền để lập đề xuất mới"
+      }
+     ]
+    },
+    {
+     "title": "Chi nhánh (địa điểm hoạt động)",
+     "note": "Thêm hoặc đổi tên địa điểm; không xoá được vì hồ sơ và sổ tham chiếu địa điểm. Tên không trùng trong văn phòng.",
+     "img": "admin/08.png",
+     "marks": []
+    },
+    {
+     "title": "Email gửi thư",
+     "note": "Cấu hình SMTP để hệ thống gửi link đăng nhập qua email cho mọi tài khoản.",
+     "img": "admin/09.png",
+     "marks": []
+    },
+    {
+     "title": "Lịch làm việc",
+     "note": "Ngày làm việc trong tuần và danh sách ngày nghỉ, lễ. Hạn pháp định tính theo lịch này; hệ thống chỉ nhắc, không tự đổi trạng thái hồ sơ.",
+     "img": "admin/10.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Cấu hình hệ thống",
+   "intro": "Thông tin pháp lý của Văn phòng: tên đơn vị pháp lý, tên hiển thị trên văn bản, quy tắc số Vi bằng, người xác nhận hồ sơ và địa điểm hoạt động. Văn phòng là một pháp nhân; các địa điểm dùng chung một dãy số Vi bằng.",
+   "rules": [
+    "Tên pháp lý cần đối chiếu giấy đăng ký trước khi in mẫu chính thức."
+   ],
+   "steps": [
+    {
+     "title": "Cấu hình văn phòng",
+     "note": "Sửa thông tin rồi bấm Lưu thay đổi.",
+     "img": "admin/11.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Lưu thay đổi sau khi sửa"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Hộp duyệt, báo cáo và thẻ THV",
+   "intro": "Admin quyết định đề nghị thu hồi xác nhận MISA, duyệt hoặc từ chối đề nghị sửa sau 48 giờ ở Hộp duyệt; xem Báo cáo hoạt động; quản lý Thẻ THV (họ tên và số thẻ in lên sổ).",
+   "rules": [
+    "Mỗi đề nghị có ba lựa chọn: duyệt, trả lại, từ chối.",
+    "Người đề nghị không tự duyệt đề nghị của mình."
+   ],
+   "steps": [
+    {
+     "title": "Hộp duyệt của Admin",
+     "note": "Các đề nghị đang chờ hiện theo thứ tự cũ nhất lên trước.",
+     "img": "admin/15.png",
+     "marks": []
+    },
+    {
+     "title": "Thẻ THV",
+     "note": "Nhập họ tên và số thẻ của từng Thừa hành viên để in vào cột THV của sổ.",
+     "img": "admin/16.png",
+     "marks": []
+    },
+    {
+     "title": "Báo cáo hoạt động",
+     "note": "Số liệu theo ngày tạo, đếm riêng từng nghiệp vụ, không cộng chéo, không có số tiền.",
+     "img": "admin/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Xuất báo cáo ra Excel, PDF hoặc CSV"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,388 @@
+{
+ "role": "thua-hanh-vien",
+ "title": "Hướng dẫn dành cho Thừa hành viên",
+ "sections": [
+  {
+   "title": "Việc của tôi: hồ sơ đang giao cho bạn",
+   "intro": "Thừa hành viên (THV) xem được mọi hồ sơ Vi bằng nhưng chỉ làm bước pháp lý trên hồ sơ được giao. Trang Việc của tôi gom hồ sơ được giao ở cả bốn nghiệp vụ, hạn gần nhất lên trước.",
+   "rules": [
+    "Không làm bước pháp lý trên hồ sơ không được giao cho mình."
+   ],
+   "steps": [
+    {
+     "title": "Trang Việc của tôi",
+     "note": "Ba thẻ trên cùng cho biết số việc quá hạn, đang xử lý và tổng số việc. Có thể lọc theo nghiệp vụ.",
+     "img": "thua-hanh-vien/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lọc theo nghiệp vụ nếu cần"
+      },
+      {
+       "n": 2,
+       "text": "Bấm vào dòng để mở hồ sơ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tống đạt: ghi từng lần đi giao văn bản",
+   "intro": "Tống đạt là giao văn bản cho đúng người, đúng nơi, đúng hạn. Mỗi lần đi giao đều phải ghi lại. Không gặp người nhận KHÔNG phải là tống đạt thành công; chỉ khi có bằng chứng đã giao mới ghi \"đã tống đạt\".",
+   "rules": [
+    "Chưa được giao làm thì không ghi được lần tống đạt.",
+    "Hồ sơ chỉ đóng khi mọi văn bản đều có kết quả hợp lệ."
+   ],
+   "steps": [
+    {
+     "title": "Danh sách văn bản tống đạt",
+     "note": "Mỗi dòng là một văn bản (một yêu cầu có thể có nhiều văn bản), có hạn và số lần đã thử.",
+     "img": "thua-hanh-vien/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Mở để vào trang chi tiết"
+      }
+     ]
+    },
+    {
+     "title": "Ghi nhận lần tống đạt chưa thành công",
+     "note": "Đi giao nhưng người nhận vắng mặt: chọn kết quả của lần đó rồi ghi nhận. Số lần đã thử sẽ tăng.",
+     "img": "thua-hanh-vien/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn kết quả lần tống đạt (ví dụ Vắng mặt)"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Ghi nhận lần tống đạt"
+      }
+     ]
+    },
+    {
+     "title": "Ghi nhận ĐÃ tống đạt kèm bằng chứng",
+     "note": "Khi giao được, tải biên bản hoặc ảnh làm bằng chứng (PDF, JPEG, PNG, tối đa 25 MB) rồi ghi nhận.",
+     "img": "thua-hanh-vien/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn tệp bằng chứng"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Ghi nhận đã tống đạt"
+      }
+     ]
+    },
+    {
+     "title": "Văn bản đã được tống đạt",
+     "note": "Trạng thái chuyển sang Đã tống đạt, số lần và bằng chứng được lưu.",
+     "img": "thua-hanh-vien/05.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Xác minh điều kiện thi hành án",
+   "intro": "Một hồ sơ xác minh có nhiều lượt, mỗi lượt xác minh một bên hoặc một nguồn. Kết quả của một lượt chưa phải là kết luận chung. Phải có nguồn (có tệp) thì mới ghi được kết quả lượt; mọi lượt có kết quả mới đề xuất được kết luận cho Trưởng văn phòng quyết định.",
+   "rules": [
+    "Thiếu nguồn thì không ghi được kết quả lượt.",
+    "Thông tin tài sản, nhân thân rất nhạy cảm: chọn đúng mức bảo mật."
+   ],
+   "steps": [
+    {
+     "title": "Các lượt xác minh",
+     "note": "Mỗi lượt có bên được xác minh, trạng thái và kết quả. Nút Ghi kết quả nằm cuối dòng của lượt đang thực hiện.",
+     "img": "thua-hanh-vien/06.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thêm lượt xác minh mới"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Ghi kết quả của lượt"
+      }
+     ]
+    },
+    {
+     "title": "Ghi nguồn kèm tệp",
+     "note": "Nhập loại nguồn, mức bảo mật, mục đích và tải tệp. Nguồn nhạy cảm chọn Mật hoặc Có dữ liệu cá nhân.",
+     "img": "thua-hanh-vien/07.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập loại nguồn"
+      },
+      {
+       "n": 2,
+       "text": "Chọn mức bảo mật"
+      },
+      {
+       "n": 3,
+       "text": "Nhập mục đích sử dụng"
+      },
+      {
+       "n": 4,
+       "text": "Chọn tệp nguồn"
+      },
+      {
+       "n": 5,
+       "text": "Bấm Ghi nguồn kèm tệp"
+      }
+     ]
+    },
+    {
+     "title": "Ghi kết quả của lượt",
+     "note": "Sau khi có nguồn, nhập kết quả của lượt rồi ghi. Kết quả lượt không đồng nghĩa với kết luận cuối.",
+     "img": "thua-hanh-vien/08.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập kết quả của lượt"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Ghi kết quả lượt"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tổ chức thi hành án",
+   "intro": "Hồ sơ THA ghi nhận đương sự, nghĩa vụ và kết quả từng phần ở mức nghiệp vụ pháp lý. Không ghi sổ thu chi và không thay MISA. Hoàn thành một nghĩa vụ chưa làm xong cả vụ.",
+   "rules": [
+    "Còn nghĩa vụ chưa hoàn tất thì chưa hoàn tất hồ sơ được.",
+    "Không nhập số tiền thanh toán."
+   ],
+   "steps": [
+    {
+     "title": "Trang chi tiết hồ sơ THA",
+     "note": "Đương sự, nghĩa vụ và các ô thao tác nằm ngay trong trang.",
+     "img": "thua-hanh-vien/09.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Danh sách nghĩa vụ của hồ sơ"
+      },
+      {
+       "n": 2,
+       "text": "Thêm đương sự mới ở đây"
+      }
+     ]
+    },
+    {
+     "title": "Ghi kết quả một phần kèm chứng cứ",
+     "note": "Chọn nghĩa vụ, loại kết quả, nội dung và tệp chứng cứ. Kết quả được lưu bất biến (ai, khi nào, chứng cứ).",
+     "img": "thua-hanh-vien/10.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn nghĩa vụ"
+      },
+      {
+       "n": 2,
+       "text": "Chọn Kết quả một phần hoặc Hoàn tất nghĩa vụ"
+      },
+      {
+       "n": 3,
+       "text": "Nhập nội dung kết quả"
+      },
+      {
+       "n": 4,
+       "text": "Bấm Ghi kết quả kèm chứng cứ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Vi bằng: xác nhận đã ký",
+   "intro": "Sau khi Văn thư cấp số, Thừa hành viên phụ trách ký thật trên văn bản giấy, rồi bấm xác nhận trên phần mềm. Phần mềm chỉ ghi nhận hành vi đã xảy ra; chữ ký pháp lý là chữ ký trên giấy.",
+   "rules": [
+    "Chỉ THV được giao phụ trách hồ sơ mới xác nhận ký.",
+    "Văn thư chỉ đóng dấu được sau khi THV xác nhận đã ký."
+   ],
+   "steps": [
+    {
+     "title": "Mở Thêm thao tác, chọn Ký và đóng dấu",
+     "note": "Hồ sơ đã có số và đang chờ ký.",
+     "img": "thua-hanh-vien/11.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Ký và đóng dấu"
+      }
+     ]
+    },
+    {
+     "title": "Bấm Xác nhận đã ký",
+     "note": "Mục 01 là việc của THV; mục 02 và 03 là việc của Văn thư, hiện mờ cho tới khi tới bước.",
+     "img": "thua-hanh-vien/12.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Xác nhận đã ký (sau khi đã ký thật trên giấy)"
+      }
+     ]
+    },
+    {
+     "title": "Đã xác nhận ký",
+     "note": "Trạng thái chuyển sang Đã hoàn tất. Lượt tiếp theo là Văn thư đóng dấu.",
+     "img": "thua-hanh-vien/13.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Vi bằng: liên hệ khách và trả kết quả",
+   "intro": "Trả kết quả là bước cuối của Vi bằng. Để được ghi \"Đã trả\" phải đủ năm điều kiện: thanh toán còn hợp lệ, THV đã ký, Văn thư đã đóng dấu, đã có bản scan cuối và việc bàn giao thực tế đã xảy ra. Liên hệ khách không đồng nghĩa với đã trả.",
+   "rules": [
+    "Ghi từng lần liên hệ (nhắc nhận, báo kết quả) và kết quả liên hệ.",
+    "Cập nhật cơ sở dữ liệu hoặc gửi Sở Tư pháp là việc riêng, không chặn việc trả khách."
+   ],
+   "steps": [
+    {
+     "title": "Ghi lần liên hệ khách",
+     "note": "Chọn loại liên hệ và kết quả liên hệ rồi lưu. Nhật ký liên hệ ghi ngày, người và kết quả.",
+     "img": "thua-hanh-vien/14.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn loại liên hệ"
+      },
+      {
+       "n": 2,
+       "text": "Chọn kết quả liên hệ"
+      },
+      {
+       "n": 3,
+       "text": "Bấm Lưu kết quả liên hệ"
+      }
+     ]
+    },
+    {
+     "title": "Ghi người nhận và ngày bàn giao",
+     "note": "Khi khách đến nhận bản gốc: nhập người nhận kết quả và ngày bàn giao thực tế.",
+     "img": "thua-hanh-vien/15.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập người nhận kết quả"
+      },
+      {
+       "n": 2,
+       "text": "Chọn ngày bàn giao"
+      },
+      {
+       "n": 3,
+       "text": "Bấm Lưu người nhận"
+      },
+      {
+       "n": 4,
+       "text": "Cuối cùng bấm Xác nhận đã trả kết quả"
+      }
+     ]
+    },
+    {
+     "title": "Hồ sơ đã trả kết quả",
+     "note": "Hệ thống chỉ cho trả khi đủ điều kiện; thiếu một điều kiện sẽ báo lý do bằng chữ đỏ ngay dưới nút.",
+     "img": "thua-hanh-vien/16.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "Xác minh: đề xuất kết luận",
+   "intro": "Khi mọi lượt xác minh đã có kết quả, THV đề xuất kết luận gửi Trưởng văn phòng. Duyệt kết luận trong phần mềm khác với ký quyết định pháp lý.",
+   "rules": [
+    "Chưa có kết quả ở mọi lượt thì không gửi được đề xuất.",
+    "Thiếu căn cứ thì không tự kết luận xong."
+   ],
+   "steps": [
+    {
+     "title": "Chọn Đề xuất kết luận",
+     "note": "Menu Thêm thao tác của hồ sơ xác minh gồm: Thêm lượt, Đề xuất kết luận, Quyết định kết luận (Trưởng VP), Phân công, Ngày ký hợp đồng.",
+     "img": "thua-hanh-vien/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Đề xuất kết luận"
+      }
+     ]
+    },
+    {
+     "title": "Nhập nội dung đề xuất kết luận",
+     "note": "Ghi ngắn gọn kết luận dựa trên các lượt đã có kết quả.",
+     "img": "thua-hanh-vien/18.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập nội dung kết luận đề xuất"
+      },
+      {
+       "n": 2,
+       "text": "Bấm gửi đề xuất"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Các tab của hồ sơ Vi bằng",
+   "intro": "Trang hồ sơ có banner (mã, trạng thái, Thêm thao tác) và các tab: Tiến độ, Thông tin, Tài liệu, Pháp lý, Lịch sử, Đề nghị thay đổi. Chỉ nội dung tab đang chọn hiện ra.",
+   "rules": [
+    "Trong 48 giờ đầu sửa trực tiếp ở tab Thông tin; sau đó gửi đề nghị thay đổi cho Admin.",
+    "Hồ sơ đã có giá trị pháp lý không xoá, không sửa âm thầm."
+   ],
+   "steps": [
+    {
+     "title": "Tab Thông tin",
+     "note": "Thông tin hồ sơ và người phụ trách.",
+     "img": "thua-hanh-vien/23.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Thông tin"
+      }
+     ]
+    },
+    {
+     "title": "Tab Tài liệu",
+     "note": "Kho chứng cứ và bản scan có phiên bản và mã kiểm tra.",
+     "img": "thua-hanh-vien/24.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Tài liệu"
+      }
+     ]
+    },
+    {
+     "title": "Tab Pháp lý",
+     "note": "Người yêu cầu, địa điểm, sự kiện chứng kiến, người tham gia: dữ liệu cho văn bản N-04.",
+     "img": "thua-hanh-vien/25.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Pháp lý"
+      }
+     ]
+    },
+    {
+     "title": "Tab Lịch sử",
+     "note": "Nhật ký ai làm gì, lúc nào; chỉ ghi thêm, không sửa.",
+     "img": "thua-hanh-vien/26.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm tab Lịch sử"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

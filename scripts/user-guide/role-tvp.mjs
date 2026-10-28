@@ -1,0 +1,31 @@
+import { browser, asRole, BASE } from './lib.mjs';
+import { Guide } from './guide.mjs';
+const XM = '80b4e63f-7631-4fec-a37c-6de9197ee05f';
+const b = await browser(); const { page } = await asRole(b, 'TRUONG_VP');
+const g = new Guide('truong-van-phong', 'Hướng dẫn dành cho Trưởng văn phòng');
+const go = async (p) => { await page.goto(BASE + p, { waitUntil: 'networkidle' }); await page.waitForTimeout(900); };
+const btn = (n) => page.getByRole('button', { name: n });
+g.section('Vai trò của Trưởng văn phòng', 'Trưởng văn phòng theo dõi toàn bộ bốn nghiệp vụ, duyệt các đề nghị nội bộ (chuyển hồ sơ, uỷ quyền, cấp quyền), quyết định kết luận xác minh và ký các văn bản thuộc thẩm quyền của mình. Quan trọng: "duyệt" trong phần mềm là duyệt nội bộ, không thay chữ ký pháp lý.', ['Không nhầm duyệt nội bộ với ký pháp lý.', 'Không duyệt đề xuất có đối tượng là chính mình.']);
+await go('/');
+await g.shot(page, { title: 'Tổng quan hoạt động Văn phòng', note: 'Thẻ bốn nghiệp vụ, khối Chờ duyệt (việc cần bạn quyết định), Sức khoẻ văn phòng (chưa phân công, chờ trả khách, hạn quá) và Nhắc hạn.', marks: [{ loc: page.getByText('Chờ duyệt').first(), text: 'Việc cần bạn quyết định, cũ nhất lên trước' }, { loc: page.getByText('Chưa phân công').first(), text: 'Hồ sơ Vi bằng chưa có THV: nhắc Admin phân công' }] });
+await go('/hop-duyet');
+await g.shot(page, { title: 'Hộp duyệt', note: 'Mỗi đề nghị có ba lựa chọn: duyệt, trả lại để bổ sung (chặn hoàn tất cho tới khi nộp lại) hoặc từ chối (chấm dứt đề nghị). Người đề nghị không tự duyệt đề nghị của mình.', marks: [] });
+
+g.section('Xác minh: quyết định kết luận', 'THV đã đề xuất kết luận sau khi mọi lượt xác minh có kết quả. Trưởng văn phòng quyết định chấp nhận hoặc trả về để xác minh tiếp. Hạn ra quyết định xác minh là 3 ngày làm việc kể từ ngày ký hợp đồng.', ['Duyệt kết luận trong phần mềm khác với ký quyết định pháp lý.', 'Thiếu căn cứ thì trả về, không chấp nhận.']);
+await go('/xac-minh/' + XM + '?tab=ket-luan');
+await g.shot(page, { title: 'Tab Kết luận: xem đề xuất của THV', note: 'Đọc kỹ nội dung kết luận đề xuất và các lượt xác minh ở tab bên cạnh trước khi quyết định.', marks: [{ loc: btn(/Thêm thao tác/), text: 'Bấm Thêm thao tác' }] });
+await btn(/Thêm thao tác/).click(); await page.waitForTimeout(450);
+await page.getByRole('menuitem', { name: /Quyết định kết luận/ }).click(); await page.waitForTimeout(1800);
+await g.shot(page, { title: 'Chấp nhận hoặc trả về', note: 'Chọn Chấp nhận kết luận nếu đủ căn cứ; chọn Trả về để xác minh tiếp nếu còn thiếu.', marks: [{ loc: btn('Chấp nhận kết luận'), text: 'Bấm Chấp nhận kết luận' }, { loc: btn('Trả về để xác minh tiếp'), text: 'Hoặc Trả về để xác minh tiếp (kèm ghi chú)' }] });
+await btn('Chấp nhận kết luận').click(); await page.waitForTimeout(2500);
+await g.shot(page, { title: 'Hồ sơ xác minh đã có kết luận', note: 'Trạng thái chuyển sang Đã kết luận; lịch sử ghi người quyết định và thời điểm.', marks: [] });
+
+g.section('Vật tư văn phòng và ngưỡng Sắp hết', 'Vật tư gồm giấy in, mực in, văn phòng phẩm. Chỉ ghi số lượng, không có giá. Xuất kho theo nguyên tắc lô nhập trước xuất trước. Admin hoặc Trưởng văn phòng đặt ngưỡng cảnh báo; khi tồn lớn hơn 0 và không vượt ngưỡng, dòng hiện nhãn Sắp hết.', ['Để trống ngưỡng thì không cảnh báo.', 'Kiểm kê theo phiên: Trưởng văn phòng duyệt thì mới ghi phiếu điều chỉnh.']);
+await go('/vat-tu');
+await g.shot(page, { title: 'Tồn kho vật tư', note: 'Bốn bộ lọc: Tất cả, Còn tồn, Sắp hết, Hết tồn. Cột Ngưỡng cho phép đặt số cảnh báo.', marks: [{ loc: page.getByRole('button', { name: /Nhập \/ xuất/ }), text: 'Nhập kho hoặc xuất kho theo chi nhánh' }, { loc: page.getByText('Đặt ngưỡng').nth(2), text: 'Bấm Đặt ngưỡng ở dòng vật tư' }] });
+g.section('Báo cáo hoạt động và Sổ sách', 'Báo cáo đếm riêng từng đơn vị (hồ sơ, văn bản, lượt xác minh...), không cộng chéo và không có số tiền. Sổ S-01, S-02, S-04, S-05 xuất ra Excel, PDF hoặc CSV; sổ điện tử hỗ trợ theo dõi, bản in chính thức phải đóng dấu giáp lai hằng tháng.', ['Báo cáo không có thu chi, công nợ.', 'Mỗi dòng sổ truy được về hồ sơ gốc.']);
+await go('/bao-cao');
+await g.shot(page, { title: 'Báo cáo hoạt động', note: 'Chọn khoảng ngày, chi nhánh và cách chia (theo Thừa hành viên hoặc chi nhánh) rồi bấm Áp dụng.', marks: [{ loc: page.getByRole('button', { name: 'Áp dụng' }), text: 'Bấm Áp dụng sau khi chọn kỳ' }, { loc: page.getByText('Xuất Excel'), text: 'Xuất báo cáo ra Excel, PDF hoặc CSV' }] });
+await go('/so-sach');
+await g.shot(page, { title: 'Sổ theo dõi việc lập Vi bằng (S-02)', note: 'Chọn sổ và năm. Cột chưa có dữ liệu hiển thị dấu —.', marks: [{ loc: page.getByText('S-04 · Xác minh điều kiện THA'), text: 'Chọn sổ khác (S-01, S-04, S-05)' }, { loc: page.getByText('Xuất PDF'), text: 'Xuất sổ ra tệp' }] });
+g.save(); await b.close(); console.log('done', g.n);
