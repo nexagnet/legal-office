@@ -5,6 +5,7 @@ import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import type { DialogAction } from '../../../components/DialogActionMenu';
 import { ServiceReminder, ServiceResultSheet } from '../../../components/ServiceResult';
 import { DefList } from '../../../components/ui/def-list';
+import { Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
 import {
@@ -13,6 +14,8 @@ import {
   UNDELIVERABLE_LABEL,
 } from '../../../lib/messages';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
+import { personName } from '../../../lib/avatar';
+import { loadPeopleNames } from '../../../lib/people';
 import { deadlineView } from '../../../lib/service-view';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +25,7 @@ interface Attempt {
   readonly outcome: string;
   readonly late: boolean;
   readonly at: string;
+  readonly actorUserId: string;
   readonly hasEvidence: boolean;
 }
 
@@ -72,8 +76,18 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   );
   const done = d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE';
   const statusLabel = SERVICE_STATUS_LABEL[d.status] ?? d.status;
-  const handler = handlers.find((h) => h.userId === d.handlerUserId)?.label;
+  const people = await loadPeopleNames(cookie, [
+    d.handlerUserId,
+    ...(attemptList === 'error' ? [] : attemptList.map((a) => a.actorUserId)),
+  ]);
+  const handler = d.handlerUserId ? people.get(d.handlerUserId) : undefined;
   const handlerText = handler ?? (d.handlerUserId ? 'Đã phân công' : 'Chưa giao người xử lý');
+  const labelOf = (uid: string | null) => (uid ? people.get(uid) : undefined);
+  const handlerView = handler ? (
+    <Person name={personName(handler)} id={d.handlerUserId} />
+  ) : (
+    handlerText
+  );
   const dl = deadlineView(d.deadlineAt, done);
   const assignPath = `service-of-documents/documents/${d.documentId}/handler`;
   const assigned = d.handlerUserId !== null;
@@ -86,7 +100,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
       title: 'Giao người xử lý',
       state: assigned ? 'done' : 'current',
       description: assigned
-        ? handlerText
+        ? handlerView
         : isAdmin
           ? 'Chọn người sẽ đi tống đạt. Chưa giao thì chưa ghi nhận được lần tống đạt nào.'
           : 'Đang chờ Admin hoặc Trưởng VP giao người xử lý.',
@@ -191,6 +205,15 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                     {a.late ? ' · quá hạn' : ''}
                     {a.hasEvidence ? ' · có bằng chứng' : ''}
                   </span>
+                  {labelOf(a.actorUserId) ? (
+                    <span className="text-[13px]">
+                      <Person
+                        name={personName(labelOf(a.actorUserId) ?? '')}
+                        id={a.actorUserId}
+                        size="sm"
+                      />
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ol>
@@ -206,7 +229,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             ['Địa chỉ', d.address],
             ['Hạn tống đạt', `${dl.date}${dl.note ? ` · ${dl.note}` : ''}`],
             ['Số lần đã thử', String(d.attempts)],
-            ['Người xử lý', handlerText],
+            ['Người xử lý', handlerView],
           ]}
         />
         <p className="muted">

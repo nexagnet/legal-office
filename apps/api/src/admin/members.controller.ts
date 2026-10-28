@@ -35,6 +35,7 @@ const memberBody = z
     reason: z.string().trim().min(1).max(1000),
   })
   .strict();
+const nameBody = z.object({ officeId: uuid, fullName: z.string().trim().min(1).max(200) }).strict();
 const branchBody = z.object({ officeId: uuid, name: z.string().trim().min(1).max(100) }).strict();
 
 function parse<S extends z.ZodType>(schema: S, value: unknown): z.infer<S> {
@@ -85,6 +86,17 @@ export class MembersController {
       hash,
       b.reason,
     ]);
+  }
+
+  /** Admin sửa họ tên hiển thị của một thành viên văn phòng (hiện ở avatar và tên trên hồ sơ). */
+  @Patch('members/:id/name')
+  renameMember(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(nameBody, body);
+    return this.run(a, 'ad_member_set_name', [b.officeId, id, b.fullName]);
   }
 
   @Post('branches')

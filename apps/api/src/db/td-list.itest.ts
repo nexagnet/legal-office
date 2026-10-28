@@ -219,6 +219,58 @@ describe.skipIf(!ADMIN_URL)('Tống đạt scoped list (HTTP + PostgreSQL)', () 
     expect((await api('GET', `${SOD}/documents/${doc}/attempts`, null)).status).toBe(401);
   });
 
+  it('shows person names only within the same office, lets an Admin rename, and never lists a directory', async () => {
+    const names = async (who: string | null, ids: string[], tenant = T) =>
+      api('GET', `/people/names?ids=${ids.join(',')}`, who, undefined, tenant);
+    // chưa có họ tên: lấy phần trước @ của mã nội bộ
+    const before = (await names(U.thvB, [U.thvA])).json.items as Record<string, unknown>[];
+    expect(before).toEqual([{ userId: U.thvA, displayName: 'THV' }]);
+    // Admin đặt họ tên; mọi vai cùng văn phòng đều thấy
+    const renamed = await api('PATCH', `/admin/members/${U.thvA}/name`, U.admin, {
+      officeId: OFF,
+      fullName: 'Lê Thu Hà',
+    });
+    expect(renamed.status).toBe(200);
+    for (const who of [U.admin, U.thvB, U.clerk2, U.secretary]) {
+      expect((await names(who, [U.thvA])).json.items).toEqual([
+        { userId: U.thvA, displayName: 'Lê Thu Hà' },
+      ]);
+    }
+    // người không thuộc văn phòng, người của tenant khác, không đăng nhập: không thấy gì
+    expect((await names(U.outsider, [U.thvA])).json.items).toEqual([]);
+    expect((await names(U.otherTenantAdmin, [U.thvA], T2)).json.items).toEqual([]);
+    expect((await names(null, [U.thvA])).status).toBe(401);
+    // đầu vào sai
+    expect((await api('GET', '/people/names', U.admin)).status).toBe(400);
+    expect((await api('GET', '/people/names?ids=khong-phai-uuid', U.admin)).status).toBe(400);
+    // chỉ Admin được sửa
+    const denied = await api('PATCH', `/admin/members/${U.thvA}/name`, U.thvB, {
+      officeId: OFF,
+      fullName: 'Kẻ lạ',
+    });
+    expect(denied.status).toBe(403);
+    expect((await names(U.admin, [U.thvA])).json.items).toEqual([
+      { userId: U.thvA, displayName: 'Lê Thu Hà' },
+    ]);
+    // người ngoài văn phòng không bị sửa; tên rỗng bị từ chối
+    expect(
+      (
+        await api('PATCH', `/admin/members/${U.outsider}/name`, U.admin, {
+          officeId: OFF,
+          fullName: 'X',
+        })
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await api('PATCH', `/admin/members/${U.thvA}/name`, U.admin, {
+          officeId: OFF,
+          fullName: '   ',
+        })
+      ).status,
+    ).toBe(400);
+  });
+
   it('returns the fields the list screen needs', async () => {
     const doc = await newDoc(BR1, U.clerk1, U.thvA);
     const item = (
