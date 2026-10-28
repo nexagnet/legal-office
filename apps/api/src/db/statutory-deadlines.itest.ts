@@ -374,6 +374,8 @@ describe.skipIf(!ADMIN_URL)('hạn pháp định NĐ 151 và chấm dứt THA (P
       ).toMatchObject({ ok: true });
       const info = await owner.query(`SELECT * FROM th_get_termination($1,$2,$3)`, [T, U.admin, c]);
       expect(info.rows[0]).toMatchObject({ reason: 'AGREEMENT', outcome: 'Đã báo đương sự' });
+      // Bỏ hạn thu hồi sinh ra để không lẫn vào ca đọc theo phạm vi ở dưới.
+      await owner.query(`DELETE FROM office_statutory_deadlines WHERE case_id = $1`, [c]);
     });
 
     it('chấm dứt sớm cần lý do có mã, căn cứ và tệp; sinh hạn thu hồi quyết định THA; hồ sơ bị khóa', async () => {
