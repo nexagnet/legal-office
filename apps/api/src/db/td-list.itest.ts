@@ -193,6 +193,32 @@ describe.skipIf(!ADMIN_URL)('Tống đạt scoped list (HTTP + PostgreSQL)', () 
     expect((await api('GET', `${SOD}/documents`, null)).status).toBe(401);
   });
 
+  it('lists the attempts of a document within the same scope as the list, oldest first', async () => {
+    const doc = await newDoc(BR1, U.clerk1, U.thvA);
+    for (const outcome of ['ABSENT', 'REFUSED']) {
+      expect(
+        (await api('POST', `${SOD}/documents/${doc}/attempts`, U.thvA, { outcome })).status,
+      ).toBe(200);
+    }
+    const items = (await api('GET', `${SOD}/documents/${doc}/attempts`, U.admin)).json
+      .items as Record<string, unknown>[];
+    expect(items.map((i) => [i.seq, i.outcome, i.hasEvidence])).toEqual([
+      [1, 'ABSENT', false],
+      [2, 'REFUSED', false],
+    ]);
+    expect(Object.keys(items[0]!).sort()).toEqual(
+      ['actorUserId', 'at', 'hasEvidence', 'late', 'outcome', 'seq'].sort(),
+    );
+    expect(
+      ((await api('GET', `${SOD}/documents/${doc}/attempts`, U.clerk1)).json.items as unknown[])
+        .length,
+    ).toBe(2);
+    for (const who of [U.thvB, U.clerk2, U.outsider]) {
+      expect((await api('GET', `${SOD}/documents/${doc}/attempts`, who)).json.items).toEqual([]);
+    }
+    expect((await api('GET', `${SOD}/documents/${doc}/attempts`, null)).status).toBe(401);
+  });
+
   it('returns the fields the list screen needs', async () => {
     const doc = await newDoc(BR1, U.clerk1, U.thvA);
     const item = (

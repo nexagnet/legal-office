@@ -7,16 +7,35 @@ import { ServiceReminder, ServiceResultSheet } from '../../../components/Service
 import { DefList } from '../../../components/ui/def-list';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
-import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../../lib/messages';
+import {
+  ATTEMPT_RESULT_LABEL,
+  SERVICE_STATUS_LABEL,
+  UNDELIVERABLE_LABEL,
+} from '../../../lib/messages';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
 import { deadlineView } from '../../../lib/service-view';
 
 export const dynamic = 'force-dynamic';
 
+interface Attempt {
+  readonly seq: number;
+  readonly outcome: string;
+  readonly late: boolean;
+  readonly at: string;
+  readonly hasEvidence: boolean;
+}
+
+const atFmt = new Intl.DateTimeFormat('vi-VN', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  timeZone: 'Asia/Ho_Chi_Minh',
+});
+
 interface Item {
   readonly documentId: string;
   readonly requestRef: string;
   readonly recipientName: string;
+  readonly address: string;
   readonly deadlineAt: string;
   readonly status: string;
   readonly undeliverableReason: string | null;
@@ -47,6 +66,10 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   if (!d) notFound();
   const isAdmin = session.roles.includes('ADMIN');
   const handlers = await loadHandlerOptions(cookie);
+  const attemptList = await loadItems<Attempt>(
+    `/service-of-documents/documents/${d.documentId}/attempts`,
+    cookie,
+  );
   const done = d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE';
   const statusLabel = SERVICE_STATUS_LABEL[d.status] ?? d.status;
   const handler = handlers.find((h) => h.userId === d.handlerUserId)?.label;
@@ -142,9 +165,37 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
       backLabel="Tống đạt"
       actions={actions}
     >
-      <div className="grid gap-3">
-        <h2 className="m-0 text-[13px] font-bold text-muted">Quy trình 3 bước</h2>
-        <StepCards steps={steps} label="Các bước tống đạt" />
+      <div className="grid gap-4">
+        <div className="grid gap-3">
+          <h2 className="m-0 text-[13px] font-bold text-muted">Quy trình 3 bước</h2>
+          <StepCards steps={steps} label="Các bước tống đạt" />
+        </div>
+        <section className="panel" aria-labelledby="hist-t">
+          <h2 id="hist-t">Các lần tống đạt</h2>
+          {attemptList === 'error' ? (
+            <p className="muted">Không tải được lịch sử các lần. Vui lòng thử lại sau.</p>
+          ) : attemptList.length === 0 ? (
+            <p className="muted">Chưa đi lần nào.</p>
+          ) : (
+            <ol className="m-0 grid list-none gap-3 p-0">
+              {[...attemptList].reverse().map((a) => (
+                <li
+                  key={a.seq}
+                  className="grid gap-1 border-b border-line pb-3 last:border-0 last:pb-0"
+                >
+                  <span className="font-semibold">
+                    Lần {a.seq} · {atFmt.format(new Date(a.at))}
+                  </span>
+                  <span className="text-[13px] text-muted">
+                    {ATTEMPT_RESULT_LABEL[a.outcome] ?? a.outcome}
+                    {a.late ? ' · quá hạn' : ''}
+                    {a.hasEvidence ? ' · có bằng chứng' : ''}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
       </div>
       <section className="panel" aria-labelledby="doc-t">
         <h2 id="doc-t">Thông tin văn bản</h2>
@@ -152,6 +203,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           rows={[
             ['Số yêu cầu', d.requestRef],
             ['Người nhận', d.recipientName],
+            ['Địa chỉ', d.address],
             ['Hạn tống đạt', `${dl.date}${dl.note ? ` · ${dl.note}` : ''}`],
             ['Số lần đã thử', String(d.attempts)],
             ['Người xử lý', handlerText],
