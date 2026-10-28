@@ -2,12 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AssignHandler } from '../../../components/AssignHandler';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
-import { ServiceRowActions } from '../../../components/ServiceRowActions';
-import { StatusPill } from '../../../components/StatusPill';
+import type { DialogAction } from '../../../components/DialogActionMenu';
+import { ServiceReminder, ServiceResultSheet } from '../../../components/ServiceResult';
 import { DefList } from '../../../components/ui/def-list';
+import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
 import { SERVICE_STATUS_LABEL, UNDELIVERABLE_LABEL } from '../../../lib/messages';
 import { currentSession, loadHandlerOptions, requestCookie } from '../../../lib/server';
+import { deadlineView } from '../../../lib/service-view';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +23,6 @@ interface Item {
   readonly handlerUserId: string | null;
   readonly attempts: number;
 }
-
-const fmt = new Intl.DateTimeFormat('vi-VN', {
-  dateStyle: 'short',
-  timeStyle: 'short',
-  timeZone: 'Asia/Ho_Chi_Minh',
-});
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -50,10 +46,92 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const d = items.find((x) => x.documentId === id);
   if (!d) notFound();
   const isAdmin = session.roles.includes('ADMIN');
-  const handlers = isAdmin ? await loadHandlerOptions(cookie) : [];
+  const handlers = await loadHandlerOptions(cookie);
   const done = d.status === 'DELIVERED' || d.status === 'UNDELIVERABLE';
   const statusLabel = SERVICE_STATUS_LABEL[d.status] ?? d.status;
   const handler = handlers.find((h) => h.userId === d.handlerUserId)?.label;
+  const handlerText = handler ?? (d.handlerUserId ? 'Đã phân công' : 'Chưa giao người xử lý');
+  const dl = deadlineView(d.deadlineAt, done);
+  const assignPath = `service-of-documents/documents/${d.documentId}/handler`;
+  const assigned = d.handlerUserId !== null;
+  const tried = d.attempts === 0 ? 'Chưa đi lần nào.' : `Đã thử ${d.attempts} lần.`;
+
+  const steps: StepCard[] = [
+    {
+      key: 'assign',
+      role: 'Admin hoặc Trưởng VP',
+      title: 'Giao người xử lý',
+      state: assigned ? 'done' : 'current',
+      description: assigned
+        ? handlerText
+        : isAdmin
+          ? 'Chọn người sẽ đi tống đạt. Chưa giao thì chưa ghi nhận được lần tống đạt nào.'
+          : 'Đang chờ Admin hoặc Trưởng VP giao người xử lý.',
+      action:
+        !assigned && isAdmin ? (
+          <AssignHandler path={assignPath} options={handlers} currentId={null} />
+        ) : undefined,
+    },
+    {
+      key: 'serve',
+      role: 'Người xử lý',
+      title: 'Đi tống đạt cho người nhận',
+      state: done ? 'done' : assigned ? 'current' : 'todo',
+      failed: d.status === 'UNDELIVERABLE',
+      description: assigned
+        ? `${tried} ${done ? '' : 'Hãy ghi lại kết quả sau mỗi lần đi.'}`.trim()
+        : 'Mở khi đã giao người xử lý.',
+      action:
+        !done && assigned ? (
+          <ServiceResultSheet documentId={d.documentId} attempts={d.attempts} />
+        ) : undefined,
+    },
+    {
+      key: 'finish',
+      role: 'Hoàn tất',
+      title:
+        d.status === 'UNDELIVERABLE'
+          ? 'Kết luận không tống đạt được'
+          : d.status === 'DELIVERED'
+            ? 'Đã tống đạt, bằng chứng đã lưu'
+            : 'Có bằng chứng hoặc kết luận',
+      state: done ? 'done' : 'todo',
+      failed: d.status === 'UNDELIVERABLE',
+      description: d.undeliverableReason
+        ? `Lý do: ${UNDELIVERABLE_LABEL[d.undeliverableReason] ?? d.undeliverableReason}`
+        : done
+          ? 'Văn bản đã kết thúc, không còn thao tác.'
+          : 'Mở khi bước trước xong.',
+    },
+  ];
+
+  const actions: DialogAction[] = done
+    ? []
+    : [
+        ...(assigned
+          ? [
+              {
+                key: 'remind',
+                label: 'Nhắc người xử lý',
+                title: 'Nhắc người xử lý',
+                body: <ServiceReminder documentId={d.documentId} />,
+              },
+            ]
+          : []),
+        ...(assigned && isAdmin
+          ? [
+              {
+                key: 'reassign',
+                label: 'Đổi người thực hiện',
+                title: 'Đổi người thực hiện',
+                body: (
+                  <AssignHandler path={assignPath} options={handlers} currentId={d.handlerUserId} />
+                ),
+              },
+            ]
+          : []),
+      ];
+
   return (
     <DetailFrame
       title={d.requestRef}
@@ -62,53 +140,31 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
       statusLabel={statusLabel}
       backHref="/tong-dat"
       backLabel="Tống đạt"
+      actions={actions}
     >
+      <div className="grid gap-3">
+        <h2 className="m-0 text-[13px] font-bold text-muted">Quy trình 3 bước</h2>
+        <StepCards steps={steps} label="Các bước tống đạt" />
+      </div>
       <section className="panel" aria-labelledby="doc-t">
-        <h2 id="doc-t">Văn bản tống đạt</h2>
+        <h2 id="doc-t">Thông tin văn bản</h2>
         <DefList
           rows={[
             ['Số yêu cầu', d.requestRef],
             ['Người nhận', d.recipientName],
-            ['Hạn tống đạt', fmt.format(new Date(d.deadlineAt))],
+            ['Hạn tống đạt', `${dl.date}${dl.note ? ` · ${dl.note}` : ''}`],
             ['Số lần đã thử', String(d.attempts)],
-            ['Người thực hiện', handler ?? (d.handlerUserId ? 'Đã phân công' : 'Chưa phân công')],
-            ...(d.undeliverableReason
-              ? ([
-                  [
-                    'Lý do không tống đạt được',
-                    UNDELIVERABLE_LABEL[d.undeliverableReason] ?? d.undeliverableReason,
-                  ],
-                ] as const)
-              : []),
+            ['Người xử lý', handlerText],
           ]}
         />
-      </section>
-      <div className="grid gap-4">
-        <section className="panel" aria-labelledby="res-t">
-          <h2 id="res-t">Kết quả giao</h2>
-          <p>
-            <StatusPill status={d.status} label={statusLabel} />
-          </p>
-          {done ? (
-            <p className="muted">Văn bản đã kết thúc, không còn thao tác.</p>
-          ) : (
-            <ServiceRowActions documentId={d.documentId} status={d.status} />
-          )}
-        </section>
-        {done || !isAdmin ? null : (
-          <section className="panel" aria-labelledby="assign-t">
-            <h2 id="assign-t">Phân công</h2>
-            <AssignHandler
-              path={`service-of-documents/documents/${d.documentId}/handler`}
-              options={handlers}
-              currentId={d.handlerUserId}
-            />
-          </section>
-        )}
+        <p className="muted">
+          Không niêm yết hay gửi tự động. Kết luận &quot;Không tống đạt được&quot; cần lý do và ít
+          nhất một lần đã thử.
+        </p>
         <p className="muted">
           <Link href="/tong-dat">Về danh sách</Link>
         </p>
-      </div>
+      </section>
     </DetailFrame>
   );
 }

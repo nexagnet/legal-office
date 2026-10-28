@@ -25,7 +25,7 @@ import {
   NewServiceSheet,
   NewVerificationSheet,
 } from '../components/NewCaseSheets';
-import { ServiceRowActions } from '../components/ServiceRowActions';
+import { ServiceResultSheet } from '../components/ServiceResult';
 import { VerificationActions } from '../components/VerificationActions';
 import { EnforcementActions } from '../components/EnforcementActions';
 import { NewCaseForm } from '../components/NewCaseForm';
@@ -549,12 +549,13 @@ describe('Service of documents', () => {
     expect(body.deadlineAt).toMatch(/Z$/);
   });
 
-  it('records a failed attempt and explains refusals; finished documents have no actions', async () => {
+  it('records a failed attempt from the result sheet and explains refusals', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(403, { code: 'NOT_ASSIGNED_HANDLER' }));
-    const { unmount } = render(<ServiceRowActions documentId="d1" status="ASSIGNED" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Ghi nhận lần tống đạt' }));
+    render(<ServiceResultSheet documentId="d1" attempts={1} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi nhận kết quả lần tống đạt' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Lưu lần thử thứ 2' }));
     expect((await screen.findByRole('alert')).textContent).toBe(
       'Bạn không phải người phụ trách hồ sơ này.',
     );
@@ -562,22 +563,28 @@ describe('Service of documents', () => {
     expect(JSON.parse((spy.mock.calls[0]![1] as RequestInit).body as string)).toEqual({
       outcome: 'ABSENT',
     });
-    unmount();
-    render(<ServiceRowActions documentId="d1" status="DELIVERED" />);
-    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('cannot conclude "undeliverable" before any attempt', async () => {
+    render(<ServiceResultSheet documentId="d1" attempts={0} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi nhận kết quả lần tống đạt' }));
+    const option = await screen.findByRole('radio', { name: /Không thể tống đạt được/ });
+    expect((option as HTMLInputElement).disabled).toBe(true);
   });
 
   it('sends the evidence file as the raw body with its own content type', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
-    render(<ServiceRowActions documentId="d1" status="ASSIGNED" />);
+    render(<ServiceResultSheet documentId="d1" attempts={1} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi nhận kết quả lần tống đạt' }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Đã đưa được văn bản/ }));
     const file = new File(['x'], 'bien-ban.png', { type: 'image/png' });
     fireEvent.change(screen.getByLabelText(/Bằng chứng đã tống đạt/), {
       target: { files: [file] },
     });
     // jsdom không phản ánh `files` gán bằng fireEvent vào kiểm tra `required`, nên gửi form trực tiếp.
-    fireEvent.submit(screen.getByRole('button', { name: 'Ghi nhận đã tống đạt' }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: 'Xác nhận đã tống đạt' }).closest('form')!);
     await waitFor(() => expect(refresh).toHaveBeenCalled());
     const [url, init] = spy.mock.calls[0]!;
     expect(url).toBe('/api/service-of-documents/documents/d1/served');
