@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Contract, Customer } from '../lib/customers';
 import { PARTY_KIND_LABEL } from '../lib/messages';
+import { PartyName } from './ui/avatar';
 
 interface Props {
   readonly customers: readonly Customer[];
@@ -48,7 +49,11 @@ export function CustomerDirectory({ customers, contracts, query, numberCounts = 
                 return (
                   <tr key={c.id}>
                     <th scope="row">
-                      {c.displayName || <span className="muted">Chưa có tên</span>}
+                      {c.displayName ? (
+                        <PartyName name={c.displayName} person={c.kind === 'PERSON'} />
+                      ) : (
+                        <span className="muted">Chưa có tên</span>
+                      )}
                       <span className="muted small-ref"> · {c.externalRef}</span>
                     </th>
                     <td>{PARTY_KIND_LABEL[c.kind] ?? c.kind}</td>

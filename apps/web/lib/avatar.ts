@@ -44,3 +44,16 @@ export function avatarColor(seed: string): string {
   for (const ch of seed) h = (h * 31 + (ch.codePointAt(0) ?? 0)) >>> 0;
   return AVATAR_COLORS[h % AVATAR_COLORS.length]!;
 }
+
+const ORGANIZATION_PREFIX =
+  /^(công ty|cty|tcty|tổng công ty|ngân hàng|ubnd|ủy ban|uỷ ban|tòa án|toà án|viện kiểm sát|chi cục|cục|sở|phòng|ban|trường|bệnh viện|doanh nghiệp|dntn|hợp tác xã|htx|văn phòng|trung tâm|hội|liên đoàn|tập đoàn|chi nhánh|tổ chức|quỹ)(\s|$)/i;
+const ORGANIZATION_SUFFIX = /\b(tnhh|jsc|ltd|corp|inc)\b/i;
+
+/**
+ * Nhận diện tên tổ chức khi dữ liệu không có cờ loại (người nhận tống đạt, bên được xác minh). Chỉ để quyết định có hiện
+ * avatar hay không; tên không rõ ràng thì coi là cá nhân. Ở nơi có cờ loại (khách hàng, đương sự) thì dùng cờ đó.
+ */
+export function looksLikeOrganization(name: string): boolean {
+  const n = name.trim();
+  return ORGANIZATION_PREFIX.test(n) || ORGANIZATION_SUFFIX.test(n);
+}

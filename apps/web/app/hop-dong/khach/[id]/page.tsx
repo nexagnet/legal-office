@@ -15,6 +15,7 @@ import { type Contract, type Customer } from '../../../../lib/customers';
 import { CASE_STATUS_LABEL, PARTY_KIND_LABEL } from '../../../../lib/messages';
 import { currentSession, requestCookie } from '../../../../lib/server';
 import { NAV } from '../../../nav';
+import { Avatar } from '../../../../components/ui/avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -135,7 +136,17 @@ export default async function CustomerPage({
       </p>
       <header className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div className="grid gap-1">
-          <h1 id="t" className="font-serif text-[34px] leading-10 font-bold text-[#12263f]">
+          <h1
+            id="t"
+            className="flex items-center gap-3 font-serif text-[34px] leading-10 font-bold text-[#12263f]"
+          >
+            {customer.kind === 'PERSON' ? (
+              <Avatar
+                name={customer.displayName || customer.externalRef}
+                id={customer.id}
+                size="lg"
+              />
+            ) : null}
             {customer.displayName || customer.externalRef}
           </h1>
           <p className="muted">{sub.join(' · ')}</p>

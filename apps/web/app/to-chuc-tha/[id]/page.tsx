@@ -6,7 +6,7 @@ import type { DialogAction } from '../../../components/DialogActionMenu';
 import { EnforcementActions } from '../../../components/EnforcementActions';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
-import { Person } from '../../../components/ui/avatar';
+import { PartyName, Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { loadItems } from '../../../lib/load-items';
 import {
@@ -22,6 +22,7 @@ export const dynamic = 'force-dynamic';
 
 interface Party {
   readonly id: string;
+  readonly kind?: string;
   readonly displayName: string;
   readonly role: string;
 }
@@ -170,7 +171,9 @@ export default async function EnforcementDetailPage({
             <ul className="m-0 grid list-none gap-3 p-0">
               {c.parties.map((p) => (
                 <li key={p.id} className="grid border-b border-line pb-3 last:border-0 last:pb-0">
-                  <strong>{p.displayName}</strong>
+                  <strong>
+                    <PartyName name={p.displayName} person={p.kind === 'PERSON'} size="md" />
+                  </strong>
                   <span className="text-[13px] text-muted">
                     {PARTY_ROLE_LABEL[p.role] ?? p.role}
                   </span>

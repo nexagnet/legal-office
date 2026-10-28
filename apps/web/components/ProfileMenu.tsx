@@ -3,25 +3,34 @@
 import * as Menu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Avatar } from './ui/avatar';
 
 /** Thẻ người dùng ở góc phải thanh trên (Figma N12): avatar, vai, menu có Đăng xuất. */
 export function ProfileMenu({
   initials,
   roleLabel,
+  userName = null,
+  userId = null,
 }: {
   readonly initials: string;
   readonly roleLabel: string;
+  readonly userName?: string | null;
+  readonly userId?: string | null;
 }) {
   const router = useRouter();
   return (
     <Menu.Root>
-      <Menu.Trigger className="appbar-profile" aria-label={`Tài khoản: ${roleLabel}`}>
-        <span className="appbar-avatar" aria-hidden="true">
-          {initials}
-        </span>
+      <Menu.Trigger className="appbar-profile" aria-label={`Tài khoản: ${userName ?? roleLabel}`}>
+        {userName ? (
+          <Avatar name={userName} id={userId} size="lg" />
+        ) : (
+          <span className="appbar-avatar" aria-hidden="true">
+            {initials}
+          </span>
+        )}
         <span className="appbar-profile-text">
-          <strong>{roleLabel}</strong>
-          <small>Xem quyền theo tài khoản</small>
+          <strong>{userName ?? roleLabel}</strong>
+          <small>{userName ? roleLabel : 'Xem quyền theo tài khoản'}</small>
         </span>
         <ChevronDown size={16} aria-hidden="true" />
       </Menu.Trigger>

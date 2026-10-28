@@ -6,7 +6,7 @@ import { type DialogAction } from '../../../components/DialogActionMenu';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
-import { Person } from '../../../components/ui/avatar';
+import { PartyName, Person } from '../../../components/ui/avatar';
 import { StepCards, type StepCard } from '../../../components/ui/step-cards';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
@@ -274,7 +274,9 @@ export default async function VerificationDetailPage({
                   {c.rounds.map((r) => (
                     <tr key={r.id}>
                       <th scope="row">{r.seq}</th>
-                      <td data-label="Bên được xác minh">{r.partyName}</td>
+                      <td data-label="Bên được xác minh">
+                        <PartyName name={r.partyName} />
+                      </td>
                       <td data-label="Trạng thái">
                         <StatusPill
                           status={r.status}

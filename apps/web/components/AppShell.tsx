@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import type { NavItem } from '../app/nav';
 import { NavPending } from './NavPending';
+import { Avatar } from './ui/avatar';
 import { ProfileMenu } from './ProfileMenu';
 import { SearchPalette } from './SearchPalette';
 import { usePendingApprovals } from './usePendingApprovals';
@@ -42,6 +43,9 @@ interface Props {
   readonly badgeOfficeId?: string;
   /** Vai hiển thị ở thẻ người dùng cuối thanh bên (không phải nguồn quyền). */
   readonly roleLabel?: string | null;
+  /** Họ tên và mã người đăng nhập, để hiện avatar và tên ở thẻ người dùng; thiếu thì hiện theo vai. */
+  readonly userName?: string | null;
+  readonly userId?: string | null;
   readonly children: ReactNode;
 }
 
@@ -238,6 +242,8 @@ export function AppShell({
   badges: initialBadges = {},
   badgeOfficeId,
   roleLabel = null,
+  userName = null,
+  userId = null,
   children,
 }: Props) {
   const router = useRouter();
@@ -320,12 +326,18 @@ export function AppShell({
         </nav>
         {signedIn ? (
           <div className="profile">
-            <span className="avatar" aria-hidden="true">
-              {initials(roleLabel ?? 'Nhân viên')}
-            </span>
+            {userName ? (
+              <Avatar name={userName} id={userId} size="lg" />
+            ) : (
+              <span className="avatar" aria-hidden="true">
+                {initials(roleLabel ?? 'Nhân viên')}
+              </span>
+            )}
             <span className="profile-text">
-              <strong>{roleLabel ?? 'Nhân viên văn phòng'}</strong>
-              <small>Xem quyền theo tài khoản</small>
+              <strong>{userName ?? roleLabel ?? 'Nhân viên văn phòng'}</strong>
+              <small>
+                {userName ? (roleLabel ?? 'Nhân viên văn phòng') : 'Xem quyền theo tài khoản'}
+              </small>
             </span>
             <button
               type="button"
@@ -370,6 +382,8 @@ export function AppShell({
             <ProfileMenu
               initials={initials(roleLabel ?? 'Nhân viên')}
               roleLabel={roleLabel ?? 'Nhân viên văn phòng'}
+              userName={userName}
+              userId={userId}
             />
           </div>
         ) : null}
