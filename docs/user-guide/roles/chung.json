@@ -1,0 +1,70 @@
+{
+ "role": "chung",
+ "title": "Phần chung: đăng nhập và giao diện",
+ "sections": [
+  {
+   "title": "Đăng nhập",
+   "intro": "Mỗi người dùng một tài khoản riêng do Admin lập. Bạn đăng nhập bằng email và mật khẩu, hoặc bằng liên kết gửi qua email nếu Văn phòng đã cấu hình gửi thư.",
+   "rules": [
+    "Sai mật khẩu quá 5 lần, tài khoản bị khoá 15 phút; liên hệ Admin để được hỗ trợ.",
+    "Không dùng dữ liệu khách thật trên môi trường chạy thử."
+   ],
+   "steps": [
+    {
+     "title": "Màn hình đăng nhập",
+     "note": "Nhập email và mật khẩu rồi bấm Đăng nhập.",
+     "img": "chung/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập Email"
+      },
+      {
+       "n": 2,
+       "text": "Nhập Mật khẩu"
+      },
+      {
+       "n": 3,
+       "text": "Bấm Đăng nhập"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Làm quen với giao diện",
+   "intro": "Giao diện gồm thanh bên trái (menu theo vai), ô tìm kiếm phía trên, chuông thông báo và thẻ tài khoản ở góc phải. Mỗi người chỉ thấy mục thuộc vai của mình.",
+   "rules": [
+    "Thanh bên chia theo nhóm: Công việc, Nghiệp vụ, Văn phòng, Quản trị.",
+    "Mục Hộp duyệt hiện số đỏ khi có đề xuất đang chờ."
+   ],
+   "steps": [
+    {
+     "title": "Các thành phần chính",
+     "note": "Bấm Ctrl K ở bất kỳ màn nào để tìm hồ sơ hoặc trang.",
+     "img": "chung/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thanh bên: menu theo vai của bạn"
+      },
+      {
+       "n": 2,
+       "text": "Ô tìm kiếm (Ctrl K)"
+      },
+      {
+       "n": 3,
+       "text": "Thẻ tài khoản: xem vai, đăng xuất"
+      }
+     ]
+    },
+    {
+     "title": "Thu gọn thanh bên",
+     "note": "Bấm Thu gọn ở cuối thanh bên để màn làm việc rộng hơn; bấm lại để mở. Máy nhớ lựa chọn của bạn.",
+     "img": "chung/03.png",
+     "marks": []
+    }
+   ]
+  }
+ ]
+}
