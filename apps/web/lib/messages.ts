@@ -162,6 +162,8 @@ const MESSAGES: Record<string, string> = {
   HANDOVER_MISSING: 'Chưa có biên bản bàn giao.',
   SOURCE_NOT_FOUND: 'Không tìm thấy nguồn này.',
   DISPLAY_NAME_REQUIRED: 'Cần nhập tên khách hàng khi nhập số điện thoại hoặc số định danh.',
+  INVALID_PLAN:
+    'Kế hoạch không hợp lệ: người tham gia cần có tên và vai trò, ghi chú tối đa 2.000 ký tự.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };

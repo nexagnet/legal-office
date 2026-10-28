@@ -110,6 +110,14 @@ export function NewViBangSheet({ branches }: { readonly branches: readonly Branc
           title: 'Nội dung yêu cầu',
           fields: [
             { name: 'title', label: 'Tiêu đề hồ sơ', max: 300 },
+            { name: 'place', label: 'Địa điểm dự kiến', max: 500, optional: true },
+            {
+              name: 'scheduledAt',
+              label: 'Thời gian dự kiến',
+              kind: 'datetime',
+              optional: true,
+            },
+            { name: 'internalNote', label: 'Ghi chú nội bộ', max: 2000, optional: true },
             {
               name: 'description',
               label: 'Nội dung yêu cầu lập Vi bằng',
@@ -141,13 +149,29 @@ export function NewViBangSheet({ branches }: { readonly branches: readonly Branc
           });
           if (!saved.ok) return saved;
         }
-        return post('/vibang/cases', {
+        const created = await post('/vibang/cases', {
           officeId: branch.officeId,
           branchId: branch.id,
           customerId: customer.label,
           title: v.title ?? '',
           description: v.description ?? '',
         });
+        if (!created.ok || !created.label) return created;
+        const place = (v.place ?? '').trim();
+        const when = (v.scheduledAt ?? '').trim();
+        const note = (v.internalNote ?? '').trim();
+        if (place) {
+          const r = await post(`/vibang/cases/${created.label}/place`, { placeAddress: place });
+          if (!r.ok) return r;
+        }
+        if (when || note) {
+          return post(`/vibang/cases/${created.label}/plan`, {
+            scheduledAt: when ? new Date(when).toISOString() : null,
+            internalNote: note || null,
+            parties: [],
+          });
+        }
+        return created;
       }}
     />
   );

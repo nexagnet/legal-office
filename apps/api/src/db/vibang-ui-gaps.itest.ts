@@ -257,6 +257,54 @@ describe.skipIf(!ADMIN_URL)(
       expect(long.status).toBe(400);
     });
 
+    it('saves the plan (time, note, parties), replaces the party list and refuses final cases and other branches', async () => {
+      const c = await newCase();
+      const url = `/vibang/cases/${c}/plan`;
+      const body = {
+        scheduledAt: '2026-11-02T09:00:00+07:00',
+        internalNote: 'Mang theo giấy tờ',
+        parties: [
+          { name: 'Bên A giả lập', role: 'SELLER' },
+          { name: 'Bên B giả lập', role: 'BUYER' },
+        ],
+      };
+      expect((await api('POST', url, U.clerk2, body)).status).toBe(403);
+      expect((await api('POST', url, U.acc1, body)).status).toBe(403);
+      const blank = await api('POST', url, U.clerk1, {
+        ...body,
+        parties: [{ name: ' ', role: 'SELLER' }],
+      });
+      expect(blank.json.code).toBe('INVALID_PLAN');
+      const badRole = await api('POST', url, U.clerk1, {
+        ...body,
+        parties: [{ name: 'x', role: 'BOSS' }],
+      });
+      expect(badRole.status).toBe(400);
+      expect((await api('POST', url, U.clerk1, body)).status).toBe(200);
+      const read = await api('GET', url, U.clerk1);
+      expect(read.json).toMatchObject({
+        internalNote: 'Mang theo giấy tờ',
+        parties: [
+          { name: 'Bên A giả lập', role: 'SELLER' },
+          { name: 'Bên B giả lập', role: 'BUYER' },
+        ],
+      });
+      expect(new Date(read.json.scheduledAt as string).toISOString()).toBe(
+        '2026-11-02T02:00:00.000Z',
+      );
+      const one = await api('POST', url, U.clerk1, {
+        parties: [{ name: 'Chỉ một', role: 'WITNESS' }],
+      });
+      expect(one.status).toBe(200);
+      expect(((await api('GET', url, U.clerk1)).json.parties as unknown[]).length).toBe(1);
+      expect((await api('GET', url, U.clerk2)).status).toBe(404);
+      const done = await newCase();
+      await force(done, 'RETURNED');
+      const fin = await api('POST', `/vibang/cases/${done}/plan`, U.clerk1, body);
+      expect(fin.json.code).toBe('CASE_FINAL');
+      expect(fin.status).toBe(409);
+    });
+
     it('returns the legal tab with PII only for intake roles and 404 outside case visibility', async () => {
       const cust = await customer();
       await owner.query(
