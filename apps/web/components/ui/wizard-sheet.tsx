@@ -11,7 +11,7 @@ import { Stepper } from './step-sheet';
 export interface WizardField {
   readonly name: string;
   readonly label: string;
-  readonly kind?: 'text' | 'datetime' | 'select' | 'textarea';
+  readonly kind?: 'text' | 'datetime' | 'select' | 'textarea' | 'parties';
   readonly max?: number;
   /** Không bắt buộc nhập: bỏ qua kiểm tra rỗng, hiện "(không bắt buộc)" cạnh nhãn. */
   readonly optional?: boolean;
@@ -38,6 +38,26 @@ interface Props {
 }
 
 const CONFIRM = 'Xác nhận';
+
+/** Giá trị của trường `parties` là chuỗi JSON `[{name, role}]` để vẫn nằm trong bản đồ giá trị chuỗi của ngăn kéo. */
+export interface WizardParty {
+  readonly name: string;
+  readonly role: string;
+}
+export function parseParties(value: string | undefined): WizardParty[] {
+  try {
+    const v = JSON.parse(value ?? '[]') as WizardParty[];
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+const PARTY_ROLES: readonly (readonly [string, string])[] = [
+  ['SELLER', 'Bên bán'],
+  ['BUYER', 'Bên mua'],
+  ['WITNESS', 'Người làm chứng'],
+  ['OTHER', 'Khác'],
+];
 
 /**
  * Ngăn kéo tạo mới nhiều bước (Figma N12 D7/D11): các bước nhập liệu khai báo bằng `steps`,
@@ -105,11 +125,16 @@ export function WizardSheet({
     ...steps.flatMap((s) =>
       s.fields.map((f): [string, string] => [
         f.label,
-        f.kind === 'datetime'
-          ? new Date(values[f.name] ?? '').toLocaleString('vi-VN')
-          : f.kind === 'select'
-            ? (f.options?.find(([v]) => v === (values[f.name] ?? f.options?.[0]?.[0]))?.[1] ?? '')
-            : values[f.name] || '—',
+        f.kind === 'parties'
+          ? parseParties(values[f.name])
+              .filter((p) => p.name.trim())
+              .map((p) => p.name.trim())
+              .join(', ') || '—'
+          : f.kind === 'datetime'
+            ? new Date(values[f.name] ?? '').toLocaleString('vi-VN')
+            : f.kind === 'select'
+              ? (f.options?.find(([v]) => v === (values[f.name] ?? f.options?.[0]?.[0]))?.[1] ?? '')
+              : values[f.name] || '—',
       ]),
     ),
   ];
@@ -143,7 +168,68 @@ export function WizardSheet({
                   label={f.optional ? `${f.label} (không bắt buộc)` : f.label}
                   error={errors[f.name]}
                 >
-                  {f.kind === 'select' ? (
+                  {f.kind === 'parties' ? (
+                    <div className="grid gap-2">
+                      {parseParties(values[f.name]).map((p, i, all) => {
+                        const set = (next: WizardParty[]) =>
+                          setValues((v) => ({ ...v, [f.name]: JSON.stringify(next) }));
+                        return (
+                          <div
+                            key={i}
+                            className="grid grid-cols-[1fr_auto_auto] items-center gap-2"
+                          >
+                            <Input
+                              aria-label={`Tên người tham gia ${i + 1}`}
+                              value={p.name}
+                              maxLength={300}
+                              onChange={(e) =>
+                                set(
+                                  all.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)),
+                                )
+                              }
+                            />
+                            <Select
+                              aria-label={`Vai trò người tham gia ${i + 1}`}
+                              value={p.role}
+                              onChange={(e) =>
+                                set(
+                                  all.map((x, j) => (j === i ? { ...x, role: e.target.value } : x)),
+                                )
+                              }
+                            >
+                              {PARTY_ROLES.map(([v, l]) => (
+                                <option key={v} value={v}>
+                                  {l}
+                                </option>
+                              ))}
+                            </Select>
+                            <Button
+                              variant="ghost"
+                              onClick={() => set(all.filter((_, j) => j !== i))}
+                            >
+                              Bỏ
+                            </Button>
+                          </div>
+                        );
+                      })}
+                      <div>
+                        <Button
+                          variant="ghost"
+                          onClick={() =>
+                            setValues((v) => ({
+                              ...v,
+                              [f.name]: JSON.stringify([
+                                ...parseParties(v[f.name]),
+                                { name: '', role: 'SELLER' },
+                              ]),
+                            }))
+                          }
+                        >
+                          + Thêm người tham gia
+                        </Button>
+                      </div>
+                    </div>
+                  ) : f.kind === 'select' ? (
                     <Select
                       id={`wz-${f.name}`}
                       value={values[f.name] ?? f.options?.[0]?.[0] ?? ''}
