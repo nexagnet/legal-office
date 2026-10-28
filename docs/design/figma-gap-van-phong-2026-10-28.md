@@ -39,7 +39,7 @@ Lưu ý: cột Web/API được kiểm bằng đọc controller và tìm lời g
 | Đăng nhập `/login` | ✅ N9 | ✅ | ✅ | |
 | Xác thực link, quên mật khẩu `/xac-thuc` | ❌ | ✅ xác thực link; ❌ quên mật khẩu | ✅ `verify-link`; ❌ quên/OTP | P1 |
 | Danh sách Vi bằng `/vi-bang` | ✅ N4 | ✅ | ✅ | |
-| Tạo hồ sơ `/vi-bang/tao-moi` | ❌ | ✅ | ✅ `POST cases` | P1 vẽ |
+| Tạo hồ sơ `/vi-bang/tao-moi` | ✅ V1 (N17) | ✅ | ✅ `POST cases` | P1 áp mẫu |
 | Chi tiết Vi bằng và tab | ✅ N7, D1–D2, E1–E6 | ✅ | ✅ | |
 | Thao tác Vi bằng (cấp số, MISA, trả, bàn giao, từ chối, huỷ, phân công, bản sao, N-11) | 🟡 chỉ mẫu E7, E8 | ✅ 12 modal | ✅ | P1 vẽ từng bước |
 | Tống đạt `/tong-dat`, chi tiết | ✅ N3, E10, N15 (T1–T6, M1–M3) | ✅ | ✅ | thread khác đang chỉnh |
@@ -86,12 +86,71 @@ Lưu ý: cột Web/API được kiểm bằng đọc controller và tìm lời g
 | Pháp lý | Áp mẫu N12/N13 (tab, ngăn kéo) cho các màn Vi bằng còn lại; chi tiết Xác minh/THA theo E11/E12 | E1–E12 | P1 |
 | Chung | Khung mobile riêng cho hiện trường | M1–M8, MO1–MO3 | P2 |
 
-## 5. Còn thiếu bản vẽ Figma (chưa vẽ ở đợt này)
+## 5. Còn thiếu bản vẽ Figma sau đợt này
 
-1. Vi bằng: tạo hồ sơ mới, cấp số, trả kết quả, bàn giao, từ chối, huỷ, phân công, bản sao, N-11, MISA xác nhận sai (mỗi thao tác một khung theo mẫu E7/E8).
+1. Vi bằng: phân công THV, Kế toán xác nhận thanh toán MISA, kiểm tra bàn giao, cập nhật số/CSDL, cấp bản sao, sửa lỗi N-11, huỷ hồ sơ (dùng mẫu E7/E8 và V2–V4).
 2. Hợp đồng N-03 và biên soạn N-04 theo phong cách mới.
-3. Xác minh: đợt, nguồn, ủy quyền, kết luận. Thi hành án: nghĩa vụ, tài sản, chuyển hồ sơ, chấm dứt vụ việc.
+3. Xác minh: hộp thoại thêm nguồn, thêm đợt, tạo yêu cầu. Thi hành án: hộp thoại thêm đương sự, nghĩa vụ, tài sản, ghi kết quả từng phần.
 4. Đăng nhập bằng link email, quên mật khẩu, đổi mật khẩu; tìm kiếm toàn cục; trang lỗi 403, 404, trạng thái rỗng.
+
+## 7. Bốn nghiệp vụ pháp lý (khảo sát chi tiết)
+
+Đã vẽ thêm trang **N17 — BỐN NGHIỆP VỤ · MÀN CÒN THIẾU (CHỜ CHỐT)** (node `315:2`). Web/API kiểm bằng đọc route, component và controller.
+
+### 7.1 Vi bằng
+
+Web đã có đủ route: `tao-moi`, `cap-so`, `cap-nhat-so`, `cap-ban-sao`, `duyet-sua`, `huy-ho-so`, `kiem-tra-ban-giao`, `ky-dong-dau`, `phan-cong`, `sua-loi-n11`, `thu-hoi-misa`, `tra-ket-qua`, `tu-choi`, `lich-su`, `phap-ly`, `tai-lieu`. API cũng đã có tương ứng. Việc còn lại chủ yếu là bản vẽ và áp mẫu giao diện mới.
+
+| Màn | Nghiệp vụ | Figma | Web | API | Ưu tiên |
+|---|---|---|---|---|---|
+| Danh sách, chi tiết, tab, thao tác hiếm | §10–20 | ✅ N4, N7, D1–D2, E1–E8 | ✅ | ✅ | |
+| Tạo hồ sơ mới (ngăn kéo từng bước) | Nhập theo giai đoạn (§10) | ✅ V1 `315:3` (mới) | ✅ `tao-moi` (kiểu trang cũ) | ✅ `POST cases` | P1 áp mẫu |
+| Cấp số (điều kiện, số sẽ cấp) | Thanh toán đủ, một dãy, không dùng lại (§15) | ✅ V2 `315:218` (mới) | ✅ `cap-so` | ✅ `POST cases/:id/number` | P1 áp mẫu |
+| Trả kết quả (5 điều kiện) | §17 | ✅ V3 `315:445` (mới) | ✅ `tra-ket-qua`, `kiem-tra-ban-giao` | ✅ `return`, `handover` | P1 áp mẫu |
+| Từ chối yêu cầu (Điều 28) | §10 | ✅ V4 `315:681` (mới) | ✅ `tu-choi` | ✅ `rejection` | P1 áp mẫu |
+| Phân công THV (Admin) | §11 | ❌ | ✅ `phan-cong` | ✅ `responsible-thv` | P1 vẽ |
+| Xác nhận thanh toán MISA (Kế toán) | §13 | ❌ (chỉ E7 thu hồi) | ✅ | ✅ `PUT misa` | P1 vẽ |
+| Cập nhật số, CSDL/Sở | §18 | 🟡 O2 chỉ danh sách | ✅ `cap-nhat-so` | ✅ `registration` | P1 vẽ |
+| Bản sao, sửa lỗi N-11, huỷ hồ sơ | §19–20 | ❌ | ✅ | ✅ `copies`, `n11-corrections`, `cancellation` | P1 vẽ |
+
+### 7.2 Tống đạt
+
+| Màn | Nghiệp vụ | Figma | Web | API | Ưu tiên |
+|---|---|---|---|---|---|
+| Danh sách, chi tiết, ngăn kéo kết quả, mobile | §21–27 | ✅ N3, N15 (T1–T6, M1–M3), E10 | ✅ | ✅ | thread khác đang chỉnh |
+| Đóng yêu cầu và báo kết quả cho cơ quan | Đóng khi mọi văn bản có kết quả; báo cơ quan trong 2 ngày làm việc | ✅ D1 `317:728` (mới) | ❌ không có nút đóng yêu cầu | 🟡 `POST requests/:id/closure` có; ❌ ghi việc đã gửi kết quả cho cơ quan (hiện chỉ theo dõi hạn) | P0 |
+| Tạo yêu cầu nhiều văn bản | §21 | 🟡 chưa rõ khung tạo | ✅ `NewServiceSheet` | ✅ `requests`, `requests/:id/documents` | P2 vẽ |
+
+### 7.3 Xác minh điều kiện THA
+
+| Màn | Nghiệp vụ | Figma | Web | API | Ưu tiên |
+|---|---|---|---|---|---|
+| Danh sách, chi tiết | §28–35 | ✅ N5, E11 | ✅ | ✅ | |
+| Đợt xác minh và nguồn | Nhiều đợt, nhiều nguồn, nhật ký truy cập | ✅ X1 `316:2` (mới) | 🟡 tạo đợt, hoàn tất đợt, tải tệp nguồn; ❌ thêm nguồn riêng, ❌ nhật ký mở nguồn | ✅ `rounds/:id/sources`, `sources/:id/access`; ❌ đọc riêng danh sách nguồn (cần kiểm `GET cases`) | P0 |
+| Ủy quyền (5 điều kiện) | §58, ủy quyền thực hiện | ✅ X2 `316:250` (mới) | ❌ không có màn tạo ủy quyền; chỉ duyệt ở Hộp duyệt | ✅ `cases/:id/delegations`, `delegations/:id/steps`, `activation` | P0 |
+| Quyết định N-06 và kết luận | 3 ngày làm việc từ ký hợp đồng; thiếu căn cứ không kết luận | ✅ X3 `316:496` (mới) | 🟡 có hạn, đề xuất và quyết định kết luận; ❌ ghi quyết định N-06 (số, ngày ký, tệp) | ✅ `conclusion-proposal`, `conclusion-decision`, `contract-date`; ❌ ghi quyết định N-06 | P1 |
+
+### 7.4 Tổ chức thi hành án
+
+| Màn | Nghiệp vụ | Figma | Web | API | Ưu tiên |
+|---|---|---|---|---|---|
+| Danh sách, chi tiết | §36–45 | ✅ N6, E12 | ✅ | ✅ | |
+| Đương sự, nghĩa vụ, kết quả từng phần | Kết quả bất biến, một nghĩa vụ xong ≠ xong vụ | ✅ H1 `316:728` (mới) | ✅ đương sự, thêm nghĩa vụ, ghi kết quả | ✅ `parties`, `obligations`, `obligations/:id/events` | P2 áp mẫu |
+| Tài sản và đề xuất biện pháp (4 mức) | Đề xuất → quyết định → áp dụng → kết quả | ✅ H2 `317:2` (mới) | ❌ không dùng `assets` | ✅ `cases/:id/assets`, `assets/:id/events`, `measure-proposals`, `…/order`; ❌ không có `GET` liệt kê tài sản và đề xuất của vụ | P0 |
+| Chuyển hồ sơ | Đề nghị → duyệt nội bộ → văn bản → bàn giao → hoàn tất | ✅ H3 `317:251` (mới) | 🟡 chỉ duyệt ở Hộp duyệt; ❌ tạo đề nghị, ghi bước, hoàn tất | ✅ `cases/:id/transfers`, `transfers/:id/steps`, `completion`, `GET transfers` | P0 |
+| Chấm dứt vụ việc | Điều 46, thu hồi trong 2 ngày làm việc | ✅ H4 `317:500` (mới) | ✅ `TerminationSheet` (theo báo cáo 22/10 chưa đủ Điều 46) | ✅ `termination`, `termination-file` | P1 |
+
+### 7.5 API còn thiếu của bốn nghiệp vụ
+
+| # | Màn | Endpoint/dữ liệu cần | Hiện trạng | Ưu tiên |
+|---|---|---|---|---|
+| 1 | D1 Tống đạt | Ghi việc đã gửi kết quả cho cơ quan yêu cầu (người, ngày, tệp) | ❌ | P0 |
+| 2 | H2 THA | `GET enforcement-cases/:id/assets`, `GET …/measure-proposals` (liệt kê tài sản, đề xuất, quyết định) | ❌ (chỉ có ghi) | P0 |
+| 3 | X3 Xác minh | `POST verification/cases/:id/decision` ghi quyết định N-06 (số, ngày ký, tệp, người ký có `legal_signer`) | ❌ (hiện chỉ đóng hạn) | P1 |
+| 4 | X1, X2 Xác minh | `GET` riêng cho nguồn và ủy quyền của vụ | cần kiểm (có thể nhúng trong `GET cases`) | P1 |
+| 5 | H1 THA | `GET` lịch sử kết quả từng phần của nghĩa vụ | cần kiểm | P2 |
+
+Phần web thiếu so với API (có API, chưa có màn): ủy quyền xác minh, nhật ký mở nguồn, tài sản và biện pháp THA, tạo và ghi bước chuyển hồ sơ THA, đóng yêu cầu tống đạt.
 
 ## 6. Điểm cần chủ dự án chốt
 
