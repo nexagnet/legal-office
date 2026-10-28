@@ -335,7 +335,7 @@ describe.skipIf(!ADMIN_URL)('hạn pháp định NĐ 151 và chấm dứt THA (P
       ).rows[0].id as string;
 
     it('nghĩa vụ có hạn và chấm dứt có kết quả thực tế (bản 8 tham số) hiện trong đọc hồ sơ', async () => {
-      const c = await newCase('THA-T2');
+      const c = await newCase('THA-N46');
       expect(
         await fn('th_add_obligation', T, U.admin, c, 'Nghĩa vụ có hạn', null, '2026-11-30'),
       ).toMatchObject({ ok: true });
