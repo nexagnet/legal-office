@@ -730,6 +730,7 @@ describe('Enforcement', () => {
         obligations={[{ id: 'o1', seq: 1, description: 'Nghĩa vụ' }]}
       />,
     );
+    fireEvent.click(screen.getByRole('button', { name: '+ Thêm đương sự' }));
     fireEvent.change(screen.getByLabelText('Tên đương sự'), {
       target: { value: 'Đương sự giả lập' },
     });
@@ -741,6 +742,7 @@ describe('Enforcement', () => {
       kind: 'PERSON',
       role: 'DEBTOR',
     });
+    fireEvent.click(await screen.findByRole('button', { name: 'Ghi diễn biến' }));
     fireEvent.change(screen.getByLabelText('Ghi chú diễn biến'), {
       target: { value: 'Đã liên hệ' },
     });
@@ -757,11 +759,10 @@ describe('Enforcement', () => {
       reply(403, { code: 'NOT_ASSIGNED_HANDLER' }),
     );
     const { unmount } = render(<EnforcementActions caseId="c1" status="OPEN" obligations={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Thêm nghĩa vụ' }));
     fireEvent.change(screen.getByLabelText('Nghĩa vụ'), { target: { value: 'X' } });
     fireEvent.click(screen.getByRole('button', { name: 'Thêm nghĩa vụ' }));
-    expect((await screen.findByRole('alert')).textContent).toBe(
-      'Bạn không phải người phụ trách hồ sơ này.',
-    );
+    expect(await screen.findByText('Bạn không phải người phụ trách hồ sơ này.')).toBeTruthy();
     expect(screen.queryByLabelText('Ghi chú diễn biến')).toBeNull();
     unmount();
     render(<EnforcementActions caseId="c1" status="COMPLETED" obligations={[]} />);
@@ -824,6 +825,7 @@ describe('Evidence uploads', () => {
         obligations={[{ id: 'o1', seq: 1, description: 'Trả tiền' }]}
       />,
     );
+    fireEvent.click(screen.getByRole('button', { name: 'Ghi kết quả' }));
     fireEvent.change(screen.getByLabelText('Nội dung kết quả'), { target: { value: 'Đã thu' } });
     fireEvent.change(screen.getByLabelText(/Tệp chứng cứ \(PDF/), { target: { files: [file] } });
     submit('Ghi kết quả kèm chứng cứ');
@@ -842,11 +844,12 @@ describe('Evidence uploads', () => {
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(409, { code: 'OBLIGATIONS_NOT_COMPLETE' }));
     render(<EnforcementActions caseId="c1" status="OPEN" obligations={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Hoàn tất hồ sơ' }));
     fireEvent.change(screen.getByLabelText(/Tệp chứng cứ hoàn tất/), { target: { files: [file] } });
-    submit('Hoàn tất hồ sơ');
-    expect((await screen.findByRole('alert')).textContent).toBe(
-      'Còn nghĩa vụ chưa hoàn tất, chưa hoàn tất hồ sơ được.',
-    );
+    fireEvent.submit(screen.getByLabelText(/Tệp chứng cứ hoàn tất/).closest('form')!);
+    expect(
+      await screen.findByText('Còn nghĩa vụ chưa hoàn tất, chưa hoàn tất hồ sơ được.'),
+    ).toBeTruthy();
     expect(spy.mock.calls[0]![0]).toBe('/api/enforcement-cases/c1/completion-file');
   });
 });

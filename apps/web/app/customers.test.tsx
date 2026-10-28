@@ -244,6 +244,36 @@ describe('NewViBangSheet', () => {
     expect(sent(spy, 2).body).toMatchObject({ customerId: 'new-id', title: 'Giao nhận' });
   });
 
+  it('saves participants entered in step 2 through the plan endpoint', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'new-id' }));
+    render(<NewViBangSheet branches={branches} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Tạo hồ sơ Vi bằng' }));
+    fireEvent.change(screen.getByLabelText('Mã tham chiếu khách hàng'), {
+      target: { value: 'KH-9' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục/ }));
+    fireEvent.change(screen.getByLabelText('Tiêu đề hồ sơ'), { target: { value: 'Giao nhận' } });
+    fireEvent.click(screen.getByRole('button', { name: '+ Thêm người tham gia' }));
+    fireEvent.change(screen.getByLabelText('Tên người tham gia 1'), {
+      target: { value: 'Bên A thử' },
+    });
+    fireEvent.change(screen.getByLabelText('Vai trò người tham gia 1'), {
+      target: { value: 'BUYER' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp nhận hồ sơ' }));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(3));
+    expect(sent(spy, 1).url).toBe('/api/vibang/cases');
+    expect(sent(spy, 2).url).toBe('/api/vibang/cases/new-id/plan');
+    expect(sent(spy, 2).body).toEqual({
+      scheduledAt: null,
+      internalNote: null,
+      parties: [{ name: 'Bên A thử', role: 'BUYER' }],
+    });
+  });
+
   it('does not ask for the optional fields before continuing', () => {
     mockOk();
     render(<NewViBangSheet branches={branches} />);
