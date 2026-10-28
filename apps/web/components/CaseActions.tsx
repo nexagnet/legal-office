@@ -123,6 +123,14 @@ export function CaseActions({
             <select name="field" defaultValue="title">
               <option value="title">Tiêu đề</option>
               <option value="description">Nội dung cần ghi nhận</option>
+              <optgroup label="Thông tin khách hàng (áp dụng cho danh bạ khách)">
+                <option value="customer_name">Tên khách hàng</option>
+                <option value="customer_phone">Số điện thoại</option>
+                <option value="customer_id_number">CCCD / số định danh (cá nhân)</option>
+                <option value="customer_address">Địa chỉ</option>
+                <option value="customer_tax_code">Mã số thuế (tổ chức)</option>
+                <option value="customer_representative">Người đại diện (tổ chức)</option>
+              </optgroup>
             </select>
           </label>
           <label>

@@ -21,6 +21,8 @@ const MESSAGES: Record<string, string> = {
   INVALID_CUSTOMER: 'Loại khách hàng không hợp lệ.',
   INVALID_CREDENTIALS: 'Email hoặc mật khẩu không đúng.',
   EDIT_WINDOW_CLOSED: 'Đã quá 48 giờ, hãy lập đề nghị thay đổi.',
+  CUSTOMER_LOCKED:
+    'Khách này đã có hồ sơ quá 48 giờ hoặc đã cấp số, hãy lập đề nghị thay đổi trong hồ sơ để Admin duyệt.',
   EDIT_WINDOW_OPEN: 'Còn trong 48 giờ, có thể sửa trực tiếp.',
   CASE_FINAL: 'Hồ sơ đã kết thúc, không thể thay đổi.',
   NOTHING_TO_CHANGE: 'Không có gì để thay đổi.',

@@ -259,6 +259,98 @@ describe.skipIf(!ADMIN_URL)(
       expect(after.map((i) => i.status).sort()).toEqual(['APPROVED', 'REJECTED']);
     });
 
+    it('extends change requests to customer fields and locks direct edit of a used customer', async () => {
+      const c = await newCase();
+      const cust = (await owner.query(`SELECT customer_id FROM vibang_cases WHERE id=$1`, [c]))
+        .rows[0].customer_id as string;
+      const profile = `/vibang/customers/${cust}/profile`;
+      const req = `/vibang/cases/${c}/change-requests`;
+      const body = { field: 'customer_phone', value: '0912345678', reason: 'Khách đổi số' };
+      expect(
+        (await api('POST', profile, U.clerk1, { displayName: 'Nguyễn Văn A', phone: '0900000000' }))
+          .status,
+      ).toBe(200);
+      // Khách chưa bị khoá và hồ sơ còn trong 48 giờ: sửa trực tiếp, chưa cần đề nghị.
+      expect((await api('POST', req, U.clerk1, body)).json.code).toBe('EDIT_WINDOW_OPEN');
+      await age(c);
+      expect(
+        (await api('POST', profile, U.clerk1, { displayName: 'Nguyễn Văn B', phone: '0911' })).json
+          .code,
+      ).toBe('CUSTOMER_LOCKED');
+      expect((await api('POST', req, U.acc1, body)).status).toBe(403);
+      expect((await api('POST', req, U.clerk1, { ...body, value: '0900000000' })).json.code).toBe(
+        'NOTHING_TO_CHANGE',
+      );
+      expect(
+        (await api('POST', req, U.clerk1, { ...body, field: 'customer_name', value: ' ' })).status,
+      ).toBe(422);
+      expect(
+        (await api('POST', req, U.clerk1, { ...body, field: 'customer_tax_code', value: 'MST1' }))
+          .json.code,
+      ).toBe('FIELD_NOT_FOR_KIND');
+      const made = await api('POST', req, U.clerk1, body);
+      expect(made.status).toBe(200);
+      const items = (await api('GET', req, U.thvA)).json.items as {
+        before: unknown;
+        after: unknown;
+      }[];
+      expect(items[0]).toMatchObject({
+        before: { customer_phone: '0900000000' },
+        after: { customer_phone: '0912345678' },
+      });
+      const dec = `/vibang/change-requests/${made.json.label as string}/decision`;
+      expect((await api('POST', dec, U.head, { accept: true })).status).toBe(403);
+      expect((await api('POST', dec, U.admin, { accept: true })).status).toBe(200);
+      const after = (
+        await owner.query(`SELECT phone, display_name, updated_by FROM customers WHERE id=$1`, [
+          cust,
+        ])
+      ).rows[0];
+      expect(after).toMatchObject({
+        phone: '0912345678',
+        display_name: 'Nguyễn Văn A',
+        updated_by: U.admin,
+      });
+      const id2 = (
+        await api('POST', req, U.clerk1, {
+          field: 'customer_id_number',
+          value: '001099000111',
+          reason: 'Nhập sai',
+        })
+      ).json.label as string;
+      expect(
+        (await api('POST', `/vibang/change-requests/${id2}/decision`, U.admin, { accept: true }))
+          .status,
+      ).toBe(200);
+      expect(
+        (await owner.query(`SELECT id_number FROM customers WHERE id=$1`, [cust])).rows[0]
+          .id_number,
+      ).toBe('001099000111');
+
+      // Hồ sơ mới của cùng khách còn trong 48 giờ: trường khách được đề nghị ngay vì danh bạ đã khoá, trường hồ sơ thì chưa.
+      const second = (
+        await api('POST', '/vibang/cases', U.clerk1, {
+          officeId: OFF,
+          branchId: BR1,
+          customerId: cust,
+          title: 'Hồ sơ thứ hai',
+        })
+      ).json.label as string;
+      const req2 = `/vibang/cases/${second}/change-requests`;
+      expect(
+        (
+          await api('POST', req2, U.clerk1, {
+            field: 'customer_address',
+            value: 'Hà Nội',
+            reason: 'Bổ sung',
+          })
+        ).status,
+      ).toBe(200);
+      expect(
+        (await api('POST', req2, U.clerk1, { field: 'title', value: 'x', reason: 'y' })).json.code,
+      ).toBe('EDIT_WINDOW_OPEN');
+    });
+
     it('cancels only by Admin, with a reason, before any legal act', async () => {
       const c = await newCase(false);
       const url = `/vibang/cases/${c}/cancellation`;

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CaseActionDialog } from '../../../components/CaseActionDialog';
 import { CaseActions } from '../../../components/CaseActions';
+import { CHANGE_FIELD_LABEL } from '../../../lib/change-fields';
 import { ChangeDecision } from '../../../components/ChangeRequestRow';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
@@ -11,7 +12,6 @@ import { HistoryTimeline } from './history-timeline';
 
 export const dynamic = 'force-dynamic';
 
-const FIELD_LABEL: Record<string, string> = { title: 'Tiêu đề', description: 'Nội dung' };
 const REQUEST_LABEL: Record<string, string> = {
   PENDING: 'Chờ duyệt',
   APPROVED: 'Đã duyệt',
@@ -170,7 +170,7 @@ export default async function CasePage({
                   const field = Object.keys(r.after)[0] ?? '';
                   return (
                     <tr key={r.id}>
-                      <th scope="row">{FIELD_LABEL[field] ?? field}</th>
+                      <th scope="row">{CHANGE_FIELD_LABEL[field] ?? field}</th>
                       <td>
                         {r.before[field] ?? ''} → {r.after[field] ?? ''}
                       </td>

@@ -44,6 +44,18 @@ function parse<S extends z.ZodType>(schema: S, body: unknown): z.infer<S> {
   return result.data;
 }
 
+/** Trường hồ sơ và trường khách trong danh bạ có thể lập đề nghị thay đổi sau 48 giờ (DB kiểm lại). */
+const CHANGE_FIELDS = [
+  'title',
+  'description',
+  'customer_name',
+  'customer_phone',
+  'customer_id_number',
+  'customer_address',
+  'customer_tax_code',
+  'customer_representative',
+] as const;
+
 interface Reply {
   readonly code: string;
   readonly label: string | null;
@@ -518,9 +530,7 @@ export class VibangIntakeController {
     @Body() body: unknown,
   ) {
     const b = parse(
-      z
-        .object({ field: z.enum(['title', 'description']), value: text(5000), reason: text(2000) })
-        .strict(),
+      z.object({ field: z.enum(CHANGE_FIELDS), value: text(5000), reason: text(2000) }).strict(),
       body,
     );
     return this.run(a, 'vb_request_change', [id, b.field, b.value, b.reason]);
