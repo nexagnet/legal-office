@@ -3,6 +3,7 @@ import { AssignHandler } from '../../../components/AssignHandler';
 import { CaseActionDialog } from '../../../components/CaseActionDialog';
 import { DetailFrame, DetailSignIn } from '../../../components/DetailFrame';
 import type { DialogAction } from '../../../components/DialogActionMenu';
+import { AddAssetSheet, AssetList, type Asset } from '../../../components/EnforcementAssets';
 import { EnforcementActions } from '../../../components/EnforcementActions';
 import { StatusPill } from '../../../components/StatusPill';
 import { DefList } from '../../../components/ui/def-list';
@@ -76,6 +77,8 @@ export default async function EnforcementDetailPage({
   const handlerLabel = c.handlerUserId
     ? (await loadPeopleNames(cookie, [c.handlerUserId])).get(c.handlerUserId)
     : undefined;
+  const assets = await loadItems<Asset>(`/enforcement/cases/${c.caseId}/assets`, cookie);
+  const canOrder = session.roles.includes('ADMIN') || session.roles.includes('TRUONG_VP');
   const doneObl = c.obligations.filter((o) => o.status === 'COMPLETED').length;
   const assignPath = `enforcement-cases/${c.caseId}/handler`;
 
@@ -206,6 +209,23 @@ export default async function EnforcementDetailPage({
               ))}
             </ol>
           )}
+        </section>
+        <section className="panel" aria-labelledby="asset-t">
+          <h2 id="asset-t">Tài sản và biện pháp</h2>
+          <p className="muted">
+            Đề xuất biện pháp chỉ trở thành đã áp dụng khi có lệnh có chữ ký của cơ quan có thẩm
+            quyền; hệ thống không tự đóng băng hay kê biên.
+          </p>
+          {assets === 'error' ? (
+            <p className="muted">Không tải được danh sách tài sản. Vui lòng thử lại sau.</p>
+          ) : (
+            <AssetList assets={assets} canWrite={open && assigned} canOrder={canOrder} />
+          )}
+          {open && assigned ? (
+            <div>
+              <AddAssetSheet caseId={c.caseId} />
+            </div>
+          ) : null}
         </section>
       </div>
       <section className="panel" aria-labelledby="info-t">

@@ -137,6 +137,17 @@ const MESSAGES: Record<string, string> = {
   INVALID_ROLE: 'Vai trò không hợp lệ.',
   PARTY_NOT_FOUND: 'Không tìm thấy người tham gia này.',
   DOCUMENTS_NOT_FINAL: 'Còn văn bản chưa có kết quả cuối nên chưa đóng hoặc báo kết quả được.',
+  INVALID_ASSET: 'Cần nhập loại và nhãn tài sản, mức nhạy cảm hợp lệ.',
+  PURPOSE_REQUIRED: 'Tài sản nhạy cảm cần nêu mục đích xem.',
+  INVALID_PROPOSAL: 'Cần nhập biện pháp và lý do đề xuất.',
+  INVALID_ORDER: 'Cần nhập cơ quan và số lệnh.',
+  SIGNED_ORDER_REQUIRED: 'Cần bản lệnh có chữ ký của cơ quan có thẩm quyền.',
+  PROPOSAL_FINAL: 'Đề xuất này đã có kết quả cuối.',
+  INVALID_EVENT: 'Cần chọn loại sự kiện và ghi nội dung.',
+  ASSET_NOT_FOUND: 'Không tìm thấy tài sản này.',
+  PROPOSAL_NOT_FOUND: 'Không tìm thấy đề xuất này.',
+  LINK_NOT_FOUND: 'Nghĩa vụ hoặc đương sự không thuộc hồ sơ này.',
+  IDEMPOTENCY_KEY_REQUIRED: 'Thiếu khoá chống trùng. Vui lòng tải lại trang.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
@@ -199,6 +210,22 @@ export const SOURCE_CONFIDENTIALITY_LABEL: Record<string, string> = {
   PUBLIC: 'Công khai',
   CONFIDENTIAL: 'Mật',
   PII: 'Có dữ liệu cá nhân',
+};
+export const ASSET_SENSITIVITY_LABEL: Record<string, string> = {
+  NORMAL: 'Thông thường',
+  SENSITIVE: 'Nhạy cảm',
+};
+export const ASSET_EVENT_KIND_LABEL: Record<string, string> = {
+  DISCOVERY: 'Phát hiện',
+  VERIFICATION: 'Xác minh',
+  DISPUTE: 'Tranh chấp',
+  HANDOVER: 'Bàn giao',
+  ORDER_RECORDED: 'Đã ghi lệnh cơ quan',
+};
+export const MEASURE_STATUS_LABEL: Record<string, string> = {
+  PROPOSED: 'Đã đề xuất, chờ lệnh cơ quan',
+  WITHDRAWN: 'Đã rút',
+  APPLIED: 'Đã áp dụng (có lệnh)',
 };
 export const RESULT_KIND_LABEL: Record<string, string> = {
   PARTIAL_RESULT: 'Kết quả một phần',

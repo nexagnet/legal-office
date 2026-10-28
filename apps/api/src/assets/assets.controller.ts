@@ -1,21 +1,29 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
   Inject,
   NotFoundException,
+  Optional,
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { recordWithUpload } from '../storage/evidence';
+import { FILE_STORE, type FileStore } from '../storage/file-store';
+import type { RawBody } from '../storage/upload';
 import { statusFor } from '../vibang/status';
 import { VibangRepo, type Op } from '../vibang/vibang.repo';
 
@@ -51,7 +59,97 @@ const evidence = { evidenceKey: z.string().max(500), evidenceSha256: z.string().
 @Controller('enforcement')
 @UseGuards(ActorGuard)
 export class AssetsController {
-  constructor(@Inject(VibangRepo) private readonly repo: VibangRepo) {}
+  constructor(
+    @Inject(VibangRepo) private readonly repo: VibangRepo,
+    @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
+  ) {}
+
+  /**
+   * Tài sản của một hồ sơ kèm sự kiện, đề xuất biện pháp và lệnh đã ghi. Tài sản nhạy cảm không trả nhãn ở đây
+   * (xem nhãn qua `assets/:id/access`, có nêu mục đích và audit). Ngoài phạm vi xem thì rỗng.
+   */
+  @Get('cases/:id/assets')
+  async caseAssets(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{
+      id: string;
+      case_id: string;
+      category: string;
+      label: string | null;
+      sensitivity: string;
+      obligation_id: string | null;
+      party_id: string | null;
+      created_at: Date;
+      events: unknown;
+      proposals: unknown;
+    }>(a.tenantId, 'as_list_assets', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        caseId: r.case_id,
+        category: r.category,
+        label: r.label,
+        sensitivity: r.sensitivity,
+        obligationId: r.obligation_id,
+        partyId: r.party_id,
+        createdAt: r.created_at,
+        events: r.events,
+        proposals: r.proposals,
+      })),
+    };
+  }
+
+  /** Như `assets/:id/events` nhưng tải thẳng tệp chứng cứ (PDF/JPEG/PNG); loại, ghi chú và khoá chống trùng đi theo query. */
+  @Post('assets/:id/event-files')
+  @HttpCode(HttpStatus.OK)
+  recordEventFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z
+        .object({
+          kind: z.string(),
+          note: z.string().max(4000),
+          idempotencyKey: z.string().max(200),
+        })
+        .strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/th/assets/${id}/events/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.run(a, 'as_record_event', [id, q.kind, q.note, key, f.sha256, q.idempotencyKey]),
+    );
+  }
+
+  /** Như `measure-proposals/:id/order` nhưng tải thẳng bản lệnh có chữ ký; cơ quan và số lệnh đi theo query. */
+  @Post('measure-proposals/:id/order-file')
+  @HttpCode(HttpStatus.OK)
+  recordOrderFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z.object({ agencyName: z.string().max(300), orderRef: z.string().max(200) }).strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/th/proposals/${id}/order/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'as_record_order', [id, q.agencyName, q.orderRef, key, f.sha256]),
+    );
+  }
 
   private run(actor: AuthenticatedActor, fn: string, args: readonly unknown[]): Promise<Reply> {
     return this.repo
