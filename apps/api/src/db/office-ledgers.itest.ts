@@ -434,4 +434,41 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     expect((await put(U.admin, { ...card, fullName: '', cardNo: '' })).status).toBe(200);
     expect((await get(`/office/thv-cards?officeId=${OFF}`, U.head)).json).toEqual([]);
   });
+
+  it('đóng quyển theo tháng: chỉ Admin/Trưởng VP, tháng đã qua, đóng rồi không đóng lại, có audit', async () => {
+    const seal = (user: string, code: string, ym: string) =>
+      fetch(`${base}/office/ledgers/${code}/periods/${ym}/seal`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-synthetic-user': user,
+          'x-synthetic-tenant': T,
+        },
+        body: JSON.stringify({ officeId: OFF }),
+      }).then(async (r) => ({ status: r.status, json: await r.json().catch(() => ({})) }));
+    const periods = (user: string, code: string, qs = '') =>
+      get(`/office/ledgers/${code}/periods?officeId=${OFF}${qs}`, user);
+    const now = new Date();
+    const thisMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+
+    expect((await seal(U.secretary, 'S-02', '2026-01')).status).toBe(403);
+    expect((await seal(U.admin, 'S-09', '2026-01')).status).toBe(422);
+    expect((await seal(U.admin, 'S-02', '2026-13')).status).toBe(422);
+    expect((await seal(U.admin, 'S-02', thisMonth)).status).toBe(409);
+    expect((await seal(U.head, 'S-02', '2026-01')).status).toBe(200);
+    expect((await seal(U.admin, 'S-02', '2026-01')).status).toBe(409);
+    expect((await seal(U.admin, 'S-06', '2026-01')).status).toBe(200);
+
+    const list = await periods(U.secretary, 'S-02');
+    expect(list.status).toBe(200);
+    expect(list.json.items).toHaveLength(1);
+    expect(list.json.items[0]).toMatchObject({ period: '2026-01', sealedBy: U.head });
+    expect((await periods(U.secretary, 'S-02', '&year=2025')).json.items).toEqual([]);
+    expect((await periods(U.clerk, 'S-02')).json.items).toEqual([]);
+    await expect(owner.query(`DELETE FROM of_ledger_periods`)).rejects.toThrow();
+    const audits = await owner.query(
+      `SELECT count(*)::int AS n FROM audit_log WHERE action = 'of.ledger.seal'`,
+    );
+    expect(audits.rows[0].n).toBeGreaterThanOrEqual(6);
+  });
 });

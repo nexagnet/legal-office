@@ -1491,6 +1491,43 @@ export class OfficeController {
     };
   }
 
+  /** Các tháng đã đóng quyển của một sổ (có thể lọc theo năm): tháng, người đóng, thời điểm. */
+  @Get('ledgers/:code/periods')
+  async ledgerPeriods(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('code') code: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('year') year?: string,
+  ) {
+    const c = parse(z.enum(['S-01', 'S-02', 'S-04', 'S-05', 'S-06']), code.toUpperCase());
+    const y =
+      year === undefined || year === ''
+        ? null
+        : parse(z.coerce.number().int().min(2000).max(2200), year);
+    const rows = await this.read<{ period: string; sealed_by: string; sealed_at: Date }>(
+      a,
+      'of_search_ledger_periods',
+      [officeId, c, y],
+    );
+    return {
+      code: c,
+      items: rows.map((r) => ({ period: r.period, sealedBy: r.sealed_by, sealedAt: r.sealed_at })),
+    };
+  }
+
+  /** Đóng quyển một tháng (`YYYY-MM`) của sổ: chỉ Admin và Trưởng văn phòng, tháng đã qua, không mở lại. */
+  @Post('ledgers/:code/periods/:ym/seal')
+  @HttpCode(HttpStatus.OK)
+  sealLedgerPeriod(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('code') code: string,
+    @Param('ym') ym: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ officeId: uuid }).strict(), body);
+    return this.run(a, 'of_ledger_seal', [b.officeId, code.toUpperCase(), ym]);
+  }
+
   /** Xuất sổ ra Excel đúng thứ tự cột mẫu (chỉ các cột của mẫu, không cột truy vết). Cùng phạm vi quyền với `GET ledgers/:code`. */
   @Get('ledgers/:code/export')
   async ledgerExport(
