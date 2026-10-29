@@ -4,6 +4,8 @@ const MESSAGES: Record<string, string> = {
   BRANCH_NOT_GRANTED: 'Bạn chưa được cấp quyền ở chi nhánh này.',
   NOT_ASSIGNED_HANDLER: 'Bạn không phải người phụ trách hồ sơ này.',
   ADMIN_ONLY: 'Chỉ Admin được thực hiện thao tác này.',
+  WOULD_MOVE_BACKWARDS: 'Số cuối nhập vào nhỏ hơn số đang dùng. Số chỉ được tăng, không giảm.',
+  INVALID_NUMBER: 'Số cuối hoặc năm chưa hợp lệ.',
   MAIL_KEY_MISSING:
     'Máy chủ chưa có khoá mã hoá mật khẩu (MAIL_SETTINGS_KEY). Nhờ quản trị hạ tầng đặt khoá trước.',
   INVALID_MAIL_SETTINGS:

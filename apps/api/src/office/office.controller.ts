@@ -1459,6 +1459,39 @@ export class OfficeController {
     );
   }
 
+  /** Số cuối đang dùng và trạng thái nhập số cuối sổ giấy của một năm (mặc định năm hiện tại, giờ Việt Nam). */
+  @Get('number-status')
+  async numberStatus(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('year') year?: string,
+  ) {
+    const y =
+      year === undefined || year === ''
+        ? Number(
+            new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Asia/Ho_Chi_Minh',
+              year: 'numeric',
+            }).format(new Date()),
+          )
+        : parse(z.coerce.number().int().min(2000).max(2100), year);
+    const [r] = await this.read<{
+      year: number;
+      last_seq: number;
+      paper_imported: boolean;
+      imported_seq: number | null;
+      imported_at: Date | null;
+    }>(a, 'of_search_number_status', [officeId, y]);
+    if (!r) throw new HttpException({ code: 'NOT_ALLOWED', label: null }, HttpStatus.FORBIDDEN);
+    return {
+      year: r.year,
+      lastSeq: r.last_seq,
+      paperImported: r.paper_imported,
+      importedSeq: r.imported_seq,
+      importedAt: r.imported_at,
+    };
+  }
+
   /** Mọi phiên bản của một người, mới nhất trước (chỉ Admin và Trưởng văn phòng). */
   @Get('personnel/:personId/versions')
   readPersonnelVersions(
