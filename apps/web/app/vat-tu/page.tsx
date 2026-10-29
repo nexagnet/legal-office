@@ -7,7 +7,14 @@ import {
   StockMoreMenu,
   ThresholdDialog,
 } from '../../components/StockDialogs';
-import { Input } from '../../components/ui/field';
+import { Button } from '../../components/ui/button';
+import { Input, Select } from '../../components/ui/field';
+import {
+  MOVEMENT_KIND_LABEL,
+  movementQuery,
+  signedQty,
+  type StockMovement,
+} from '../../lib/stock-movements';
 import { FilterChips } from '../../components/ui/filter-chips';
 import { TabNav } from '../../components/ui/tab-nav';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
@@ -52,7 +59,31 @@ async function get<T>(
   }
 }
 
-type Tab = 'ton-kho' | 'lo';
+type Tab = 'ton-kho' | 'lich-su' | 'lo';
+
+const dateTime = new Intl.DateTimeFormat('vi-VN', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  timeZone: 'Asia/Ho_Chi_Minh',
+});
+
+/** Lịch sử nhập/xuất/điều chỉnh. Lỗi hoặc không đủ quyền thì trả 'error', không giả lập. */
+async function loadMovements(
+  cookie: string | null,
+  officeId: string,
+  filters: URLSearchParams,
+): Promise<StockMovement[] | 'error'> {
+  try {
+    const res = await fetch(
+      `${API_URL}/office/movements?officeId=${encodeURIComponent(officeId)}&${filters.toString()}`,
+      { headers: cookie ? { cookie } : {}, cache: 'no-store' },
+    );
+    if (!res.ok) return 'error';
+    return (await res.json()) as StockMovement[];
+  } catch {
+    return 'error';
+  }
+}
 type Chip = 'all' | 'in' | 'low' | 'out';
 
 const norm = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
@@ -60,7 +91,15 @@ const norm = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCas
 export default async function SuppliesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; chip?: string; q?: string }>;
+  searchParams: Promise<{
+    tab?: string;
+    chip?: string;
+    q?: string;
+    item?: string;
+    branch?: string;
+    from?: string;
+    to?: string;
+  }>;
 }) {
   const sp = await searchParams;
   const q = (sp.q ?? '').slice(0, 200);
@@ -90,7 +129,12 @@ export default async function SuppliesPage({
   const canManage = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP' || r === 'THU_KY');
   const canAdjust = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP');
   const batchList = batches === 'error' ? [] : batches;
-  const tab: Tab = sp.tab === 'lo' && canAdjust ? 'lo' : 'ton-kho';
+  const tab: Tab =
+    sp.tab === 'lo' && canAdjust ? 'lo' : sp.tab === 'lich-su' && canManage ? 'lich-su' : 'ton-kho';
+  const movementFilters = movementQuery(sp);
+  const movements =
+    tab === 'lich-su' && officeId ? await loadMovements(cookie, officeId, movementFilters) : [];
+  const branchName = new Map(session.branches.map((b) => [b.id, b.name]));
   const rows = stock === 'error' ? [] : stock;
   const items = [
     ...new Map(rows.map((r) => [r.itemId, { itemId: r.itemId, name: r.name }])).values(),
@@ -146,6 +190,9 @@ export default async function SuppliesPage({
         active={tab}
         tabs={[
           { key: 'ton-kho', label: 'Tồn kho', href: href({ tab: 'ton-kho' }), count: items.length },
+          ...(canManage
+            ? [{ key: 'lich-su', label: 'Lịch sử nhập/xuất', href: href({ tab: 'lich-su' }) }]
+            : []),
           ...(canAdjust
             ? [
                 {
@@ -253,6 +300,90 @@ export default async function SuppliesPage({
           <p className="muted mt-4">
             Nguyên tắc xuất kho: ưu tiên lô nhập trước (FIFO), có lịch sử người nhập/xuất, thời gian
             và chi nhánh.
+          </p>
+        </>
+      ) : tab === 'lich-su' ? (
+        <>
+          <form method="get" role="search" className="mb-4 flex flex-wrap items-end gap-3">
+            <input type="hidden" name="tab" value="lich-su" />
+            <label className="grid gap-1 text-[13px] font-semibold">
+              Vật tư
+              <Select name="item" defaultValue={sp.item ?? ''}>
+                <option value="">Tất cả</option>
+                {items.map((i) => (
+                  <option key={i.itemId} value={i.itemId}>
+                    {i.name}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <label className="grid gap-1 text-[13px] font-semibold">
+              Chi nhánh
+              <Select name="branch" defaultValue={sp.branch ?? ''}>
+                <option value="">Tất cả</option>
+                {session.branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <label className="grid gap-1 text-[13px] font-semibold">
+              Từ ngày
+              <Input type="date" name="from" defaultValue={sp.from ?? ''} />
+            </label>
+            <label className="grid gap-1 text-[13px] font-semibold">
+              Đến ngày
+              <Input type="date" name="to" defaultValue={sp.to ?? ''} />
+            </label>
+            <Button type="submit">Lọc</Button>
+          </form>
+          {movements === 'error' ? (
+            <div className="state" role="alert">
+              <h2>Không tải được lịch sử</h2>
+              <p>Vui lòng thử lại sau.</p>
+            </div>
+          ) : movements.length === 0 ? (
+            <div className="state" role="status">
+              <h2>Chưa có biến động</h2>
+              <p>Không có lần nhập, xuất hay điều chỉnh nào khớp bộ lọc.</p>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <caption className="sr-only">Lịch sử nhập, xuất và điều chỉnh vật tư</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Thời gian</th>
+                    <th scope="col">Loại</th>
+                    <th scope="col">Vật tư</th>
+                    <th scope="col">Số lượng</th>
+                    <th scope="col">Lô (phiếu nhập)</th>
+                    <th scope="col">Chi nhánh</th>
+                    <th scope="col">Lý do, mục đích</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {movements.map((m) => (
+                    <tr key={m.movementId}>
+                      <th scope="row">{dateTime.format(new Date(m.at))}</th>
+                      <td>{MOVEMENT_KIND_LABEL[m.kind] ?? m.kind}</td>
+                      <td>{m.itemName}</td>
+                      <td>
+                        {signedQty(m.delta)} {m.unit}
+                      </td>
+                      <td>{m.receiptRef}</td>
+                      <td>{branchName.get(m.branchId) ?? '—'}</td>
+                      <td>{m.purpose ?? <span className="muted">—</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="muted mt-4">
+            Xuất kho trừ theo lô nhập trước (FIFO) và chặn khi vượt tồn; mọi biến động đều ghi người
+            thực hiện, thời gian và lô nguồn. Không ghi giá.
           </p>
         </>
       ) : batchList.length === 0 ? (
