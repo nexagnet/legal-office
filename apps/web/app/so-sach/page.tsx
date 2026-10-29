@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import { TabNav } from '../../components/ui/tab-nav';
+import { LedgerSeal } from '../../components/LedgerSeal';
 import { ReportExport } from '../../components/ReportExport';
+import {
+  MONTH_STATE_LABEL,
+  currentYm,
+  monthRows,
+  type SealedPeriod,
+} from '../../lib/ledger-periods';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -47,6 +54,27 @@ async function load(
   }
 }
 
+const day = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' });
+
+/** Các tháng đã đóng quyển của sổ trong năm. Lỗi hoặc không đủ quyền xem thì ẩn khối đóng quyển. */
+async function loadPeriods(
+  cookie: string | null,
+  officeId: string,
+  code: string,
+  year: string,
+): Promise<SealedPeriod[] | 'error'> {
+  try {
+    const res = await fetch(
+      `${API_URL}/office/ledgers/${code}/periods?officeId=${encodeURIComponent(officeId)}&year=${year}`,
+      { headers: cookie ? { cookie } : {}, cache: 'no-store' },
+    );
+    if (!res.ok) return 'error';
+    return ((await res.json()) as { items: SealedPeriod[] }).items;
+  } catch {
+    return 'error';
+  }
+}
+
 /** Cột chưa có nguồn (null) hiển thị gạch ngang, không bịa giá trị. */
 function cell(v: unknown): string {
   if (v === null || v === undefined || v === '') return EMPTY;
@@ -77,6 +105,11 @@ export default async function LedgerPage({
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
   const ledger = officeId ? await load(await requestCookie(), officeId, code, year) : 'error';
+  const sealYear = year || currentYm().slice(0, 4);
+  const canSeal = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP');
+  const periods = officeId
+    ? await loadPeriods(await requestCookie(), officeId, code, sealYear)
+    : 'error';
   const table: string[][] =
     ledger === 'error'
       ? []
@@ -182,6 +215,30 @@ export default async function LedgerPage({
         <aside className="panel">
           <h2>Yêu cầu sổ điện tử</h2>
           <p className="muted">{ledger.notice} Cột chưa có nguồn dữ liệu hiển thị “—”.</p>
+        </aside>
+      ) : null}
+      {officeId && periods !== 'error' ? (
+        <aside className="panel" aria-labelledby="seal-t">
+          <h2 id="seal-t">Đóng quyển theo tháng · {sealYear}</h2>
+          <p className="muted">
+            Đóng quyển sau khi in và giáp lai sổ của tháng. Chỉ đóng được tháng đã qua; đã đóng thì
+            không mở lại. Chỉ Admin và Trưởng văn phòng đóng quyển.
+          </p>
+          <ul className="grid gap-2 text-sm">
+            {monthRows(Number(sealYear), periods, currentYm()).map((m) => (
+              <li key={m.ym} className="flex flex-wrap items-center justify-between gap-3">
+                <span>
+                  Tháng {m.month}/{sealYear} · {MONTH_STATE_LABEL[m.state]}
+                  {m.sealed ? (
+                    <span className="muted"> · ngày {day.format(new Date(m.sealed.sealedAt))}</span>
+                  ) : null}
+                </span>
+                {m.state === 'open' && canSeal ? (
+                  <LedgerSeal officeId={officeId} code={code} ym={m.ym} />
+                ) : null}
+              </li>
+            ))}
+          </ul>
         </aside>
       ) : null}
       <p className="ledger-link">
