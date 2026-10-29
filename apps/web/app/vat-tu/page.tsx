@@ -7,6 +7,20 @@ import {
   StockMoreMenu,
   ThresholdDialog,
 } from '../../components/StockDialogs';
+import {
+  StocktakeCount,
+  StocktakeDecision,
+  StocktakeOpen,
+} from '../../components/StocktakeActions';
+import {
+  STOCKTAKE_STATUS_LABEL,
+  canDecide,
+  countRows,
+  diffLabel,
+  type BatchRef,
+  type Stocktake,
+  type StocktakeLine,
+} from '../../lib/stocktake-view';
 import { Button } from '../../components/ui/button';
 import { Input, Select } from '../../components/ui/field';
 import {
@@ -59,7 +73,24 @@ async function get<T>(
   }
 }
 
-type Tab = 'ton-kho' | 'lich-su' | 'lo';
+type Tab = 'ton-kho' | 'lich-su' | 'kiem-ke' | 'lo';
+
+async function loadLines(
+  cookie: string | null,
+  officeId: string,
+  stocktakeId: string,
+): Promise<StocktakeLine[] | 'error'> {
+  try {
+    const res = await fetch(
+      `${API_URL}/office/stocktakes/${encodeURIComponent(stocktakeId)}/lines?officeId=${encodeURIComponent(officeId)}`,
+      { headers: cookie ? { cookie } : {}, cache: 'no-store' },
+    );
+    if (!res.ok) return 'error';
+    return (await res.json()) as StocktakeLine[];
+  } catch {
+    return 'error';
+  }
+}
 
 const dateTime = new Intl.DateTimeFormat('vi-VN', {
   dateStyle: 'short',
@@ -99,6 +130,7 @@ export default async function SuppliesPage({
     branch?: string;
     from?: string;
     to?: string;
+    id?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -129,8 +161,29 @@ export default async function SuppliesPage({
   const canManage = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP' || r === 'THU_KY');
   const canAdjust = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP');
   const batchList = batches === 'error' ? [] : batches;
+  const canCount = canManage || session.roles.includes('VAN_THU');
   const tab: Tab =
-    sp.tab === 'lo' && canAdjust ? 'lo' : sp.tab === 'lich-su' && canManage ? 'lich-su' : 'ton-kho';
+    sp.tab === 'lo' && canAdjust
+      ? 'lo'
+      : sp.tab === 'lich-su' && canManage
+        ? 'lich-su'
+        : sp.tab === 'kiem-ke' && canCount
+          ? 'kiem-ke'
+          : 'ton-kho';
+  const stocktakes =
+    tab === 'kiem-ke' && officeId ? await get<Stocktake>(cookie, 'stocktakes', officeId) : [];
+  const sessions = stocktakes === 'error' ? [] : stocktakes;
+  const current = sessions.find((s) => s.id === sp.id) ?? sessions[0] ?? null;
+  const currentLines =
+    tab === 'kiem-ke' && officeId && current ? await loadLines(cookie, officeId, current.id) : [];
+  const currentRows = current
+    ? countRows(
+        current.branchId,
+        (batches === 'error' ? [] : batches) as readonly BatchRef[],
+        currentLines === 'error' ? [] : currentLines,
+      )
+    : [];
+  const countedCount = currentRows.filter((r) => r.countedQty !== null).length;
   const movementFilters = movementQuery(sp);
   const movements =
     tab === 'lich-su' && officeId ? await loadMovements(cookie, officeId, movementFilters) : [];
@@ -192,6 +245,9 @@ export default async function SuppliesPage({
           { key: 'ton-kho', label: 'Tồn kho', href: href({ tab: 'ton-kho' }), count: items.length },
           ...(canManage
             ? [{ key: 'lich-su', label: 'Lịch sử nhập/xuất', href: href({ tab: 'lich-su' }) }]
+            : []),
+          ...(canCount
+            ? [{ key: 'kiem-ke', label: 'Kiểm kê', href: href({ tab: 'kiem-ke' }) }]
             : []),
           ...(canAdjust
             ? [
@@ -301,6 +357,125 @@ export default async function SuppliesPage({
             Nguyên tắc xuất kho: ưu tiên lô nhập trước (FIFO), có lịch sử người nhập/xuất, thời gian
             và chi nhánh.
           </p>
+        </>
+      ) : tab === 'kiem-ke' ? (
+        <>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="muted">
+              Kiểm kê theo phiên. Chênh lệch chỉ ghi vào sổ sau khi Trưởng văn phòng duyệt; mỗi
+              chênh lệch cần lý do; chỉ ghi số lượng.
+            </p>
+            {officeId ? <StocktakeOpen officeId={officeId} branches={session.branches} /> : null}
+          </div>
+          {stocktakes === 'error' ? (
+            <div className="state" role="alert">
+              <h2>Không tải được các phiên kiểm kê</h2>
+              <p>Vui lòng thử lại sau.</p>
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="state" role="status">
+              <h2>Chưa có phiên kiểm kê</h2>
+              <p>Bấm “Tạo phiên kiểm kê” để bắt đầu đếm một chi nhánh.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] items-start gap-4 max-lg:grid-cols-1">
+              <nav className="panel" aria-label="Các phiên kiểm kê">
+                <h2>Các phiên kiểm kê</h2>
+                <ul className="grid gap-2">
+                  {sessions.map((s) => (
+                    <li key={s.id}>
+                      <Link
+                        href={`/vat-tu?tab=kiem-ke&id=${s.id}`}
+                        aria-current={current?.id === s.id ? 'page' : undefined}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-line p-3 no-underline aria-[current=page]:border-accent aria-[current=page]:bg-accent-soft/40"
+                      >
+                        <span>
+                          {s.branchName}
+                          <span className="muted block text-xs">
+                            {dateTime.format(new Date(s.createdAt))}
+                          </span>
+                        </span>
+                        <StatusPill
+                          status={s.status}
+                          label={STOCKTAKE_STATUS_LABEL[s.status] ?? s.status}
+                          tone={
+                            s.status === 'OPEN' ? 'warn' : s.status === 'APPROVED' ? 'ok' : 'danger'
+                          }
+                        />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              {current ? (
+                <div className="grid gap-4">
+                  <div className="panel">
+                    <h2>
+                      {current.branchName} ·{' '}
+                      {STOCKTAKE_STATUS_LABEL[current.status] ?? current.status}
+                    </h2>
+                    {current.note ? <p className="muted">{current.note}</p> : null}
+                    <div className="table-wrap">
+                      <table>
+                        <caption className="sr-only">Số đếm theo lô của phiên kiểm kê</caption>
+                        <thead>
+                          <tr>
+                            <th scope="col">Vật tư</th>
+                            <th scope="col">Lô</th>
+                            <th scope="col">Số sổ sách</th>
+                            <th scope="col">Đếm thực tế</th>
+                            <th scope="col">Chênh lệch</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentRows.map((r) => {
+                            const d = diffLabel(r);
+                            return (
+                              <tr key={r.batchId}>
+                                <th scope="row">{r.itemName}</th>
+                                <td>{r.receiptRef}</td>
+                                <td>{r.systemQty}</td>
+                                <td>
+                                  {current.status === 'OPEN' ? (
+                                    <StocktakeCount
+                                      stocktakeId={current.id}
+                                      batchId={r.batchId}
+                                      systemQty={r.systemQty}
+                                      countedQty={r.countedQty}
+                                      reason={r.reason}
+                                    />
+                                  ) : (
+                                    (r.countedQty ?? <span className="muted">—</span>)
+                                  )}
+                                </td>
+                                <td>
+                                  <StatusPill status={d.tone} label={d.text} tone={d.tone} />
+                                  {r.reason ? <span className="muted"> · {r.reason}</span> : null}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  {current.status === 'OPEN' && canAdjust ? (
+                    <div className="panel">
+                      <h2>Trưởng văn phòng duyệt</h2>
+                      <p className="muted">
+                        Duyệt thì mới ghi phiếu điều chỉnh cho các dòng lệch; sổ đổi giữa chừng thì
+                        phải đếm lại.
+                      </p>
+                      <StocktakeDecision
+                        stocktakeId={current.id}
+                        enabled={canDecide(current.status, countedCount)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          )}
         </>
       ) : tab === 'lich-su' ? (
         <>
