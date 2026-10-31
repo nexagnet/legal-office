@@ -417,4 +417,27 @@ describe.skipIf(!ADMIN_URL)('DMS đổi quyền có duyệt (PostgreSQL)', () =>
     );
     expect(deny.rowCount).toBeGreaterThan(0);
   });
+
+  it('vai ADMIN mặc nhiên có mọi quyền DMS ở văn phòng của mình, không ở văn phòng khác', async () => {
+    const adm = id();
+    await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$3)`, [
+      adm,
+      T,
+      adm,
+    ]);
+    await owner.query(
+      `INSERT INTO memberships (tenant_id, user_id, office_id, role) VALUES ($1,$2,$3,'ADMIN')`,
+      [T, adm, OFF],
+    );
+    const perms = await mine(adm);
+    expect(perms).toEqual(
+      expect.arrayContaining(['vibang.draft.own', 'vtnb.confirm.all', 'dms.permission.approve']),
+    );
+    const has = (office: string) =>
+      call(T, `SELECT dms_has_permission($1,$2,$3,'tongdat.draft.all') AS ok`, [T, adm, office]);
+    expect((await has(OFF))[0].ok).toBe(true);
+    expect((await has(OFF2))[0].ok).toBe(false);
+    // Người không phải Admin vẫn chỉ có quyền theo nhóm.
+    expect(await mine(U.thv)).not.toContain('dms.permission.approve');
+  });
 });
