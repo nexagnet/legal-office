@@ -13,7 +13,10 @@ export function DmsCaseTable({
   caption,
   basePath,
   book,
+  sttLabel = 'STT',
 }: {
+  /** Tên cột số thứ tự: "Số đến" cho sổ Văn bản đến, còn lại "STT". */
+  readonly sttLabel?: string;
   readonly rows: readonly DmsCaseRow[];
   readonly caption: string;
   /** Đường dẫn trang miền (vd `/dms/vi-bang`); có thì tên hồ sơ là liên kết tới trang chi tiết. */
@@ -36,7 +39,7 @@ export function DmsCaseTable({
         <caption className="sr-only">{caption}</caption>
         <thead>
           <tr>
-            {book ? <th scope="col">STT</th> : null}
+            {book ? <th scope="col">{sttLabel}</th> : null}
             <th scope="col">Hồ sơ</th>
             {bookCols.map((c) => (
               <th key={c.key} scope="col">
