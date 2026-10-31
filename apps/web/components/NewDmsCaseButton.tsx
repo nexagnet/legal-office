@@ -10,17 +10,19 @@ export function NewDmsCaseButton({
   officeId,
   domainCode,
   label,
+  buttonLabel = '+ Tạo hồ sơ',
   redirectBase,
 }: {
   readonly officeId: string;
   readonly domainCode: string;
   readonly label: string;
+  readonly buttonLabel?: string;
   readonly redirectBase: string;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button onClick={() => setOpen(true)}>+ Tạo hồ sơ</Button>
+      <Button onClick={() => setOpen(true)}>{buttonLabel}</Button>
       <Modal
         open={open}
         onOpenChange={setOpen}

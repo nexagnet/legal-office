@@ -3,14 +3,13 @@ import { notFound } from 'next/navigation';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { KpiStrip } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
-import { NewDmsCaseForm } from '../../../components/NewDmsCaseForm';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
   BOOK_OF_DOMAIN,
+  VAN_THU_DOMAINS,
   DMS_FILTER_LABEL,
   DMS_TAB_LABEL,
   activeDmsFilter,
-  activeDmsTab,
   bookCell,
   canDraft,
   domainBySlug,
@@ -21,15 +20,12 @@ import {
   loadMyDmsPermissions,
   tabForFilter,
   type DmsBookRow,
-  type DmsDomain,
   type DmsFilter,
-  type DmsTab,
 } from '../../../lib/dms';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
-const TABS: readonly DmsTab[] = ['chinh-thuc', 'nhap', 'da-huy'];
 const FILTERS: readonly DmsFilter[] = ['chinh-thuc', 'thieu-scan', 'du-scan', 'nhap', 'da-huy'];
 
 const yearOfVn = (d: Date): number =>
@@ -79,9 +75,9 @@ export default async function DmsDomainPage({
       </section>
     );
   }
-  const bookCode = BOOK_OF_DOMAIN[domain.code];
-  if (!bookCode)
-    return <VanThuList domain={domain} officeId={officeId} tab={activeDmsTab(sp.tab)} />;
+  const vanThu = 'book' in domain ? domain : undefined;
+  const bookCode = BOOK_OF_DOMAIN[domain.code] ?? vanThu?.book;
+  if (!bookCode) notFound();
 
   const base = `/dms/${domain.slug}`;
   const filter = activeDmsFilter(sp.loc ?? sp.tab);
@@ -142,9 +138,21 @@ export default async function DmsDomainPage({
     return s ? `${base}?${s}` : base;
   };
   const isDraftView = filter === 'nhap' || filter === 'da-huy';
+  const sttLabel = domain.code === 'vtden' ? 'Số đến' : 'STT';
   return (
     <section aria-labelledby="t">
-      <h1 id="t">{domain.label}</h1>
+      <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
+      {vanThu ? (
+        <TabNav
+          label="Ba sổ Văn thư"
+          active={domain.slug}
+          tabs={VAN_THU_DOMAINS.map((d) => ({
+            key: d.slug,
+            label: d.label,
+            href: `/dms/${d.slug}`,
+          }))}
+        />
+      ) : null}
       <KpiStrip
         label={`Tổng hợp ${domain.label} năm ${year}`}
         items={[
@@ -168,12 +176,22 @@ export default async function DmsDomainPage({
         }))}
         action={
           <span className="flex flex-wrap items-center gap-2">
-            <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+            {vanThu ? (
+              <>
+                <a href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}>
+                  Xuất Excel
+                </a>
+                <Link href={`/dms/so/${vanThu.bookSlug}`}>Xuất PDF để in</Link>
+              </>
+            ) : (
+              <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+            )}
             {canDraft(permissions, domain.code) ? (
               <NewDmsCaseButton
                 officeId={officeId}
                 domainCode={domain.code}
                 label={domain.label}
+                buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
                 redirectBase={base}
               />
             ) : null}
@@ -215,78 +233,14 @@ export default async function DmsDomainPage({
         caption={`Danh sách hồ sơ ${domain.label}`}
         basePath={base}
         book={!isDraftView && spec ? { spec, byCase } : undefined}
+        sttLabel={sttLabel}
       />
       <p className="muted mt-3">
         Hiển thị {rows.length} hồ sơ{' '}
         {isDraftView ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase() : `chính thức năm ${year}`}
-        . Nháp và nháp đã hủy không có STT, không vào xuất sổ, không tính thống kê chính thức.
+        . Nháp và nháp đã hủy không có {sttLabel}, không vào xuất sổ, không tính thống kê chính
+        thức.
       </p>
-    </section>
-  );
-}
-
-/** Ba sổ Văn thư giữ bố cục cũ cho tới khi làm riêng theo Figma (PR Văn thư). */
-async function VanThuList({
-  domain,
-  officeId,
-  tab,
-}: {
-  readonly domain: DmsDomain;
-  readonly officeId: string;
-  readonly tab: DmsTab;
-}) {
-  const cookie = await requestCookie();
-  const [rows, permissions] = await Promise.all([
-    loadDmsCases(cookie, officeId, domain.code, tab),
-    loadMyDmsPermissions(cookie, officeId),
-  ]);
-  const base = `/dms/${domain.slug}`;
-  return (
-    <section aria-labelledby="t">
-      <h1 id="t">{domain.label}</h1>
-      <TabNav
-        label={`Nhóm hồ sơ ${domain.label}`}
-        active={tab}
-        tabs={TABS.map((k) => ({
-          key: k,
-          label: DMS_TAB_LABEL[k],
-          href: k === 'chinh-thuc' ? base : `${base}?tab=${k}`,
-        }))}
-      />
-      {'book' in domain ? (
-        <p className="mb-2">
-          <Link href={`/dms/so/${domain.bookSlug}`}>Xem trước và xuất sổ {domain.label}</Link>
-        </p>
-      ) : null}
-      {canDraft(permissions, domain.code) ? (
-        <NewDmsCaseForm officeId={officeId} domainCode={domain.code} />
-      ) : null}
-      {rows === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được hồ sơ</h2>
-          <p>Máy chủ chưa trả về danh sách. Vui lòng thử lại sau.</p>
-        </div>
-      ) : (
-        <>
-          <KpiStrip
-            label={`Tổng hợp ${DMS_TAB_LABEL[tab].toLowerCase()}`}
-            items={[
-              { label: 'Hồ sơ', value: rows.length },
-              { label: 'Tài liệu', value: rows.reduce((n, r) => n + r.document_count, 0) },
-              {
-                label: 'Thiếu scan',
-                value: rows.filter((r) => r.document_count > 0 && r.scan_count === 0).length,
-                tone: 'danger',
-              },
-            ]}
-          />
-          <DmsCaseTable rows={rows} caption={`Danh sách hồ sơ ${domain.label}`} basePath={base} />
-          <p className="muted mt-3">
-            Nháp và nháp đã hủy không có {domain.code === 'vtden' ? 'Số đến' : 'STT'}, không vào
-            xuất sổ, không tính thống kê chính thức.
-          </p>
-        </>
-      )}
     </section>
   );
 }

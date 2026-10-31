@@ -44,6 +44,7 @@ vi.mock('next/link', () => ({
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.restoreAllMocks();
   push.mockClear();
   refresh.mockClear();
@@ -892,6 +893,8 @@ describe('Correspondence', () => {
   const branches = [{ id: 'b1', officeId: 'o1', name: 'CN1' }];
 
   it('registers an inbound letter with its received date', async () => {
+    // Lưới lịch mở ở tháng hiện tại; ghim ngày để ô thứ 13 luôn là 13/10/2026 (chỉ giả Date, không giả bộ hẹn giờ).
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-20T05:00:00Z') });
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'c1' }));
