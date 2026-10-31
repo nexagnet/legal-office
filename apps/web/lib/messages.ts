@@ -175,6 +175,13 @@ const MESSAGES: Record<string, string> = {
     'Kế hoạch không hợp lệ: người tham gia cần có tên và vai trò, ghi chú tối đa 2.000 ký tự.',
   OUTCOME_REQUIRED: 'Cần ghi kết quả thực tế của việc chấm dứt.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
+  PERMISSION_DENIED: 'Nhóm quyền của bạn chưa cho phép thao tác này.',
+  CASE_NOT_DRAFT: 'Hồ sơ đã lưu chính thức, không sửa trực tiếp được. Hãy lập yêu cầu sửa đổi.',
+  CASE_CANCELLED: 'Hồ sơ nháp này đã hủy.',
+  DOCUMENT_NOT_DRAFT: 'Tài liệu đã lưu chính thức, không sửa trực tiếp được.',
+  INVALID_DOMAIN: 'Nghiệp vụ không hợp lệ.',
+  INVALID_INPUT: 'Thông tin chưa hợp lệ. Kiểm tra lại các trường bắt buộc.',
+  SELF_APPROVAL_NOT_ALLOWED: 'Người đề xuất không được tự duyệt yêu cầu của mình.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
