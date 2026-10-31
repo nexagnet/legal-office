@@ -39,7 +39,7 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
   const id = () => randomUUID();
   const T = id();
   const OFF = id();
-  const U = { a: id(), b: id(), approver1: id(), approver2: id(), none: id() };
+  const U = { a: id(), b: id(), approver1: id(), approver2: id(), proposer: id(), none: id() };
 
   const api = async (method: string, path: string, user: string, body?: unknown) => {
     const res = await fetch(`${base}${path}`, {
@@ -120,6 +120,7 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       (x) => `vibang.${x}.own`,
     );
     await mk('THV tạo', own, [U.a, U.b]);
+    await mk('Người đề xuất', ['dms.permission.propose'], [U.proposer]);
     await mk(
       'Quản trị phân quyền',
       ['dms.permission.propose', 'dms.permission.approve'],
@@ -278,18 +279,21 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     const thvGroup = groups.json.rows.find((g: Row) => g.name === 'THV tạo').id as string;
     expect((await api('GET', `/dms/groups?officeId=${OFF}`, U.a)).json.rows).toEqual([]);
 
-    const p = await api('POST', `/dms/groups/${thvGroup}/requests`, U.approver1, {
+    const p = await api('POST', `/dms/groups/${thvGroup}/requests`, U.proposer, {
       kind: 'GRANT',
       permission: 'tongdat.read.own',
       reason: 'cần đọc tống đạt',
     });
     expect(p.status).toBe(201);
     const reqId = p.json.label as string;
-    const self = await api('POST', `/dms/permission-requests/${reqId}/review`, U.approver1, {
-      approve: true,
-    });
-    expect(self.status).toBe(403);
-    expect(self.json.code).toBe('SELF_APPROVAL_NOT_ALLOWED');
+    // Người đề xuất không có quyền duyệt nên không tự duyệt được (không thấy yêu cầu để duyệt).
+    expect(
+      (
+        await api('POST', `/dms/permission-requests/${reqId}/review`, U.proposer, {
+          approve: true,
+        })
+      ).status,
+    ).toBe(404);
     expect(
       (await api('GET', `/dms/me/permissions?officeId=${OFF}`, U.a)).json.permissions,
     ).not.toContain('tongdat.read.own');
@@ -310,6 +314,17 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       U.approver2,
     );
     expect(pending.json.rows.some((r: Row) => r.id === reqId)).toBe(true);
+    // Admin đề xuất thì có hiệu lực ngay, không cần ai duyệt (thu hồi khẩn cấp).
+    const urgent = await api('POST', `/dms/groups/${thvGroup}/requests`, U.approver1, {
+      kind: 'REVOKE',
+      permission: 'tongdat.read.own',
+      reason: 'thu hồi khẩn cấp',
+    });
+    expect(urgent.status).toBe(201);
+    expect(urgent.json.code).toBe('REQUEST_APPLIED');
+    expect(
+      (await api('GET', `/dms/me/permissions?officeId=${OFF}`, U.a)).json.permissions,
+    ).not.toContain('tongdat.read.own');
     // Không có endpoint ghi quyền trực tiếp.
     expect(
       (
