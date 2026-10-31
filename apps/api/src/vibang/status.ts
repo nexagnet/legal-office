@@ -111,6 +111,7 @@ const INVALID = new Set([
   'INVALID_DOMAIN',
   'INVALID_INPUT',
   'UNKNOWN_PERMISSION',
+  'INVALID_OBJECT_KEY',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */

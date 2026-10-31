@@ -55,6 +55,10 @@ Mô tả (loại nguồn, mục đích, ghi chú) đi theo query vì thân yêu 
 `rounds/:id/completion` (cần đã có ít nhất một nguồn). Ghi lại kết quả với cùng `idempotencyKey` vẫn trả thành công
 và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị bỏ lại trong kho (tệp mồ côi nhỏ, chưa có việc dọn định kỳ).
 
+## Nhập hàng loạt tài liệu cũ
+
+Tệp lớn/nhập hàng loạt không đi qua API: xem `legacy-import.md` (liên kết PUT ký sẵn, chỉ kho S3/R2).
+
 ## Giới hạn đã biết (chưa làm)
 
 - **Chưa có tải xuống/xem tệp**: cần hàm đọc có kiểm tra quyền theo phạm vi ghi trước, không mở đường đọc không có kiểm soát.
