@@ -5,7 +5,7 @@ import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { OcrEngine } from '../ocr/engine';
 import { toTsQuery } from '../ocr/text';
-import { processTenant } from '../ocr/worker';
+import { processTenant, runOnce } from '../ocr/worker';
 import type { FileStore } from '../storage/file-store';
 
 // OCR để tìm kiếm (0084): hàng đợi, RLS, quyền xem, phiên bản mới nhất. PostgreSQL thật, dữ liệu giả lập, engine giả.
@@ -232,6 +232,18 @@ describe.skipIf(!ADMIN_URL)('OCR tìm kiếm toàn văn (PostgreSQL)', () => {
     await processTenant(app, T, store, engine, log);
     expect(await search(U.a, 'abc')).toHaveLength(0);
     expect(await search(U.a, 'xyz')).toHaveLength(1);
+  });
+
+  it('chạy một lần: làm hết việc chờ rồi dừng, tenant lỗi hệ thống được đếm', async () => {
+    await record(U.a, 'van ban chay mot lan qrs');
+    await record(U.a, 'van ban thu hai qrs');
+    const r = await runOnce(app, [T], store, engine, log);
+    expect(r).toEqual({ processed: 2, tenantErrors: 0 });
+    expect(await search(U.a, 'qrs')).toHaveLength(2);
+    expect(await runOnce(app, [T], store, engine, log)).toEqual({ processed: 0, tenantErrors: 0 });
+    const bad = new pg.Pool({ connectionString: 'postgres://nobody@127.0.0.1:1/none', max: 1 });
+    expect((await runOnce(bad, [T], store, engine, log)).tenantErrors).toBe(1);
+    await bad.end();
   });
 
   it('ocr_text không thể bị ghi lại sau khi DONE', async () => {
