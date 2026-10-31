@@ -56,6 +56,51 @@ export function activeDmsTab(raw: string | undefined): DmsTab {
 }
 export const statusForTab = (tab: DmsTab) => TAB_STATUS[tab];
 
+/** Sổ nghiệp vụ của từng miền (Văn thư có sổ riêng, không nằm ở đây). */
+export const BOOK_OF_DOMAIN: Readonly<Record<string, string>> = {
+  tongdat: 'S-01',
+  vibang: 'S-02',
+  xacminh: 'S-04',
+  tochuc: 'S-05',
+};
+
+/** Bộ lọc danh sách (chip): chính thức, thiếu/đủ scan (trong số chính thức), nháp, đã hủy. */
+export type DmsFilter = 'chinh-thuc' | 'thieu-scan' | 'du-scan' | 'nhap' | 'da-huy';
+
+export const DMS_FILTER_LABEL: Record<DmsFilter, string> = {
+  'chinh-thuc': 'Chính thức',
+  'thieu-scan': 'Thiếu scan',
+  'du-scan': 'Đủ scan',
+  nhap: 'Nháp',
+  'da-huy': 'Đã hủy',
+};
+
+export function activeDmsFilter(raw: string | undefined): DmsFilter {
+  return raw === 'thieu-scan' || raw === 'du-scan' || raw === 'nhap' || raw === 'da-huy'
+    ? raw
+    : 'chinh-thuc';
+}
+
+/** Hồ sơ nào cần tải về từ API cho bộ lọc này (thiếu/đủ scan lọc trong nhóm chính thức). */
+export const tabForFilter = (f: DmsFilter): DmsTab =>
+  f === 'nhap' ? 'nhap' : f === 'da-huy' ? 'da-huy' : 'chinh-thuc';
+
+/** Lọc theo chip và ô tìm (tên hồ sơ hoặc bất kỳ ô nào của dòng sổ; không phân biệt hoa thường). */
+export function filterDmsCases(
+  rows: readonly DmsCaseRow[],
+  filter: DmsFilter,
+  q: string,
+  cellsOf: (caseId: string) => readonly string[] = () => [],
+): DmsCaseRow[] {
+  const needle = q.trim().toLowerCase();
+  return rows.filter((r) => {
+    if (filter === 'thieu-scan' && !(r.document_count > 0 && r.scan_count === 0)) return false;
+    if (filter === 'du-scan' && !(r.document_count > 0 && r.scan_count > 0)) return false;
+    if (!needle) return true;
+    return [r.title, ...cellsOf(r.id)].some((s) => s.toLowerCase().includes(needle));
+  });
+}
+
 export const DMS_TAB_LABEL: Record<DmsTab, string> = {
   'chinh-thuc': 'Chính thức',
   nhap: 'Nháp',
