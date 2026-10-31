@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
 import {
   AddDmsDocumentForm,
   DmsDraftActions,
@@ -10,6 +11,8 @@ import {
   canConfirm,
   canDraft,
   domainBySlug,
+  inputColumns,
+  loadDmsBooks,
   loadDmsCase,
   loadDmsDocuments,
   loadDmsFiles,
@@ -68,10 +71,12 @@ export default async function DmsCasePage({
       </section>
     );
   }
-  const [documents, permissions] = await Promise.all([
+  const [documents, permissions, books] = await Promise.all([
     loadDmsDocuments(cookie, id),
     loadMyDmsPermissions(cookie, c.office_id),
+    loadDmsBooks(cookie),
   ]);
+  const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
   const docs = documents === 'error' ? [] : documents;
   const filesByDoc = await Promise.all(docs.map((d) => loadDmsFiles(cookie, d.id)));
   const isDraft = c.status === 'DRAFT';
@@ -124,6 +129,15 @@ export default async function DmsCasePage({
           có duyệt.
         </p>
       )}
+      {isDraft && book && book.source === 'case' && canDraft(permissions, domain.code) ? (
+        <DmsAttributesForm
+          url={`/api/dms/cases/${c.id}/draft`}
+          columns={inputColumns(book)}
+          current={c.attributes}
+          fixed={{ title: c.title }}
+          legend={`Nội dung vào sổ ${book.code}`}
+        />
+      ) : null}
       {isDraft && canAddDocument(permissions, domain.code) ? (
         <AddDmsDocumentForm caseId={c.id} />
       ) : null}
@@ -154,6 +168,15 @@ export default async function DmsCasePage({
                 ))}
               </ul>
             )}
+            {isDraft && book && book.source === 'document' && canDraft(permissions, domain.code) ? (
+              <DmsAttributesForm
+                url={`/api/dms/documents/${d.id}/draft`}
+                columns={inputColumns(book)}
+                current={d.attributes}
+                fixed={{ kind: d.kind, title: d.title, isOfficial: d.is_official }}
+                legend={`Giấy tờ vào sổ ${book.code}`}
+              />
+            ) : null}
             {c.status !== 'CANCELLED' ? <UploadDmsFile documentId={d.id} /> : null}
           </article>
         ))

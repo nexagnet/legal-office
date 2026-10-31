@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { DmsBookTable } from '../components/DmsBookTable';
 import { DmsCaseTable } from '../components/DmsCaseTable';
 import {
   activeDmsTab,
@@ -7,6 +8,8 @@ import {
   canConfirm,
   canDraft,
   domainBySlug,
+  headerGroups,
+  inputColumns,
   scanState,
   statusForTab,
   type DmsCaseRow,
@@ -96,5 +99,52 @@ describe('quyền ở trang chi tiết và liên kết hồ sơ', () => {
     expect(screen.getByRole('link', { name: 'Hồ sơ thử' }).getAttribute('href')).toBe(
       '/dms/vi-bang/abc',
     );
+  });
+});
+
+describe('sổ nghiệp vụ trên giao diện', () => {
+  const spec = {
+    code: 'S-05',
+    domain: 'tochuc',
+    form: 'TP-THV-S-05',
+    title: 'SỔ THEO DÕI VIỆC THI HÀNH ÁN',
+    source: 'case' as const,
+    columns: [
+      { no: 1, heading: 'STT', key: 'stt' },
+      { no: 2, heading: 'HỢP ĐỒNG', key: 'hop_dong_dich_vu' },
+      { no: 3, heading: 'Số, ngày', key: 'qd', group: 'QUYẾT ĐỊNH' },
+      { no: 4, heading: 'Thu hồi', key: 'thu_hoi', group: 'QUYẾT ĐỊNH' },
+    ],
+  };
+  const r = {
+    stt: 2,
+    case_id: 'c',
+    document_id: null,
+    case_title: 't',
+    case_attributes: { hop_dong_dich_vu: 'HĐ 11', qd: '21/QĐ' },
+    doc_kind: null,
+    doc_attributes: null,
+  };
+
+  it('gộp tiêu đề nhóm cột và chỉ lấy cột nhập tay', () => {
+    expect(headerGroups(spec.columns).map((g) => [g.label, g.span])).toEqual([
+      [null, 1],
+      [null, 1],
+      ['QUYẾT ĐỊNH', 2],
+    ]);
+    expect(inputColumns(spec).map((c) => c.key)).toEqual(['hop_dong_dich_vu', 'qd', 'thu_hoi']);
+  });
+
+  it('dòng sổ: STT của hệ thống, ô thiếu để trống, có hàng đánh số cột', () => {
+    render(<DmsBookTable spec={spec} rows={[r]} />);
+    expect(screen.getByText('HĐ 11')).toBeTruthy();
+    expect(screen.getByText('21/QĐ')).toBeTruthy();
+    expect(screen.getAllByText('2')).toHaveLength(2); // số cột 2 và STT 2
+    expect(screen.getByText('3 · 4')).toBeTruthy();
+  });
+
+  it('chưa có dòng thì báo trống thay vì bảng rỗng', () => {
+    render(<DmsBookTable spec={spec} rows={[]} />);
+    expect(screen.getByText('Chưa có dòng nào trong năm này.')).toBeTruthy();
   });
 });

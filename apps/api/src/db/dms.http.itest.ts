@@ -244,6 +244,8 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect(before.json.rows.some((r: Row) => r.case_id === caseId)).toBe(false);
     expect((await api('POST', `/dms/cases/${caseId}/record`, U.a)).status).toBe(200);
     const after = await api('GET', `/dms/books/S-02?officeId=${OFF}&year=${year}`, U.a);
+    const docs = await api('GET', `/dms/cases/${caseId}/documents`, U.a);
+    expect(docs.json.rows).toEqual([]);
     const mine = after.json.rows.find((r: Row) => r.case_id === caseId);
     expect(mine.stt).toBeGreaterThanOrEqual(1);
     const csv = await fetch(`${base}/dms/books/S-02?officeId=${OFF}&year=${year}&format=csv`, {
@@ -262,6 +264,32 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       400,
     );
     expect((await api('GET', `/dms/books/S-02?officeId=${OFF}`, U.a)).status).toBe(400);
+  });
+
+  it('THV được ghi tên phải tự xác nhận qua HTTP trước khi hồ sơ ghi sổ', async () => {
+    const caseId = (
+      await api('POST', '/dms/cases', U.a, {
+        officeId: OFF,
+        domain: 'vibang',
+        title: 'Cần THV xác nhận',
+      })
+    ).json.label as string;
+    expect((await api('PUT', `/dms/cases/${caseId}/thv`, U.a, { thvUserId: U.b })).status).toBe(
+      200,
+    );
+    expect(
+      (await api('PUT', `/dms/cases/${caseId}/thv`, U.a, { thvUserId: 'không phải uuid' })).status,
+    ).toBe(400);
+    const blocked = await api('POST', `/dms/cases/${caseId}/record`, U.a);
+    expect(blocked.status).toBe(409);
+    expect(blocked.json.code).toBe('THV_CONFIRMATION_REQUIRED');
+    const pending = await api('GET', '/dms/thv/pending', U.b);
+    expect(pending.json.rows.map((r: Row) => r.case_id)).toContain(caseId);
+    expect((await api('GET', `/dms/thv/cases/${caseId}`, U.b)).json.title).toBe('Cần THV xác nhận');
+    expect((await api('GET', `/dms/thv/cases/${caseId}`, U.a)).status).toBe(404);
+    expect((await api('POST', `/dms/thv/cases/${caseId}/confirm`, U.a)).status).toBe(404);
+    expect((await api('POST', `/dms/thv/cases/${caseId}/confirm`, U.b)).status).toBe(200);
+    expect((await api('POST', `/dms/cases/${caseId}/record`, U.a)).status).toBe(200);
   });
 
   it('THV B không thấy, không tải, không ghi vào hồ sơ của THV A', async () => {

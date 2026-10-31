@@ -54,6 +54,13 @@ export const NAV: readonly NavItem[] = [
     summary: 'Hồ sơ tổ chức thi hành án, tài sản và chuyển giao.',
   },
   {
+    slug: 'dms',
+    label: 'Hồ sơ lưu trữ',
+    group: 'work',
+    roles: ALL,
+    summary: 'Hồ sơ và bản scan bốn nghiệp vụ; xuất sổ S-01/02/04/05.',
+  },
+  {
     slug: 'viec-cua-toi',
     label: 'Việc của tôi',
     group: 'work',
