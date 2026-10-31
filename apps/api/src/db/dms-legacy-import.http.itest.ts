@@ -239,7 +239,7 @@ describe.skipIf(!ADMIN_URL)('Nhập tài liệu cũ đầu-cuối (công cụ nh
 
     const paths = (
       await owner.query(
-        `SELECT rel_path, is_legacy, sha256 FROM dms_legacy_files WHERE batch_id = $1 ORDER BY rel_path`,
+        `SELECT rel_path, is_legacy, sha256 FROM dms_legacy_files WHERE batch_id = $1 ORDER BY rel_path COLLATE "C"`,
         [batch],
       )
     ).rows;

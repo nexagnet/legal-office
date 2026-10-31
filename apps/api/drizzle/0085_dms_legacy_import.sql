@@ -243,7 +243,7 @@ BEGIN
     SELECT f.id, f.batch_id, f.rel_path, f.file_name, f.size_bytes, f.sha256, f.mime, f.source_mtime, f.created_at
     FROM dms_legacy_files f
     WHERE f.tenant_id = p_tenant AND f.office_id = p_office AND f.rel_path LIKE pat
-    ORDER BY f.rel_path, f.id
+    ORDER BY f.rel_path COLLATE "C", f.id
     LIMIT greatest(1, least(coalesce(p_limit, 50), 200)) OFFSET greatest(0, coalesce(p_offset, 0));
 END $$;
 
