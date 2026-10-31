@@ -1,10 +1,12 @@
 import pg from 'pg';
 import { fileStoreFromEnv } from '../storage/file-store';
 import { TesseractEngine } from './engine';
-import { processTenant, tenantIdsFromEnv } from './worker';
+import { processTenant, runOnce, tenantIdsFromEnv } from './worker';
 
 /**
- * Dịch vụ lo-ocr: vòng lặp nền, không mở cổng. Cần DATABASE_URL (vai legal_app), FILE_STORE* như lo-api và OCR_TENANT_IDS.
+ * lo-ocr. Hai chế độ:
+ * - `OCR_ONCE=1` (Job theo lịch): làm hết việc đang chờ rồi thoát; mã 0 khi xong, mã 1 nếu có tenant lỗi hệ thống.
+ * - mặc định: vòng lặp nền, không mở cổng. Cần DATABASE_URL (vai legal_app), FILE_STORE* như lo-api và OCR_TENANT_IDS.
  * Không gọi dịch vụ ngoài: toàn bộ OCR chạy trong container này.
  */
 async function main(): Promise<void> {
@@ -17,6 +19,12 @@ async function main(): Promise<void> {
   const pool = new pg.Pool({ connectionString: url, max: 2 });
   const engine = new TesseractEngine(process.env.OCR_LANG || 'vie');
   const idleMs = Number(process.env.OCR_POLL_SECONDS ?? 30) * 1000;
+  if (process.env.OCR_ONCE === '1') {
+    const r = await runOnce(pool, tenants, store, engine, console);
+    console.log(`ocr: chạy một lần xong, ${r.processed} tệp, ${r.tenantErrors} tenant lỗi`);
+    await pool.end();
+    process.exit(r.tenantErrors > 0 ? 1 : 0);
+  }
   let stop = false;
   for (const s of ['SIGTERM', 'SIGINT'] as const)
     process.once(s, () => {
