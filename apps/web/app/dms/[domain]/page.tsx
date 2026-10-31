@@ -95,7 +95,7 @@ export default async function DmsDomainPage({
               },
             ]}
           />
-          <DmsCaseTable rows={rows} caption={`Danh sách hồ sơ ${domain.label}`} />
+          <DmsCaseTable rows={rows} caption={`Danh sách hồ sơ ${domain.label}`} basePath={base} />
           <p className="muted mt-3">
             Nháp và nháp đã hủy không có STT, không vào xuất sổ, không tính thống kê chính thức.
           </p>

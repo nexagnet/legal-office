@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { DmsCaseRow } from '../lib/dms';
 import { scanState } from '../lib/dms';
 
@@ -10,9 +11,12 @@ const fmt = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'As
 export function DmsCaseTable({
   rows,
   caption,
+  basePath,
 }: {
   readonly rows: readonly DmsCaseRow[];
   readonly caption: string;
+  /** Đường dẫn trang miền (vd `/dms/vi-bang`); có thì tên hồ sơ là liên kết tới trang chi tiết. */
+  readonly basePath?: string;
 }) {
   if (rows.length === 0) {
     return (
@@ -39,7 +43,9 @@ export function DmsCaseTable({
             const scan = scanState(r);
             return (
               <tr key={r.id}>
-                <th scope="row">{r.title}</th>
+                <th scope="row">
+                  {basePath ? <Link href={`${basePath}/${r.id}`}>{r.title}</Link> : r.title}
+                </th>
                 <td>{fmt.format(new Date(r.created_at))}</td>
                 <td>{r.recorded_at ? fmt.format(new Date(r.recorded_at)) : '—'}</td>
                 <td>

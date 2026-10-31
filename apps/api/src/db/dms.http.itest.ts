@@ -188,6 +188,15 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     const fileId = up.json.label as string;
 
     expect((await api('POST', `/dms/cases/${caseId}/record`, U.a)).status).toBe(200);
+    const one = await api('GET', `/dms/cases/${caseId}`, U.a);
+    expect(one.status).toBe(200);
+    expect(one.json).toMatchObject({
+      id: caseId,
+      status: 'RECORDED',
+      title: 'Vi bằng thử 2',
+      document_count: 1,
+      scan_count: 1,
+    });
     const list = await api('GET', `/dms/cases?officeId=${OFF}&domain=vibang`, U.a);
     const row = list.json.rows.find((r: Row) => r.id === caseId);
     expect(row).toMatchObject({ status: 'RECORDED', document_count: 1, scan_count: 1 });
@@ -234,6 +243,8 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       ),
     ).toBe(false);
     expect((await api('GET', `/dms/cases/${caseId}/documents`, U.b)).json.rows).toEqual([]);
+    expect((await api('GET', `/dms/cases/${caseId}`, U.b)).status).toBe(404);
+    expect((await api('GET', `/dms/cases/${id()}`, U.a)).status).toBe(404);
     expect(
       (await api('POST', `/dms/cases/${caseId}/documents`, U.b, { kind: 'N', title: 't' })).status,
     ).toBe(404);
