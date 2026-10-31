@@ -75,6 +75,14 @@ export class DmsCasesController {
       .then((rows) => ({ rows }));
   }
 
+  @Get('cases/:id')
+  async one(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows(a.tenantId, 'dms_get_case', [a.tenantId, a.userId, id]);
+    if (!rows[0])
+      throw new HttpException({ code: 'CASE_NOT_FOUND', label: null }, HttpStatus.NOT_FOUND);
+    return rows[0];
+  }
+
   @Post('cases')
   create(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
     const b = parse(
