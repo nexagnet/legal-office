@@ -2483,3 +2483,29 @@ section[aria-labelledby='branch-t'] .plain-list {
     margin: 12mm;
   }
 }
+
+.stat-form {
+  margin-block: 1.5rem;
+  break-inside: avoid;
+}
+.stat-form .stat-code {
+  text-align: right;
+  font-weight: 600;
+}
+.stat-form th,
+.stat-form td {
+  text-align: center;
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+.stat-sign {
+  margin-top: 1rem;
+  margin-left: auto;
+  width: max-content;
+  text-align: center;
+}
+@media print {
+  .stat-form {
+    page-break-after: always;
+  }
+}
