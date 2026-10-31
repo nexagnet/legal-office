@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { DmsAmendmentForm } from '../../../../components/DmsAmendments';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
 import { DmsThvPicker } from '../../../../components/DmsThvActions';
 import {
@@ -8,6 +9,9 @@ import {
   UploadDmsFile,
 } from '../../../../components/DmsCaseActions';
 import {
+  AMENDMENT_STATUS_LABEL,
+  amendmentSummary,
+  loadDmsAmendments,
   canAddDocument,
   canConfirm,
   canDraft,
@@ -81,6 +85,11 @@ export default async function DmsCasePage({
     loadDmsBooks(cookie, true),
     isDraftCase ? loadThvOptions(cookie) : Promise.resolve([]),
   ]);
+  const amendments =
+    c.status === 'RECORDED' ? await loadDmsAmendments(cookie, c.office_id, { caseId: id }) : [];
+  const canAmend =
+    c.status === 'RECORDED' &&
+    (canDraft(permissions, domain.code) || permissions.includes('dms.permission.approve'));
   const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
   const docs = documents === 'error' ? [] : documents;
   const filesByDoc = await Promise.all(docs.map((d) => loadDmsFiles(cookie, d.id)));
@@ -151,6 +160,15 @@ export default async function DmsCasePage({
           legend={`Nội dung vào sổ ${book.code}`}
         />
       ) : null}
+      {canAmend && book && book.source === 'case' ? (
+        <DmsAmendmentForm
+          caseId={c.id}
+          columns={inputColumns(book)}
+          current={c.attributes}
+          currentTitle={c.title}
+          allowN11={domain.code === 'vibang'}
+        />
+      ) : null}
       {isDraft && canAddDocument(permissions, domain.code) ? (
         <AddDmsDocumentForm caseId={c.id} />
       ) : null}
@@ -190,10 +208,44 @@ export default async function DmsCasePage({
                 legend={`Giấy tờ vào sổ ${book.code}`}
               />
             ) : null}
+            {canAmend && book && book.source === 'document' ? (
+              <DmsAmendmentForm
+                caseId={c.id}
+                documentId={d.id}
+                columns={inputColumns(book)}
+                current={d.attributes}
+                allowN11={false}
+              />
+            ) : null}
             {c.status !== 'CANCELLED' ? <UploadDmsFile documentId={d.id} /> : null}
           </article>
         ))
       )}
+      {amendments !== 'error' && amendments.length > 0 ? (
+        <>
+          <h2>Lịch sử sửa đổi</h2>
+          <ul>
+            {amendments.map((a) => (
+              <li key={a.id}>
+                {fmt.format(new Date(a.requested_at))} ·{' '}
+                <span
+                  className="chip"
+                  data-tone={
+                    a.status === 'APPROVED' ? 'ok' : a.status === 'PENDING' ? 'warn' : 'danger'
+                  }
+                >
+                  {AMENDMENT_STATUS_LABEL[a.status]}
+                </span>{' '}
+                {a.n11 ? '(N-11) ' : ''}
+                {amendmentSummary(a)} — {a.reason}{' '}
+                <a href={`/api/dms/amendments/${a.id}/evidence`}>Văn bản sửa đổi</a>
+                {a.auto_via === 'WINDOW' ? ' · tự duyệt trong cửa sổ' : ''}
+                {a.review_note ? ` · ${a.review_note}` : ''}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
     </section>
   );
 }
