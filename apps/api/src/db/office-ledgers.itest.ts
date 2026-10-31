@@ -448,8 +448,12 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
       }).then(async (r) => ({ status: r.status, json: await r.json().catch(() => ({})) }));
     const periods = (user: string, code: string, qs = '') =>
       get(`/office/ledgers/${code}/periods?officeId=${OFF}${qs}`, user);
-    const now = new Date();
-    const thisMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+    // Máy chủ tính "tháng hiện tại" theo giờ Việt Nam; dùng UTC thì sai trong 7 giờ cuối ngày cuối tháng.
+    const thisMonth = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    }).format(new Date());
 
     expect((await seal(U.secretary, 'S-02', '2026-01')).status).toBe(403);
     expect((await seal(U.admin, 'S-09', '2026-01')).status).toBe(422);
