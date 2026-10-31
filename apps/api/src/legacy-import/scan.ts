@@ -52,7 +52,7 @@ export async function* scan(
       const name = rawName.normalize('NFC');
       const abs = join(dirAbs, rawName);
       const rel = dirRel ? `${dirRel}/${name}` : name;
-      if (opts.skipAbsPaths?.has(abs)) continue;
+      if (opts.skipAbsPaths?.has(abs.replace(/^\\\\\?\\/, ''))) continue;
       if (name.includes('\\') || name.includes('\0')) {
         yield { kind: 'skip', relPath: rel, reason: 'BAD_NAME' };
         continue;
@@ -78,4 +78,13 @@ export async function* scan(
     }
   }
   yield* walk(root, '');
+}
+
+/**
+ * Windows giới hạn đường dẫn 260 ký tự. Thêm tiền tố \\?\ để Node đọc được đường dẫn dài (kho tài liệu cũ hay có thư mục lồng sâu).
+ * Nơi khác giữ nguyên.
+ */
+export function toLongPath(absPath: string, platform: string = process.platform): string {
+  if (platform !== 'win32' || absPath.startsWith('\\\\?\\')) return absPath;
+  return absPath.startsWith('\\\\') ? `\\\\?\\UNC\\${absPath.slice(2)}` : `\\\\?\\${absPath}`;
 }
