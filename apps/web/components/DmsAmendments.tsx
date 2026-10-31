@@ -217,3 +217,87 @@ export function DmsAmendmentWindowForm({
     </form>
   );
 }
+
+/**
+ * Thêm PHIÊN BẢN MỚI của một tệp đã lưu (bản cũ vẫn còn). Hai tệp: tệp mới và bản scan văn bản sửa đổi.
+ * Tệp mới được tải lên bước đệm trước, rồi yêu cầu sửa đổi tham chiếu tới nó.
+ */
+export function DmsFileVersionForm({
+  caseId,
+  documentId,
+  fileId,
+}: {
+  readonly caseId: string;
+  readonly documentId: string;
+  readonly fileId: string;
+}) {
+  const { router, error, setError, busy, setBusy, done, setDone } = useAction();
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    const next = f.get('next');
+    const evidence = f.get('evidence');
+    const reason = String(f.get('reason') ?? '').trim();
+    if (!(next instanceof File) || next.size === 0)
+      return setError('Hãy chọn tệp phiên bản mới (PDF, JPEG hoặc PNG).');
+    if (!(evidence instanceof File) || evidence.size === 0)
+      return setError('Hãy đính kèm bản scan văn bản sửa đổi (PDF, JPEG hoặc PNG).');
+    if (!reason) return setError(messageFor('REASON_REQUIRED'));
+    setBusy(true);
+    setError(null);
+    setDone(null);
+    try {
+      const staged = await fetch('/api/dms/uploads', {
+        method: 'POST',
+        headers: { 'content-type': next.type || 'application/octet-stream' },
+        body: next,
+      });
+      const stagedJson = (await staged.json().catch(() => ({}))) as {
+        code?: string;
+        label?: string;
+      };
+      if (!staged.ok || !stagedJson.label) return setError(messageFor(stagedJson.code));
+      const q = new URLSearchParams({ reason, documentId, fileId, stagedId: stagedJson.label });
+      const res = await fetch(`/api/dms/cases/${caseId}/amendments?${q}`, {
+        method: 'POST',
+        headers: { 'content-type': evidence.type || 'application/octet-stream' },
+        body: evidence,
+      });
+      const json = (await res.json().catch(() => ({}))) as { code?: string };
+      if (!res.ok) return setError(messageFor(json.code));
+      setDone(DONE[json.code ?? ''] ?? 'Đã gửi.');
+      form.reset();
+      router.refresh();
+    } catch {
+      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} aria-label="Thêm phiên bản tệp mới" className="mb-2 grid gap-2 text-sm">
+      <label className="flex flex-col gap-1">
+        <span>Tệp phiên bản mới (bản cũ vẫn được giữ)</span>
+        <input type="file" name="next" accept="application/pdf,image/jpeg,image/png" required />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span>Bản scan văn bản sửa đổi (bắt buộc)</span>
+        <input type="file" name="evidence" accept="application/pdf,image/jpeg,image/png" required />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span>Lý do (bắt buộc)</span>
+        <input name="reason" required maxLength={2000} />
+      </label>
+      <div>
+        <button type="submit" disabled={busy}>
+          Gửi phiên bản mới
+        </button>
+        {done ? <span role="status"> {done}</span> : null}
+        {error ? <p role="alert">{error}</p> : null}
+      </div>
+    </form>
+  );
+}

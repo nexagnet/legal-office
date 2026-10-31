@@ -65,11 +65,21 @@ export class DmsAmendmentsController {
           documentId: uuid.optional(),
           reason: z.string().min(1).max(2000),
           n11: z.enum(['true', 'false']).default('false'),
-          changes: z.string().min(2).max(20000),
+          changes: z.string().min(2).max(20000).optional(),
+          /** Thêm phiên bản tệp mới: tệp mới đã tải lên bước đệm (POST /dms/uploads). */
+          fileId: uuid.optional(),
+          stagedId: uuid.optional(),
         })
         .strict(),
       query,
     );
+    if (q.fileId || q.stagedId)
+      return this.proposeVersion(a, id, q, { contentType, contentLength, req });
+    if (!q.changes)
+      throw new HttpException(
+        { code: 'INVALID_INPUT', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     let parsedChanges: z.infer<typeof changes>;
     try {
       parsedChanges = parse(changes, JSON.parse(q.changes));
@@ -99,6 +109,68 @@ export class DmsAmendmentsController {
             JSON.stringify(proposed),
             q.reason,
             q.n11 === 'true',
+            key,
+            f.sha256,
+            f.mime,
+            f.bytes.length,
+          ])
+          .then(respond),
+    );
+  }
+
+  private proposeVersion(
+    a: AuthenticatedActor,
+    caseId: string,
+    q: { documentId?: string; fileId?: string; stagedId?: string; reason: string },
+    up: { contentType: string | undefined; contentLength: string | undefined; req: RawBody },
+  ) {
+    if (!q.documentId || !q.fileId || !q.stagedId)
+      throw new HttpException(
+        { code: 'INVALID_INPUT', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    const { documentId, fileId, stagedId } = q;
+    return recordWithUpload(
+      this.store,
+      { contentType: up.contentType, contentLength: up.contentLength, body: up.req },
+      (f) => `t/${a.tenantId}/dms/amendments/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.repo
+          .call(a.tenantId, 'dms_amendment_propose_version', [
+            a.tenantId,
+            a.userId,
+            caseId,
+            documentId,
+            fileId,
+            stagedId,
+            q.reason,
+            key,
+            f.sha256,
+            f.mime,
+            f.bytes.length,
+          ])
+          .then(respond),
+    );
+  }
+
+  /** Tải lên bước đệm một tệp sẽ trở thành phiên bản mới của một tệp (chỉ dùng được trong yêu cầu sửa đổi của chính người tải). */
+  @Post('uploads')
+  @HttpCode(HttpStatus.OK)
+  stage(
+    @CurrentActor() a: AuthenticatedActor,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/dms/staged/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.repo
+          .call(a.tenantId, 'dms_stage_upload', [
+            a.tenantId,
+            a.userId,
             key,
             f.sha256,
             f.mime,
