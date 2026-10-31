@@ -15,7 +15,7 @@ describe('searchEntries', () => {
   it('tìm không phân biệt dấu và hoa thường, trang trước hồ sơ', () => {
     const hits = searchEntries('hoa phat', pages, cases);
     expect(hits.map((h) => h.href)).toEqual(['/vi-bang/c1']);
-    expect(searchEntries('TONG DAT', pages, cases)[0]?.href).toBe('/tong-dat');
+    expect(searchEntries('VAN THU', pages, cases)[0]?.href).toBe('/dms/van-ban-den');
   });
   it('tìm theo số vi bằng và khách hàng', () => {
     expect(searchEntries('12/2026', pages, cases).map((h) => h.href)).toEqual(['/vi-bang/c1']);
