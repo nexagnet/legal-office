@@ -120,6 +120,7 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       (x) => `vibang.${x}.own`,
     );
     await mk('THV tạo', own, [U.a, U.b]);
+    await mk('Đọc hồ sơ', ['vibang.read.all'], [U.approver1, U.approver2]);
     await mk('Người đề xuất', ['dms.permission.propose'], [U.proposer]);
     await mk(
       'Quản trị phân quyền',
@@ -405,6 +406,62 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
           kind: 'GRANT',
           permission: 'vibang.read.all',
           reason: 'x',
+        })
+      ).status,
+    ).toBe(404);
+  });
+
+  it('sửa đổi hồ sơ đã ghi sổ qua HTTP: bắt buộc lý do và scan, chờ duyệt, Admin duyệt thì áp dụng', async () => {
+    expect(
+      (await api('PUT', '/dms/amendment-window', U.approver1, { officeId: OFF, hours: 0 })).status,
+    ).toBe(200);
+    expect((await api('GET', `/dms/amendment-window?officeId=${OFF}`, U.a)).json.hours).toBe(0);
+    expect(
+      (await api('PUT', '/dms/amendment-window', U.a, { officeId: OFF, hours: 5 })).status,
+    ).toBe(403);
+    const c = (
+      await api('POST', '/dms/cases', U.a, {
+        officeId: OFF,
+        domain: 'vibang',
+        title: 'Vi bằng sửa đổi',
+        attributes: { ghi_chu: 'gốc' },
+      })
+    ).json.label as string;
+    expect((await api('POST', `/dms/cases/${c}/record`, U.a)).status).toBe(200);
+    const changes = encodeURIComponent(JSON.stringify({ attributes: { ghi_chu: 'đã sửa' } }));
+    const path = (reason: string) =>
+      `/dms/cases/${c}/amendments?reason=${encodeURIComponent(reason)}&changes=${changes}`;
+    expect(
+      (await upload(path('Văn bản sửa đổi 01'), U.a, Buffer.from('không phải pdf'))).status,
+    ).toBe(422);
+    const sent = await upload(path('Văn bản sửa đổi 01'), U.a, PDF);
+    expect(sent.status).toBe(200);
+    expect(sent.json.code).toBe('AMENDMENT_PENDING');
+    const amendId = sent.json.label as string;
+    expect((await api('GET', `/dms/cases/${c}`, U.a)).json.attributes.ghi_chu).toBe('gốc');
+
+    expect((await api('GET', `/dms/amendments?officeId=${OFF}`, U.a)).json.rows).toHaveLength(1);
+    expect((await api('GET', `/dms/amendments?officeId=${OFF}`, U.b)).json.rows).toHaveLength(0);
+    expect(
+      (await api('GET', `/dms/amendments?officeId=${OFF}&status=PENDING`, U.approver1)).json.rows,
+    ).toHaveLength(1);
+    expect(
+      (await api('POST', `/dms/amendments/${amendId}/review`, U.a, { approve: true })).status,
+    ).toBe(403);
+    expect(
+      (await api('POST', `/dms/amendments/${amendId}/review`, U.approver1, { approve: true }))
+        .status,
+    ).toBe(200);
+    expect((await api('GET', `/dms/cases/${c}`, U.a)).json.attributes.ghi_chu).toBe('đã sửa');
+    const ev = await fetch(`${base}/dms/amendments/${amendId}/evidence`, {
+      headers: { 'x-synthetic-user': U.approver2, 'x-synthetic-tenant': T },
+    });
+    expect(ev.status).toBe(200);
+    expect(Buffer.from(await ev.arrayBuffer())).toEqual(PDF);
+    expect(
+      (
+        await fetch(`${base}/dms/amendments/${amendId}/evidence`, {
+          headers: { 'x-synthetic-user': U.b, 'x-synthetic-tenant': T },
         })
       ).status,
     ).toBe(404);

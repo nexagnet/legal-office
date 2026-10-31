@@ -340,3 +340,57 @@ export async function loadThvReview(
     return 'error';
   }
 }
+
+export interface DmsAmendmentRow {
+  readonly id: string;
+  readonly case_id: string;
+  readonly document_id: string | null;
+  readonly kind: 'CASE_FIELDS' | 'DOCUMENT_FIELDS' | 'FILE_VERSION';
+  readonly n11: boolean;
+  readonly proposed: { title?: string; attributes?: Record<string, unknown> };
+  readonly reason: string;
+  readonly status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  /** ADMIN = Admin gửi nên có hiệu lực ngay; WINDOW = tự duyệt trong N giờ sau khi ghi sổ. */
+  readonly auto_via: 'ADMIN' | 'WINDOW' | null;
+  readonly requested_by: string;
+  readonly requested_at: string;
+  readonly reviewed_at: string | null;
+  readonly review_note: string | null;
+}
+
+export const AMENDMENT_STATUS_LABEL: Record<DmsAmendmentRow['status'], string> = {
+  PENDING: 'Chờ Admin duyệt',
+  APPROVED: 'Đã áp dụng',
+  REJECTED: 'Bị từ chối',
+};
+
+export function amendmentSummary(a: Pick<DmsAmendmentRow, 'proposed' | 'kind'>): string {
+  const parts: string[] = [];
+  if (a.proposed.title) parts.push(`Tiêu đề → ${a.proposed.title}`);
+  for (const [k, v] of Object.entries(a.proposed.attributes ?? {}))
+    parts.push(`${k} → ${String(v)}`);
+  return parts.join('; ') || 'Phiên bản tệp mới';
+}
+
+export async function loadDmsAmendments(
+  cookie: string | null,
+  officeId: string,
+  opts: { caseId?: string; status?: DmsAmendmentRow['status'] } = {},
+): Promise<DmsAmendmentRow[] | 'error'> {
+  const q = new URLSearchParams({ officeId, limit: '200' });
+  if (opts.caseId) q.set('caseId', opts.caseId);
+  if (opts.status) q.set('status', opts.status);
+  const body = await getJson<{ rows: DmsAmendmentRow[] }>(`/dms/amendments?${q}`, cookie);
+  return body === 'error' ? 'error' : body.rows;
+}
+
+export async function loadAmendmentWindow(
+  cookie: string | null,
+  officeId: string,
+): Promise<number> {
+  const body = await getJson<{ hours: number }>(
+    `/dms/amendment-window?officeId=${encodeURIComponent(officeId)}`,
+    cookie,
+  );
+  return body === 'error' ? 48 : body.hours;
+}

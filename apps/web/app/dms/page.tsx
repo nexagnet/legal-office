@@ -25,6 +25,9 @@ export default function DmsHome() {
           <Link href="/dms/thv">Chờ tôi xác nhận (thừa hành viên)</Link>
         </li>
         <li>
+          <Link href="/dms/sua-doi">Yêu cầu sửa đổi</Link>
+        </li>
+        <li>
           <Link href="/dms/so">Xuất sổ nghiệp vụ</Link>
         </li>
       </ul>
