@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOOKS, BOOK_CODES, bookCells, bookForDomain, toCsv } from './books';
+import { BOOKS, BOOK_CODES, VANTHU_BOOKS, bookCells, bookForDomain, bookOf, toCsv } from './books';
 
 describe('định nghĩa sổ nghiệp vụ', () => {
   it('số cột và thứ tự đúng mẫu: S-01 10 cột, S-02 7, S-04 11, S-05 12; cột đầu là STT', () => {
@@ -63,5 +63,24 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     expect(csv.startsWith('﻿')).toBe(true);
     expect(csv).toContain('"Trần, ""Việt"""');
     expect(csv).toContain(`"'=HYPERLINK(""x"")"`);
+  });
+});
+
+describe('sổ Văn thư', () => {
+  it('ba sổ có cột đúng Figma và chỉ cấp số tự động ở cột Số đến/STT', () => {
+    expect(VANTHU_BOOKS['VT-DEN'].columns.map((c) => c.heading)).toContain('Số đến');
+    expect(VANTHU_BOOKS['VT-DI'].columns[0]?.key).toBe('stt');
+    expect(bookForDomain('vtnb')?.code).toBe('VT-NB');
+    expect(bookOf('VT-DEN')?.domain).toBe('vtden');
+  });
+  it('trích yếu lấy từ tiêu đề hồ sơ, số ký hiệu từ thuộc tính', () => {
+    const cells = bookCells(VANTHU_BOOKS['VT-DI'], {
+      stt: 3,
+      case_title: 'Công văn đề nghị',
+      case_attributes: { so_ky_hieu: '05/CV-VP' },
+      doc_kind: null,
+      doc_attributes: null,
+    });
+    expect(cells.slice(0, 4)).toEqual(['3', '05/CV-VP', '', 'Công văn đề nghị']);
   });
 });

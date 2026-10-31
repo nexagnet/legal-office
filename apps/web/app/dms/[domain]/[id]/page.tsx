@@ -12,6 +12,7 @@ import {
   canConfirm,
   canDraft,
   domainBySlug,
+  isVanThu,
   inputColumns,
   loadDmsBooks,
   loadDmsCase,
@@ -77,7 +78,7 @@ export default async function DmsCasePage({
   const [documents, permissions, books, thvOptions] = await Promise.all([
     loadDmsDocuments(cookie, id),
     loadMyDmsPermissions(cookie, c.office_id),
-    loadDmsBooks(cookie),
+    loadDmsBooks(cookie, true),
     isDraftCase ? loadThvOptions(cookie) : Promise.resolve([]),
   ]);
   const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
@@ -133,7 +134,7 @@ export default async function DmsCasePage({
           có duyệt.
         </p>
       )}
-      {isDraft && canDraft(permissions, domain.code) ? (
+      {isDraft && canDraft(permissions, domain.code) && !isVanThu(domain.code) ? (
         <DmsThvPicker
           caseId={c.id}
           options={thvOptions}

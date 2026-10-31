@@ -51,7 +51,7 @@ export function NewDmsCaseForm({
       aria-label="Tạo nháp hồ sơ"
     >
       <label className="flex flex-col gap-1 text-sm">
-        Tên hồ sơ
+        {domainCode.startsWith('vt') ? 'Tên loại và trích yếu nội dung' : 'Tên hồ sơ'}
         <input name="title" required maxLength={500} className="min-w-72" />
       </label>
       <label className="flex flex-col gap-1 text-sm">

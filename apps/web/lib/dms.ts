@@ -8,10 +8,25 @@ export const DMS_DOMAINS = [
   { slug: 'to-chuc-tha', code: 'tochuc', label: 'Tổ chức thi hành án' },
 ] as const;
 
-export type DmsDomain = (typeof DMS_DOMAINS)[number];
+/** Ba sổ Văn thư: dùng chung lõi hồ sơ/nháp/scan với bốn nghiệp vụ; `book` là mã sổ xuất. */
+export const VAN_THU_DOMAINS = [
+  { slug: 'van-ban-den', code: 'vtden', label: 'Văn bản đến', book: 'VT-DEN', bookSlug: 'vt-den' },
+  { slug: 'van-ban-di', code: 'vtdi', label: 'Văn bản đi', book: 'VT-DI', bookSlug: 'vt-di' },
+  {
+    slug: 'van-ban-noi-bo',
+    code: 'vtnb',
+    label: 'Văn bản nội bộ',
+    book: 'VT-NB',
+    bookSlug: 'vt-nb',
+  },
+] as const;
+
+export type DmsDomain = (typeof DMS_DOMAINS)[number] | (typeof VAN_THU_DOMAINS)[number];
 
 export const domainBySlug = (slug: string): DmsDomain | undefined =>
-  DMS_DOMAINS.find((d) => d.slug === slug);
+  [...DMS_DOMAINS, ...VAN_THU_DOMAINS].find((d) => d.slug === slug);
+
+export const isVanThu = (code: string): boolean => VAN_THU_DOMAINS.some((d) => d.code === code);
 
 export interface DmsCaseRow {
   readonly id: string;
@@ -213,9 +228,17 @@ export interface DmsBookRow {
   readonly doc_attributes: Record<string, unknown> | null;
 }
 
-export async function loadDmsBooks(cookie: string | null): Promise<DmsBookSpec[] | 'error'> {
-  const body = await getJson<{ books: DmsBookSpec[] }>('/dms/books', cookie);
-  return body === 'error' ? 'error' : body.books;
+/** Sổ nghiệp vụ; `withVanThu` thêm ba sổ Văn thư (để dựng form nhập ở trang chi tiết). */
+export async function loadDmsBooks(
+  cookie: string | null,
+  withVanThu = false,
+): Promise<DmsBookSpec[] | 'error'> {
+  const body = await getJson<{ books: DmsBookSpec[]; vanthu?: DmsBookSpec[] }>(
+    '/dms/books',
+    cookie,
+  );
+  if (body === 'error') return 'error';
+  return withVanThu ? [...body.books, ...(body.vanthu ?? [])] : body.books;
 }
 
 export async function loadDmsBookRows(
@@ -234,13 +257,14 @@ export async function loadDmsBookRows(
 
 /** Các cột nhập tay của một sổ (bỏ STT). Dùng dựng form nhập thuộc tính ở bản nháp. */
 export const inputColumns = (spec: Pick<DmsBookSpec, 'columns'>): DmsBookColumn[] =>
-  spec.columns.filter((c) => c.key !== 'stt');
+  spec.columns.filter((c) => c.key !== 'stt' && c.key !== 'title');
 
 const strOf = (v: unknown): string => (v === null || v === undefined ? '' : String(v).trim());
 
 /** Ô của một dòng sổ, như API xuất CSV: ô thiếu để trống, cột đánh dấu hiện ✓. */
 export function bookCell(spec: DmsBookSpec, col: DmsBookColumn, row: DmsBookRow): string {
   if (col.key === 'stt') return String(row.stt);
+  if (col.key === 'title') return strOf(row.case_title);
   const attrs = spec.source === 'document' ? (row.doc_attributes ?? {}) : row.case_attributes;
   const v = strOf(attrs[col.key]) || (col.key === 'loai_van_ban' ? strOf(row.doc_kind) : '');
   return col.tick ? (v === '' ? '' : '✓') : v;

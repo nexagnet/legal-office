@@ -11,6 +11,7 @@ import {
   domainBySlug,
   headerGroups,
   inputColumns,
+  isVanThu,
   scanState,
   statusForTab,
   type DmsCaseRow,
@@ -174,5 +175,24 @@ describe('thừa hành viên tự xác nhận', () => {
     );
     expect(screen.getByRole('option', { name: 'Nguyễn Minh' })).toBeTruthy();
     expect(screen.getByText('Chờ THV xác nhận')).toBeTruthy();
+  });
+});
+
+describe('Văn thư', () => {
+  it('ba sổ văn thư có đường dẫn riêng và nhận diện đúng', () => {
+    expect(domainBySlug('van-ban-den')).toMatchObject({ code: 'vtden', book: 'VT-DEN' });
+    expect(domainBySlug('van-ban-noi-bo')?.code).toBe('vtnb');
+    expect(isVanThu('vtdi')).toBe(true);
+    expect(isVanThu('vibang')).toBe(false);
+  });
+  it('cột nhập tay bỏ Số đến/STT và trích yếu (đã nhập ở tên hồ sơ)', () => {
+    const cols = inputColumns({
+      columns: [
+        { no: 1, heading: 'Số đến', key: 'stt' },
+        { no: 2, heading: 'Trích yếu', key: 'title' },
+        { no: 3, heading: 'Ghi chú', key: 'ghi_chu' },
+      ],
+    });
+    expect(cols.map((c) => c.key)).toEqual(['ghi_chu']);
   });
 });
