@@ -100,3 +100,83 @@ export async function loadMyDmsPermissions(
   );
   return body === 'error' ? [] : body.permissions;
 }
+
+export interface DmsCaseDetail extends DmsCaseRow {
+  readonly office_id: string;
+  readonly attributes: Record<string, unknown>;
+  readonly cancelled_at: string | null;
+  readonly cancel_reason: string | null;
+}
+
+export interface DmsDocumentRow {
+  readonly id: string;
+  readonly kind: string;
+  readonly title: string;
+  readonly is_official: boolean;
+  readonly status: 'DRAFT' | 'RECORDED' | 'CANCELLED';
+  readonly file_count: number;
+  readonly scan_count: number;
+}
+
+export interface DmsFileRow {
+  readonly id: string;
+  readonly label: string;
+  readonly is_scan: boolean;
+  readonly version: number;
+  readonly mime: string;
+  readonly size_bytes: number | string;
+  readonly created_at: string;
+}
+
+/** Quyền xác nhận lưu chính thức ở miền này (own hoặc all). Chỉ để ẩn/hiện nút; máy chủ vẫn kiểm. */
+export function canConfirm(permissions: readonly string[], domainCode: string): boolean {
+  return (
+    permissions.includes(`${domainCode}.confirm.own`) ||
+    permissions.includes(`${domainCode}.confirm.all`)
+  );
+}
+
+export function canAddDocument(permissions: readonly string[], domainCode: string): boolean {
+  return (
+    permissions.includes(`${domainCode}.add_document.own`) ||
+    permissions.includes(`${domainCode}.add_document.all`)
+  );
+}
+
+export async function loadDmsCase(
+  cookie: string | null,
+  id: string,
+): Promise<DmsCaseDetail | 'error' | 'not-found'> {
+  try {
+    const res = await fetch(`${API_URL}/dms/cases/${encodeURIComponent(id)}`, {
+      headers: cookie ? { cookie } : {},
+      cache: 'no-store',
+    });
+    if (res.status === 404) return 'not-found';
+    return res.ok ? ((await res.json()) as DmsCaseDetail) : 'error';
+  } catch {
+    return 'error';
+  }
+}
+
+export async function loadDmsDocuments(
+  cookie: string | null,
+  caseId: string,
+): Promise<DmsDocumentRow[] | 'error'> {
+  const body = await getJson<{ rows: DmsDocumentRow[] }>(
+    `/dms/cases/${encodeURIComponent(caseId)}/documents`,
+    cookie,
+  );
+  return body === 'error' ? 'error' : body.rows;
+}
+
+export async function loadDmsFiles(
+  cookie: string | null,
+  documentId: string,
+): Promise<DmsFileRow[]> {
+  const body = await getJson<{ rows: DmsFileRow[] }>(
+    `/dms/documents/${encodeURIComponent(documentId)}/files`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.rows;
+}

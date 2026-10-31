@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { DmsCaseTable } from '../components/DmsCaseTable';
 import {
   activeDmsTab,
+  canAddDocument,
+  canConfirm,
   canDraft,
   domainBySlug,
   scanState,
@@ -77,5 +79,22 @@ describe('DmsCaseTable', () => {
     unmount();
     render(<DmsCaseTable caption="x" rows={[]} />);
     expect(screen.getByRole('status').textContent).toContain('Chưa có hồ sơ');
+  });
+});
+
+describe('quyền ở trang chi tiết và liên kết hồ sơ', () => {
+  it('canConfirm/canAddDocument nhận own hoặc all, đúng miền', () => {
+    expect(canConfirm(['vibang.confirm.own'], 'vibang')).toBe(true);
+    expect(canConfirm(['vibang.confirm.all'], 'vibang')).toBe(true);
+    expect(canConfirm(['tongdat.confirm.all'], 'vibang')).toBe(false);
+    expect(canAddDocument(['vibang.add_document.own'], 'vibang')).toBe(true);
+    expect(canAddDocument(['vibang.draft.own'], 'vibang')).toBe(false);
+  });
+
+  it('có basePath thì tên hồ sơ là liên kết tới trang chi tiết', () => {
+    render(<DmsCaseTable rows={[row({ id: 'abc' })]} caption="c" basePath="/dms/vi-bang" />);
+    expect(screen.getByRole('link', { name: 'Hồ sơ thử' }).getAttribute('href')).toBe(
+      '/dms/vi-bang/abc',
+    );
   });
 });
