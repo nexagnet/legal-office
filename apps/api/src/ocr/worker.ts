@@ -94,3 +94,34 @@ export function tenantIdsFromEnv(env: NodeJS.ProcessEnv): string[] {
     .map((s) => s.trim())
     .filter(Boolean);
 }
+
+export interface RunOnceResult {
+  readonly processed: number;
+  /** Số tenant gặp lỗi mức hệ thống (DB, kho tệp); lỗi từng tệp không tính vì đã được ghi và thử lại ở lượt sau. */
+  readonly tenantErrors: number;
+}
+
+/** Chế độ chạy một lần cho Job theo lịch: làm hết việc đang chờ của mọi tenant rồi dừng. */
+export async function runOnce(
+  pool: pg.Pool,
+  tenants: readonly string[],
+  store: FileStore,
+  engine: OcrEngine,
+  log: WorkerLog,
+): Promise<RunOnceResult> {
+  let processed = 0;
+  let tenantErrors = 0;
+  for (const t of tenants) {
+    try {
+      for (;;) {
+        const n = await processTenant(pool, t, store, engine, log);
+        processed += n;
+        if (n === 0) break;
+      }
+    } catch (e) {
+      tenantErrors += 1;
+      log.error(`ocr: tenant ${t}: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+  return { processed, tenantErrors };
+}
