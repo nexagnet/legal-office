@@ -178,6 +178,10 @@ const MESSAGES: Record<string, string> = {
   PERMISSION_DENIED: 'Nhóm quyền của bạn chưa cho phép thao tác này.',
   CASE_NOT_DRAFT: 'Hồ sơ đã lưu chính thức, không sửa trực tiếp được. Hãy lập yêu cầu sửa đổi.',
   CASE_CANCELLED: 'Hồ sơ nháp này đã hủy.',
+  THV_CONFIRMATION_REQUIRED:
+    'Hồ sơ có ghi tên thừa hành viên. Chính thừa hành viên đó phải xác nhận nội dung trước khi lưu chính thức.',
+  THV_CONFIRMATION_STALE:
+    'Nội dung đã đổi sau khi thừa hành viên xác nhận. Thừa hành viên cần xác nhận lại.',
   DOCUMENT_NOT_DRAFT: 'Tài liệu đã lưu chính thức, không sửa trực tiếp được.',
   INVALID_DOMAIN: 'Nghiệp vụ không hợp lệ.',
   INVALID_INPUT: 'Thông tin chưa hợp lệ. Kiểm tra lại các trường bắt buộc.',
