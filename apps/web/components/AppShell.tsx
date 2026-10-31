@@ -197,6 +197,10 @@ const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
   'bieu-mau': FolderOpen,
   'cong-van': Mail,
   'vat-tu': Package,
+  'dms-vi-bang': FileText,
+  'dms-tong-dat': Send,
+  'dms-xac-minh': Search,
+  'dms-to-chuc-tha': Gavel,
   'dms-thv': CircleCheckBig,
   'dms-sua-doi': FileText,
   'dms-van-thu': Mail,
@@ -279,7 +283,8 @@ export function AppShell({
   const quick = QUICK_SLUGS.map((slug) => items.find((i) => i.slug === slug)).filter(
     (i): i is NavItem => i !== undefined,
   );
-  const domain = DOMAIN_SLUGS.has(current?.slug ?? '') ? current?.slug : undefined;
+  const currentDomain = (current?.slug ?? '').replace(/^dms-/, '');
+  const domain = DOMAIN_SLUGS.has(currentDomain) ? currentDomain : undefined;
   const caseFrame = CASE_FRAME_PATH.test(pathname);
   const head =
     SUBPAGE_HEAD[pathname] ??

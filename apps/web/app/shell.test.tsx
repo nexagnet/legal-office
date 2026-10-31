@@ -26,7 +26,9 @@ afterEach(() => {
 });
 
 // Menu bên không còn mục quy trình cũ (đã ẩn), nhưng vỏ trang vẫn phải xử lý đúng các đường dẫn đó.
-const ALL_ITEMS = [OVERVIEW, ...NAV];
+// Bốn mục nghiệp vụ DMS trùng nhãn với mục cũ cùng tên nên bị loại khỏi bộ mẫu này; chúng có ca kiểm riêng ở "menu DMS".
+const DMS_DOMAIN_SLUGS = ['dms-vi-bang', 'dms-tong-dat', 'dms-xac-minh', 'dms-to-chuc-tha'];
+const ALL_ITEMS = [OVERVIEW, ...NAV.filter((n) => !DMS_DOMAIN_SLUGS.includes(n.slug))];
 
 describe('navigation', () => {
   it('hides the legacy workflow items from every role (owner 2026-10-31) but keeps the pages defined', () => {
@@ -282,5 +284,30 @@ describe('menu DMS', () => {
     expect(hrefs['dms-thv']).toBe('/dms/thv');
     expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
     expect(hrefs['vi-bang']).toBe('/vi-bang');
+  });
+
+  it('đưa bốn nghiệp vụ vào nhóm "Nghiệp vụ" của menu, trỏ tới /dms/<nghiệp vụ>', () => {
+    const shown = visibleNav(['THV']).filter((n) => n.group === 'domain');
+    expect(shown.map((n) => [n.label, hrefOf(n)])).toEqual([
+      ['Vi bằng', '/dms/vi-bang'],
+      ['Tống đạt', '/dms/tong-dat'],
+      ['Xác minh điều kiện THA', '/dms/xac-minh'],
+      ['Tổ chức thi hành án', '/dms/to-chuc-tha'],
+    ]);
+  });
+
+  it('đánh dấu mục nghiệp vụ đang mở và đặt màu miền khi ở /dms/vi-bang', () => {
+    path.current = '/dms/vi-bang';
+    const { container } = render(
+      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(nav.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      nav.getByRole('link', { name: 'Hồ sơ lưu trữ' }).getAttribute('aria-current'),
+    ).toBeNull();
+    expect(container.querySelector('.shell')?.getAttribute('data-domain')).toBe('vi-bang');
   });
 });
