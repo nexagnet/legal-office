@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DmsAmendmentForm } from '../components/DmsAmendments';
+import { DmsAmendmentForm, DmsFileVersionForm } from '../components/DmsAmendments';
 import { DmsBookTable } from '../components/DmsBookTable';
 import { DmsCaseTable } from '../components/DmsCaseTable';
 import { DmsThvConfirmButton, DmsThvPicker } from '../components/DmsThvActions';
@@ -233,5 +233,13 @@ describe('báo cáo tổng hợp', () => {
   it('đủ nhãn cho bảy miền', () => {
     expect(Object.keys(DMS_DOMAIN_LABELS)).toHaveLength(7);
     expect(DMS_DOMAIN_LABELS.vtden).toContain('Văn bản đến');
+  });
+});
+
+describe('phiên bản tệp mới', () => {
+  it('form cần cả tệp mới, bản scan sửa đổi và lý do', () => {
+    render(<DmsFileVersionForm caseId="c" documentId="d" fileId="f" />);
+    for (const re of [/Tệp phiên bản mới/, /Bản scan văn bản sửa đổi/, /Lý do/])
+      expect((screen.getByLabelText(re) as HTMLInputElement).required).toBe(true);
   });
 });

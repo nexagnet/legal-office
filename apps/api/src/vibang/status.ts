@@ -19,6 +19,7 @@ const FORBIDDEN = new Set([
 ]);
 const NOT_FOUND = new Set([
   'CASE_NOT_FOUND',
+  'UPLOAD_NOT_FOUND',
   'CORRECTION_NOT_FOUND',
   'REQUEST_NOT_FOUND',
   'DOCUMENT_NOT_FOUND',

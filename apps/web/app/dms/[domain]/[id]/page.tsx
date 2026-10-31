@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { DmsAmendmentForm } from '../../../../components/DmsAmendments';
+import { DmsAmendmentForm, DmsFileVersionForm } from '../../../../components/DmsAmendments';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
 import { DmsThvPicker } from '../../../../components/DmsThvActions';
 import {
@@ -208,6 +208,11 @@ export default async function DmsCasePage({
                 legend={`Giấy tờ vào sổ ${book.code}`}
               />
             ) : null}
+            {canAmend
+              ? [...new Set(filesByDoc[i]!.map((f) => f.id))].map((fid) => (
+                  <DmsFileVersionForm key={fid} caseId={c.id} documentId={d.id} fileId={fid} />
+                ))
+              : null}
             {canAmend && book && book.source === 'document' ? (
               <DmsAmendmentForm
                 caseId={c.id}

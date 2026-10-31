@@ -466,4 +466,44 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       ).status,
     ).toBe(404);
   });
+
+  it('thêm phiên bản tệp mới qua HTTP: tải bước đệm, gửi kèm scan sửa đổi, Admin duyệt, v2 tải về', async () => {
+    const c = (
+      await api('POST', '/dms/cases', U.a, { officeId: OFF, domain: 'vibang', title: 'Có tệp' })
+    ).json.label as string;
+    const docId = (
+      await api('POST', `/dms/cases/${c}/documents`, U.a, {
+        kind: 'Vi bằng',
+        title: 'Bản chính',
+        isOfficial: true,
+      })
+    ).json.label as string;
+    const fileId = (await upload(`/dms/documents/${docId}/files?label=scan&isScan=true`, U.a, PDF))
+      .json.label as string;
+    expect((await api('POST', `/dms/cases/${c}/record`, U.a)).status).toBe(200);
+    const NEWPDF = Buffer.from('%PDF-1.4\n% phiên bản 2\n');
+    const staged = await upload('/dms/uploads', U.a, NEWPDF);
+    expect(staged.status).toBe(200);
+    const stagedId = staged.json.label as string;
+    const q = `fileId=${fileId}&documentId=${docId}&stagedId=${stagedId}&reason=${encodeURIComponent('Quét lại rõ hơn')}`;
+    // Người khác không dùng được tệp bước đệm của mình.
+    expect((await upload(`/dms/cases/${c}/amendments?${q}`, U.b, PDF)).status).toBe(404);
+    const sent = await upload(`/dms/cases/${c}/amendments?${q}`, U.a, PDF);
+    expect(sent.json.code).toBe('AMENDMENT_PENDING');
+    // Dùng lại bước đệm sau khi gửi thì bị chặn.
+    expect((await upload(`/dms/cases/${c}/amendments?${q}`, U.a, PDF)).status).toBe(409);
+    expect(
+      (
+        await api('POST', `/dms/amendments/${sent.json.label}/review`, U.approver1, {
+          approve: true,
+        })
+      ).status,
+    ).toBe(200);
+    const files = await api('GET', `/dms/documents/${docId}/files`, U.a);
+    expect(files.json.rows.map((r: Row) => r.version)).toEqual([1, 2]);
+    const dl = await fetch(`${base}/dms/files/${fileId}/download`, {
+      headers: { 'x-synthetic-user': U.a, 'x-synthetic-tenant': T },
+    });
+    expect(Buffer.from(await dl.arrayBuffer())).toEqual(NEWPDF);
+  });
 });
