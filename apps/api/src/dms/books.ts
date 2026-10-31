@@ -4,6 +4,7 @@
  * Hệ thống KHÔNG tự cấp số văn bản pháp lý (số vi bằng, số quyết định...): đó là dữ liệu người nhập.
  */
 export type BookCode = 'S-01' | 'S-02' | 'S-04' | 'S-05';
+export type VanThuCode = 'VT-DEN' | 'VT-DI' | 'VT-NB';
 export type BookSource = 'case' | 'document';
 
 export interface BookColumn {
@@ -19,8 +20,8 @@ export interface BookColumn {
 }
 
 export interface BookSpec {
-  readonly code: BookCode;
-  readonly domain: 'tongdat' | 'vibang' | 'xacminh' | 'tochuc';
+  readonly code: BookCode | VanThuCode;
+  readonly domain: 'tongdat' | 'vibang' | 'xacminh' | 'tochuc' | 'vtden' | 'vtdi' | 'vtnb';
   readonly form: string;
   readonly title: string;
   /** Nguồn thuộc tính của một dòng sổ: S-01 là tài liệu (giấy tờ), còn lại là hồ sơ. */
@@ -166,9 +167,68 @@ export const BOOKS: Readonly<Record<BookCode, BookSpec>> = {
 };
 
 export const BOOK_CODES = Object.keys(BOOKS) as BookCode[];
-export const bookOf = (code: string): BookSpec | undefined => BOOKS[code as BookCode];
+
+/**
+ * Ba sổ Văn thư (Figma "Văn thư"). `title` là cột "Tên loại và trích yếu nội dung" (lấy từ tiêu đề hồ sơ). Chỉ "Số đến" (sổ đến) và
+ * "STT" (sổ đi, nội bộ) do hệ thống cấp; số/ký hiệu văn bản là dữ liệu người nhập. Cột Scan chỉ có ở giao diện, không vào CSV.
+ */
+const vt = (
+  code: VanThuCode,
+  domain: BookSpec['domain'],
+  title: string,
+  columns: BookColumn[],
+): BookSpec => ({
+  code,
+  domain,
+  form: code,
+  title,
+  source: 'case',
+  columns,
+});
+const col = (no: number, heading: string, key: string): BookColumn => ({ no, heading, key });
+
+export const VANTHU_BOOKS: Readonly<Record<VanThuCode, BookSpec>> = {
+  'VT-DEN': vt('VT-DEN', 'vtden', 'SỔ VĂN BẢN ĐẾN', [
+    col(1, 'Ngày đến', 'ngay_den'),
+    col(2, 'Số đến', 'stt'),
+    col(3, 'Cơ quan ban hành', 'co_quan_ban_hanh'),
+    col(4, 'Số, ký hiệu văn bản', 'so_ky_hieu'),
+    col(5, 'Ngày, tháng văn bản', 'ngay_van_ban'),
+    col(6, 'Tên loại và trích yếu nội dung', 'title'),
+    col(7, 'Đơn vị, người nhận', 'don_vi_nguoi_nhan'),
+    col(8, 'Ký nhận', 'ky_nhan'),
+    col(9, 'Ghi chú', 'ghi_chu'),
+  ]),
+  'VT-DI': vt('VT-DI', 'vtdi', 'SỔ VĂN BẢN ĐI', [
+    col(1, 'STT', 'stt'),
+    col(2, 'Số, ký hiệu văn bản', 'so_ky_hieu'),
+    col(3, 'Ngày, tháng văn bản', 'ngay_van_ban'),
+    col(4, 'Tên loại và trích yếu nội dung', 'title'),
+    col(5, 'Người ký', 'nguoi_ky'),
+    col(6, 'Nơi nhận văn bản', 'noi_nhan'),
+    col(7, 'Số lượng bản (nơi nhận + lưu)', 'so_luong_ban'),
+    col(8, 'Ngày chuyển giao', 'ngay_chuyen_giao'),
+    col(9, 'Ghi chú', 'ghi_chu'),
+  ]),
+  'VT-NB': vt('VT-NB', 'vtnb', 'SỔ VĂN BẢN NỘI BỘ', [
+    col(1, 'STT', 'stt'),
+    col(2, 'Số, ký hiệu văn bản', 'so_ky_hieu'),
+    col(3, 'Ngày, tháng văn bản', 'ngay_van_ban'),
+    col(4, 'Tên loại và trích yếu nội dung', 'title'),
+    col(5, 'Người ký', 'nguoi_ky'),
+    col(6, 'Nơi nhận văn bản', 'noi_nhan'),
+    col(7, 'Số lượng bản', 'so_luong_ban'),
+    col(8, 'Ghi chú', 'ghi_chu'),
+  ]),
+};
+export const VANTHU_CODES = Object.keys(VANTHU_BOOKS) as VanThuCode[];
+
+export const bookOf = (code: string): BookSpec | undefined =>
+  BOOKS[code as BookCode] ?? VANTHU_BOOKS[code as VanThuCode];
 export const bookForDomain = (domain: string): BookSpec | undefined =>
-  BOOK_CODES.map((c) => BOOKS[c]).find((b) => b.domain === domain);
+  [...BOOK_CODES.map((c) => BOOKS[c]), ...VANTHU_CODES.map((c) => VANTHU_BOOKS[c])].find(
+    (b) => b.domain === domain,
+  );
 
 export interface BookRowRaw {
   readonly stt: number;
@@ -185,6 +245,7 @@ export function bookCells(spec: BookSpec, row: BookRowRaw): string[] {
   const attrs = spec.source === 'document' ? (row.doc_attributes ?? {}) : row.case_attributes;
   return spec.columns.map((c) => {
     if (c.key === 'stt') return String(row.stt);
+    if (c.key === 'title') return text(row.case_title);
     // Loại văn bản của S-01 mặc định lấy từ loại tài liệu nếu người nhập chưa ghi riêng.
     const v = text(attrs[c.key]) || (c.key === 'loai_van_ban' ? text(row.doc_kind) : '');
     return c.tick ? (v === '' ? '' : '✓') : v;

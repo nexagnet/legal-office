@@ -12,6 +12,9 @@ const CODES: Record<string, string> = {
   's-02': 'S-02',
   's-04': 'S-04',
   's-05': 'S-05',
+  'vt-den': 'VT-DEN',
+  'vt-di': 'VT-DI',
+  'vt-nb': 'VT-NB',
 };
 
 export default async function DmsBookPage({

@@ -26,7 +26,7 @@ import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
 import { VibangRepo } from '../vibang/vibang.repo';
-import { BOOK_CODES, bookOf, toCsv, type BookRowRaw } from './books';
+import { BOOK_CODES, VANTHU_CODES, bookOf, toCsv, type BookRowRaw } from './books';
 import { domain, parse, respond, uuid } from './dms-http';
 
 const attributes = z.record(z.string(), z.unknown());
@@ -79,7 +79,10 @@ export class DmsCasesController {
   /** Định nghĩa các sổ (tiêu đề + cột đúng mẫu) để giao diện dựng form nhập và bản xem trước. */
   @Get('books')
   books() {
-    return { books: BOOK_CODES.map((c) => bookOf(c)) };
+    return {
+      books: BOOK_CODES.map((c) => bookOf(c)),
+      vanthu: VANTHU_CODES.map((c) => bookOf(c)),
+    };
   }
 
   /** Dòng sổ của một văn phòng/năm. `format=csv` trả tệp CSV; mặc định JSON. Chỉ thấy phần mình được quyền đọc. */

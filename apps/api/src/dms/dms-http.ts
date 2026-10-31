@@ -4,7 +4,7 @@ import { statusFor } from '../vibang/status';
 import type { Op } from '../vibang/vibang.repo';
 
 export const uuid = z.string().uuid();
-export const DOMAINS = ['vibang', 'tongdat', 'xacminh', 'tochuc'] as const;
+export const DOMAINS = ['vibang', 'tongdat', 'xacminh', 'tochuc', 'vtden', 'vtdi', 'vtnb'] as const;
 export const domain = z.enum(DOMAINS);
 
 export function parse<S extends z.ZodType>(schema: S, input: unknown): z.infer<S> {

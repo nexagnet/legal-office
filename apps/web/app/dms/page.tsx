@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { DMS_DOMAINS } from '../../lib/dms';
+import { DMS_DOMAINS, VAN_THU_DOMAINS } from '../../lib/dms';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +14,11 @@ export default function DmsHome() {
         {DMS_DOMAINS.map((d) => (
           <li key={d.slug}>
             <Link href={`/dms/${d.slug}`}>{d.label}</Link>
+          </li>
+        ))}
+        {VAN_THU_DOMAINS.map((d) => (
+          <li key={d.slug}>
+            <Link href={`/dms/${d.slug}`}>Văn thư · {d.label}</Link>
           </li>
         ))}
         <li>

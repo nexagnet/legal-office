@@ -73,6 +73,11 @@ export default async function DmsDomainPage({
           href: k === 'chinh-thuc' ? base : `${base}?tab=${k}`,
         }))}
       />
+      {'book' in domain ? (
+        <p className="mb-2">
+          <Link href={`/dms/so/${domain.bookSlug}`}>Xem trước và xuất sổ {domain.label}</Link>
+        </p>
+      ) : null}
       {canDraft(permissions, domain.code) ? (
         <NewDmsCaseForm officeId={officeId} domainCode={domain.code} />
       ) : null}
@@ -97,7 +102,9 @@ export default async function DmsDomainPage({
           />
           <DmsCaseTable rows={rows} caption={`Danh sách hồ sơ ${domain.label}`} basePath={base} />
           <p className="muted mt-3">
-            Nháp và nháp đã hủy không có STT, không vào xuất sổ, không tính thống kê chính thức.
+            Nháp và nháp đã hủy không có{' '}
+            {'book' in domain && domain.code === 'vtden' ? 'Số đến' : 'STT'}, không vào xuất sổ,
+            không tính thống kê chính thức.
           </p>
         </>
       )}
