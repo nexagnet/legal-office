@@ -420,7 +420,11 @@ describe.skipIf(!ADMIN_URL)('DMS đổi quyền có duyệt (PostgreSQL)', () =>
 
   it('vai ADMIN mặc nhiên có mọi quyền DMS ở văn phòng của mình, không ở văn phòng khác', async () => {
     const adm = id();
-    await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$1)`, [adm, T]);
+    await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$3)`, [
+      adm,
+      T,
+      adm,
+    ]);
     await owner.query(
       `INSERT INTO memberships (tenant_id, user_id, office_id, role) VALUES ($1,$2,$3,'ADMIN')`,
       [T, adm, OFF],
