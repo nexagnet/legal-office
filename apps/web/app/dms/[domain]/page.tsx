@@ -178,13 +178,20 @@ export default async function DmsDomainPage({
           <span className="flex flex-wrap items-center gap-2">
             {vanThu ? (
               <>
-                <a href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}>
+                <a
+                  className="btn-link"
+                  href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
+                >
                   Xuất Excel
                 </a>
-                <Link href={`/dms/so/${vanThu.bookSlug}`}>Xuất PDF để in</Link>
+                <Link className="btn-link" href={`/dms/so/${vanThu.bookSlug}`}>
+                  Xuất PDF để in
+                </Link>
               </>
             ) : (
-              <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+              <Link className="btn-link" href={`/dms/so/${bookCode.toLowerCase()}`}>
+                Xuất {bookCode}
+              </Link>
             )}
             {canDraft(permissions, domain.code) ? (
               <NewDmsCaseButton
@@ -198,35 +205,25 @@ export default async function DmsDomainPage({
           </span>
         }
       />
-      <form
-        method="get"
-        action={base}
-        className="mb-3 flex flex-wrap items-end gap-3"
-        role="search"
-      >
+      <form method="get" action={base} className="filters" role="search">
         {filter !== 'chinh-thuc' ? <input type="hidden" name="loc" value={filter} /> : null}
-        <label className="flex flex-col gap-1 text-sm">
-          Tìm hồ sơ
+        <label className="filter-search">
+          <span className="sr-only">Tìm hồ sơ</span>
           <input
+            type="search"
             name="q"
             defaultValue={q}
             maxLength={200}
-            placeholder="Tên hồ sơ, người yêu cầu, nội dung…"
-            className="min-w-72"
+            placeholder="Tìm số văn bản, tên người, trích yếu, nội dung…"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Năm
-          <input
-            name="year"
-            type="number"
-            min={2000}
-            max={2100}
-            defaultValue={year}
-            className="w-24"
-          />
+        <label>
+          <span className="sr-only">Năm</span>
+          <input name="year" type="number" min={2000} max={2100} defaultValue={year} />
         </label>
-        <button type="submit">Tìm</button>
+        <button type="submit" className="primary">
+          Tìm
+        </button>
       </form>
       <DmsCaseTable
         rows={rows}

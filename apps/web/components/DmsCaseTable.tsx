@@ -2,6 +2,12 @@ import Link from 'next/link';
 import type { DmsBookRow, DmsBookSpec, DmsCaseRow } from '../lib/dms';
 import { bookCell, scanState } from '../lib/dms';
 
+/** Tên cột sổ gọn cho bảng danh sách (Figma): bỏ phần chú thích trong ngoặc, viết thường chữ hoa đầu câu. */
+const shortHeading = (h: string) => {
+  const t = h.replace(/\s*\(.*?\)/g, '').toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
 const fmt = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' });
 
 /**
@@ -42,8 +48,8 @@ export function DmsCaseTable({
             {book ? <th scope="col">{sttLabel}</th> : null}
             <th scope="col">Hồ sơ</th>
             {bookCols.map((c) => (
-              <th key={c.key} scope="col">
-                {c.heading}
+              <th key={c.key} scope="col" style={{ textTransform: 'none', letterSpacing: 0 }}>
+                {shortHeading(c.heading)}
               </th>
             ))}
             <th scope="col">Ngày tạo</th>
