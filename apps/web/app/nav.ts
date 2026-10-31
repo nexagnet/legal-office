@@ -9,7 +9,7 @@ export interface NavItem {
   readonly summary: string;
   /** Đường dẫn nếu khác `/<slug>` (các trang DMS nằm dưới `/dms`). */
   readonly href?: string;
-  /** Không hiện ở menu bên; vẫn truy cập được bằng đường dẫn. Hiện không mục nào dùng. */
+  /** Không hiện ở menu bên (owner 2026-10-31: ẩn menu quy trình cũ); trang và dữ liệu vẫn còn, truy cập được bằng đường dẫn. */
   readonly hidden?: boolean;
 }
 
@@ -29,6 +29,7 @@ export const OVERVIEW: NavItem = {
 export const NAV: readonly NavItem[] = [
   {
     slug: 'vi-bang',
+    hidden: true,
     label: 'Vi bằng',
     group: 'domain',
     roles: WITH_ACCOUNTANT,
@@ -36,6 +37,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'tong-dat',
+    hidden: true,
     label: 'Tống đạt',
     group: 'domain',
     roles: ALL,
@@ -43,6 +45,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'xac-minh',
+    hidden: true,
     label: 'Xác minh điều kiện THA',
     group: 'domain',
     roles: ALL,
@@ -50,6 +53,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'to-chuc-tha',
+    hidden: true,
     label: 'Tổ chức thi hành án',
     group: 'domain',
     roles: ALL,
@@ -80,6 +84,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'viec-cua-toi',
+    hidden: true,
     label: 'Việc của tôi',
     group: 'work',
     roles: ALL,
@@ -87,6 +92,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'hop-duyet',
+    hidden: true,
     label: 'Hộp duyệt',
     group: 'work',
     roles: ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV'],
@@ -94,6 +100,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'hop-dong',
+    hidden: true,
     label: 'Khách hàng & hợp đồng',
     group: 'office',
     roles: MANAGE,
@@ -101,6 +108,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'so-sach',
+    hidden: true,
     label: 'Sổ sách',
     group: 'office',
     roles: MANAGE,
@@ -115,6 +123,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'cong-van',
+    hidden: true,
     label: 'Công văn đi / đến',
     group: 'office',
     roles: ALL,
@@ -153,6 +162,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'bao-cao',
+    hidden: true,
     label: 'Báo cáo',
     group: 'office',
     roles: MANAGE,

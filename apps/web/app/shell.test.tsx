@@ -25,28 +25,31 @@ afterEach(() => {
   path.current = '/vi-bang';
 });
 
+// Menu bên không còn mục quy trình cũ (đã ẩn), nhưng vỏ trang vẫn phải xử lý đúng các đường dẫn đó.
+const ALL_ITEMS = [OVERVIEW, ...NAV];
+
 describe('navigation', () => {
-  it('shows all four domains to every role and hides admin from non-admins', () => {
-    for (const role of ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU'] as const) {
-      const labels = visibleNav([role]).map((n) => n.label);
-      for (const d of ['Vi bằng', 'Tống đạt', 'Xác minh điều kiện THA', 'Tổ chức thi hành án'])
-        expect(labels).toContain(d);
+  it('hides the legacy workflow items from every role (owner 2026-10-31) but keeps the pages defined', () => {
+    const legacy = [
+      'vi-bang',
+      'tong-dat',
+      'xac-minh',
+      'to-chuc-tha',
+      'viec-cua-toi',
+      'hop-duyet',
+      'hop-dong',
+      'so-sach',
+      'cong-van',
+      'bao-cao',
+    ];
+    for (const role of ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU', 'KE_TOAN'] as const) {
+      const slugs = visibleNav([role]).map((n) => n.slug);
+      for (const l of legacy) expect(slugs).not.toContain(l);
     }
+    for (const l of legacy) expect(findNav(l)?.hidden).toBe(true);
     expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Người dùng');
     expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Người dùng');
     expect(visibleNav([])).toEqual([]);
-  });
-
-  it('gives the accountant only the overview and Vi bằng, where MISA is confirmed', () => {
-    expect(visibleNav(['KE_TOAN']).map((n) => n.label)).toEqual(['Tổng quan', 'Vi bằng']);
-  });
-
-  it('puts My work and the approval inbox in the sidebar for the roles that may use them', () => {
-    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toEqual(
-      expect.arrayContaining(['viec-cua-toi', 'hop-duyet']),
-    );
-    expect(visibleNav(['VAN_THU']).map((n) => n.slug)).toContain('viec-cua-toi');
-    expect(visibleNav(['VAN_THU']).map((n) => n.slug)).not.toContain('hop-duyet');
   });
 
   it('has no accounting menu and unique slugs', () => {
@@ -100,7 +103,7 @@ describe('session', () => {
 describe('AppShell', () => {
   it('renders landmarks, a neutral logo slot and a toggleable menu with the current page', () => {
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
@@ -126,7 +129,7 @@ describe('AppShell subpage head', () => {
   it('shows the intake header from Figma 3:54 while keeping Vi bằng as the current menu item', () => {
     path.current = '/vi-bang/tao-moi';
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
@@ -146,7 +149,7 @@ describe('AppShell case detail head', () => {
   it('shows the detail header from Figma 3:80 for a case page', () => {
     path.current = '/vi-bang/00000000-0000-4000-8000-000000000000';
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
@@ -174,7 +177,7 @@ describe('AppShell stage heads', () => {
   ])('shows the Figma header for /vi-bang/<id>/%s', (stage, title) => {
     path.current = `/vi-bang/abc/${stage}`;
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
@@ -227,7 +230,7 @@ describe('ModuleState', () => {
 });
 
 describe('AppShell v2', () => {
-  const items = visibleNav(['ADMIN']);
+  const items = ALL_ITEMS;
 
   it('có thanh điều hướng dưới với việc của tôi, hộp duyệt và nút Thêm', () => {
     render(
@@ -252,7 +255,7 @@ describe('AppShell v2', () => {
     expect(screen.getByRole('main')).toBeTruthy();
   });
   it('hiện huy hiệu số chờ duyệt cạnh Hộp duyệt, ẩn khi bằng 0', () => {
-    const items = visibleNav(['ADMIN']);
+    const items = ALL_ITEMS;
     const { rerender } = render(
       <AppShell items={items} tenantName={null} badges={{ 'hop-duyet': 12 }}>
         <p>nội dung</p>
@@ -271,7 +274,7 @@ describe('AppShell v2', () => {
 
 describe('menu DMS', () => {
   it('đưa Văn thư, xuất sổ, sửa đổi, chờ xác nhận và báo cáo tổng hợp vào menu với đường dẫn /dms', () => {
-    const items = visibleNav(['ADMIN']);
+    const items = ALL_ITEMS;
     const hrefs = Object.fromEntries(items.map((n) => [n.slug, hrefOf(n)]));
     expect(hrefs['dms-van-thu']).toBe('/dms/van-ban-den');
     expect(hrefs['dms-xuat-so']).toBe('/dms/so');
@@ -279,6 +282,5 @@ describe('menu DMS', () => {
     expect(hrefs['dms-thv']).toBe('/dms/thv');
     expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
     expect(hrefs['vi-bang']).toBe('/vi-bang');
-    expect(visibleNav(['KE_TOAN']).map((n) => n.label)).toEqual(['Tổng quan', 'Vi bằng']);
   });
 });
