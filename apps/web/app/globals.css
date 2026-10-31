@@ -2455,12 +2455,31 @@ section[aria-labelledby='branch-t'] .plain-list {
 }
 
 /* Sổ nghiệp vụ DMS (TP-THV-S-xx): bảng có viền như mẫu giấy, in được trên khổ ngang. */
-.book-title { text-align: center; margin: 1rem 0 0.5rem; }
-.book-table { border-collapse: collapse; width: 100%; }
+.book-title {
+  text-align: center;
+  margin: 1rem 0 0.5rem;
+}
+.book-table {
+  border-collapse: collapse;
+  width: 100%;
+}
 .book-table th,
-.book-table td { border: 1px solid currentColor; padding: 0.25rem 0.4rem; vertical-align: top; text-align: left; }
-.book-table thead th { text-align: center; font-weight: 600; }
+.book-table td {
+  border: 1px solid currentColor;
+  padding: 0.25rem 0.4rem;
+  vertical-align: top;
+  text-align: left;
+}
+.book-table thead th {
+  text-align: center;
+  font-weight: 600;
+}
 @media print {
-  .print-hide { display: none !important; }
-  @page { size: A4 landscape; margin: 12mm; }
+  .print-hide {
+    display: none !important;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
 }
