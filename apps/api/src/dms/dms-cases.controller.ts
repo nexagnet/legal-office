@@ -26,6 +26,7 @@ import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
 import { VibangRepo } from '../vibang/vibang.repo';
+import { BOOK_CODES, bookOf, toCsv, type BookRowRaw } from './books';
 import { domain, parse, respond, uuid } from './dms-http';
 
 const attributes = z.record(z.string(), z.unknown());
@@ -73,6 +74,55 @@ export class DmsCasesController {
         q.offset,
       ])
       .then((rows) => ({ rows }));
+  }
+
+  /** Định nghĩa các sổ (tiêu đề + cột đúng mẫu) để giao diện dựng form nhập và bản xem trước. */
+  @Get('books')
+  books() {
+    return { books: BOOK_CODES.map((c) => bookOf(c)) };
+  }
+
+  /** Dòng sổ của một văn phòng/năm. `format=csv` trả tệp CSV; mặc định JSON. Chỉ thấy phần mình được quyền đọc. */
+  @Get('books/:book')
+  async bookRows(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('book') bookCode: string,
+    @Query() query: unknown,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+  ) {
+    const spec = bookOf(bookCode);
+    if (!spec)
+      throw new HttpException({ code: 'INVALID_INPUT', label: null }, HttpStatus.BAD_REQUEST);
+    const q = parse(
+      z
+        .object({
+          officeId: uuid,
+          year: z.coerce.number().int().min(2000).max(2100),
+          format: z.enum(['json', 'csv']).default('json'),
+          limit: z.coerce.number().int().min(1).max(2000).default(500),
+          offset: z.coerce.number().int().min(0).default(0),
+        })
+        .strict(),
+      query,
+    );
+    const rows = await this.repo.rows<BookRowRaw>(a.tenantId, 'dms_book_rows', [
+      a.tenantId,
+      a.userId,
+      q.officeId,
+      spec.code,
+      q.year,
+      q.limit,
+      q.offset,
+    ]);
+    if (q.format === 'csv') {
+      res.set({
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': `attachment; filename="${spec.form}-${q.year}.csv"`,
+        'cache-control': 'private, no-store',
+      });
+      return new StreamableFile(Buffer.from(toCsv(spec, rows), 'utf8'));
+    }
+    return { book: spec, year: q.year, rows };
   }
 
   @Get('cases/:id')
@@ -155,11 +205,18 @@ export class DmsCasesController {
           kind: z.string().min(1).max(100),
           title: z.string().min(1).max(500),
           isOfficial: z.boolean().default(false),
+          attributes: attributes.optional(),
         })
         .strict(),
       body,
     );
-    return this.run(a, 'dms_document_add', [id, b.kind, b.title, b.isOfficial]);
+    return this.run(a, 'dms_document_add', [
+      id,
+      b.kind,
+      b.title,
+      b.isOfficial,
+      b.attributes ? JSON.stringify(b.attributes) : null,
+    ]);
   }
 
   @Put('documents/:id/draft')
@@ -174,11 +231,18 @@ export class DmsCasesController {
           kind: z.string().min(1).max(100),
           title: z.string().min(1).max(500),
           isOfficial: z.boolean().default(false),
+          attributes: attributes.optional(),
         })
         .strict(),
       body,
     );
-    return this.run(a, 'dms_document_update_draft', [id, b.kind, b.title, b.isOfficial]);
+    return this.run(a, 'dms_document_update_draft', [
+      id,
+      b.kind,
+      b.title,
+      b.isOfficial,
+      b.attributes ? JSON.stringify(b.attributes) : null,
+    ]);
   }
 
   @Get('documents/:id/files')

@@ -227,6 +227,43 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect(files.json.rows[0]).toMatchObject({ label: 'bản scan', version: 1 });
   });
 
+  it('xuất sổ: STT cấp lúc ghi sổ, JSON và CSV đúng mẫu, người khác không thấy', async () => {
+    const spec = await api('GET', '/dms/books', U.a);
+    expect(spec.json.books.map((b: Json) => b.code)).toEqual(['S-01', 'S-02', 'S-04', 'S-05']);
+    const caseId = (
+      await api('POST', '/dms/cases', U.a, {
+        officeId: OFF,
+        domain: 'vibang',
+        title: 'Xác minh thử',
+        attributes: { nguoi_yeu_cau: 'Nguyễn Văn G', ghi_chu: '=1+1' },
+      })
+    ).json.label as string;
+    const year = new Date().getFullYear();
+    const before = await api('GET', `/dms/books/S-02?officeId=${OFF}&year=${year}`, U.a);
+    expect(before.status).toBe(200);
+    expect(before.json.rows.some((r: Row) => r.case_id === caseId)).toBe(false);
+    expect((await api('POST', `/dms/cases/${caseId}/record`, U.a)).status).toBe(200);
+    const after = await api('GET', `/dms/books/S-02?officeId=${OFF}&year=${year}`, U.a);
+    const mine = after.json.rows.find((r: Row) => r.case_id === caseId);
+    expect(mine.stt).toBeGreaterThanOrEqual(1);
+    const csv = await fetch(`${base}/dms/books/S-02?officeId=${OFF}&year=${year}&format=csv`, {
+      headers: { 'x-synthetic-user': U.a, 'x-synthetic-tenant': T },
+    });
+    expect(csv.status).toBe(200);
+    expect(csv.headers.get('content-type')).toContain('text/csv');
+    const text = await csv.text();
+    expect(text).toContain('NGƯỜI YÊU CẦU LẬP VI BẰNG');
+    expect(text).toContain('Nguyễn Văn G');
+    expect(text).toContain("'=1+1");
+    expect(
+      (await api('GET', `/dms/books/S-02?officeId=${OFF}&year=${year}`, U.b)).json.rows,
+    ).toEqual([]);
+    expect((await api('GET', `/dms/books/S-03?officeId=${OFF}&year=${year}`, U.a)).status).toBe(
+      400,
+    );
+    expect((await api('GET', `/dms/books/S-02?officeId=${OFF}`, U.a)).status).toBe(400);
+  });
+
   it('THV B không thấy, không tải, không ghi vào hồ sơ của THV A', async () => {
     const caseId = (
       await api('POST', '/dms/cases', U.a, { officeId: OFF, domain: 'vibang', title: 'Riêng A' })
