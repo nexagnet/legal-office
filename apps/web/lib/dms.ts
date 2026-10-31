@@ -116,6 +116,7 @@ export interface DmsDocumentRow {
   readonly status: 'DRAFT' | 'RECORDED' | 'CANCELLED';
   readonly file_count: number;
   readonly scan_count: number;
+  readonly attributes: Record<string, unknown>;
 }
 
 export interface DmsFileRow {
@@ -179,4 +180,80 @@ export async function loadDmsFiles(
     cookie,
   );
   return body === 'error' ? [] : body.rows;
+}
+
+export interface DmsBookColumn {
+  readonly no: number;
+  readonly heading: string;
+  readonly key: string;
+  readonly group?: string;
+  readonly tick?: boolean;
+}
+
+export interface DmsBookSpec {
+  readonly code: string;
+  readonly domain: string;
+  readonly form: string;
+  readonly title: string;
+  /** S-01: mỗi giấy tờ một dòng (thuộc tính nằm ở tài liệu); các sổ còn lại: mỗi hồ sơ một dòng. */
+  readonly source: 'case' | 'document';
+  readonly columns: readonly DmsBookColumn[];
+}
+
+export interface DmsBookRow {
+  readonly stt: number;
+  readonly case_id: string;
+  readonly document_id: string | null;
+  readonly case_title: string;
+  readonly case_attributes: Record<string, unknown>;
+  readonly doc_kind: string | null;
+  readonly doc_attributes: Record<string, unknown> | null;
+}
+
+export async function loadDmsBooks(cookie: string | null): Promise<DmsBookSpec[] | 'error'> {
+  const body = await getJson<{ books: DmsBookSpec[] }>('/dms/books', cookie);
+  return body === 'error' ? 'error' : body.books;
+}
+
+export async function loadDmsBookRows(
+  cookie: string | null,
+  officeId: string,
+  book: string,
+  year: number,
+): Promise<{ book: DmsBookSpec; rows: DmsBookRow[] } | 'error'> {
+  const q = new URLSearchParams({ officeId, year: String(year), limit: '2000' });
+  const body = await getJson<{ book: DmsBookSpec; rows: DmsBookRow[] }>(
+    `/dms/books/${encodeURIComponent(book)}?${q}`,
+    cookie,
+  );
+  return body === 'error' ? 'error' : body;
+}
+
+/** Các cột nhập tay của một sổ (bỏ STT). Dùng dựng form nhập thuộc tính ở bản nháp. */
+export const inputColumns = (spec: Pick<DmsBookSpec, 'columns'>): DmsBookColumn[] =>
+  spec.columns.filter((c) => c.key !== 'stt');
+
+const strOf = (v: unknown): string => (v === null || v === undefined ? '' : String(v).trim());
+
+/** Ô của một dòng sổ, như API xuất CSV: ô thiếu để trống, cột đánh dấu hiện ✓. */
+export function bookCell(spec: DmsBookSpec, col: DmsBookColumn, row: DmsBookRow): string {
+  if (col.key === 'stt') return String(row.stt);
+  const attrs = spec.source === 'document' ? (row.doc_attributes ?? {}) : row.case_attributes;
+  const v = strOf(attrs[col.key]) || (col.key === 'loai_van_ban' ? strOf(row.doc_kind) : '');
+  return col.tick ? (v === '' ? '' : '✓') : v;
+}
+
+/** Nhóm cột liên tiếp cùng `group` thành một ô tiêu đề gộp. */
+export function headerGroups(
+  columns: readonly DmsBookColumn[],
+): { label: string | null; span: number; cols: DmsBookColumn[] }[] {
+  const out: { label: string | null; span: number; cols: DmsBookColumn[] }[] = [];
+  for (const c of columns) {
+    const last = out[out.length - 1];
+    if (c.group && last && last.label === c.group) {
+      last.span += 1;
+      last.cols.push(c);
+    } else out.push({ label: c.group ?? null, span: 1, cols: [c] });
+  }
+  return out;
 }

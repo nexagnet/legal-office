@@ -244,6 +244,8 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect(before.json.rows.some((r: Row) => r.case_id === caseId)).toBe(false);
     expect((await api('POST', `/dms/cases/${caseId}/record`, U.a)).status).toBe(200);
     const after = await api('GET', `/dms/books/S-02?officeId=${OFF}&year=${year}`, U.a);
+    const docs = await api('GET', `/dms/cases/${caseId}/documents`, U.a);
+    expect(docs.json.rows).toEqual([]);
     const mine = after.json.rows.find((r: Row) => r.case_id === caseId);
     expect(mine.stt).toBeGreaterThanOrEqual(1);
     const csv = await fetch(`${base}/dms/books/S-02?officeId=${OFF}&year=${year}&format=csv`, {
