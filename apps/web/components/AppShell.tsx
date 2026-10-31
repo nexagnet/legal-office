@@ -26,7 +26,7 @@ import {
   UserRound,
   type LucideIcon,
 } from 'lucide-react';
-import type { NavItem } from '../app/nav';
+import { hrefOf, type NavItem } from '../app/nav';
 import { NavPending } from './NavPending';
 import { Avatar } from './ui/avatar';
 import { ProfileMenu } from './ProfileMenu';
@@ -197,6 +197,11 @@ const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
   'bieu-mau': FolderOpen,
   'cong-van': Mail,
   'vat-tu': Package,
+  'dms-thv': CircleCheckBig,
+  'dms-sua-doi': FileText,
+  'dms-van-thu': Mail,
+  'dms-xuat-so': BookOpen,
+  'dms-bao-cao': ChartColumn,
   'bao-cao': ChartColumn,
   'quan-tri': Building2,
   'cai-dat': Settings,
@@ -215,8 +220,6 @@ function NavIcon({ slug }: { readonly slug: string }) {
   return Icon ? <Icon className="nav-icon" aria-hidden="true" /> : null;
 }
 
-const hrefOf = (i: NavItem) => `/${i.slug}`;
-
 const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
   { group: 'work', title: 'Công việc' },
   { group: 'domain', title: 'Nghiệp vụ' },
@@ -226,9 +229,11 @@ const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
 
 /** Mục đang mở: khớp chính xác, hoặc trang con (`/vi-bang/123`) của một mục không phải Tổng quan. */
 function currentItem(items: readonly NavItem[], pathname: string): NavItem | undefined {
-  return items.find(
+  const hits = items.filter(
     (i) => pathname === hrefOf(i) || (i.slug !== '' && pathname.startsWith(`${hrefOf(i)}/`)),
   );
+  // Mục có đường dẫn dài nhất thắng (vd `/dms/sua-doi` thắng `/dms`).
+  return hits.sort((a, b) => hrefOf(b).length - hrefOf(a).length)[0];
 }
 
 /**

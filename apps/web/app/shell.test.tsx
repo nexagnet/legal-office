@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from '../components/AppShell';
 import { ModuleState } from '../components/ModuleState';
-import { NAV, OVERVIEW, findNav, visibleNav } from './nav';
+import { NAV, OVERVIEW, findNav, hrefOf, visibleNav } from './nav';
 import { loadSession } from './session';
 
 vi.mock('next/link', () => ({
@@ -266,5 +266,19 @@ describe('AppShell v2', () => {
       </AppShell>,
     );
     expect(nav.getByRole('link', { name: 'Hộp duyệt' }).textContent).toBe('Hộp duyệt');
+  });
+});
+
+describe('menu DMS', () => {
+  it('đưa Văn thư, xuất sổ, sửa đổi, chờ xác nhận và báo cáo tổng hợp vào menu với đường dẫn /dms', () => {
+    const items = visibleNav(['ADMIN']);
+    const hrefs = Object.fromEntries(items.map((n) => [n.slug, hrefOf(n)]));
+    expect(hrefs['dms-van-thu']).toBe('/dms/van-ban-den');
+    expect(hrefs['dms-xuat-so']).toBe('/dms/so');
+    expect(hrefs['dms-sua-doi']).toBe('/dms/sua-doi');
+    expect(hrefs['dms-thv']).toBe('/dms/thv');
+    expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
+    expect(hrefs['vi-bang']).toBe('/vi-bang');
+    expect(visibleNav(['KE_TOAN']).map((n) => n.label)).toEqual(['Tổng quan', 'Vi bằng']);
   });
 });

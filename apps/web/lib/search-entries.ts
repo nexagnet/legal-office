@@ -1,4 +1,4 @@
-import type { NavItem } from '../app/nav';
+import { hrefOf, type NavItem } from '../app/nav';
 
 export interface SearchCase {
   readonly id: string;
@@ -29,7 +29,7 @@ export function searchEntries(
   if (!needle) return [];
   const pageHits: SearchHit[] = pages
     .filter((p) => fold(`${p.label} ${p.summary}`).includes(needle))
-    .map((p) => ({ kind: 'page', href: `/${p.slug}`, label: p.label, hint: 'Trang' }));
+    .map((p) => ({ kind: 'page', href: hrefOf(p), label: p.label, hint: 'Trang' }));
   const caseHits: SearchHit[] = cases
     .filter((c) =>
       fold([c.title, c.customerName, c.intakeNo, c.numberLabel].filter(Boolean).join(' ')).includes(
