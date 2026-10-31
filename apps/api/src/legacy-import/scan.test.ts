@@ -20,7 +20,13 @@ describe('quét kho tài liệu cũ', () => {
   writeFileSync(join(root, 'a/Thumbs.db'), '');
   writeFileSync(join(root, 'a/~$x.docx'), '');
   writeFileSync(join(root, 'a/phản hồi.PDF'), 'p'); // tên có dấu
-  symlinkSync('/etc', join(root, 'link'));
+  // Windows không cấp quyền tạo symlink nếu thiếu Developer Mode: khi đó bỏ qua ca liên kết.
+  let hasLink = true;
+  try {
+    symlinkSync('/etc', join(root, 'link'));
+  } catch {
+    hasLink = false;
+  }
 
   it('trả đường dẫn tương đối dùng "/", theo thứ tự ổn định, bỏ tệp rác và liên kết tượng trưng', async () => {
     const all = await collect(root);
@@ -29,7 +35,11 @@ describe('quét kho tài liệu cũ', () => {
     const skips = all
       .filter((e) => e.kind === 'skip')
       .map((e) => `${e.relPath}:${(e as { reason: string }).reason}`);
-    expect(skips.sort()).toEqual(['a/Thumbs.db:IGNORED', 'a/~$x.docx:IGNORED', 'link:SYMLINK']);
+    expect(skips.sort()).toEqual([
+      'a/Thumbs.db:IGNORED',
+      'a/~$x.docx:IGNORED',
+      ...(hasLink ? ['link:SYMLINK'] : []),
+    ]);
   });
 
   it('thư mục không tồn tại báo UNREADABLE thay vì làm hỏng cả lần chạy', async () => {
