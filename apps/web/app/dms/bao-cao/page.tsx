@@ -44,9 +44,9 @@ export default async function DmsReportPage({
     <section aria-labelledby="t">
       <h1 id="t">Báo cáo tổng hợp năm {year}</h1>
       <p className="muted">
-        Chỉ là số liệu tổng hợp theo hồ sơ đã lưu chính thức mà bạn được quyền đọc, không phải mẫu
-        N-09/N-10 chính thức (bố cục mẫu chờ file Excel gốc của khách). Nháp và nháp đã hủy không
-        tính.
+        Số liệu tổng hợp theo hồ sơ đã lưu chính thức mà bạn được quyền đọc. Nháp và nháp đã hủy
+        không tính. Mẫu N-09, N-10 theo Thông tư 08/2026/TT-BTP xem tại{' '}
+        <Link href={`/dms/bao-cao/mau?year=${year}`}>Mẫu N-09, N-10</Link>.
       </p>
       <p>
         <Link href={`/dms/bao-cao?year=${year - 1}`}>← {year - 1}</Link>{' '}
