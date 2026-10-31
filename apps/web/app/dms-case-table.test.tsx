@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DmsBookTable } from '../components/DmsBookTable';
 import { DmsCaseTable } from '../components/DmsCaseTable';
+import { DmsThvConfirmButton, DmsThvPicker } from '../components/DmsThvActions';
 import {
   activeDmsTab,
   canAddDocument,
@@ -14,6 +15,10 @@ import {
   statusForTab,
   type DmsCaseRow,
 } from '../lib/dms';
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
+afterEach(() => cleanup());
 
 const row = (over: Partial<DmsCaseRow>): DmsCaseRow => ({
   id: 'c1',
@@ -146,5 +151,28 @@ describe('sổ nghiệp vụ trên giao diện', () => {
   it('chưa có dòng thì báo trống thay vì bảng rỗng', () => {
     render(<DmsBookTable spec={spec} rows={[]} />);
     expect(screen.getByText('Chưa có dòng nào trong năm này.')).toBeTruthy();
+  });
+});
+
+describe('thừa hành viên tự xác nhận', () => {
+  it('đã xác nhận thì không còn nút xác nhận', () => {
+    render(<DmsThvConfirmButton caseId="c" confirmed />);
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByRole('status').textContent).toContain('đã xác nhận');
+  });
+
+  it('chưa xác nhận thì có nút; chọn THV hiện đủ lựa chọn và trạng thái chờ', () => {
+    render(<DmsThvConfirmButton caseId="c" confirmed={false} />);
+    expect(screen.getByRole('button', { name: 'Tôi xác nhận nội dung này' })).toBeTruthy();
+    render(
+      <DmsThvPicker
+        caseId="c"
+        options={[{ userId: 'u1', label: 'Nguyễn Minh' }]}
+        currentId="u1"
+        confirmed={false}
+      />,
+    );
+    expect(screen.getByRole('option', { name: 'Nguyễn Minh' })).toBeTruthy();
+    expect(screen.getByText('Chờ THV xác nhận')).toBeTruthy();
   });
 });

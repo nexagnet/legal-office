@@ -106,6 +106,9 @@ export interface DmsCaseDetail extends DmsCaseRow {
   readonly attributes: Record<string, unknown>;
   readonly cancelled_at: string | null;
   readonly cancel_reason: string | null;
+  readonly thv_user_id: string | null;
+  /** null = chưa ghi tên THV; true/false = THV đã xác nhận đúng nội dung hiện tại hay chưa. */
+  readonly thv_confirmed: boolean | null;
 }
 
 export interface DmsDocumentRow {
@@ -256,4 +259,60 @@ export function headerGroups(
     } else out.push({ label: c.group ?? null, span: 1, cols: [c] });
   }
   return out;
+}
+
+export interface DmsThvOption {
+  readonly userId: string;
+  readonly label: string;
+}
+
+/** Danh sách thừa hành viên để chọn ghi tên (dùng chung với nghiệp vụ Vi bằng). */
+export async function loadThvOptions(cookie: string | null): Promise<DmsThvOption[]> {
+  const body = await getJson<{ items: DmsThvOption[] }>('/vibang/thv', cookie);
+  return body === 'error' ? [] : body.items;
+}
+
+export interface DmsThvPendingRow {
+  readonly case_id: string;
+  readonly domain: string;
+  readonly title: string;
+  readonly created_at: string;
+  /** Đã từng xác nhận nhưng nội dung đã đổi sau đó nên phải xác nhận lại. */
+  readonly stale: boolean;
+}
+
+export async function loadThvPending(cookie: string | null): Promise<DmsThvPendingRow[] | 'error'> {
+  const body = await getJson<{ rows: DmsThvPendingRow[] }>('/dms/thv/pending', cookie);
+  return body === 'error' ? 'error' : body.rows;
+}
+
+export interface DmsThvReview {
+  readonly case_id: string;
+  readonly domain: string;
+  readonly title: string;
+  readonly attributes: Record<string, unknown>;
+  readonly documents: readonly {
+    readonly id: string;
+    readonly kind: string;
+    readonly title: string;
+    readonly is_official: boolean;
+    readonly attributes: Record<string, unknown>;
+  }[];
+  readonly confirmed: boolean;
+}
+
+export async function loadThvReview(
+  cookie: string | null,
+  id: string,
+): Promise<DmsThvReview | 'error' | 'not-found'> {
+  try {
+    const res = await fetch(`${API_URL}/dms/thv/cases/${encodeURIComponent(id)}`, {
+      headers: cookie ? { cookie } : {},
+      cache: 'no-store',
+    });
+    if (res.status === 404) return 'not-found';
+    return res.ok ? ((await res.json()) as DmsThvReview) : 'error';
+  } catch {
+    return 'error';
+  }
 }

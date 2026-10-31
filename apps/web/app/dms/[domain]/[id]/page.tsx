@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
+import { DmsThvPicker } from '../../../../components/DmsThvActions';
 import {
   AddDmsDocumentForm,
   DmsDraftActions,
@@ -17,6 +18,7 @@ import {
   loadDmsDocuments,
   loadDmsFiles,
   loadMyDmsPermissions,
+  loadThvOptions,
 } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
@@ -71,10 +73,12 @@ export default async function DmsCasePage({
       </section>
     );
   }
-  const [documents, permissions, books] = await Promise.all([
+  const isDraftCase = c.status === 'DRAFT';
+  const [documents, permissions, books, thvOptions] = await Promise.all([
     loadDmsDocuments(cookie, id),
     loadMyDmsPermissions(cookie, c.office_id),
     loadDmsBooks(cookie),
+    isDraftCase ? loadThvOptions(cookie) : Promise.resolve([]),
   ]);
   const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
   const docs = documents === 'error' ? [] : documents;
@@ -129,6 +133,14 @@ export default async function DmsCasePage({
           có duyệt.
         </p>
       )}
+      {isDraft && canDraft(permissions, domain.code) ? (
+        <DmsThvPicker
+          caseId={c.id}
+          options={thvOptions}
+          currentId={c.thv_user_id}
+          confirmed={c.thv_confirmed}
+        />
+      ) : null}
       {isDraft && book && book.source === 'case' && canDraft(permissions, domain.code) ? (
         <DmsAttributesForm
           url={`/api/dms/cases/${c.id}/draft`}
