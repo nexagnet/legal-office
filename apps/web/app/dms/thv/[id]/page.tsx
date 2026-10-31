@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DmsThvConfirmButton } from '../../../../components/DmsThvActions';
-import { loadThvReview } from '../../../../lib/dms';
+import { loadDmsBooks, loadThvReview } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +37,16 @@ export default async function DmsThvReviewPage({ params }: { params: Promise<{ i
       </section>
     );
   }
+  // Nhãn ô theo tên cột của sổ (không hiện tên khóa kỹ thuật như nguoi_yeu_cau).
+  const books = await loadDmsBooks(await requestCookie(), true);
+  const headings = new Map<string, string>(
+    books === 'error'
+      ? []
+      : books
+          .filter((b) => b.domain === r.domain)
+          .flatMap((b) => b.columns.map((c) => [c.key, c.heading])),
+  );
+  const labelOf = (k: string) => headings.get(k) ?? (k === 'note' ? 'Ghi chú' : k);
   return (
     <section aria-labelledby="t">
       <p>
@@ -51,7 +61,7 @@ export default async function DmsThvReviewPage({ params }: { params: Promise<{ i
       <dl>
         {entries(r.attributes).map(([k, v]) => (
           <div key={k}>
-            <dt>{k}</dt>
+            <dt>{labelOf(k)}</dt>
             <dd>{String(v)}</dd>
           </div>
         ))}
@@ -66,7 +76,7 @@ export default async function DmsThvReviewPage({ params }: { params: Promise<{ i
           <dl>
             {entries(d.attributes).map(([k, v]) => (
               <div key={k}>
-                <dt>{k}</dt>
+                <dt>{labelOf(k)}</dt>
                 <dd>{String(v)}</dd>
               </div>
             ))}
