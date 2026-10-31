@@ -128,6 +128,22 @@ export class DmsCasesController {
     return { book: spec, year: q.year, rows };
   }
 
+  /** Báo cáo tổng hợp số liệu theo miền và năm (không phải mẫu N-09/N-10 chính thức). Chỉ phần người xem được quyền đọc. */
+  @Get('report')
+  async report(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(
+      z.object({ officeId: uuid, year: z.coerce.number().int().min(2000).max(2100) }).strict(),
+      query,
+    );
+    const rows = await this.repo.rows(a.tenantId, 'dms_report_summary', [
+      a.tenantId,
+      a.userId,
+      q.officeId,
+      q.year,
+    ]);
+    return { year: q.year, rows };
+  }
+
   @Get('cases/:id')
   async one(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
     const rows = await this.repo.rows(a.tenantId, 'dms_get_case', [a.tenantId, a.userId, id]);

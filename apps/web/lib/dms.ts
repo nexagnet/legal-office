@@ -394,3 +394,34 @@ export async function loadAmendmentWindow(
   );
   return body === 'error' ? 48 : body.hours;
 }
+
+export interface DmsReportRow {
+  readonly domain: string;
+  readonly recorded_cases: number;
+  readonly documents: number;
+  readonly scans: number;
+  readonly amendments: number;
+  readonly last_stt: number | null;
+}
+
+export const DMS_DOMAIN_LABELS: Record<string, string> = {
+  vibang: 'Vi bằng',
+  tongdat: 'Tống đạt',
+  xacminh: 'Xác minh điều kiện THA',
+  tochuc: 'Tổ chức thi hành án',
+  vtden: 'Văn thư · Văn bản đến',
+  vtdi: 'Văn thư · Văn bản đi',
+  vtnb: 'Văn thư · Văn bản nội bộ',
+};
+
+export async function loadDmsReport(
+  cookie: string | null,
+  officeId: string,
+  year: number,
+): Promise<DmsReportRow[] | 'error'> {
+  const body = await getJson<{ rows: DmsReportRow[] }>(
+    `/dms/report?officeId=${encodeURIComponent(officeId)}&year=${year}`,
+    cookie,
+  );
+  return body === 'error' ? 'error' : body.rows;
+}

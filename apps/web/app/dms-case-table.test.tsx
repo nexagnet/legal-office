@@ -6,6 +6,7 @@ import { DmsCaseTable } from '../components/DmsCaseTable';
 import { DmsThvConfirmButton, DmsThvPicker } from '../components/DmsThvActions';
 import {
   AMENDMENT_STATUS_LABEL,
+  DMS_DOMAIN_LABELS,
   activeDmsTab,
   amendmentSummary,
   canAddDocument,
@@ -225,5 +226,12 @@ describe('sửa đổi sau khi lưu', () => {
     );
     expect((screen.getByLabelText(/Lý do sửa đổi/) as HTMLTextAreaElement).required).toBe(true);
     expect(screen.queryByLabelText(/N-11/)).not.toBeNull();
+  });
+});
+
+describe('báo cáo tổng hợp', () => {
+  it('đủ nhãn cho bảy miền', () => {
+    expect(Object.keys(DMS_DOMAIN_LABELS)).toHaveLength(7);
+    expect(DMS_DOMAIN_LABELS.vtden).toContain('Văn bản đến');
   });
 });
