@@ -16,6 +16,8 @@ import {
 import { resolveTenantMailer } from './reminders/resolve-mailer';
 import { SessionResolver } from './auth/session.resolver';
 import { AssetsController } from './assets/assets.controller';
+import { DmsCasesController } from './dms/dms-cases.controller';
+import { DmsPermissionsController } from './dms/dms-permissions.controller';
 import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
 import { FormsController } from './forms/forms.controller';
 import { HealthController } from './health.controller';
@@ -69,6 +71,8 @@ export class AppModule {
         OfficeController,
         MailSettingsController,
         FormsController,
+        DmsCasesController,
+        DmsPermissionsController,
       ],
       providers: [
         { provide: PG_POOL, useValue: options.pool },

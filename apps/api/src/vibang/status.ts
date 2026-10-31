@@ -14,6 +14,8 @@ const FORBIDDEN = new Set([
   'PROPOSER_ONLY',
   'HEAD_ONLY',
   'SELF_TARGET_NOT_ALLOWED',
+  'PERMISSION_DENIED',
+  'SELF_APPROVAL_NOT_ALLOWED',
 ]);
 const NOT_FOUND = new Set([
   'CASE_NOT_FOUND',
@@ -40,6 +42,8 @@ const NOT_FOUND = new Set([
   'CUSTOMER_NOT_FOUND',
   'CONTRACT_NOT_FOUND',
   'DEADLINE_NOT_FOUND',
+  'FILE_NOT_FOUND',
+  'GROUP_NOT_FOUND',
 ]);
 const INVALID = new Set([
   'INVALID_LEDGER_PERIOD',
@@ -103,6 +107,9 @@ const INVALID = new Set([
   'NOTE_REQUIRED',
   'AGENCY_REQUIRED',
   'OUTCOME_REQUIRED',
+  'INVALID_DOMAIN',
+  'INVALID_INPUT',
+  'UNKNOWN_PERMISSION',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */

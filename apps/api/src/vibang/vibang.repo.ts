@@ -17,7 +17,7 @@ export class VibangRepo {
   constructor(@Inject(PgService) private readonly pg: PgService) {}
 
   call(tenantId: string, fn: string, args: readonly unknown[]): Promise<Op> {
-    if (!/^(vibang|td|vx|th|as|of|ap|vb|ad)_[a-z0-9_]+$/.test(fn))
+    if (!/^(vibang|td|vx|th|as|of|ap|vb|ad|dms)_[a-z0-9_]+$/.test(fn))
       throw new Error(`unsafe function name: ${fn}`);
     const placeholders = args.map((_, i) => `$${i + 1}`).join(',');
     return this.pg.withTenant(tenantId, async (client) => {
@@ -33,7 +33,7 @@ export class VibangRepo {
     args: readonly unknown[],
   ): Promise<T[]> {
     if (
-      !/^of_(search|s06)_[a-z0-9_]+$|^of_list_correspondence$|^of_get_correspondence$|^of_s06_read$|^of_list_signers$|^of_ledger_s0[1245]$|^vb_list_(cases|case_view|changes|thv|customers|contracts|revokes|n11|documents|registrations|contacts)$|^vb_case_(progress|misa|evidence|legal|history|plan)$|^vb_list_customer_numbers$|^vb_number_preview$|^of_mail_settings_get$|^vb_document_file$|^as_list_(transfers|assets)$|^td_list_(documents|attempts|result_notices)$|^of_people_names$|^vx_list_(cases|sources|delegations)$|^vx_get_decision$|^th_list_cases$|^th_get_termination$/.test(
+      !/^of_(search|s06)_[a-z0-9_]+$|^of_list_correspondence$|^of_get_correspondence$|^of_s06_read$|^of_list_signers$|^of_ledger_s0[1245]$|^vb_list_(cases|case_view|changes|thv|customers|contracts|revokes|n11|documents|registrations|contacts)$|^vb_case_(progress|misa|evidence|legal|history|plan)$|^vb_list_customer_numbers$|^vb_number_preview$|^of_mail_settings_get$|^vb_document_file$|^as_list_(transfers|assets)$|^td_list_(documents|attempts|result_notices)$|^of_people_names$|^vx_list_(cases|sources|delegations)$|^vx_get_decision$|^th_list_cases$|^th_get_termination$|^dms_(list_cases|list_documents|list_files|file_download|list_permission_requests|list_groups|my_permissions)$/.test(
         fn,
       )
     )
