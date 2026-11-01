@@ -1595,6 +1595,13 @@ tr[data-selected='true'] > td {
 .legal-grid form {
   margin-top: 20px;
 }
+.compact-table th,
+.compact-table td {
+  padding: 18px 8px;
+}
+.compact-table thead th {
+  padding: 12px 8px;
+}
 .thv-cards {
   margin-top: 32px;
 }

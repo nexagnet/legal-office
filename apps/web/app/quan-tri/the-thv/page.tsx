@@ -1,5 +1,7 @@
 import { ThvCardsForm } from '../../../components/ThvCardsForm';
 import { loadMembers, loadThvCards } from '../../../lib/admin-api';
+import { loadDmsGroups } from '../../../lib/dms-admin';
+import { groupsOfUser } from '../../../lib/permission-model';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -10,9 +12,10 @@ export default async function ThvCardsPage() {
   const officeId = session.memberships[0]?.officeId ?? session.branches[0]?.officeId;
   if (!officeId) return null;
   const cookie = await requestCookie();
-  const [members, cards] = await Promise.all([
+  const [members, cards, groups] = await Promise.all([
     loadMembers(cookie, officeId),
     loadThvCards(cookie, officeId),
+    loadDmsGroups(cookie, officeId),
   ]);
   const thv =
     members === 'error'
@@ -21,18 +24,19 @@ export default async function ThvCardsPage() {
           ...new Map(
             members
               .filter((m) => m.role === 'THV')
-              .map((m) => [m.userId, { userId: m.userId, label: m.label }]),
+              .map((m) => [
+                m.userId,
+                {
+                  userId: m.userId,
+                  label: m.label,
+                  groups:
+                    groups === 'error' ? [] : groupsOfUser(groups, m.userId).map((g) => g.name),
+                },
+              ]),
           ).values(),
         ];
   return (
     <>
-      <div>
-        <h1>Thẻ thừa hành viên</h1>
-        <p className="muted">
-          Họ tên và số Thẻ của từng thừa hành viên, dùng để điền cột Thừa hành viên ở các sổ nghiệp
-          vụ.
-        </p>
-      </div>
       <ThvCardsForm officeId={officeId} people={thv} cards={cards} canEdit />
     </>
   );

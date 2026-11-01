@@ -1372,12 +1372,28 @@ export class OfficeController {
     @CurrentActor() a: AuthenticatedActor,
     @Query('officeId', ParseUUIDPipe) officeId: string,
   ) {
-    const rows = await this.read<{ user_id: string; full_name: string; card_no: string }>(
-      a,
-      'of_search_thv_cards',
-      [officeId],
-    );
-    return rows.map((r) => ({ userId: r.user_id, fullName: r.full_name, cardNo: r.card_no }));
+    const rows = await this.read<{
+      user_id: string;
+      full_name: string;
+      card_no: string;
+      status: string;
+      decision_no: string | null;
+      decision_date: string | null;
+      effective_from: string | null;
+      effective_to: string | null;
+      has_scan: boolean;
+    }>(a, 'of_search_thv_cards', [officeId]);
+    return rows.map((r) => ({
+      userId: r.user_id,
+      fullName: r.full_name,
+      cardNo: r.card_no,
+      status: r.status,
+      decisionNo: r.decision_no,
+      decisionDate: r.decision_date,
+      effectiveFrom: r.effective_from,
+      effectiveTo: r.effective_to,
+      hasScan: r.has_scan,
+    }));
   }
 
   @Put('thv-cards')
