@@ -82,7 +82,10 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Đề xuất đổi quyền',
     sub: 'Chọn nhóm và một loại thay đổi. Đề xuất của người không phải Admin chỉ có hiệu lực sau khi Admin có quyền duyệt thay đổi quyền chấp thuận.',
   },
-  '/quan-tri/the-thv': { title: 'Thẻ THV', sub: 'Họ tên và số Thẻ thừa hành viên' },
+  '/quan-tri/the-thv': {
+    title: 'Thẻ thừa hành viên',
+    sub: 'Tư cách hành nghề được ghi nhận theo căn cứ thực tế, có bản scan và lịch sử. Nhóm quyền Thừa hành viên không tự tạo ra tư cách này.',
+  },
   '/quan-tri/email': {
     title: 'Email gửi thư',
     sub: 'Cấu hình máy chủ gửi thư để gửi link đăng nhập và nhắc hạn. Chưa cấu hình thì người dùng chỉ đăng nhập bằng mật khẩu.',

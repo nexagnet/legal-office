@@ -418,8 +418,8 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     expect((await put(U.admin, { ...card, cardNo: '' })).status).toBe(422);
     expect((await put(U.admin, card)).status).toBe(200);
     const list = await get(`/office/thv-cards?officeId=${OFF}`, U.head);
-    expect(list.json).toEqual([
-      { userId: U.thv, fullName: 'Trần Văn B (giả lập)', cardNo: 'GL-001' },
+    expect(list.json).toMatchObject([
+      { userId: U.thv, fullName: 'Trần Văn B (giả lập)', cardNo: 'GL-001', status: 'ACTIVE' },
     ]);
     const expected = 'Trần Văn B (giả lập), số Thẻ GL-001';
     expect((await rowsOf('s-01', U.admin))[0]).toMatchObject({ thuaHanhVienThucHien: expected });
@@ -429,10 +429,12 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     // THV khác chưa có thẻ thì giữ null
     const other = (await rowsOf('s-01', U.admin)).find((r) => r.thvUserId === U.thv2);
     expect(other?.thuaHanhVienThucHien).toBeNull();
-    // Người ngoài văn phòng nhận danh sách rỗng; xoá bằng cách để trống cả hai
+    // Người ngoài văn phòng nhận danh sách rỗng; để trống cả hai không còn xoá thẻ (0095)
     expect((await get(`/office/thv-cards?officeId=${OFF}`, U.foreign, T2)).json).toEqual([]);
-    expect((await put(U.admin, { ...card, fullName: '', cardNo: '' })).status).toBe(200);
-    expect((await get(`/office/thv-cards?officeId=${OFF}`, U.head)).json).toEqual([]);
+    expect((await put(U.admin, { ...card, fullName: '', cardNo: '' })).status).toBe(422);
+    expect(
+      ((await get(`/office/thv-cards?officeId=${OFF}`, U.head)).json as unknown[]).length,
+    ).toBe(1);
   });
 
   it('đóng quyển theo tháng: chỉ Admin/Trưởng VP, tháng đã qua, đóng rồi không đóng lại, có audit', async () => {

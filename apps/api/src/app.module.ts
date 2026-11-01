@@ -29,6 +29,7 @@ import { type ActorResolver } from './http/actor';
 import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
 import { ServiceOfDocumentsController } from './service-of-documents/service-of-documents.controller';
 import { OfficeController } from './office/office.controller';
+import { ThvCardsController } from './office/thv-cards.controller';
 import { MailSettingsController } from './reminders/mail-settings.controller';
 import { VerificationController } from './verification/verification.controller';
 import { VibangIntakeController } from './vibang/vibang-intake.controller';
@@ -73,6 +74,7 @@ export class AppModule {
         MembersController,
         PeopleController,
         OfficeController,
+        ThvCardsController,
         MailSettingsController,
         FormsController,
         DmsAmendmentsController,
