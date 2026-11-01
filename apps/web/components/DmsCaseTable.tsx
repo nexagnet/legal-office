@@ -95,7 +95,7 @@ export function DmsCaseTable({
                 {book ? (
                   <td className="font-semibold">{book.byCase.get(r.id)?.stt ?? '—'}</td>
                 ) : null}
-                <th scope="row">
+                <th scope="row" className="min-w-40">
                   {basePath ? <Link href={`${basePath}/${r.id}`}>{r.title}</Link> : r.title}
                 </th>
                 {bookCols.map((c) => {
@@ -118,7 +118,7 @@ export function DmsCaseTable({
                 </td>
                 {basePath ? (
                   <td>
-                    <span className="flex items-center gap-3 whitespace-nowrap">
+                    <span className="flex items-center gap-2 whitespace-nowrap">
                       <Link
                         href={`${basePath}/${r.id}`}
                         className="inline-flex min-h-9 items-center rounded-[10px] border border-line-strong bg-surface px-4 text-sm font-semibold text-ink no-underline"

@@ -210,18 +210,23 @@ export default async function DmsDomainPage({
               <>
                 <Button asChild variant="secondary">
                   <a
+                    className="no-underline"
                     href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
                   >
                     Xuất Excel
                   </a>
                 </Button>
                 <Button asChild variant="secondary">
-                  <Link href={`/dms/so/${vanThu.bookSlug}`}>Xuất PDF để in</Link>
+                  <Link className="no-underline" href={`/dms/so/${vanThu.bookSlug}`}>
+                    Xuất PDF để in
+                  </Link>
                 </Button>
               </>
             ) : (
               <Button asChild variant="secondary">
-                <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+                <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
+                  Xuất {bookCode}
+                </Link>
               </Button>
             )}
             {canDraft(permissions, domain.code) ? (
