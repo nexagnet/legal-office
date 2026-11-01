@@ -222,4 +222,22 @@ describe.skipIf(!ADMIN_URL)('Cấu hình SMTP cho email nhắc hạn (HTTP + Pos
     // Có mật khẩu lưu mà thiếu khoá thì báo lỗi rõ ràng, không gửi bằng mật khẩu rỗng
     await expect(resolveTenantMailer(appPool, T, {})).rejects.toThrow(/MAIL_SETTINGS_KEY/);
   });
+  it('công tắc đăng nhập bằng link email: mặc định bật, chỉ Admin đổi, đổi thì có nhật ký, không đổi thì NO_CHANGE', async () => {
+    const link = (u: string, enabled: boolean) =>
+      api('PUT', '/office/mail-settings/login-link', u, { officeId: OFF, enabled });
+    const read = async () =>
+      (await api('GET', `/office/mail-settings?officeId=${OFF}`, U.admin)).json.loginLinkEnabled;
+    expect(await read()).toBe(true);
+    expect((await link(U.head, false)).status).toBe(403);
+    expect(await read()).toBe(true);
+    expect((await link(U.admin, true)).json.code).toBe('NO_CHANGE');
+    expect((await link(U.admin, false)).json.code).toBe('LOGIN_LINK_DISABLED');
+    expect(await read()).toBe(false);
+    expect((await link(U.admin, true)).json.code).toBe('LOGIN_LINK_ENABLED');
+    expect(await read()).toBe(true);
+    const log = await owner.query(
+      `SELECT detail->>'enabled' AS enabled FROM dms_audit_records WHERE action = 'ad.login_link.set' ORDER BY id`,
+    );
+    expect(log.rows.map((r) => r.enabled)).toEqual(['false', 'true']);
+  });
 });

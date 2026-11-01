@@ -83,7 +83,10 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     sub: 'Chọn nhóm và một loại thay đổi. Đề xuất của người không phải Admin chỉ có hiệu lực sau khi Admin có quyền duyệt thay đổi quyền chấp thuận.',
   },
   '/quan-tri/the-thv': { title: 'Thẻ THV', sub: 'Họ tên và số Thẻ thừa hành viên' },
-  '/quan-tri/email': { title: 'Email gửi thư', sub: 'Máy chủ gửi thư của văn phòng' },
+  '/quan-tri/email': {
+    title: 'Email gửi thư',
+    sub: 'Cấu hình máy chủ gửi thư để gửi link đăng nhập và nhắc hạn. Chưa cấu hình thì người dùng chỉ đăng nhập bằng mật khẩu.',
+  },
   '/quan-tri/lich': { title: 'Lịch làm việc', sub: 'Ngày làm việc và ngày nghỉ' },
   '/cai-dat': {
     title: 'Cấu hình văn phòng',

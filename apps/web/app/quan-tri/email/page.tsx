@@ -12,13 +12,6 @@ export default async function MailPage() {
   const mail = await loadMailSettings(await requestCookie(), officeId);
   return (
     <>
-      <div>
-        <h1>Email gửi thư</h1>
-        <p className="muted">
-          Cấu hình máy chủ gửi thư để gửi link đăng nhập và nhắc hạn. Chưa cấu hình thì người dùng
-          chỉ đăng nhập bằng mật khẩu.
-        </p>
-      </div>
       {mail === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được cấu hình email</h2>
