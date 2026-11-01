@@ -1,0 +1,60 @@
+list official vibang 2024 p1 [admin]           rows=  50  p50=     7.5ms  p95=    11.1ms  max=      12ms
+list official vibang 2024 offset 2000 [admin]  rows=  50  p50=      16ms  p95=    19.2ms  max=    26.5ms
+list all-domains no filter [admin]             rows=  50  p50=    96.7ms  p95=   118.7ms  max=   136.2ms
+list official vibang 2024 thieu-scan [admin]   rows=   0  p50=     8.5ms  p95=    10.4ms  max=    11.9ms
+list + creator + kind [admin]                  rows=  50  p50=    12.4ms  p95=    18.1ms  max=    20.6ms
+list + branch [admin]                          rows=  50  p50=    18.2ms  p95=    25.9ms  max=    27.1ms
+list drafts [admin]                            rows=  50  p50=    14.7ms  p95=    21.4ms  max=    21.5ms
+list pending-amendment [admin]                 rows=   0  p50=    49.8ms  p95=      63ms  max=    71.2ms
+text name [admin]                              rows=  50  p50=    46.2ms  p95=    69.7ms  max=    74.5ms
+text name no domain [admin]                    rows=  50  p50=    53.9ms  p95=    64.8ms  max=    80.6ms
+text case number [admin]                       rows=  33  p50=     9.8ms  p95=    86.9ms  max=      88ms
+text 2 words + year [admin]                    rows=   0  p50=    26.9ms  p95=    32.5ms  max=    33.3ms
+keyset deep page (cursor mid) [admin]          rows=  50  p50=    16.2ms  p95=    24.6ms  max=    25.4ms
+facets official vibang 2026 [admin]            rows=  87  p50=    58.6ms  p95=    73.4ms  max=    73.9ms
+facets all-domains no filter [admin]           rows=  87  p50=   178.6ms  p95=   207.6ms  max=   215.3ms
+facets with text [admin]                       rows=  87  p50=    82.4ms  p95=   170.2ms  max=     179ms
+facets with creator+kind picked [admin]        rows=  87  p50=    47.3ms  p95=    53.4ms  max=      58ms
+content common [admin]                         rows=  20  p50=      75ms  p95=    84.8ms  max=      86ms
+content rare [admin]                           rows=  20  p50=    62.7ms  p95=    97.1ms  max=   103.2ms
+content common + year + branch [admin]         rows=  20  p50=    16.1ms  p95=      54ms  max=    60.2ms
+list official vibang 2024 p1 [vanthu]          rows=  50  p50=    12.1ms  p95=    12.4ms  max=    13.2ms
+list official vibang 2024 offset 2000 [vanthu] rows=   0  p50=     8.3ms  p95=      11ms  max=    12.4ms
+list all-domains no filter [vanthu]            rows=  50  p50=    54.6ms  p95=    67.8ms  max=    69.9ms
+list official vibang 2024 thieu-scan [vanthu]  rows=   0  p50=     8.6ms  p95=    16.1ms  max=    16.3ms
+list + creator + kind [vanthu]                 rows=  50  p50=    12.2ms  p95=    16.5ms  max=    23.6ms
+list + branch [vanthu]                         rows=  50  p50=    17.4ms  p95=      22ms  max=    23.2ms
+list drafts [vanthu]                           rows=  50  p50=    15.4ms  p95=    18.3ms  max=    18.4ms
+list pending-amendment [vanthu]                rows=   0  p50=    55.1ms  p95=      58ms  max=    60.3ms
+text name [vanthu]                             rows=  50  p50=    44.1ms  p95=    60.6ms  max=    65.2ms
+text name no domain [vanthu]                   rows=  50  p50=    51.8ms  p95=    73.7ms  max=    84.4ms
+text case number [vanthu]                      rows=   7  p50=     7.8ms  p95=    50.2ms  max=      59ms
+text 2 words + year [vanthu]                   rows=   0  p50=    30.4ms  p95=    43.4ms  max=    44.7ms
+keyset deep page (cursor mid) [vanthu]         rows=  50  p50=    32.7ms  p95=    45.8ms  max=    49.8ms
+facets official vibang 2026 [vanthu]           rows=  80  p50=    57.8ms  p95=    71.6ms  max=    79.6ms
+facets all-domains no filter [vanthu]          rows=  80  p50=    90.6ms  p95=   103.6ms  max=   107.7ms
+facets with text [vanthu]                      rows=  80  p50=    63.9ms  p95=    83.4ms  max=    85.7ms
+facets with creator+kind picked [vanthu]       rows=  79  p50=    48.4ms  p95=    61.6ms  max=    68.9ms
+content common [vanthu]                        rows=  20  p50=      63ms  p95=    69.8ms  max=      71ms
+content rare [vanthu]                          rows=  20  p50=    50.5ms  p95=    70.5ms  max=    71.4ms
+content common + year + branch [vanthu]        rows=  20  p50=    15.3ms  p95=    38.9ms  max=    39.3ms
+list official vibang 2024 p1 [thv]             rows=  26  p50=     9.4ms  p95=    11.4ms  max=    13.6ms
+list official vibang 2024 offset 2000 [thv]    rows=   0  p50=     8.8ms  p95=    15.6ms  max=    17.1ms
+list all-domains no filter [thv]               rows=  50  p50=    14.4ms  p95=    20.4ms  max=    21.7ms
+list official vibang 2024 thieu-scan [thv]     rows=   0  p50=     9.8ms  p95=    11.9ms  max=      12ms
+list + creator + kind [thv]                    rows=  50  p50=     3.4ms  p95=     4.9ms  max=    15.4ms
+list + branch [thv]                            rows=  50  p50=     4.6ms  p95=    42.9ms  max=    43.7ms
+list drafts [thv]                              rows=  43  p50=    18.3ms  p95=    22.7ms  max=    22.8ms
+list pending-amendment [thv]                   rows=   0  p50=    14.2ms  p95=    18.6ms  max=    19.1ms
+text name [thv]                                rows=  20  p50=    22.2ms  p95=    34.4ms  max=    39.6ms
+text name no domain [thv]                      rows=  50  p50=    19.5ms  p95=    24.5ms  max=    29.6ms
+text case number [thv]                         rows=   1  p50=     8.6ms  p95=    26.3ms  max=    29.2ms
+text 2 words + year [thv]                      rows=   0  p50=    24.4ms  p95=    28.4ms  max=    28.8ms
+keyset deep page (cursor mid) [thv]            rows=  50  p50=    12.1ms  p95=    16.7ms  max=    17.4ms
+facets official vibang 2026 [thv]              rows=  20  p50=    32.4ms  p95=    37.6ms  max=      56ms
+facets all-domains no filter [thv]             rows=  20  p50=    31.9ms  p95=    43.7ms  max=    44.5ms
+facets with text [thv]                         rows=  20  p50=    35.8ms  p95=    45.2ms  max=      48ms
+facets with creator+kind picked [thv]          rows=  19  p50=    21.9ms  p95=    30.9ms  max=    43.6ms
+content common [thv]                           rows=  20  p50=    17.6ms  p95=    50.6ms  max=    52.7ms
+content rare [thv]                             rows=  20  p50=    20.8ms  p95=    51.6ms  max=      52ms
+content common + year + branch [thv]           rows=  20  p50=     5.8ms  p95=    60.5ms  max=    66.5ms

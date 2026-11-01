@@ -12,25 +12,30 @@ import {
   DMS_FILTER_LABEL,
   DMS_TAB_LABEL,
   activeDmsFilter,
-  bookCell,
   canDraft,
   domainBySlug,
-  filterDmsCases,
-  loadDmsAmendments,
-  loadDmsBookRows,
-  loadDmsCases,
-  loadDmsFacets,
-  matchFacet,
+  loadDmsReport,
   loadMyDmsPermissions,
   tabForFilter,
   type DmsBookRow,
   type DmsFilter,
 } from '../../../lib/dms';
+import {
+  countDmsCases,
+  formatTotal,
+  loadBookRowsForCases,
+  loadDmsFacetCounts,
+  pageWindow,
+  searchDmsCases,
+  TOTAL_CAP,
+} from '../../../lib/dms-browse';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 10;
+/** API đếm tối đa 10.001 hồ sơ: không có trang nào sau mốc đó (thu hẹp bộ lọc để thấy tiếp). */
+const MAX_PAGE = Math.ceil((TOTAL_CAP + 1) / PAGE_SIZE);
 const FILTERS: readonly DmsFilter[] = [
   'chinh-thuc',
   'cho-duyet',
@@ -105,19 +110,35 @@ export default async function DmsDomainPage({
   const q = (sp.q ?? '').slice(0, 200);
   const year = activeYear(sp.year);
   const cookie = await requestCookie();
-  const [official, drafts, permissions, bookData, pendingAmendments, facetRows] = await Promise.all(
-    [
-      loadDmsCases(cookie, officeId, domain.code, 'chinh-thuc'),
-      tabForFilter(filter) === 'chinh-thuc'
-        ? Promise.resolve(null)
-        : loadDmsCases(cookie, officeId, domain.code, tabForFilter(filter)),
+  const pageNo = Math.max(1, Math.floor(Number(sp.p)) || 1);
+  const search = {
+    officeId,
+    domain: domain.code,
+    filter,
+    year,
+    q,
+    creator: sp.nt,
+    kind: sp.lt,
+    branch: sp.dv,
+  };
+  const chipCount = (f: DmsFilter) =>
+    countDmsCases(cookie, { officeId, domain: domain.code, filter: f, year });
+  const [result, permissions, facets, report, nOfficial, nPending, nMissing, nComplete] =
+    await Promise.all([
+      searchDmsCases(cookie, {
+        ...search,
+        limit: PAGE_SIZE,
+        offset: (Math.min(pageNo, MAX_PAGE) - 1) * PAGE_SIZE,
+      }),
       loadMyDmsPermissions(cookie, officeId),
-      loadDmsBookRows(cookie, officeId, bookCode, year),
-      loadDmsAmendments(cookie, officeId, { status: 'PENDING' }),
-      loadDmsFacets(cookie, officeId, domain.code),
-    ],
-  );
-  if (official === 'error' || drafts === 'error') {
+      loadDmsFacetCounts(cookie, search),
+      loadDmsReport(cookie, officeId, year),
+      chipCount('chinh-thuc'),
+      chipCount('cho-duyet'),
+      chipCount('thieu-scan'),
+      chipCount('du-scan'),
+    ]);
+  if (result === 'error') {
     return (
       <section aria-labelledby="t">
         <h1 id="t">{domain.label}</h1>
@@ -128,42 +149,30 @@ export default async function DmsDomainPage({
       </section>
     );
   }
+  const isDraftView = filter === 'nhap' || filter === 'da-huy';
+  // Dòng sổ chỉ lấy cho các hồ sơ đang hiện trên trang này, không tải cả sổ cả năm.
+  const bookData = isDraftView
+    ? null
+    : await loadBookRowsForCases(
+        cookie,
+        officeId,
+        bookCode,
+        result.rows.map((r) => r.id),
+      );
   const byCase = new Map<string, DmsBookRow>();
-  if (bookData !== 'error')
+  if (bookData && bookData !== 'error')
     for (const r of bookData.rows) if (!byCase.has(r.case_id)) byCase.set(r.case_id, r);
-  const spec = bookData === 'error' ? undefined : bookData.book;
-  const officialYear = official.filter(
-    (r) => r.recorded_at !== null && yearOfVn(new Date(r.recorded_at)) === year,
-  );
-  const officialIds = new Set(officialYear.map((r) => r.id));
-  const pendingIds = new Set(
-    pendingAmendments === 'error'
-      ? []
-      : pendingAmendments.filter((a) => officialIds.has(a.case_id)).map((a) => a.case_id),
-  );
-  const pending = pendingIds.size;
-  const facetBy = new Map(facetRows.map((f) => [f.case_id, f]));
-  const facetWant = { creator: sp.nt, kind: sp.lt, branch: sp.dv };
-  const rowsAll = filterDmsCases(
-    drafts ?? officialYear,
-    filter,
-    q,
-    (id) => {
-      const row = byCase.get(id);
-      return row && spec ? spec.columns.map((c) => bookCell(spec, c, row)) : [];
-    },
-    pendingIds,
-  );
-  const rows = rowsAll.filter((r) => matchFacet(facetBy.get(r.id), facetWant));
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const page = Math.min(pageCount, Math.max(1, Math.floor(Number(sp.p)) || 1));
-  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const missingScan = officialYear.filter((r) => r.document_count > 0 && r.scan_count === 0);
+  const spec = bookData && bookData !== 'error' ? bookData.book : undefined;
+  const total = result.total ?? result.rows.length;
+  const pageCount = Math.max(1, Math.min(MAX_PAGE, Math.ceil(total / PAGE_SIZE)));
+  const page = Math.min(pageCount, pageNo);
+  const pageRows = result.rows;
+  const documents = report === 'error' ? undefined : report.find((r) => r.domain === domain.code);
   const counts: Record<DmsFilter, number | undefined> = {
-    'chinh-thuc': officialYear.length,
-    'cho-duyet': pending,
-    'thieu-scan': missingScan.length,
-    'du-scan': officialYear.filter((r) => r.document_count > 0 && r.scan_count > 0).length,
+    'chinh-thuc': nOfficial,
+    'cho-duyet': nPending,
+    'thieu-scan': nMissing,
+    'du-scan': nComplete,
     nhap: undefined,
     'da-huy': undefined,
   };
@@ -190,7 +199,6 @@ export default async function DmsDomainPage({
     const s = p.toString();
     return s ? `${base}?${s}` : base;
   };
-  const isDraftView = filter === 'nhap' || filter === 'da-huy';
   const sttLabel = domain.code === 'vtden' ? 'Số đến' : 'STT';
   return (
     <section aria-labelledby="t">
@@ -209,13 +217,10 @@ export default async function DmsDomainPage({
       <KpiStrip
         label={`Tổng hợp ${domain.label} năm ${year}`}
         items={[
-          { label: `Hồ sơ chính thức ${year}`, value: officialYear.length },
-          {
-            label: 'Tài liệu hiện hành',
-            value: officialYear.reduce((n, r) => n + r.document_count, 0),
-          },
-          { label: 'Thiếu scan', value: missingScan.length, tone: 'danger' },
-          { label: 'Sửa đổi chờ duyệt', value: pending, tone: 'warn' },
+          { label: `Hồ sơ chính thức ${year}`, value: nOfficial ?? '—' },
+          { label: 'Tài liệu hiện hành', value: documents?.documents ?? '—' },
+          { label: 'Thiếu scan', value: nMissing ?? '—', tone: 'danger' },
+          { label: 'Sửa đổi chờ duyệt', value: nPending ?? '—', tone: 'warn' },
         ]}
       />
       <TabNav
@@ -283,49 +288,42 @@ export default async function DmsDomainPage({
           />
         </label>
         {(() => {
-          const creators = [
-            ...new Set(facetRows.map((f) => f.creator_name).filter(Boolean)),
-          ] as string[];
-          const kinds = [...new Set(facetRows.flatMap((f) => f.doc_kinds))];
-          const branchOpts = new Map(
-            facetRows
-              .filter((f) => f.branch_id)
-              .map((f) => [f.branch_id as string, f.branch_name ?? '']),
-          );
           const cls = 'min-h-11 rounded-[10px] border border-line-strong bg-surface px-3 text-sm';
+          const options = (
+            list: readonly { value: string; label: string; n: number }[],
+            now?: string,
+          ) => {
+            const rows =
+              list.some((o) => o.value === now) || !now
+                ? list
+                : [...list, { value: now, label: now, n: 0 }];
+            return rows.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label} ({o.n.toLocaleString('vi-VN')})
+              </option>
+            ));
+          };
           return (
             <>
               <label>
                 <span className="sr-only">Loại tài liệu</span>
                 <select name="lt" defaultValue={sp.lt ?? ''} className={cls}>
                   <option value="">Loại tài liệu</option>
-                  {kinds.map((k) => (
-                    <option key={k} value={k}>
-                      {k}
-                    </option>
-                  ))}
+                  {options(facets.kind, sp.lt)}
                 </select>
               </label>
               <label>
                 <span className="sr-only">Người tạo</span>
                 <select name="nt" defaultValue={sp.nt ?? ''} className={cls}>
                   <option value="">Người tạo</option>
-                  {creators.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                  {options(facets.creator, sp.nt)}
                 </select>
               </label>
               <label>
                 <span className="sr-only">Đơn vị</span>
                 <select name="dv" defaultValue={sp.dv ?? ''} className={cls}>
                   <option value="">Đơn vị</option>
-                  {[...branchOpts].map(([id, name]) => (
-                    <option key={id} value={id}>
-                      {name}
-                    </option>
-                  ))}
+                  {options(facets.branch, sp.dv)}
                 </select>
               </label>
             </>
@@ -365,24 +363,40 @@ export default async function DmsDomainPage({
       />
       {pageCount > 1 ? (
         <nav aria-label="Phân trang" className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-            <Link
-              key={n}
-              href={pageHref(n)}
-              aria-current={n === page ? 'page' : undefined}
-              className={
-                n === page
-                  ? 'rounded-full bg-accent px-3 py-1 font-semibold text-white'
-                  : 'px-3 py-1'
-              }
-            >
-              {n}
+          {page > 1 ? (
+            <Link href={pageHref(page - 1)} rel="prev" className="px-3 py-1">
+              ‹ Trước
             </Link>
-          ))}
+          ) : null}
+          {pageWindow(page, pageCount).map((n, i) =>
+            n === '…' ? (
+              <span key={`gap-${i}`} aria-hidden="true">
+                …
+              </span>
+            ) : (
+              <Link
+                key={n}
+                href={pageHref(n)}
+                aria-current={n === page ? 'page' : undefined}
+                className={
+                  n === page
+                    ? 'rounded-full bg-accent px-3 py-1 font-semibold text-white'
+                    : 'px-3 py-1'
+                }
+              >
+                {n}
+              </Link>
+            ),
+          )}
+          {page < pageCount ? (
+            <Link href={pageHref(page + 1)} rel="next" className="px-3 py-1">
+              Sau ›
+            </Link>
+          ) : null}
         </nav>
       ) : null}
       <p className="muted mt-3">
-        Hiển thị {pageRows.length} / {rows.length} hồ sơ{' '}
+        Hiển thị {pageRows.length} / {formatTotal(total, result.totalCapped)} hồ sơ{' '}
         {isDraftView ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase() : `chính thức năm ${year}`}
         . Nháp và nháp đã hủy không có {sttLabel}, không vào xuất sổ, không tính thống kê chính
         thức.

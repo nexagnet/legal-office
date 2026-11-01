@@ -1,6 +1,6 @@
 export interface Kpi {
   readonly label: string;
-  readonly value: number;
+  readonly value: number | string;
   /** Sắc thái số liệu; mặc định theo màu nghiệp vụ đang mở. */
   readonly tone?: 'ok' | 'warn' | 'danger';
 }
@@ -18,7 +18,7 @@ export function KpiStrip({
       {items.map((k) => (
         <div key={k.label} className="kpi" data-tone={k.tone}>
           <dt>{k.label}</dt>
-          <dd>{k.value}</dd>
+          <dd>{typeof k.value === 'number' ? k.value.toLocaleString('vi-VN') : k.value}</dd>
         </div>
       ))}
     </dl>
