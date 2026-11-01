@@ -8,24 +8,35 @@ afterEach(cleanup);
 
 const row = (
   userId: string,
-  label: string,
-  role: string | null,
-  branches: string[],
+  name: string,
+  email: string,
+  state: MemberRow['state'],
+  groupNames: string[] = [],
 ): MemberRow => ({
   userId,
-  label,
-  role,
-  legalSigner: false,
-  hasLogin: true,
-  branches,
+  name,
+  email,
+  branches: [],
+  isAdmin: false,
+  state,
+  groupNames,
   pending: false,
+  legacyRole: null,
 });
 
 describe('MemberTable', () => {
   const members = [
-    row('1', 'Nguyễn Đức An (an@x.vn)', 'ADMIN', []),
-    row('2', 'Lê Thị Bình (binh@x.vn)', 'VAN_THU', ['Hà Nội']),
+    row('1', 'Nguyễn Đức An', 'an@x.vn', 'active', ['Văn thư chi nhánh']),
+    row('2', 'Lê Thị Bình', 'binh@x.vn', 'active', ['Kế toán', 'Thư ký']),
   ];
+
+  it('hiện nhóm quyền từng người và liên kết tới quyền hiệu lực', () => {
+    render(<MemberTable members={members} />);
+    expect(screen.getByText('Kế toán + Thư ký')).toBeTruthy();
+    const links = screen.getAllByRole('link', { name: /Xem quyền hiệu lực/ });
+    expect(links[0]?.getAttribute('href')).toBe('/quan-tri/phan-quyen/nguoi-dung/1');
+    expect(screen.queryByText('Quyền ký')).toBeNull();
+  });
 
   it('tìm không dấu theo tên và email', () => {
     render(<MemberTable members={members} />);
@@ -35,9 +46,9 @@ describe('MemberTable', () => {
     expect(screen.getByRole('status').textContent).toBe('1/2 thành viên');
   });
 
-  it('lọc theo trạng thái Chưa có vai', () => {
-    render(<MemberTable members={[...members, row('3', 'Mới Vào (moi@x.vn)', null, [])]} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Chưa có vai 1' }));
+  it('lọc theo trạng thái Chưa có quyền', () => {
+    render(<MemberTable members={[...members, row('3', 'Mới Vào', 'moi@x.vn', 'no-access')]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Chưa có quyền 1' }));
     expect(screen.queryByText('Lê Thị Bình')).toBeNull();
     expect(screen.getByText('Mới Vào')).toBeTruthy();
   });
@@ -52,6 +63,6 @@ describe('BranchManager', () => {
         memberCounts={{ 'Hà Nội': 3 }}
       />,
     );
-    expect(screen.getByText('3 thành viên được cấp')).toBeTruthy();
+    expect(screen.getByText('3 người')).toBeTruthy();
   });
 });

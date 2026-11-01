@@ -1,5 +1,7 @@
 import { BranchManager } from '../../../components/BranchManager';
 import { loadMembers } from '../../../lib/admin-api';
+import { loadDmsGroups } from '../../../lib/dms-admin';
+import { groupsOfUser } from '../../../lib/permission-model';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -11,13 +13,33 @@ export default async function BranchesPage() {
   if (!officeId || !session.roles.includes('ADMIN')) {
     return <p className="muted">Chỉ Admin quản lý được chi nhánh.</p>;
   }
-  const members = await loadMembers(await requestCookie(), officeId);
+  const cookie = await requestCookie();
+  const [members, groups] = await Promise.all([
+    loadMembers(cookie, officeId),
+    loadDmsGroups(cookie, officeId),
+  ]);
   const counts: Record<string, number> = {};
+  const groupNames: Record<string, Set<string>> = {};
   if (members !== 'error') {
+    const seen = new Set<string>();
     for (const m of members) {
-      if (!m.role) continue;
-      for (const name of m.branches) counts[name] = (counts[name] ?? 0) + 1;
+      for (const name of m.branches) {
+        if (seen.has(`${m.userId}|${name}`)) continue;
+        seen.add(`${m.userId}|${name}`);
+        counts[name] = (counts[name] ?? 0) + 1;
+        for (const g of groups === 'error' ? [] : groupsOfUser(groups, m.userId)) {
+          (groupNames[name] ??= new Set()).add(g.name);
+        }
+      }
     }
   }
-  return <BranchManager officeId={officeId} branches={session.branches} memberCounts={counts} />;
+  const branchGroups = Object.fromEntries(Object.entries(groupNames).map(([k, v]) => [k, [...v]]));
+  return (
+    <BranchManager
+      officeId={officeId}
+      branches={session.branches}
+      memberCounts={counts}
+      branchGroups={branchGroups}
+    />
+  );
 }

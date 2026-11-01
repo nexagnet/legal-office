@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { AdminNav, type AdminSection } from '../../components/AdminNav';
 import { loadRequests } from '../../lib/admin-api';
+import { loadMyDmsPermissions } from '../../lib/dms';
+import { loadPermissionRequests } from '../../lib/dms-admin';
 import { currentSession, requestCookie } from '../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -23,20 +25,37 @@ export default async function AdminLayout({ children }: { readonly children: Rea
   }
   const isAdmin = session.roles.includes('ADMIN');
   const isHead = session.roles.includes('TRUONG_VP');
-  if (!isAdmin && !isHead) {
+  const officeId = session.memberships[0]?.officeId ?? session.branches[0]?.officeId;
+  const cookie = await requestCookie();
+  // Phân quyền theo nhóm quyền DMS: người có quyền đề xuất/duyệt thay đổi quyền cũng vào được mục Phân quyền.
+  const perms = officeId ? await loadMyDmsPermissions(cookie, officeId) : [];
+  const canPermissions =
+    perms.includes('dms.permission.propose') || perms.includes('dms.permission.approve');
+  if (!isAdmin && !isHead && !canPermissions) {
     return (
       <section aria-labelledby="t">
         <h1 id="t">Quản trị</h1>
         <div className="state" role="alert">
           <h2>Không có quyền</h2>
-          <p>Chỉ Admin và Trưởng văn phòng vào được mục Quản trị.</p>
+          <p>
+            Mục Quản trị chỉ dành cho Admin và người được cấp quyền đề xuất hoặc duyệt thay đổi
+            quyền.
+          </p>
         </div>
       </section>
     );
   }
-  const officeId = session.memberships[0]?.officeId ?? session.branches[0]?.officeId;
-  const requests = officeId ? await loadRequests(await requestCookie(), officeId) : [];
-  const pending = requests === 'error' ? 0 : requests.filter((r) => r.status === 'PENDING').length;
+  const [groupRequests, legacyRequests] = await Promise.all([
+    officeId && canPermissions
+      ? loadPermissionRequests(cookie, officeId)
+      : Promise.resolve('error' as const),
+    officeId && (isAdmin || isHead)
+      ? loadRequests(cookie, officeId)
+      : Promise.resolve('error' as const),
+  ]);
+  const pending =
+    (groupRequests === 'error' ? 0 : groupRequests.filter((r) => r.status === 'PENDING').length) +
+    (legacyRequests === 'error' ? 0 : legacyRequests.filter((r) => r.status === 'PENDING').length);
   const sections: AdminSection[] = [
     ...(isAdmin
       ? [
@@ -45,7 +64,6 @@ export default async function AdminLayout({ children }: { readonly children: Rea
         ]
       : []),
     { href: '/quan-tri/phan-quyen', label: 'Phân quyền', badge: pending },
-    { href: '/quan-tri/ho-so-lao-dong', label: 'Hồ sơ lao động' },
     ...(isAdmin
       ? [
           { href: '/quan-tri/the-thv', label: 'Thẻ THV' },
@@ -53,6 +71,7 @@ export default async function AdminLayout({ children }: { readonly children: Rea
           { href: '/quan-tri/lich', label: 'Lịch làm việc' },
         ]
       : []),
+    { href: '/quan-tri/ho-so-lao-dong', label: 'Hồ sơ lao động' },
   ];
   return (
     <div className="admin-layout">

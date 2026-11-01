@@ -1,88 +1,104 @@
-import Link from 'next/link';
-import { AccessRequestActions } from '../../../components/AccessRequestActions';
+import { AuditTab } from '../../../components/permissions/AuditTab';
+import { GroupsTab } from '../../../components/permissions/GroupsTab';
+import { LegacyRequests } from '../../../components/permissions/LegacyRequests';
+import {
+  PermissionTabs,
+  activePermissionTab,
+} from '../../../components/permissions/PermissionTabs';
+import { RequestsTab } from '../../../components/permissions/RequestsTab';
+import { UsersTab } from '../../../components/permissions/UsersTab';
+import { StateCard } from '../../../components/ui/state-card';
 import { loadRequests } from '../../../lib/admin-api';
-import { describeRequest } from '../../../lib/admin-describe';
-import { ACCESS_KIND_LABEL, ACCESS_STATUS_LABEL } from '../../../lib/messages';
-import { currentSession, requestCookie } from '../../../lib/server';
-import { PersonLabel } from '../../../components/ui/avatar';
+import { loadPermissionContext } from '../../../lib/dms-admin';
+import { makeNameBook } from '../../../lib/permission-model';
+import { requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AccessPage({
+interface Params {
+  tab?: string;
+  loc?: string;
+  q?: string;
+  page?: string;
+  dd?: string;
+}
+
+export default async function PermissionPage({
   searchParams,
 }: {
-  readonly searchParams: Promise<{ tab?: string }>;
+  readonly searchParams: Promise<Params>;
 }) {
-  const session = await currentSession();
-  if (session.status !== 'authenticated') return null;
-  const done = (await searchParams).tab === 'da-xu-ly';
-  const officeId = session.memberships[0]?.officeId ?? session.branches[0]?.officeId;
-  const requests = officeId ? await loadRequests(await requestCookie(), officeId) : [];
-  const list =
-    requests === 'error' ? [] : requests.filter((r) => (r.status !== 'PENDING') === done);
-  const pending = requests === 'error' ? 0 : requests.filter((r) => r.status === 'PENDING').length;
-  const processed = requests === 'error' ? 0 : requests.length - pending;
+  const ctx = await loadPermissionContext();
+  if (!ctx) return null;
+  const legacy =
+    ctx.roles.includes('ADMIN') || ctx.roles.includes('TRUONG_VP')
+      ? await loadRequests(await requestCookie(), ctx.officeId)
+      : 'error';
+  const legacyRows = legacy === 'error' ? [] : legacy;
+
+  if (!ctx.canPropose) {
+    // Trưởng văn phòng cũ chỉ còn việc xử lý nốt đề xuất cấp vai đã gửi; mọi thứ khác cần quyền phân quyền.
+    if (ctx.roles.includes('TRUONG_VP') && legacyRows.length > 0) {
+      return <LegacyRequests rows={legacyRows} roles={ctx.roles} />;
+    }
+    return (
+      <StateCard
+        mark="403"
+        tone="danger"
+        alert
+        title="Không đủ quyền"
+        description="Mục Phân quyền cần quyền đề xuất hoặc duyệt thay đổi quyền. Liên hệ Admin của văn phòng nếu bạn cần quyền này."
+      />
+    );
+  }
+  if (ctx.members === 'error' || ctx.groups === 'error' || ctx.requests === 'error') {
+    return (
+      <StateCard
+        mark="!"
+        tone="danger"
+        alert
+        title="Không tải được phân quyền"
+        description="Vui lòng thử lại sau ít phút."
+      />
+    );
+  }
+
+  const params = await searchParams;
+  const tab = activePermissionTab(params.tab);
+  const pending = ctx.requests.filter((r) => r.status === 'PENDING').length;
+  const names = makeNameBook(ctx.groups, ctx.members);
   return (
     <>
-      <div className="member-bar">
-        <div className="chip-row" role="group" aria-label="Lọc đề xuất">
-          <Link
-            className="chip"
-            href="/quan-tri/phan-quyen"
-            aria-pressed={!done}
-            aria-current={done ? undefined : 'page'}
-          >
-            Chờ duyệt {pending}
-          </Link>
-          <Link
-            className="chip"
-            href="/quan-tri/phan-quyen?tab=da-xu-ly"
-            aria-pressed={done}
-            aria-current={done ? 'page' : undefined}
-          >
-            Đã xử lý {processed}
-          </Link>
-        </div>
-        {session.roles.includes('ADMIN') ? (
-          <Link className="primary btn-link" href="/quan-tri/phan-quyen/de-xuat">
-            + Đề xuất đổi quyền
-          </Link>
-        ) : null}
-      </div>
-      {requests === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được đề xuất</h2>
-          <p>Vui lòng thử lại sau.</p>
-        </div>
-      ) : list.length === 0 ? (
-        <div className="state" role="status">
-          <h2>{done ? 'Chưa có đề xuất đã xử lý' : 'Không có đề xuất chờ duyệt'}</h2>
-        </div>
+      <PermissionTabs active={tab} pending={pending} />
+      {tab === 'nguoi-dung' ? (
+        <UsersTab
+          members={ctx.members}
+          groups={ctx.groups}
+          requests={ctx.requests}
+          searchParams={params}
+          canPropose={ctx.canPropose}
+        />
+      ) : tab === 'nhom' ? (
+        <GroupsTab
+          groups={ctx.groups}
+          requests={ctx.requests}
+          searchParams={params}
+          canPropose={ctx.canPropose}
+          officeId={ctx.officeId}
+        />
+      ) : tab === 'yeu-cau' ? (
+        <>
+          <RequestsTab
+            requests={ctx.requests}
+            names={names}
+            userId={ctx.userId}
+            searchParams={params}
+            canPropose={ctx.canPropose}
+          />
+          <LegacyRequests rows={legacyRows} roles={ctx.roles} />
+        </>
       ) : (
-        list.map((r) => (
-          <article key={r.id} className="req-card" data-status={r.status}>
-            <div className="req-body">
-              <p className="req-head">
-                <span className="kind-chip">{ACCESS_KIND_LABEL[r.kind] ?? r.kind}</span>
-                <strong className="req-name inline-flex items-center gap-2">
-                  <PersonLabel label={r.targetLabel} id={r.targetUserId} size="md" />
-                </strong>
-              </p>
-              <p className="req-what">{describeRequest(r)}</p>
-              <p className="req-why">
-                Lý do: {r.reason}
-                {r.decisionNote ? ` · ${r.decisionNote}` : ''}
-              </p>
-              <p className="req-by">
-                <PersonLabel label={r.proposedBy} /> đề xuất
-                {r.status === 'PENDING' ? '' : ` · ${ACCESS_STATUS_LABEL[r.status] ?? r.status}`}
-              </p>
-            </div>
-            {r.status === 'PENDING' ? (
-              <AccessRequestActions id={r.id} roles={session.roles} />
-            ) : null}
-          </article>
-        ))
+        <AuditTab requests={ctx.requests} names={names} searchParams={params} />
       )}
     </>
   );
