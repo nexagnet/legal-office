@@ -466,3 +466,24 @@ export async function loadDmsReport(
   );
   return body === 'error' ? 'error' : body.rows;
 }
+
+export interface DmsSearchRow {
+  readonly case_id: string;
+  readonly case_title: string;
+  readonly domain: string;
+  readonly document_title: string;
+  readonly file_id: string;
+  readonly file_label: string;
+  readonly snippet: string;
+}
+
+/** Tìm toàn văn trong chữ OCR của tệp scan; chỉ trả hồ sơ người xem được quyền thấy. */
+export async function searchDmsOcr(
+  cookie: string | null,
+  officeId: string,
+  q: string,
+): Promise<DmsSearchRow[] | 'error'> {
+  const params = new URLSearchParams({ officeId, q, limit: '30' });
+  const body = await getJson<{ rows: DmsSearchRow[] }>(`/dms/search?${params}`, cookie);
+  return body === 'error' ? 'error' : body.rows;
+}
