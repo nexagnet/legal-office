@@ -127,6 +127,18 @@ export function summarizeGroup(g: DmsGroup): string {
   return parts.length > 0 ? parts.join(', ') : 'Chưa có quyền nào';
 }
 
+/**
+ * Phạm vi mặc định của nhóm (cột "Phạm vi mặc định", Figma P3). Suy từ quyền, không lưu riêng:
+ * có quyền duyệt thay đổi quyền → toàn văn phòng; chỉ có quyền "hồ sơ do tôi tạo" → hồ sơ của chính mình;
+ * còn lại → theo địa điểm được gán.
+ */
+export function defaultScopeLabel(g: DmsGroup): string {
+  if (g.permissions.includes('dms.permission.approve')) return 'Toàn văn phòng';
+  const parsed = g.permissions.map((c) => parsePermission(c)).filter((p) => p !== null);
+  if (parsed.length > 0 && parsed.every((p) => p.scope === 'own')) return 'Hồ sơ do tôi tạo';
+  return 'Theo địa điểm';
+}
+
 export interface PermissionSection {
   readonly title: string;
   readonly items: readonly { readonly code: string; readonly label: string }[];
