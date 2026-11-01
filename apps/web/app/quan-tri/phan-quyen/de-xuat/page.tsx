@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AdminBanner } from '../../../../components/admin-banner';
 import { ProposeChangeForm } from '../../../../components/permissions/ProposeChangeForm';
 import { BLOCK_RULES, isGroupActive } from '../../../../lib/permission-model';
 import { StateCard } from '../../../../components/ui/state-card';
@@ -29,11 +29,14 @@ export default async function ProposePage({
   ];
   return (
     <>
-      <p className="admin-crumb">
-        <Link href="/quan-tri">Quản trị</Link> › <Link href="/quan-tri/phan-quyen">Phân quyền</Link>{' '}
-        › Đề xuất đổi quyền
-      </p>
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <AdminBanner
+        crumb={[
+          ['Quản trị', '/quan-tri'],
+          ['Phân quyền', '/quan-tri/phan-quyen'],
+          ['Đề xuất đổi quyền'],
+        ]}
+      />
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_270px]">
         {ctx.groups.length === 0 ? (
           <StateCard
             mark="!"

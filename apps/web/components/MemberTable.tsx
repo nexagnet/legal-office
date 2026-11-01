@@ -102,7 +102,7 @@ export function MemberTable({
       <p className="sr-only" role="status">
         {shown.length}/{members.length} thành viên
       </p>
-      <DataTable tableKey="MemberTable-1" className="member-card">
+      <DataTable tableKey="MemberTable-1" className="member-card people">
         <table>
           <caption className="sr-only">Thành viên văn phòng</caption>
           <thead>
@@ -119,32 +119,13 @@ export function MemberTable({
           <tbody>
             {shown.map((m) => (
               <tr key={m.userId}>
-                <th scope="row" className="min-w-[260px]">
+                <th scope="row">
                   <span className="person w-full">
-                    <Avatar
-                      name={m.name}
-                      id={m.userId}
-                      size="lg"
-                      className={m.state === 'active' ? undefined : 'opacity-60'}
-                    />
+                    <Avatar name={m.name} id={m.userId} size="md" />
                     <span className="grid min-w-0 flex-1">
                       <span className="person-name">{m.name}</span>
                       {m.email ? <span className="person-mail">{m.email}</span> : null}
                     </span>
-                    {officeId ? (
-                      <CaseActionDialog
-                        label="Sửa tên"
-                        title="Sửa họ tên hiển thị"
-                        description={m.email ?? undefined}
-                        className="link-btn ml-auto shrink-0 whitespace-nowrap text-[13px] font-semibold"
-                      >
-                        <MemberNameForm
-                          userId={m.userId}
-                          officeId={officeId}
-                          currentName={m.name}
-                        />
-                      </CaseActionDialog>
-                    ) : null}
                   </span>
                 </th>
                 <td>
@@ -179,12 +160,28 @@ export function MemberTable({
                   )}
                 </td>
                 <td>
-                  <Link
-                    className="link-btn font-semibold whitespace-nowrap"
-                    href={`/quan-tri/phan-quyen/nguoi-dung/${m.userId}`}
-                  >
-                    Xem quyền hiệu lực ›
-                  </Link>
+                  <span className="grid justify-items-start gap-0.5">
+                    <Link
+                      className="link-btn font-semibold whitespace-nowrap"
+                      href={`/quan-tri/phan-quyen/nguoi-dung/${m.userId}`}
+                    >
+                      Xem quyền hiệu lực ›
+                    </Link>
+                    {officeId ? (
+                      <CaseActionDialog
+                        label="Sửa tên"
+                        title="Sửa họ tên hiển thị"
+                        description={m.email ?? undefined}
+                        className="link-btn whitespace-nowrap font-semibold text-muted"
+                      >
+                        <MemberNameForm
+                          userId={m.userId}
+                          officeId={officeId}
+                          currentName={m.name}
+                        />
+                      </CaseActionDialog>
+                    ) : null}
+                  </span>
                 </td>
               </tr>
             ))}

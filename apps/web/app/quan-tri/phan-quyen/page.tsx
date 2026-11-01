@@ -1,4 +1,5 @@
 import { AuditTab } from '../../../components/permissions/AuditTab';
+import { AdminBanner } from '../../../components/admin-banner';
 import { GroupsTab } from '../../../components/permissions/GroupsTab';
 import { LegacyRequests } from '../../../components/permissions/LegacyRequests';
 import {
@@ -22,6 +23,22 @@ interface Params {
   page?: string;
   dd?: string;
 }
+
+/** Đầu trang riêng của từng tab (Figma P3, Q6, P10); tab đầu dùng đầu trang chung của mục Phân quyền. */
+const TAB_BANNER: Partial<Record<string, { title: string; sub: string }>> = {
+  nhom: {
+    title: 'Phân quyền',
+    sub: 'Nhóm mẫu của hệ thống được bảo vệ. Muốn nhóm riêng: sao chép nhóm mẫu hoặc bắt đầu từ nhóm trống, chọn quyền và phạm vi.',
+  },
+  'yeu-cau': {
+    title: 'Yêu cầu chờ duyệt',
+    sub: 'Admin có quyền duyệt thay đổi quyền duyệt hoặc từ chối các đề xuất do người khác lập. Đề xuất do chính bạn lập không có nút Duyệt.',
+  },
+  'nhat-ky': {
+    title: 'Nhật ký phân quyền',
+    sub: 'Lịch sử cấp quyền, thu hồi, đổi nhóm và quyết định duyệt. Chỉ thêm dòng mới, không sửa hay xóa.',
+  },
+};
 
 export default async function PermissionPage({
   searchParams,
@@ -67,8 +84,10 @@ export default async function PermissionPage({
   const tab = activePermissionTab(params.tab);
   const pending = ctx.requests.filter((r) => r.status === 'PENDING').length;
   const names = makeNameBook(ctx.groups, ctx.members);
+  const banner = TAB_BANNER[tab];
   return (
     <>
+      {banner ? <AdminBanner title={banner.title} sub={banner.sub} /> : null}
       <PermissionTabs active={tab} pending={pending} />
       {tab === 'nguoi-dung' ? (
         <UsersTab

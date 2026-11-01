@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AdminBanner } from '../../../../../components/admin-banner';
 import { notFound } from 'next/navigation';
 import { GroupStatusButton } from '../../../../../components/permissions/GroupStatusButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
@@ -64,10 +65,15 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
         active="nhom"
         pending={requests.filter((r) => r.status === 'PENDING').length}
       />
-      <p className="admin-crumb">
-        <Link href="/quan-tri/phan-quyen">Phân quyền</Link> ›{' '}
-        <Link href="/quan-tri/phan-quyen?tab=nhom">Nhóm quyền</Link> › {group.name}
-      </p>
+      <AdminBanner
+        crumb={[
+          ['Quản trị', '/quan-tri'],
+          ['Phân quyền', '/quan-tri/phan-quyen'],
+          ['Nhóm quyền', '/quan-tri/phan-quyen?tab=nhom'],
+          [group.name],
+        ]}
+        title={group.name}
+      />
       <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="grp-t">
         <div className="flex flex-wrap gap-2">
           {active ? <Pill tone="ok">Đang dùng</Pill> : <Pill tone="mute">Ngừng dùng</Pill>}
@@ -121,7 +127,7 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
         </div>
       </section>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_270px]">
         <section
           className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm"
           aria-labelledby="perm-t"
