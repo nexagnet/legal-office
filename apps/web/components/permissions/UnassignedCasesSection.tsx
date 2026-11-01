@@ -4,12 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { formatDay } from '../../lib/deadlines';
 import type { OfficeBranch, UnassignedCase } from '../../lib/dms-admin';
-import { DMS_DOMAIN_LABELS } from '../../lib/dms';
 import { messageFor } from '../../lib/messages';
+import { PERMISSION_DOMAINS } from '../../lib/permission-model';
 import { postJson } from '../../lib/post-json';
 import { Button } from '../ui/button';
 import { Field, Select } from '../ui/field';
 import { NoteBox, Pill } from './Pill';
+
+const DOMAIN_LABEL: ReadonlyMap<string, string> = new Map(PERMISSION_DOMAINS);
 
 /**
  * Hồ sơ cũ chưa có chi nhánh (quyết định owner 2026-11-01): chỉ Admin thấy cho tới khi được gắn chi nhánh; gắn xong thì
@@ -112,7 +114,7 @@ export function UnassignedCasesSection({
                     />
                   </td>
                   <th scope="row">{c.title}</th>
-                  <td>{DMS_DOMAIN_LABELS[c.domain] ?? c.domain}</td>
+                  <td>{DOMAIN_LABEL.get(c.domain) ?? c.domain}</td>
                   <td>{formatDay(c.createdAt)}</td>
                 </tr>
               ))}
