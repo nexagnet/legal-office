@@ -1015,3 +1015,20 @@
   justify-content: space-between;
   gap: 10px;
 }
+.admin-main .member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 12px;
+  font: 600 13px/18px var(--font);
+  background: #eef1f6;
+  border-radius: 999px;
+}
+.admin-main .member-chip button {
+  padding: 0 6px;
+  font-size: 16px;
+  line-height: 18px;
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+}

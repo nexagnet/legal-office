@@ -8,6 +8,7 @@ import {
   KIND_LABEL,
   PERMISSION_DOMAINS,
   allPermissionCodes,
+  groupVersion,
   isSensitivePermission,
   parsePermission,
   permissionLabel,
@@ -16,6 +17,7 @@ import {
   type DmsGroup,
   type RequestKind,
 } from '../../lib/permission-model';
+import { Pill } from './Pill';
 
 const KINDS: readonly RequestKind[] = ['ADD_MEMBER', 'REMOVE_MEMBER', 'GRANT', 'REVOKE'];
 const KIND_HINT: Record<RequestKind, string> = {
@@ -50,7 +52,7 @@ export function ProposeChangeForm({
   const [groupId, setGroupId] = useState(
     groups.find((g) => g.id === initial.nhom)?.id ?? groups[0]?.id ?? '',
   );
-  const [userId, setUserId] = useState(initial.nguoi ?? '');
+  const [userIds, setUserIds] = useState<readonly string[]>(initial.nguoi ? [initial.nguoi] : []);
   const [codes, setCodes] = useState<readonly string[]>([]);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -86,13 +88,13 @@ export function ProposeChangeForm({
     return [...bySection.entries()];
   }, [permissionPool]);
 
-  const targets = memberKind ? (userId ? [userId] : []) : codes;
+  const targets = memberKind ? userIds : codes;
   const sensitive = codes.filter(isSensitivePermission).length;
 
   function pickKind(k: RequestKind) {
     setKind(k);
     setCodes([]);
-    setUserId('');
+    setUserIds([]);
     setError(null);
   }
 
@@ -126,66 +128,101 @@ export function ProposeChangeForm({
   }
 
   const field = 'min-h-11 rounded-[10px] border border-line-strong bg-surface px-4 text-ink';
-  const label = 'grid gap-1 text-sm font-semibold text-muted';
+  const memberDelta = userIds.length * (kind === 'ADD_MEMBER' ? 1 : -1);
 
   return (
-    <form className="grid gap-4" onSubmit={submit} aria-label="Đề xuất đổi quyền" noValidate>
-      <section className="grid gap-4 rounded-2xl bg-surface p-6 shadow-sm">
-        <h2 className="font-serif text-lg">Nhóm và thay đổi</h2>
-        <fieldset className="grid gap-2">
-          <legend className="text-sm font-semibold text-muted">Loại thay đổi</legend>
-          <div className="flex flex-wrap gap-2.5">
-            {KINDS.map((k) => (
-              <button
-                key={k}
-                type="button"
-                className="chip"
-                aria-pressed={kind === k}
-                title={KIND_HINT[k]}
-                onClick={() => pickKind(k)}
-              >
-                {k === 'ADD_MEMBER'
-                  ? 'Gán nhóm quyền'
-                  : k === 'REMOVE_MEMBER'
-                    ? 'Gỡ khỏi nhóm'
-                    : k === 'GRANT'
-                      ? 'Thêm quyền vào nhóm'
-                      : 'Thu hồi quyền khỏi nhóm'}
-              </button>
-            ))}
-          </div>
-          <p className="text-[13px] text-muted">{KIND_HINT[kind]}</p>
-        </fieldset>
-        <label className={label}>
-          Nhóm quyền
-          <select
-            className={field}
-            value={groupId}
-            onChange={(e) => {
-              setGroupId(e.target.value);
-              setCodes([]);
-              setUserId('');
-            }}
-          >
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name} ({g.member_ids.length} người)
-              </option>
-            ))}
-          </select>
-        </label>
+    <form className="wizard" onSubmit={submit} aria-label="Đề xuất đổi quyền" noValidate>
+      <section className="wizard-card" aria-labelledby="pf-kind">
+        <h2 id="pf-kind">1 · Loại thay đổi</h2>
+        <div className="chip-row">
+          {KINDS.map((k) => (
+            <button
+              key={k}
+              type="button"
+              className="chip"
+              aria-pressed={kind === k}
+              title={KIND_HINT[k]}
+              onClick={() => pickKind(k)}
+            >
+              {k === 'ADD_MEMBER'
+                ? 'Gán nhóm quyền'
+                : k === 'REMOVE_MEMBER'
+                  ? 'Gỡ khỏi nhóm'
+                  : k === 'GRANT'
+                    ? 'Thêm quyền vào nhóm'
+                    : 'Thu hồi quyền khỏi nhóm'}
+            </button>
+          ))}
+        </div>
+        <p className="muted">{KIND_HINT[kind]}</p>
+      </section>
+
+      <section className="wizard-card" aria-labelledby="pf-group">
+        <h2 id="pf-group">2 · Chọn nhóm quyền</h2>
+        <div className="wizard-options" role="radiogroup" aria-label="Nhóm quyền">
+          {groups.map((g) => (
+            <label key={g.id} className="option-card" data-selected={groupId === g.id || undefined}>
+              <input
+                type="radio"
+                name="group"
+                checked={groupId === g.id}
+                onChange={() => {
+                  setGroupId(g.id);
+                  setCodes([]);
+                  setUserIds([]);
+                }}
+              />
+              <span>
+                <strong>{g.name}</strong>
+                <small>
+                  {g.kind === 'TEMPLATE' ? 'Mẫu' : 'Tùy chỉnh'} · v{groupVersion(g)} ·{' '}
+                  {g.member_ids.length} người
+                </small>
+              </span>
+            </label>
+          ))}
+        </div>
+      </section>
+
+      <section className="wizard-card" aria-labelledby="pf-target">
+        <h2 id="pf-target">{memberKind ? '3 · Chọn thành viên' : '3 · Chọn quyền'}</h2>
         {memberKind ? (
-          <label className={label}>
-            Thành viên
-            <select className={field} value={userId} onChange={(e) => setUserId(e.target.value)}>
-              <option value="">— Chọn thành viên —</option>
-              {candidates.map((p) => (
-                <option key={p.userId} value={p.userId}>
-                  {p.label}
-                </option>
+          <>
+            <div className="chip-row">
+              {userIds.map((id) => (
+                <span key={id} className="member-chip">
+                  {personName(id)}
+                  <button
+                    type="button"
+                    aria-label={`Bỏ ${personName(id)}`}
+                    onClick={() => setUserIds(userIds.filter((x) => x !== id))}
+                  >
+                    ×
+                  </button>
+                </span>
               ))}
-            </select>
-          </label>
+              {userIds.length === 0 ? (
+                <span className="muted">Chưa chọn thành viên nào.</span>
+              ) : null}
+            </div>
+            <label className="grid gap-1 text-sm font-semibold text-muted">
+              Thêm thành viên
+              <select
+                className={field}
+                value=""
+                onChange={(e) => e.target.value && setUserIds([...userIds, e.target.value])}
+              >
+                <option value="">— Chọn thành viên —</option>
+                {candidates
+                  .filter((p) => !userIds.includes(p.userId))
+                  .map((p) => (
+                    <option key={p.userId} value={p.userId}>
+                      {p.label}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          </>
         ) : (
           <fieldset className="grid max-h-[420px] gap-3 overflow-y-auto rounded-[10px] border border-line p-3">
             <legend className="text-sm font-semibold text-muted">
@@ -216,22 +253,10 @@ export function ProposeChangeForm({
             ))}
           </fieldset>
         )}
-        <label className={label}>
-          Lý do
-          <input
-            className={field}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            maxLength={1000}
-            autoComplete="off"
-          />
-        </label>
       </section>
 
-      <section className="grid gap-2 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="prev-t">
-        <h2 id="prev-t" className="font-serif text-lg">
-          Nếu được duyệt
-        </h2>
+      <section className="wizard-card" aria-labelledby="prev-t">
+        <h2 id="prev-t">4 · Xem trước nếu được duyệt</h2>
         <DataTable tableKey="permissions-ProposeChangeForm-1">
           <table>
             <thead>
@@ -249,7 +274,7 @@ export function ProposeChangeForm({
                   {targets.length === 0
                     ? '— chưa chọn —'
                     : memberKind
-                      ? `${personName(userId)} ${kind === 'ADD_MEMBER' ? 'thuộc' : 'không còn thuộc'} nhóm`
+                      ? `${userIds.map(personName).join(', ')} ${kind === 'ADD_MEMBER' ? 'thuộc' : 'không còn thuộc'} nhóm`
                       : `${targets.length} quyền ${kind === 'GRANT' ? 'được thêm' : 'bị thu hồi'}`}
                 </td>
               </tr>
@@ -258,8 +283,7 @@ export function ProposeChangeForm({
                 <td>{group?.member_ids.length ?? 0}</td>
                 <td>
                   {memberKind
-                    ? (group?.member_ids.length ?? 0) +
-                      (userId ? (kind === 'ADD_MEMBER' ? 1 : -1) : 0)
+                    ? (group?.member_ids.length ?? 0) + memberDelta
                     : `${group?.member_ids.length ?? 0} (không đổi)`}
                 </td>
               </tr>
@@ -276,23 +300,44 @@ export function ProposeChangeForm({
             </tbody>
           </table>
         </DataTable>
-        {sensitive > 0 ? (
-          <p className="rounded-[10px] bg-brass-soft/60 px-4 py-3 text-sm">
-            <strong className="text-warn">{sensitive} quyền nhạy cảm</strong> trong đề xuất này:
-            người duyệt sẽ được nhắc đọc kỹ.
-          </p>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          <Pill tone={sensitive > 0 ? 'warn' : 'ok'}>
+            {sensitive > 0 ? `${sensitive} quyền nhạy cảm` : '0 quyền nhạy cảm'}
+          </Pill>
+          <Pill tone="brass">Chưa áp dụng cho đến khi được duyệt</Pill>
+        </div>
+      </section>
+
+      <section className="wizard-card" aria-labelledby="pf-reason">
+        <h2 id="pf-reason">5 · Lý do và người duyệt</h2>
+        <label>
+          Lý do
+          <input
+            className={field}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            maxLength={1000}
+            autoComplete="off"
+          />
+        </label>
+        <div className="wizard-note">
+          <strong>Người duyệt hợp lệ: Admin có quyền duyệt thay đổi quyền</strong>
+          <span>
+            Người đề xuất không tự duyệt, kể cả khi thuộc nhiều nhóm quyền. Mỗi thành viên hoặc mỗi
+            quyền được chọn là một đề xuất riêng cùng lý do.
+          </span>
+        </div>
       </section>
 
       <p role="alert" className="error" hidden={!error}>
         {error}
       </p>
-      <div className="flex justify-between gap-3">
+      <div className="wizard-foot">
         <button type="button" onClick={() => router.push('/quan-tri/phan-quyen')}>
           Hủy
         </button>
         <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
-          Gửi đề xuất
+          Gửi duyệt
         </button>
       </div>
     </form>
