@@ -314,6 +314,7 @@ export class DmsCasesController {
     @CurrentActor() a: AuthenticatedActor,
     @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+    @Query('inline') inline?: string,
   ) {
     if (!this.store)
       throw new HttpException(
@@ -332,10 +333,20 @@ export class DmsCasesController {
         : null;
     if (!file || !bytes)
       throw new HttpException({ code: 'FILE_NOT_FOUND', label: null }, HttpStatus.NOT_FOUND);
+    // `?inline=1` cho xem trước PDF/ảnh ngay trong trang; loại khác luôn tải về.
+    const previewable = inline === '1' && /^(application\/pdf|image\/(png|jpeg))$/.test(file.mime);
     res.set({
       'content-type': file.mime,
-      'content-disposition': `attachment; filename="${file.label.replace(/[^A-Za-z0-9._-]/g, '_')}"`,
+      'content-disposition': `${previewable ? 'inline' : 'attachment'}; filename="${file.label.replace(/[^A-Za-z0-9._-]/g, '_')}"`,
       'cache-control': 'private, no-store',
+      ...(previewable
+        ? {
+            'x-content-type-options': 'nosniff',
+            // Chỉ cho chính trang của mình nhúng bản xem trước (mặc định API cấm mọi khung).
+            'x-frame-options': 'SAMEORIGIN',
+            'content-security-policy': "frame-ancestors 'self'",
+          }
+        : {}),
     });
     return new StreamableFile(bytes);
   }
