@@ -71,6 +71,10 @@
   gap: 16px;
 }
 .admin-main {
+  grid-template-columns: minmax(
+    0,
+    1fr
+  ); /* cột không giãn theo nội dung rộng: bảng tự cuộn trong thẻ */
   gap: 16px;
   font-size: 13px;
   line-height: 1.4;
@@ -78,6 +82,15 @@
 }
 .admin-main > .admin-crumb {
   display: none;
+}
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-layout .admin-rail {
+    position: static;
+  }
 }
 
 /* Panel Quản trị (237:92) */
@@ -267,7 +280,9 @@
 }
 .admin-main .dt-scroll {
   max-height: none;
-  overflow: visible;
+  position: relative; /* giữ chữ sr-only trong khung cuộn, không kéo giãn cả trang */
+  overflow-x: auto;
+  overflow-y: visible;
 }
 .admin-main .dt-scroll table {
   min-width: 0;
