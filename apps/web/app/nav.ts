@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'TRUONG_VP' | 'THU_KY' | 'THV' | 'VAN_THU' | 'KE_TOAN';
+export type Role = 'ADMIN' | 'TRUONG_VP' | 'THU_KY' | 'THV' | 'VAN_THU' | 'KE_TOAN' | 'THANH_VIEN';
 
 export interface NavItem {
   readonly slug: string;
@@ -13,7 +13,8 @@ export interface NavItem {
   readonly hidden?: boolean;
 }
 
-const ALL: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU'];
+/** THANH_VIEN không có quyền từ vai; menu chỉ là gợi ý, quyền thật theo nhóm quyền do API/DB ép. */
+const ALL: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU', 'THANH_VIEN'];
 const MANAGE: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY'];
 /** Kế toán chỉ làm bước xác nhận MISA trên hồ sơ Vi bằng; không thấy ba nghiệp vụ còn lại hay mục văn phòng. */
 const WITH_ACCOUNTANT: readonly Role[] = [...ALL, 'KE_TOAN'];
@@ -233,4 +234,5 @@ export const ROLE_LABEL: Record<Role, string> = {
   THV: 'Thừa hành viên',
   VAN_THU: 'Văn thư',
   KE_TOAN: 'Kế toán',
+  THANH_VIEN: 'Thành viên',
 };

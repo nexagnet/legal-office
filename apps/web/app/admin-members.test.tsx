@@ -7,9 +7,10 @@ import { BranchManager } from '../components/BranchManager';
 import { describeRequest } from '../lib/admin-describe';
 
 const refresh = vi.fn();
+let pushSpy = vi.fn();
 let pathname = '/quan-tri/nhan-su';
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), refresh }),
+  useRouter: () => ({ push: (u: string) => pushSpy(u), refresh }),
   usePathname: () => pathname,
 }));
 vi.mock('next/link', () => ({
@@ -51,73 +52,84 @@ describe('AdminNav', () => {
   });
 });
 
+const groups = [
+  {
+    id: 'g1',
+    name: 'Văn thư chi nhánh',
+    permissions: ['vtden.read.own', 'vtden.draft.own'],
+    member_ids: [],
+  },
+  { id: 'g2', name: 'Thư ký', permissions: ['vibang.download.all'], member_ids: [] },
+  { id: 'g3', name: 'Rỗng', permissions: [], member_ids: [] },
+];
+
 describe('AddMemberForm', () => {
-  it('sends a Văn thư with a branch and no password by default (email-link login)', async () => {
-    const spy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'r1' }));
-    render(<AddMemberForm officeId="o1" branches={branches} />);
+  const fill = () => {
     fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'Hoàng An Nhiên' } });
-    fireEvent.change(screen.getByLabelText('Email đăng nhập'), {
+    fireEvent.change(screen.getByLabelText(/Email đăng nhập/), {
       target: { value: 'nhien@example.test' },
     });
-    fireEvent.click(screen.getByLabelText('Văn thư'));
-    fireEvent.click(screen.getByLabelText('Bắc Ninh'));
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'nhân sự mới' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Thêm và gửi đề xuất' }));
-    await waitFor(() => expect(refresh).toHaveBeenCalled());
+  };
+  const submit = () =>
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo tài khoản và áp dụng nhóm quyền' }));
+
+  it('sends the chosen permission groups, no role, and opens the new person', async () => {
+    const push = vi.fn();
+    pushSpy = push;
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'u9' }));
+    render(<AddMemberForm officeId="o1" groups={groups} />);
+    fill();
+    fireEvent.click(screen.getByLabelText(/Văn thư chi nhánh/));
+    submit();
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/quan-tri/phan-quyen/nguoi-dung/u9'));
     expect(spy.mock.calls[0]![0]).toBe('/api/admin/members');
     expect(bodyOf(spy)).toEqual({
       officeId: 'o1',
       email: 'nhien@example.test',
       fullName: 'Hoàng An Nhiên',
-      role: 'VAN_THU',
-      legalSigner: false,
-      branchId: 'b1',
-      temporaryPassword: null,
+      groupIds: ['g1'],
       reason: 'nhân sự mới',
     });
   });
 
-  it('offers the signing right only to Admin and Trưởng văn phòng, and the password only on request', async () => {
+  it('previews the merged permissions and flags sensitive or wide scope', () => {
+    render(<AddMemberForm officeId="o1" groups={groups} />);
+    expect(screen.getByText(/Chưa chọn nhóm nào/)).toBeTruthy();
+    expect(screen.getByText('Quyền nhạy cảm: không')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText(/Văn thư chi nhánh/));
+    expect(screen.getByText(/2 quyền từ 1 nhóm/)).toBeTruthy();
+    expect(screen.getByText('Phạm vi rộng: không')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText(/Thư ký/));
+    expect(screen.getByText(/3 quyền từ 2 nhóm/)).toBeTruthy();
+    expect(screen.getByText('Quyền nhạy cảm: có')).toBeTruthy();
+    expect(screen.getByText('Phạm vi rộng: có')).toBeTruthy();
+  });
+
+  it('allows creating an account with no group yet, and never offers a role or password field', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
-      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'r1' }));
-    render(<AddMemberForm officeId="o1" branches={branches} />);
-    expect(screen.queryByLabelText(/Cấp quyền ký pháp lý/)).toBeNull();
-    expect(screen.queryByLabelText(/Mật khẩu tạm/)).toBeNull();
-    fireEvent.click(screen.getByLabelText('Trưởng văn phòng'));
-    fireEvent.click(screen.getByLabelText(/Cấp quyền ký pháp lý/));
-    fireEvent.click(screen.getByLabelText(/Đặt mật khẩu tạm/));
-    fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'Trần Tuấn' } });
-    fireEvent.change(screen.getByLabelText('Email đăng nhập'), {
-      target: { value: 't@example.test' },
-    });
-    fireEvent.change(screen.getByLabelText(/Mật khẩu tạm/), {
-      target: { value: 'mat-khau-tam-12345' },
-    });
-    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'bổ nhiệm' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Thêm và gửi đề xuất' }));
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'u1' }));
+    render(<AddMemberForm officeId="o1" groups={groups} />);
+    expect(screen.queryByText(/Vai trò/)).toBeNull();
+    expect(screen.queryByLabelText(/Mật khẩu/)).toBeNull();
+    fill();
+    submit();
     await waitFor(() => expect(spy).toHaveBeenCalled());
-    expect(bodyOf(spy)).toMatchObject({
-      role: 'TRUONG_VP',
-      legalSigner: true,
-      branchId: null,
-      temporaryPassword: 'mat-khau-tam-12345',
-    });
+    expect(bodyOf(spy)).toMatchObject({ groupIds: [] });
   });
 
   it('shows a readable message when the email already has an account', async () => {
+    const push = vi.fn();
+    pushSpy = push;
     vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(409, { code: 'EMAIL_IN_USE' }));
-    render(<AddMemberForm officeId="o1" branches={branches} />);
-    fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'A B' } });
-    fireEvent.change(screen.getByLabelText('Email đăng nhập'), {
-      target: { value: 'a@example.test' },
-    });
-    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'x' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Thêm và gửi đề xuất' }));
+    render(<AddMemberForm officeId="o1" groups={groups} />);
+    fill();
+    submit();
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('đã có tài khoản'));
-    expect(refresh).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
   });
 });
 

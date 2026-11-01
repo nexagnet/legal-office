@@ -68,7 +68,7 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   },
   '/quan-tri/nhan-su/them': {
     title: 'Thêm thành viên',
-    sub: 'Tạo tài khoản và gửi đề xuất cấp vai. Nhóm quyền gán ở mục Phân quyền.',
+    sub: 'Tạo tài khoản rồi xếp vào nhóm quyền. Quyền chỉ đến từ nhóm quyền, không có vai trò.',
   },
   '/quan-tri/chi-nhanh': {
     title: 'Chi nhánh',

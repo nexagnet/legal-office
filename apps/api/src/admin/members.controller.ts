@@ -21,16 +21,13 @@ import { statusFor } from '../vibang/status';
 import { VibangRepo } from '../vibang/vibang.repo';
 
 const uuid = z.string().uuid();
-const role = z.enum(['ADMIN', 'TRUONG_VP', 'THV', 'THU_KY', 'VAN_THU', 'KE_TOAN']);
-
 const memberBody = z
   .object({
     officeId: uuid,
     email: z.string().trim().min(3).max(254),
     fullName: z.string().trim().min(1).max(200),
-    role,
-    legalSigner: z.boolean().default(false),
-    branchId: uuid.nullish(),
+    /** Nhóm quyền xếp vào ngay (có thể rỗng: tài khoản chưa có quyền). Không có "vai": quyền chỉ đến từ nhóm quyền. */
+    groupIds: z.array(uuid).max(50).default([]),
     temporaryPassword: z.string().max(200).nullish(),
     reason: z.string().trim().min(1).max(1000),
   })
@@ -49,8 +46,8 @@ function parse<S extends z.ZodType>(schema: S, value: unknown): z.infer<S> {
 }
 
 /**
- * Admin thêm thành viên và quản lý chi nhánh. Thành viên mới KHÔNG có hiệu lực ngay: hệ thống lập đề xuất ADD_MEMBER và chỉ khi
- * Trưởng văn phòng (khác người) duyệt ở `/admin/access-requests/:id/decision` thì người đó mới có vai. Quyền và kiểm tra do hàm
+ * Admin thêm thành viên và quản lý chi nhánh. Thành viên mới có tư cách thành viên văn phòng KHÔNG kèm quyền nào và được xếp
+ * vào các nhóm quyền đã chọn; Admin áp dụng ngay (đã duyệt tự động, có dấu và nhật ký phân quyền). Quyền và kiểm tra do hàm
  * `ad_*` trong DB quyết định và audit.
  */
 @Controller('admin')
@@ -76,13 +73,11 @@ export class MembersController {
       if (weak) throw new BadRequestException(weak);
     }
     const hash = await hashPassword(temporary ?? randomBytes(32).toString('base64url'));
-    return this.run(a, 'ad_member_add', [
+    return this.run(a, 'ad_member_create', [
       b.officeId,
       b.email,
       b.fullName,
-      b.role,
-      b.legalSigner,
-      b.branchId ?? null,
+      b.groupIds,
       hash,
       b.reason,
     ]);

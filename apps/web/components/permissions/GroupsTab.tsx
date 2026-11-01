@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import { FilterChips } from '../ui/filter-chips';
 import {
-  PERMISSION_DOMAINS,
   normalizeText,
-  parsePermission,
+  summarizeGroup,
   type DmsGroup,
   type PermissionRequest,
 } from '../../lib/permission-model';
@@ -18,19 +17,6 @@ const href = (loc: Loc, q: string) => {
   if (q) p.set('q', q);
   return `/quan-tri/phan-quyen?${p}`;
 };
-
-/** Mô tả ngắn: các nghiệp vụ nhóm đụng tới, hoặc "Quản trị" nếu có quyền duyệt/đề xuất. */
-export function summarizeGroup(g: DmsGroup): string {
-  const domains = [
-    ...new Set(
-      g.permissions.map((c) => parsePermission(c)?.domain).filter((d): d is string => !!d),
-    ),
-  ];
-  const names = PERMISSION_DOMAINS.filter(([k]) => domains.includes(k)).map(([, label]) => label);
-  const admin = g.permissions.some((c) => c.startsWith('dms.'));
-  const parts = [...names, ...(admin ? ['Quản trị'] : [])];
-  return parts.length > 0 ? parts.join(', ') : 'Chưa có quyền nào';
-}
 
 /** Tab "Nhóm quyền" (Figma P3). Nhóm rỗng vô hại: quyền và thành viên chỉ vào nhóm qua đề xuất có duyệt. */
 export function GroupsTab({

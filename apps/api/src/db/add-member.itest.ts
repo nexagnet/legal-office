@@ -113,81 +113,90 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
     await admin.end();
   });
 
+  const G = { clerk: id(), reader: id(), otherOffice: id() };
+  const OFF2 = id();
   const add = (user: string | null, body: Record<string, unknown>) =>
     api('POST', '/admin/members', user, {
       officeId: OFF,
       email: 'Moi@Example.TEST',
       fullName: 'Người Mới',
-      role: 'VAN_THU',
+      groupIds: [G.clerk],
       reason: 'nhân sự mới giả lập',
       ...body,
     });
-  const memberships = async (email: string) =>
+  const membership = async (email: string) =>
     (
-      await owner.query(
-        `SELECT m.role, m.legal_signer, (SELECT count(*) FROM branch_grants g WHERE g.membership_id = m.id)::int AS grants
+      await owner.query<{ role: string; legal_signer: boolean; groups: string[] }>(
+        `SELECT m.role, m.legal_signer,
+                coalesce((SELECT array_agg(g.name) FROM dms_group_members gm
+                          JOIN dms_permission_groups g ON g.id = gm.group_id WHERE gm.user_id = m.user_id), ARRAY[]::text[]) AS groups
            FROM memberships m JOIN auth_credentials c ON c.user_id = m.user_id WHERE c.email = $1`,
         [email],
       )
-    ).rows;
+    ).rows.map((r) => ({ ...r, groups: [...r.groups].sort() }));
 
-  it('creates the account but grants no role until a different Head approves', async () => {
-    const r = await add(U.admin, { branchId: BR, temporaryPassword: 'mat-khau-tam-12345' });
+  it('creates the account with no role and puts it in the chosen groups at once (Admin applies directly)', async () => {
+    await owner.query(`INSERT INTO offices (id, tenant_id, name) VALUES ($1,$2,'VP B')`, [OFF2, T]);
+    await owner.query(
+      `INSERT INTO dms_permission_groups (id, tenant_id, office_id, name) VALUES ($1,$2,$3,'Văn thư'),($4,$2,$3,'Đọc'),($5,$2,$6,'Khác VP')`,
+      [G.clerk, T, OFF, G.reader, G.otherOffice, OFF2],
+    );
+    await owner.query(
+      `INSERT INTO dms_group_permissions (tenant_id, group_id, permission) VALUES ($1,$2,'vtden.read.own')`,
+      [T, G.clerk],
+    );
+    const r = await add(U.admin, {
+      temporaryPassword: 'mat-khau-tam-12345',
+      groupIds: [G.clerk, G.reader, G.clerk],
+    });
     expect(r.status).toBe(200);
-    const rid = r.json.label as string;
-    expect(await memberships('moi@example.test')).toEqual([]);
+    const uid = r.json.label as string;
+    expect(await membership('moi@example.test')).toEqual([
+      { role: 'THANH_VIEN', legal_signer: false, groups: ['Văn thư', 'Đọc'] },
+    ]);
     const cred = await owner.query(
       `SELECT c.password_hash, u.full_name, u.external_ref FROM auth_credentials c JOIN users u ON u.id = c.user_id WHERE c.email = 'moi@example.test'`,
     );
     expect(cred.rows[0].full_name).toBe('Người Mới');
     expect(await verifyPassword('mat-khau-tam-12345', cred.rows[0].password_hash)).toBe(true);
-
-    expect(
-      (await api('POST', `/admin/access-requests/${rid}/decision`, U.admin, { approve: true }))
-        .status,
-    ).toBe(403);
-    expect(
-      (await api('POST', `/admin/access-requests/${rid}/decision`, U.head, { approve: true }))
-        .status,
-    ).toBe(200);
-    expect(await memberships('moi@example.test')).toEqual([
-      { role: 'VAN_THU', legal_signer: false, grants: 1 },
+    // Hiệu lực ngay, nhưng chỉ theo nhóm: không quyền nào từ vai.
+    const eff = await api('GET', `/dms/me/permissions?officeId=${OFF}`, uid);
+    expect(JSON.stringify(eff.json)).toContain('vtden.read.own');
+    expect(JSON.stringify(eff.json)).not.toContain('dms.permission');
+    // Nhật ký phân quyền có hai yêu cầu ADD_MEMBER do Admin áp dụng trực tiếp.
+    const reqs = await owner.query(
+      `SELECT kind, status, auto_applied FROM dms_permission_requests WHERE user_id = $1`,
+      [uid],
+    );
+    expect(reqs.rows).toEqual([
+      { kind: 'ADD_MEMBER', status: 'APPROVED', auto_applied: true },
+      { kind: 'ADD_MEMBER', status: 'APPROVED', auto_applied: true },
     ]);
-
-    const list = await api('GET', `/admin/access-requests?officeId=${OFF}`, U.head);
+    const list = await api('GET', `/office/members?officeId=${OFF}`, U.admin);
     expect(JSON.stringify(list.json)).toContain('Người Mới (moi@example.test)');
   });
 
-  it('applies the legal-signer flag on approval and rejects bad combinations', async () => {
-    const r = await add(U.admin, {
-      email: 'tp@example.test',
-      role: 'TRUONG_VP',
-      legalSigner: true,
-    });
-    expect(r.status).toBe(200);
-    await api('POST', `/admin/access-requests/${r.json.label}/decision`, U.head, { approve: true });
-    expect(await memberships('tp@example.test')).toEqual([
-      { role: 'TRUONG_VP', legal_signer: true, grants: 0 },
+  it('allows no group at all and rejects bad input without leaving a half-made person', async () => {
+    expect((await add(U.admin, { email: 'trong@example.test', groupIds: [] })).status).toBe(200);
+    expect(await membership('trong@example.test')).toEqual([
+      { role: 'THANH_VIEN', legal_signer: false, groups: [] },
     ]);
-
+    expect((await add(U.admin, { email: 'a1@example.test', groupIds: [id()] })).status).toBe(404);
     expect(
-      (await add(U.admin, { email: 'a1@example.test', role: 'THV', legalSigner: true })).status,
-    ).toBe(422);
+      (await add(U.admin, { email: 'a2@example.test', groupIds: [G.otherOffice] })).status,
+    ).toBe(404);
     expect(
-      (await add(U.admin, { email: 'a2@example.test', role: 'THV', branchId: BR })).status,
-    ).toBe(422);
-    expect((await add(U.admin, { email: 'a3@example.test', branchId: id() })).status).toBe(404);
-    expect(
-      (await add(U.admin, { email: 'a4@example.test', temporaryPassword: 'ngan' })).status,
+      (await add(U.admin, { email: 'a3@example.test', temporaryPassword: 'ngan' })).status,
     ).toBe(400);
     expect((await add(U.admin, { email: 'khong-hop-le' })).status).toBe(422);
     expect((await add(U.admin, { email: 'a5@example.test', reason: ' ' })).status).toBe(400);
-    const none = await owner.query(`SELECT 1 FROM auth_credentials WHERE email ~ '^a[1-5]@'`);
+    expect((await add(U.admin, { email: 'a6@example.test', role: 'ADMIN' })).status).toBe(400);
+    const none = await owner.query(`SELECT 1 FROM auth_credentials WHERE email ~ '^a[1-6]@'`);
     expect(none.rowCount).toBe(0);
   });
 
   it('without a temporary password the stored hash matches no guessable password', async () => {
-    const r = await add(U.admin, { email: 'link@example.test', role: 'THU_KY' });
+    const r = await add(U.admin, { email: 'link@example.test' });
     expect(r.status).toBe(200);
     const h = await owner.query(
       `SELECT password_hash FROM auth_credentials WHERE email = 'link@example.test'`,
@@ -195,24 +204,16 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
     expect(await verifyPassword('', h.rows[0].password_hash)).toBe(false);
   });
 
-  it('refuses duplicate emails and non-Admin or cross-tenant callers; rejection leaves no role', async () => {
+  it('refuses duplicate emails and callers without approve permission or from another tenant', async () => {
     expect((await add(U.admin, {})).status).toBe(409);
     for (const u of [U.head, U.clerk])
       expect((await add(u, { email: 'x@example.test' })).status).toBe(403);
     expect((await add(null, { email: 'x@example.test' })).status).toBe(401);
     expect((await add(U.otherAdmin, { email: 'x@example.test' })).status).toBe(403);
-    const r = await add(U.admin, { email: 'tuchoi@example.test' });
-    expect(
-      (
-        await api('POST', `/admin/access-requests/${r.json.label}/decision`, U.head, {
-          approve: false,
-          note: 'không cần',
-        })
-      ).status,
-    ).toBe(200);
-    expect(await memberships('tuchoi@example.test')).toEqual([]);
+    const none = await owner.query(`SELECT 1 FROM auth_credentials WHERE email = 'x@example.test'`);
+    expect(none.rowCount).toBe(0);
     const audit = await owner.query(
-      `SELECT outcome FROM audit_log WHERE action = 'ad.member.add' AND reason = 'ADMIN_ONLY'`,
+      `SELECT outcome FROM audit_log WHERE action = 'ad.member.create' AND reason = 'ADMIN_ONLY'`,
     );
     expect(audit.rowCount).toBeGreaterThanOrEqual(2);
   });
