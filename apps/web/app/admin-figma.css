@@ -67,8 +67,13 @@
 
 /* ===== Khung hai cột: panel Quản trị 240 + nội dung, cách nhau 16 ===== */
 .admin-layout {
-  grid-template-columns: 240px minmax(0, 1fr);
   gap: 16px;
+}
+/* Từ 901px: panel 240 + nội dung. Dưới đó globals.css xếp một cột, nên không được ghi đè ở đây. */
+@media (min-width: 901px) {
+  .admin-layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
 }
 .admin-main {
   gap: 16px;
@@ -267,7 +272,8 @@
 }
 .admin-main .dt-scroll {
   max-height: none;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 .admin-main .dt-scroll table {
   min-width: 0;
