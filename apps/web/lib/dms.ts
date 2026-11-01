@@ -65,10 +65,11 @@ export const BOOK_OF_DOMAIN: Readonly<Record<string, string>> = {
 };
 
 /** Bộ lọc danh sách (chip): chính thức, thiếu/đủ scan (trong số chính thức), nháp, đã hủy. */
-export type DmsFilter = 'chinh-thuc' | 'thieu-scan' | 'du-scan' | 'nhap' | 'da-huy';
+export type DmsFilter = 'chinh-thuc' | 'cho-duyet' | 'thieu-scan' | 'du-scan' | 'nhap' | 'da-huy';
 
 export const DMS_FILTER_LABEL: Record<DmsFilter, string> = {
   'chinh-thuc': 'Chính thức',
+  'cho-duyet': 'Chờ duyệt sửa đổi',
   'thieu-scan': 'Thiếu scan',
   'du-scan': 'Đủ scan',
   nhap: 'Nháp',
@@ -76,7 +77,11 @@ export const DMS_FILTER_LABEL: Record<DmsFilter, string> = {
 };
 
 export function activeDmsFilter(raw: string | undefined): DmsFilter {
-  return raw === 'thieu-scan' || raw === 'du-scan' || raw === 'nhap' || raw === 'da-huy'
+  return raw === 'cho-duyet' ||
+    raw === 'thieu-scan' ||
+    raw === 'du-scan' ||
+    raw === 'nhap' ||
+    raw === 'da-huy'
     ? raw
     : 'chinh-thuc';
 }
@@ -91,9 +96,11 @@ export function filterDmsCases(
   filter: DmsFilter,
   q: string,
   cellsOf: (caseId: string) => readonly string[] = () => [],
+  pendingIds: ReadonlySet<string> = new Set(),
 ): DmsCaseRow[] {
   const needle = q.trim().toLowerCase();
   return rows.filter((r) => {
+    if (filter === 'cho-duyet' && !pendingIds.has(r.id)) return false;
     if (filter === 'thieu-scan' && !(r.document_count > 0 && r.scan_count === 0)) return false;
     if (filter === 'du-scan' && !(r.document_count > 0 && r.scan_count > 0)) return false;
     if (!needle) return true;

@@ -32,6 +32,13 @@ describe('bộ lọc danh sách hồ sơ DMS', () => {
     expect(filterDmsCases(rows, 'chinh-thuc', '').map((r) => r.id)).toEqual(['a', 'b', 'c']);
   });
 
+  it('chip chờ duyệt sửa đổi chỉ lấy hồ sơ có yêu cầu đang chờ', () => {
+    expect(
+      filterDmsCases(rows, 'cho-duyet', '', () => [], new Set(['b'])).map((r) => r.id),
+    ).toEqual(['b']);
+    expect(activeDmsFilter('cho-duyet')).toBe('cho-duyet');
+  });
+
   it('tìm theo tên hoặc ô của dòng sổ, không phân biệt hoa thường', () => {
     expect(filterDmsCases(rows, 'chinh-thuc', 'hồ sơ b').map((r) => r.id)).toEqual(['b']);
     const cells = (id: string) => (id === 'c' ? ['Nguyễn Văn Thử'] : []);

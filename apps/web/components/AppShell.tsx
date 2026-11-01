@@ -197,6 +197,7 @@ const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
   'bieu-mau': FolderOpen,
   'cong-van': Mail,
   'vat-tu': Package,
+  dms: FolderOpen,
   'dms-vi-bang': FileText,
   'dms-tong-dat': Send,
   'dms-xac-minh': Search,
