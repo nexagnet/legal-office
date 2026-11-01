@@ -26,6 +26,7 @@ import {
   loadDmsBooks,
   loadDmsCase,
   loadDmsDocuments,
+  loadDmsFacets,
   loadDmsFiles,
   loadMyDmsPermissions,
   loadThvOptions,
@@ -143,6 +144,10 @@ export default async function DmsCasePage({
       ? bookRows.rows.filter((r) => r.case_id === c.id).map((r) => r.stt)
       : [];
 
+  const creatorName = isDraft
+    ? ((await loadDmsFacets(cookie, c.office_id, domain.code)).find((f) => f.case_id === c.id)
+        ?.creator_name ?? null)
+    : null;
   const base = `/dms/${domain.slug}/${c.id}`;
   const listKey = isVanThu(domain.code) ? 'tab' : 'loc';
   const backQuery = isDraft
@@ -206,7 +211,111 @@ export default async function DmsCasePage({
         }))}
       />
 
-      {tab === 'chung' ? (
+      {tab === 'chung' && isDraft ? (
+        <div className="grid gap-4">
+          <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
+            <strong>Bản nháp</strong> · Bản nháp, chưa ghi {book?.code ?? 'sổ'} chính thức. Chỉnh
+            sửa tự do cho đến khi bấm "Xác nhận lưu chính thức"; chưa cấp{' '}
+            {domain.code === 'vtden' ? 'Số đến' : 'STT'}, chưa vào xuất sổ.
+          </p>
+          <section aria-labelledby="sec-a" className="rounded-2xl bg-surface p-5 shadow-sm">
+            <h2 id="sec-a">
+              A. Thông tin {domain.label}
+              {book ? ` — phục vụ Sổ ${book.code}` : ''}
+            </h2>
+            {canDraft(permissions, domain.code) && !isVanThu(domain.code) ? (
+              <DmsThvPicker
+                caseId={c.id}
+                options={thvOptions}
+                currentId={c.thv_user_id}
+                confirmed={c.thv_confirmed}
+              />
+            ) : null}
+            {book && book.source === 'case' && canDraft(permissions, domain.code) ? (
+              <DmsAttributesForm
+                url={`/api/dms/cases/${c.id}/draft`}
+                columns={inputColumns(book)}
+                current={c.attributes}
+                fixed={{ title: c.title }}
+                legend={`Nội dung vào sổ ${book.code}`}
+              />
+            ) : null}
+            <p className="muted mt-2 text-xs">
+              Trước khi lưu còn sửa được; sau khi xác nhận lưu chính thức, mọi thay đổi phải thông
+              qua yêu cầu sửa đổi.
+            </p>
+          </section>
+          <section aria-labelledby="sec-b" className="rounded-2xl bg-surface p-5 shadow-sm">
+            <h2 id="sec-b">B. Tài liệu đính kèm</h2>
+            {docs.length === 0 ? (
+              <p className="muted">Chưa có tài liệu.</p>
+            ) : (
+              <ul className="m-0 grid list-none gap-2 p-0">
+                {docs.map((d, i) => (
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-head px-4 py-3 text-sm"
+                  >
+                    <span>
+                      <strong>{d.title}</strong>
+                      <br />
+                      <span className="muted">
+                        {filesByDoc[i]!.length === 0
+                          ? 'Chưa chọn file'
+                          : `${filesByDoc[i]!.length} tệp · đã chọn`}
+                      </span>
+                    </span>
+                    <Button asChild variant="secondary">
+                      <Link className="no-underline" href={`${base}?tab=tai-lieu`}>
+                        Tải lên
+                      </Link>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-3">
+              <Button asChild variant="secondary">
+                <Link className="no-underline" href={`${base}?tab=tai-lieu`}>
+                  + Thêm tài liệu
+                </Link>
+              </Button>
+            </p>
+          </section>
+          <section aria-labelledby="sec-c" className="rounded-2xl bg-surface p-5 shadow-sm">
+            <h2 id="sec-c">C. Thông tin hệ thống — tự động</h2>
+            <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <dt className="muted">Người tạo</dt>
+                <dd>{creatorName ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="muted">Ngày tạo</dt>
+                <dd>{fmt.format(new Date(c.created_at))}</dd>
+              </div>
+              <div>
+                <dt className="muted">ID hồ sơ</dt>
+                <dd>{c.id.slice(0, 8)}</dd>
+              </div>
+              <div>
+                <dt className="muted">Trạng thái scan</dt>
+                <dd>{c.scan_count > 0 ? `${c.scan_count} scan` : 'Chưa có scan'}</dd>
+              </div>
+              <div>
+                <dt className="muted">{domain.code === 'vtden' ? 'Số đến' : 'STT số'}</dt>
+                <dd>Cấp khi xác nhận lưu chính thức</dd>
+              </div>
+            </dl>
+          </section>
+          <DmsDraftActions
+            caseId={c.id}
+            canRecord={canConfirm(permissions, domain.code)}
+            canCancel={canDraft(permissions, domain.code)}
+          />
+        </div>
+      ) : null}
+
+      {tab === 'chung' && !isDraft ? (
         <>
           <dl className="mb-4">
             <dt>Ngày tạo</dt>
