@@ -31,6 +31,7 @@ import {
 } from '../../lib/stock-movements';
 import { FilterChips } from '../../components/ui/filter-chips';
 import { TabNav } from '../../components/ui/tab-nav';
+import { loadMyDmsPermissions } from '../../lib/dms';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -158,8 +159,13 @@ export default async function SuppliesPage({
   const thresholdOf = new Map(
     (thresholds === 'error' ? [] : thresholds).map((t) => [t.itemId, t.lowStockQty]),
   );
-  const canManage = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP' || r === 'THU_KY');
-  const canAdjust = session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP');
+  // Quyền dms.stock.write (Nhóm quyền) cho phép như quản lý kho; vai cũ vẫn giữ để không mất quyền hiện có.
+  const stockWrite = officeId
+    ? (await loadMyDmsPermissions(cookie, officeId)).includes('dms.stock.write')
+    : false;
+  const canManage =
+    stockWrite || session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP' || r === 'THU_KY');
+  const canAdjust = stockWrite || session.roles.some((r) => r === 'ADMIN' || r === 'TRUONG_VP');
   const batchList = batches === 'error' ? [] : batches;
   const canCount = canManage || session.roles.includes('VAN_THU');
   const tab: Tab =
