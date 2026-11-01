@@ -1,5 +1,6 @@
 'use client';
 
+import { DataTable } from './ui/data-table';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { cn } from '../lib/cn';
@@ -250,7 +251,7 @@ export function ThvCardsForm({
       {people.length === 0 ? (
         <p className="muted">Văn phòng chưa có thành viên vai Thừa hành viên.</p>
       ) : (
-        <div className="table-wrap rounded-2xl bg-surface p-2 shadow-sm">
+        <DataTable tableKey="ThvCardsForm-1" className="rounded-2xl bg-surface p-2 shadow-sm">
           <table className="compact-table">
             <caption className="sr-only">Thẻ thừa hành viên</caption>
             <thead>
@@ -364,7 +365,7 @@ export function ThvCardsForm({
               ) : null}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
 
       {canEdit && target ? (

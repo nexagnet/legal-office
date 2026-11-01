@@ -1,3 +1,4 @@
+import { DataTable } from '../../../../../components/ui/data-table';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BranchAccessSection } from '../../../../../components/permissions/BranchAccessSection';
@@ -191,7 +192,7 @@ export default async function EffectivePage({
           </p>
         ) : null}
         {rows.length > 0 ? (
-          <div className="table-wrap">
+          <DataTable tableKey="quan-tri-phan-quyen-nguoi-dung-id-page-1">
             <table>
               <thead>
                 <tr>
@@ -220,7 +221,7 @@ export default async function EffectivePage({
                 ))}
               </tbody>
             </table>
-          </div>
+          </DataTable>
         ) : null}
       </section>
 

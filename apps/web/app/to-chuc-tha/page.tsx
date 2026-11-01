@@ -1,3 +1,4 @@
+import { DataTable } from '../../components/ui/data-table';
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { TabNav } from '../../components/ui/tab-nav';
@@ -112,7 +113,7 @@ export default async function EnforcementPage({
             active={tab}
             action={<NewEnforcementSheet branches={session.branches} />}
           />
-          <div className="table-wrap">
+          <DataTable tableKey="to-chuc-tha-page-1">
             <table className="table-cards">
               <caption className="sr-only">Hồ sơ tổ chức thi hành án</caption>
               <thead>
@@ -174,7 +175,7 @@ export default async function EnforcementPage({
                 ))}
               </tbody>
             </table>
-          </div>
+          </DataTable>
         </>
       )}
     </section>

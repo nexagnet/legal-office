@@ -1,3 +1,4 @@
+import { DataTable } from '../../../components/ui/data-table';
 import Link from 'next/link';
 import { CopyValueButton } from '../../../components/CopyValueButton';
 import { TabNav } from '../../../components/ui/tab-nav';
@@ -182,7 +183,7 @@ export default async function DmsReportPage({
           <h2>Không tải được báo cáo</h2>
         </div>
       ) : (
-        <div className="table-wrap">
+        <DataTable tableKey="dms-bao-cao-page-1">
           <table>
             <caption className="sr-only">
               Chỉ tiêu {bc === 'n10' ? 'N-10' : 'N-09'} năm {year}
@@ -218,7 +219,7 @@ export default async function DmsReportPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
       <p className="muted mt-3">
         Chỉ tiêu "Chưa đủ dữ liệu" sẽ tính được khi hồ sơ có đủ trường tương ứng. Báo cáo đã lập và

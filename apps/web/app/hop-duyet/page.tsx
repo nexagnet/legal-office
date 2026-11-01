@@ -1,3 +1,4 @@
+import { DataTable } from '../../components/ui/data-table';
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { RowActions } from '../../components/RowActions';
@@ -119,7 +120,7 @@ export default async function ApprovalsPage() {
               },
             ]}
           />
-          <div className="table-wrap">
+          <DataTable tableKey="hop-duyet-page-1">
             <table>
               <caption className="sr-only">Đề xuất chưa hoàn tất</caption>
               <thead>
@@ -166,7 +167,7 @@ export default async function ApprovalsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </DataTable>
         </>
       )}
     </section>

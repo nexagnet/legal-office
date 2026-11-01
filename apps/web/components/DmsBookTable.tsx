@@ -1,3 +1,4 @@
+import { DataTable } from './ui/data-table';
 import { bookCell, headerGroups, type DmsBookRow, type DmsBookSpec } from '../lib/dms';
 
 /**
@@ -14,7 +15,7 @@ export function DmsBookTable({
   const groups = headerGroups(spec.columns);
   const grouped = groups.some((g) => g.label !== null);
   return (
-    <div className="table-wrap">
+    <DataTable tableKey="DmsBookTable-1">
       <table className="book-table">
         <caption className="sr-only">{spec.title}</caption>
         <thead>
@@ -71,6 +72,6 @@ export function DmsBookTable({
           )}
         </tbody>
       </table>
-    </div>
+    </DataTable>
   );
 }

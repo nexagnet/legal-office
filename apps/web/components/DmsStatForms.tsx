@@ -1,3 +1,4 @@
+import { DataTable } from './ui/data-table';
 import type { DmsReportRow } from '../lib/dms';
 
 /**
@@ -82,7 +83,7 @@ export function N09Form({
       <p>
         Từ ngày 01 tháng 01 năm {year} đến ngày 31 tháng 12 năm {year}
       </p>
-      <div className="table-wrap">
+      <DataTable tableKey="DmsStatForms-1">
         <table>
           <caption className="sr-only">Mẫu TP-THV-N-09 năm {year}</caption>
           <thead>
@@ -159,7 +160,7 @@ export function N09Form({
             </tr>
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <Signature />
     </section>
   );
@@ -175,7 +176,7 @@ export function N10Form({ unit, year }: { readonly unit: string; readonly year: 
       <p>
         Từ ngày 01 tháng 01 năm {year} đến ngày 31 tháng 12 năm {year}
       </p>
-      <div className="table-wrap">
+      <DataTable tableKey="DmsStatForms-2">
         <table>
           <caption className="sr-only">Mẫu TP-THV-N-10 năm {year}</caption>
           <thead>
@@ -225,7 +226,7 @@ export function N10Form({ unit, year }: { readonly unit: string; readonly year: 
             </tr>
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <Signature />
     </section>
   );

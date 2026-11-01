@@ -1,3 +1,4 @@
+import { DataTable } from '../../components/ui/data-table';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '../../components/ui/field';
@@ -191,7 +192,7 @@ export default async function CorrespondencePage({
               <p>Chưa có quyết định nào trong phạm vi quyền của bạn.</p>
             </div>
           ) : (
-            <div className="table-wrap">
+            <DataTable tableKey="cong-van-page-1">
               <table>
                 <caption className="sr-only">Sổ quyết định</caption>
                 <thead>
@@ -213,7 +214,7 @@ export default async function CorrespondencePage({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DataTable>
           )}
           <NewDecisionForm branches={session.branches} signers={signers} />
         </>
@@ -277,7 +278,7 @@ export default async function CorrespondencePage({
               <p>Không có công văn nào khớp trong phạm vi quyền của bạn.</p>
             </div>
           ) : (
-            <div className="table-wrap">
+            <DataTable tableKey="cong-van-page-2">
               <table>
                 <caption className="sr-only">Công văn</caption>
                 <thead>
@@ -326,7 +327,7 @@ export default async function CorrespondencePage({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DataTable>
           )}
         </>
       )}

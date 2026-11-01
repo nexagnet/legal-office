@@ -1,3 +1,4 @@
+import { DataTable } from '../ui/data-table';
 import Link from 'next/link';
 import { Avatar } from '../ui/avatar';
 import { FilterChips } from '../ui/filter-chips';
@@ -130,7 +131,7 @@ export function UsersTab({
           <Link href={href(loc, q, 1)}>Bỏ lọc</Link>
         </p>
       ) : null}
-      <div className="table-wrap member-card">
+      <DataTable tableKey="permissions-UsersTab-1" className="member-card">
         <table>
           <caption className="sr-only">Người dùng và quyền hiệu lực</caption>
           <thead>
@@ -174,7 +175,7 @@ export function UsersTab({
             ) : null}
           </span>
         </div>
-      </div>
+      </DataTable>
       <NoteBox title="Cách đọc quyền hiệu lực">
         Nhóm quyền cho biết phần mềm cho phép những hành động nào. Một người có thể thuộc nhiều
         nhóm; quyền hiệu lực là tập hợp quyền của từng nhóm. Admin mặc nhiên có toàn quyền quản trị

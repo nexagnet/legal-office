@@ -1,3 +1,4 @@
+import { DataTable } from '../../../components/ui/data-table';
 import { KpiStrip } from '../../../components/KpiStrip';
 import { PersonnelSheet } from '../../../components/PersonnelSheet';
 import { TabNav } from '../../../components/ui/tab-nav';
@@ -79,7 +80,7 @@ export default async function PersonnelPage({
           <p>Chưa có hồ sơ nào trong mục này.</p>
         </div>
       ) : (
-        <div className="table-wrap">
+        <DataTable tableKey="quan-tri-ho-so-lao-dong-page-1">
           <table>
             <caption className="sr-only">Hồ sơ lao động, bản mới nhất của mỗi người</caption>
             <thead>
@@ -120,7 +121,7 @@ export default async function PersonnelPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
       <p className="muted">
         Vai và địa điểm thay đổi qua đề xuất hai người (Admin đề xuất, Trưởng văn phòng duyệt),
