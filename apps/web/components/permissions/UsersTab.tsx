@@ -20,16 +20,20 @@ const STATE_TONE: Record<AccountState, PillTone> = {
   active: 'ok',
   'no-access': 'warn',
   waiting: 'brass',
+  suspended: 'danger',
 };
 
-type Loc = 'tat-ca' | 'cho-duyet' | 'chua-co-quyen';
+type Loc = 'tat-ca' | 'cho-duyet' | 'chua-co-quyen' | 'tam-khoa';
 
-const isLoc = (v: string | undefined): v is Loc => v === 'cho-duyet' || v === 'chua-co-quyen';
+const isLoc = (v: string | undefined): v is Loc =>
+  v === 'cho-duyet' || v === 'chua-co-quyen' || v === 'tam-khoa';
 
 export function personMatches(p: PersonRow, loc: Loc, q: string, place = ''): boolean {
   if (place && !p.isAdmin && !p.branches.includes(place)) return false;
   if (loc === 'cho-duyet' && p.pending.length === 0) return false;
-  if (loc === 'chua-co-quyen' && accountState(p) === 'active') return false;
+  if (loc === 'chua-co-quyen' && accountState(p) !== 'no-access' && accountState(p) !== 'waiting')
+    return false;
+  if (loc === 'tam-khoa' && !p.suspended) return false;
   return !q || normalizeText(p.label).includes(q);
 }
 
@@ -104,6 +108,12 @@ export function UsersTab({
                 label: 'Chưa có quyền',
                 href: href('chua-co-quyen', q, 1, place),
                 count: count('chua-co-quyen'),
+              },
+              {
+                key: 'tam-khoa',
+                label: 'Tạm khóa',
+                href: href('tam-khoa', q, 1, place),
+                count: count('tam-khoa'),
               },
             ]}
           />
@@ -195,7 +205,12 @@ function UserRow({ p }: { readonly p: PersonRow }) {
         </span>
       </th>
       <td>
-        {p.groups.length > 0 ? (
+        {p.suspended ? (
+          <span className="grid">
+            <span>Không còn quyền hiệu lực</span>
+            <span className="person-mail">Nhóm và lịch sử giữ nguyên</span>
+          </span>
+        ) : p.groups.length > 0 ? (
           <span className="grid">
             <span>{p.groups.map((g) => g.name).join(' + ')}</span>
           </span>

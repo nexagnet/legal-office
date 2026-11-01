@@ -22,6 +22,7 @@ const row = (
   groupNames,
   pending: false,
   legacyRole: null,
+  suspended: state === 'suspended',
 });
 
 describe('MemberTable', () => {
@@ -44,6 +45,20 @@ describe('MemberTable', () => {
     expect(screen.getByText('Nguyễn Đức An')).toBeTruthy();
     expect(screen.queryByText('Lê Thị Bình')).toBeNull();
     expect(screen.getByRole('status').textContent).toBe('1/2 thành viên');
+  });
+
+  it('lọc Tạm khóa: hiện đúng người bị khóa, không còn quyền hiệu lực', () => {
+    render(
+      <MemberTable
+        members={[...members, row('4', 'Đã Khóa', 'khoa@x.vn', 'suspended', ['Kế toán'])]}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Tạm khóa 1/ }));
+    expect(screen.getByText('Đã Khóa')).toBeTruthy();
+    expect(screen.queryByText('Nguyễn Đức An')).toBeNull();
+    expect(screen.getByText('Không còn quyền hiệu lực')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Chưa có quyền/ }));
+    expect(screen.queryByText('Đã Khóa')).toBeNull();
   });
 
   it('lọc theo trạng thái Chưa có quyền', () => {

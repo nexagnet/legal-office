@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ACCOUNT_STATE_LABEL,
   accountState,
   allPermissionCodes,
   buildPersonRows,
@@ -117,6 +118,33 @@ describe('dòng người dùng', () => {
     );
     expect(p?.legacyRole).toBeNull();
     expect(p ? accountState(p) : null).toBe('no-access');
+  });
+
+  it('tài khoản tạm khóa thắng mọi trạng thái khác, kể cả Admin', () => {
+    const rows2 = buildPersonRows(
+      [
+        {
+          userId: 'a',
+          label: 'A (a@x.test)',
+          role: 'ADMIN',
+          hasLogin: true,
+          suspended: true,
+          branches: [],
+        },
+        {
+          userId: 'b',
+          label: 'B (b@x.test)',
+          role: 'THANH_VIEN',
+          hasLogin: true,
+          suspended: false,
+          branches: [],
+        },
+      ],
+      [G1],
+      [],
+    );
+    expect(rows2.map((r) => accountState(r))).toEqual(['suspended', 'no-access']);
+    expect(ACCOUNT_STATE_LABEL.suspended).toBe('Tạm khóa');
   });
 
   it('phân trạng thái tài khoản theo nhóm quyền, không theo vai cũ', () => {

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { MemberSuspendButton } from '../../../../../components/permissions/MemberSuspendButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
 import { Avatar } from '../../../../../components/ui/avatar';
@@ -49,7 +50,7 @@ export default async function EffectivePage({
   );
   if (!person) notFound();
   const names = makeNameBook(ctx.groups, ctx.members);
-  const rows = effectiveByDomain(ctx.groups, id);
+  const rows = person.suspended ? [] : effectiveByDomain(ctx.groups, id);
   const state = accountState(person);
   const history = ctx.requests.filter((r) => r.user_id === id);
 
@@ -68,22 +69,44 @@ export default async function EffectivePage({
           <div className="grid gap-1">
             <h2 className="font-serif text-xl">{person.name}</h2>
             <span className="flex flex-wrap items-center gap-2 text-sm text-muted">
-              <Pill tone={state === 'active' ? 'ok' : state === 'waiting' ? 'brass' : 'warn'}>
+              <Pill
+                tone={
+                  state === 'active'
+                    ? 'ok'
+                    : state === 'waiting'
+                      ? 'brass'
+                      : state === 'suspended'
+                        ? 'danger'
+                        : 'warn'
+                }
+              >
                 {ACCOUNT_STATE_LABEL[state]}
               </Pill>
               {person.email}
             </span>
           </div>
         </div>
-        {ctx.canPropose ? (
-          <Link
-            className="primary btn-link"
-            href={`/quan-tri/phan-quyen/de-xuat?loai=ADD_MEMBER&nguoi=${id}`}
-          >
-            Đề xuất thay đổi nhóm quyền
-          </Link>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {ctx.canApprove && id !== ctx.userId ? (
+            <MemberSuspendButton userId={id} officeId={ctx.officeId} suspended={person.suspended} />
+          ) : null}
+          {ctx.canPropose ? (
+            <Link
+              className="primary btn-link"
+              href={`/quan-tri/phan-quyen/de-xuat?loai=ADD_MEMBER&nguoi=${id}`}
+            >
+              Đề xuất thay đổi nhóm quyền
+            </Link>
+          ) : null}
+        </div>
       </section>
+      {person.suspended ? (
+        <p role="status" className="callout">
+          <strong>Tài khoản đang tạm khóa</strong>
+          Người này không đăng nhập được và không có quyền hiệu lực nào. Nhóm quyền, hồ sơ và lịch
+          sử giữ nguyên; mở khóa thì quyền theo các nhóm dưới đây có hiệu lực trở lại.
+        </p>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <section
@@ -135,12 +158,16 @@ export default async function EffectivePage({
           Mỗi dòng là một nghiệp vụ. Phạm vi lấy rộng nhất trong các nhóm của người này. Màn này chỉ
           để xem; muốn đổi hãy gửi đề xuất.
         </p>
-        {person.isAdmin ? (
+        {person.isAdmin && !person.suspended ? (
           <p className="text-sm">
             Admin mặc nhiên có mọi quyền ở tất cả nghiệp vụ, phạm vi toàn văn phòng.
           </p>
         ) : null}
-        {rows.length === 0 && !person.isAdmin ? <p className="muted">Chưa có quyền nào.</p> : null}
+        {rows.length === 0 && (!person.isAdmin || person.suspended) ? (
+          <p className="muted">
+            {person.suspended ? 'Đang tạm khóa: không có quyền hiệu lực.' : 'Chưa có quyền nào.'}
+          </p>
+        ) : null}
         {rows.length > 0 ? (
           <div className="table-wrap">
             <table>

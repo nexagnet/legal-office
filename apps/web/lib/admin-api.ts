@@ -8,6 +8,7 @@ export interface Member {
   readonly role: string | null;
   readonly legalSigner: boolean;
   readonly hasLogin: boolean;
+  readonly suspended?: boolean;
   readonly branches: readonly string[];
 }
 
