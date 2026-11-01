@@ -161,6 +161,8 @@ export class DmsCasesController {
           domain,
           title: z.string().min(1).max(500),
           attributes: attributes.default({}),
+          /** Chi nhánh của hồ sơ. Bỏ trống: có đúng một chi nhánh được cấp thì tự chọn; nhiều thì DB đòi chọn (BRANCH_REQUIRED). */
+          branchId: uuid.optional(),
         })
         .strict(),
       body,
@@ -170,6 +172,7 @@ export class DmsCasesController {
       b.domain,
       b.title,
       JSON.stringify(b.attributes),
+      b.branchId ?? null,
     ]);
   }
 

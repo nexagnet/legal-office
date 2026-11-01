@@ -44,6 +44,63 @@ export class DmsPermissionsController {
     return { permissions: rows.map((r) => r.permission) };
   }
 
+  /** Chi nhánh người gọi được xem (người duyệt phân quyền: mọi chi nhánh). Form tạo hồ sơ dùng để chọn chi nhánh. */
+  @Get('me/branches')
+  async myBranches(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(z.object({ officeId: uuid }).strict(), query);
+    const rows = await this.repo.rows<{ branch_id: string; branch_name: string }>(
+      a.tenantId,
+      'dms_my_branches',
+      [a.tenantId, a.userId, q.officeId],
+    );
+    return { rows: rows.map((r) => ({ id: r.branch_id, name: r.branch_name })) };
+  }
+
+  /** Ai đang được xem chi nhánh nào (nguồn DMS thu hồi được; nguồn LEGACY là cấp phát cũ theo vai, chỉ hiển thị). */
+  @Get('branch-access')
+  async branchAccess(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(z.object({ officeId: uuid }).strict(), query);
+    const rows = await this.repo.rows<{
+      user_id: string;
+      branch_id: string;
+      branch_name: string;
+      source: string;
+    }>(a.tenantId, 'dms_branch_access_list', [a.tenantId, a.userId, q.officeId]);
+    return {
+      rows: rows.map((r) => ({
+        userId: r.user_id,
+        branchId: r.branch_id,
+        branchName: r.branch_name,
+        source: r.source,
+      })),
+    };
+  }
+
+  /** Cấp / thu hồi chi nhánh cho một người. Người có quyền duyệt phân quyền áp dụng ngay; lý do bắt buộc; có nhật ký. */
+  @Post('branch-access')
+  @HttpCode(HttpStatus.OK)
+  setBranchAccess(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z
+        .object({
+          officeId: uuid,
+          userId: uuid,
+          branchId: uuid,
+          granted: z.boolean(),
+          reason: z.string().trim().min(1).max(1000),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'dms_branch_access_set', [
+      b.officeId,
+      b.userId,
+      b.branchId,
+      b.granted,
+      b.reason,
+    ]);
+  }
+
   @Get('groups')
   groups(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
     const q = parse(z.object({ officeId: uuid }).strict(), query);

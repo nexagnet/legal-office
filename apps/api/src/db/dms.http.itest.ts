@@ -501,4 +501,59 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     });
     expect(Buffer.from(await dl.arrayBuffer())).toEqual(NEWPDF);
   });
+  // Chạy cuối: thêm chi nhánh vào văn phòng làm thay đổi cách tạo hồ sơ của mọi test phía sau.
+  it('phạm vi chi nhánh qua HTTP: cấp, chọn khi tạo, thu hồi; người không có quyền duyệt bị chặn', async () => {
+    const branchA = id();
+    const branchB = id();
+    await owner.query(
+      `INSERT INTO branches (id, tenant_id, office_id, name) VALUES ($1,$3,$4,'CN A'),($2,$3,$4,'CN B')`,
+      [branchA, branchB, T, OFF],
+    );
+    await owner.query(
+      `INSERT INTO memberships (tenant_id, user_id, office_id, role) VALUES ($1,$2,$3,'THANH_VIEN')`,
+      [T, U.a, OFF],
+    );
+    const grant = (user: string, branch: string, granted: boolean, actor = U.approver1) =>
+      api('POST', '/dms/branch-access', actor, {
+        officeId: OFF,
+        userId: user,
+        branchId: branch,
+        granted,
+        reason: 'phân công',
+      });
+
+    expect(
+      (await api('POST', '/dms/cases', U.a, { officeId: OFF, domain: 'vibang', title: 'X' }))
+        .status,
+    ).toBe(403);
+    expect((await grant(U.a, branchA, true, U.a)).status).toBe(403);
+    expect((await grant(U.a, branchA, true)).json.code).toBe('BRANCH_ACCESS_GRANTED');
+    expect((await grant(U.a, branchB, true)).status).toBe(200);
+
+    const mine = await api('GET', `/dms/me/branches?officeId=${OFF}`, U.a);
+    expect(mine.json.rows.map((r: Row) => r.name)).toEqual(['CN A', 'CN B']);
+    const list = await api('GET', `/dms/branch-access?officeId=${OFF}`, U.approver1);
+    expect(list.json.rows.filter((r: Json) => r.userId === U.a)).toHaveLength(2);
+    expect((await api('GET', `/dms/branch-access?officeId=${OFF}`, U.a)).json.rows).toEqual([]);
+
+    const need = await api('POST', '/dms/cases', U.a, {
+      officeId: OFF,
+      domain: 'vibang',
+      title: 'X',
+    });
+    expect(need.status).toBe(422);
+    expect(need.json.code).toBe('BRANCH_REQUIRED');
+    const made = await api('POST', '/dms/cases', U.a, {
+      officeId: OFF,
+      domain: 'vibang',
+      title: 'Y',
+      branchId: branchB,
+    });
+    expect(made.json.code).toBe('CASE_DRAFT_CREATED');
+    expect((await api('GET', `/dms/cases/${made.json.label}`, U.a)).status).toBe(200);
+
+    expect((await grant(U.a, branchB, false)).json.code).toBe('BRANCH_ACCESS_REVOKED');
+    // Chi nhánh B đã thu hồi: nháp của chính mình ở chi nhánh B cũng không còn thấy được.
+    expect((await api('GET', `/dms/cases/${made.json.label}`, U.a)).status).toBe(404);
+  });
 });
