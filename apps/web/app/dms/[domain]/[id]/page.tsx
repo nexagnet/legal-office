@@ -18,6 +18,7 @@ import {
   canAddDocument,
   canConfirm,
   canDraft,
+  canRequestAmendment,
   domainBySlug,
   isVanThu,
   inputColumns,
@@ -109,7 +110,8 @@ export default async function DmsCasePage({
     c.status === 'RECORDED' ? await loadDmsAmendments(cookie, c.office_id, { caseId: id }) : [];
   const canAmend =
     c.status === 'RECORDED' &&
-    (canDraft(permissions, domain.code) || permissions.includes('dms.permission.approve'));
+    (canRequestAmendment(permissions, domain.code) ||
+      permissions.includes('dms.permission.approve'));
   const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
   const docs = documents === 'error' ? [] : documents;
   const filesByDoc = await Promise.all(docs.map((d) => loadDmsFiles(cookie, d.id)));

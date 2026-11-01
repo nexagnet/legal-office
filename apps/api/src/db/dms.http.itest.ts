@@ -116,7 +116,7 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
         );
       return g as string;
     };
-    const own = ['read', 'draft', 'confirm', 'add_document', 'download'].map(
+    const own = ['read', 'draft', 'confirm', 'add_document', 'download', 'amend_request'].map(
       (x) => `vibang.${x}.own`,
     );
     await mk('THV tạo', own, [U.a, U.b]);
@@ -124,7 +124,7 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     await mk('Người đề xuất', ['dms.permission.propose'], [U.proposer]);
     await mk(
       'Quản trị phân quyền',
-      ['dms.permission.propose', 'dms.permission.approve'],
+      ['dms.permission.propose', 'dms.permission.approve', 'dms.amendment.approve'],
       [U.approver1, U.approver2],
     );
   });

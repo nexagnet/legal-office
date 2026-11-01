@@ -246,7 +246,7 @@ describe.skipIf(!ADMIN_URL)('DMS đổi quyền có duyệt (PostgreSQL)', () =>
     expect(await propose(U.pr1, thvGroup, 'GRANT', 'vibang.delete.all', null)).toMatchObject({
       code: 'UNKNOWN_PERMISSION',
     });
-    expect(await propose(U.pr1, thvGroup, 'GRANT', 'dms.amendment.approve', null)).toMatchObject({
+    expect(await propose(U.pr1, thvGroup, 'GRANT', 'dms.amendment.delete', null)).toMatchObject({
       code: 'UNKNOWN_PERMISSION',
     });
     expect(await propose(U.pr1, thvGroup, 'REVOKE', 'vibang.read.own', null)).toMatchObject({
@@ -357,6 +357,7 @@ describe.skipIf(!ADMIN_URL)('DMS đổi quyền có duyệt (PostgreSQL)', () =>
       OFF3,
     ]);
     expect(perms.map((x) => x.permission)).toEqual([
+      'dms.amendment.approve',
       'dms.permission.approve',
       'dms.permission.propose',
     ]);

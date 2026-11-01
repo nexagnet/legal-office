@@ -61,6 +61,7 @@ export const PERMISSION_ACTIONS = [
   ['confirm', 'Xác nhận lưu chính thức'],
   ['add_document', 'Thêm tài liệu và tải tệp lên'],
   ['download', 'Tải tệp, in'],
+  ['amend_request', 'Đề nghị sửa đổi hồ sơ đã lưu'],
 ] as const;
 
 export const SCOPE_LABEL: Readonly<Record<string, string>> = {
@@ -71,7 +72,8 @@ export const SCOPE_LABEL: Readonly<Record<string, string>> = {
 /** Quyền không thuộc một nghiệp vụ. */
 export const SPECIAL_PERMISSIONS: Readonly<Record<string, string>> = {
   'dms.permission.propose': 'Đề xuất đổi quyền',
-  'dms.permission.approve': 'Duyệt thay đổi quyền và yêu cầu sửa đổi hồ sơ',
+  'dms.permission.approve': 'Duyệt thay đổi quyền',
+  'dms.amendment.approve': 'Duyệt yêu cầu sửa đổi hồ sơ',
   'dms.stock.write': 'Nhập, xuất, kiểm kê văn phòng phẩm',
   'dms.legacy.import': 'Nhập tài liệu cũ',
   'dms.legacy.read': 'Xem tài liệu cũ đã nhập',

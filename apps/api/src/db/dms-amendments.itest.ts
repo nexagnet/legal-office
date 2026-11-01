@@ -121,7 +121,9 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
         );
     };
     const own = ['vibang', 'tongdat'].flatMap((d) =>
-      ['read', 'draft', 'confirm', 'add_document', 'download'].map((a) => `${d}.${a}.own`),
+      ['read', 'draft', 'confirm', 'add_document', 'download', 'amend_request'].map(
+        (a) => `${d}.${a}.own`,
+      ),
     );
     const all = ['vibang', 'tongdat'].map((d) => `${d}.read.all`);
     await group(T, OFF, 'THV tạo', own, [U.a, U.b]);
@@ -129,7 +131,13 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
     await group(T2, OFF2, 'THV B', own, [U.foreign]);
     // U.b còn đọc được toàn bộ hồ sơ đã ghi sổ ở văn phòng OFF.
     await group(T, OFF, 'Đọc sổ', all, [U.b]);
-    await group(T, OFF, 'Admin', [...all, 'dms.permission.approve'], [U.admin, U.admin2]);
+    await group(
+      T,
+      OFF,
+      'Admin',
+      [...all, 'dms.permission.approve', 'dms.amendment.approve'],
+      [U.admin, U.admin2],
+    );
   });
 
   afterAll(async () => {
