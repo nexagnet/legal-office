@@ -98,6 +98,22 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Văn phòng phẩm',
     sub: 'Danh mục, nhập, xuất, tồn kho và lịch sử điều chỉnh vật tư.',
   },
+  '/dms/so/s-01': {
+    title: 'Xuất sổ S-01 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
+  '/dms/so/s-02': {
+    title: 'Xuất sổ S-02 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
+  '/dms/so/s-04': {
+    title: 'Xuất sổ S-04 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
+  '/dms/so/s-05': {
+    title: 'Xuất sổ S-05 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
   '/cai-dat': {
     title: 'Cấu hình văn phòng',
     sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',
