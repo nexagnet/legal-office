@@ -556,4 +556,32 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     // Chi nhánh B đã thu hồi: nháp của chính mình ở chi nhánh B cũng không còn thấy được.
     expect((await api('GET', `/dms/cases/${made.json.label}`, U.a)).status).toBe(404);
   });
+
+  it('hồ sơ chưa có chi nhánh qua HTTP: chỉ Admin thấy và gắn được; người khác nhận rỗng / 403', async () => {
+    const legacy = (
+      await owner.query(
+        `INSERT INTO dms_case_files (tenant_id, office_id, domain, title, created_by, status, recorded_by, recorded_at)
+         VALUES ($1,$2,'vibang','Hồ sơ cũ không chi nhánh',$3,'RECORDED',$3,now()) RETURNING id`,
+        [T, OFF, U.approver1],
+      )
+    ).rows[0].id as string;
+    const asAdmin = await api('GET', `/dms/cases-without-branch?officeId=${OFF}`, U.approver1);
+    expect(asAdmin.status).toBe(200);
+    expect(asAdmin.json.total).toBeGreaterThanOrEqual(1);
+    expect((asAdmin.json.rows as Row[]).map((r) => r.id)).toContain(legacy);
+    const asOther = await api('GET', `/dms/cases-without-branch?officeId=${OFF}`, U.a);
+    expect(asOther.json).toEqual({ total: 0, rows: [] });
+    const body = {
+      officeId: OFF,
+      caseIds: [legacy],
+      branchId: (await api('GET', `/dms/me/branches?officeId=${OFF}`, U.approver1)).json.rows[0].id,
+    };
+    expect((await api('POST', '/dms/cases-without-branch/assign', U.a, body)).status).toBe(403);
+    const done = await api('POST', '/dms/cases-without-branch/assign', U.approver1, body);
+    expect(done.status).toBe(200);
+    expect(done.json.code).toBe('BRANCH_ASSIGNED');
+    expect((await api('POST', '/dms/cases-without-branch/assign', U.approver1, body)).status).toBe(
+      422,
+    );
+  });
 });

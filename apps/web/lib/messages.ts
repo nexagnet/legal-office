@@ -21,6 +21,8 @@ const MESSAGES: Record<string, string> = {
   CONTRACT_NOT_FOUND: 'Không tìm thấy hợp đồng của khách này.',
   BRANCH_NOT_FOUND: 'Không tìm thấy chi nhánh.',
   BRANCH_REQUIRED: 'Hãy chọn chi nhánh của hồ sơ.',
+  CASE_NOT_UNASSIGNED:
+    'Có hồ sơ đã được gắn chi nhánh từ trước nên không đổi được. Tải lại trang để xem danh sách mới.',
   INVALID_CUSTOMER: 'Loại khách hàng không hợp lệ.',
   INVALID_CREDENTIALS: 'Email hoặc mật khẩu không đúng.',
   EDIT_WINDOW_CLOSED: 'Đã quá 48 giờ, hãy lập đề nghị thay đổi.',

@@ -269,7 +269,7 @@ describe.skipIf(!ADMIN_URL)('DMS phạm vi theo chi nhánh (PostgreSQL)', () => 
     ).rejects.toThrow(/append-only/);
   });
 
-  it('hồ sơ cũ chưa có chi nhánh vẫn thấy được như trước; cấp phát cũ theo vai vẫn được tính', async () => {
+  it('hồ sơ chưa có chi nhánh chỉ Admin thấy; Admin gắn chi nhánh xong thì người của chi nhánh đó mới thấy', async () => {
     const legacy = (
       await owner.query(
         `INSERT INTO dms_case_files (tenant_id, office_id, domain, title, created_by, status, recorded_by, recorded_at)
@@ -277,9 +277,59 @@ describe.skipIf(!ADMIN_URL)('DMS phạm vi theo chi nhánh (PostgreSQL)', () => 
         [T, OFF, U.admin],
       )
     ).rows[0].id as string;
-    expect(await list(U.b, 'vtden')).toContain(legacy);
-    expect(await list(U.legacy, 'vtden')).toContain(legacy);
+    expect(await list(U.admin, 'vtden')).toContain(legacy);
+    expect(await list(U.b, 'vtden')).not.toContain(legacy);
+    expect(await list(U.legacy, 'vtden')).not.toContain(legacy);
 
+    // Chỉ Admin thấy danh sách "chưa gắn chi nhánh" và gắn được.
+    const asAdmin = await call('SELECT id FROM dms_cases_without_branch($1,$2,$3)', [
+      T,
+      U.admin,
+      OFF,
+    ]);
+    expect(asAdmin.map((r) => r.id)).toContain(legacy);
+    expect(
+      await call('SELECT id FROM dms_cases_without_branch($1,$2,$3)', [T, U.b, OFF]),
+    ).toHaveLength(0);
+    expect((await op('dms_cases_assign_branch', [T, U.b, OFF, [legacy], B2])).code).toBe(
+      'ADMIN_ONLY',
+    );
+    expect((await op('dms_cases_assign_branch', [T, U.admin, OFF, [legacy], B_OTHER])).code).toBe(
+      'BRANCH_NOT_FOUND',
+    );
+    expect(await op('dms_cases_assign_branch', [T, U.admin, OFF, [legacy], B2])).toMatchObject({
+      ok: true,
+      code: 'BRANCH_ASSIGNED',
+    });
+    expect(await branchOf(legacy)).toBe(B2);
+    expect(await list(U.b, 'vtden')).toContain(legacy); // b được cấp B2
+    expect(await list(U.a, 'vtden')).not.toContain(legacy); // a chỉ B1
+    // Gắn một lần: đã có chi nhánh thì không đổi, kể cả Admin; hồ sơ đã ghi sổ không đổi gì khác.
+    expect((await op('dms_cases_assign_branch', [T, U.admin, OFF, [legacy], B1])).code).toBe(
+      'CASE_NOT_UNASSIGNED',
+    );
+    await expect(
+      owner.query(`UPDATE dms_case_files SET branch_id = $2 WHERE id = $1`, [legacy, B1]),
+    ).rejects.toThrow();
+    await expect(
+      owner.query(`UPDATE dms_case_files SET title = 'Sửa' WHERE id = $1`, [legacy]),
+    ).rejects.toThrow(/immutable/);
+    const audit = await call(
+      `SELECT 1 FROM dms_audit_records WHERE target_id = $1 AND action = 'dms.case.set_branch'`,
+      [legacy],
+    );
+    expect(audit.length).toBeGreaterThan(0);
+  });
+
+  it('văn phòng chưa tạo chi nhánh: không áp dụng phạm vi, hồ sơ không chi nhánh vẫn thấy bình thường', async () => {
+    const r = await op('dms_case_create_draft', [T, U.a, OFF_PLAIN, 'vtden', 'Thường', '{}']);
+    expect(r.ok).toBe(true);
+    expect(
+      await call('SELECT dms_cases_without_branch_count($1,$2,$3) AS n', [T, U.admin, OFF_PLAIN]),
+    ).toEqual([{ n: '0' }]);
+  });
+
+  it('cấp phát cũ theo vai vẫn được tính', async () => {
     const m = (
       await owner.query(`SELECT id FROM memberships WHERE user_id = $1 AND office_id = $2`, [
         U.legacy,
