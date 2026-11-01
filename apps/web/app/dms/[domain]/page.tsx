@@ -208,20 +208,21 @@ export default async function DmsDomainPage({
           <span className="flex flex-wrap items-center gap-2">
             {vanThu ? (
               <>
-                <a
-                  className="btn-link"
-                  href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
-                >
-                  Xuất Excel
-                </a>
-                <Link className="btn-link" href={`/dms/so/${vanThu.bookSlug}`}>
-                  Xuất PDF để in
-                </Link>
+                <Button asChild variant="secondary">
+                  <a
+                    href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
+                  >
+                    Xuất Excel
+                  </a>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href={`/dms/so/${vanThu.bookSlug}`}>Xuất PDF để in</Link>
+                </Button>
               </>
             ) : (
-              <Link className="btn-link" href={`/dms/so/${bookCode.toLowerCase()}`}>
-                Xuất {bookCode}
-              </Link>
+              <Button asChild variant="secondary">
+                <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+              </Button>
             )}
             {canDraft(permissions, domain.code) ? (
               <NewDmsCaseButton
