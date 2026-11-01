@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 import {
   PERMISSION_ACTIONS,
@@ -102,6 +103,15 @@ export function PermissionTree({
     onChange(next);
   };
   const specials = Object.keys(SPECIAL_PERMISSIONS).filter(isOverridable);
+  // Mỗi nghiệp vụ gập lại cho gọn; lúc đầu chỉ mở những nghiệp vụ đã có quyền tick. Người dùng bấm thì theo người dùng.
+  const initiallyOpen = useRef(
+    new Set(
+      PERMISSION_DOMAINS.map(([d]) => d).filter((d) =>
+        [...value].some((c) => c.startsWith(`${d}.`)),
+      ),
+    ),
+  );
+  const [opened, setOpened] = useState<Readonly<Record<string, boolean>>>({});
 
   return (
     <div className="grid gap-4" role="group" aria-label="Cây quyền chi tiết theo nghiệp vụ">
@@ -111,12 +121,22 @@ export function PermissionTree({
         );
         const ticked = codes.filter((c) => value.has(c)).length;
         return (
-          <fieldset key={domain} className="grid gap-2 rounded-xl border border-line p-4">
-            <legend className="px-1 font-serif text-base font-semibold">{title}</legend>
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
-              <span>
+          <details
+            key={domain}
+            className="tree-domain grid gap-2 rounded-xl border border-line p-4"
+            open={opened[domain] ?? initiallyOpen.current.has(domain)}
+            onToggle={(e) => {
+              const isOpen = e.currentTarget.open;
+              setOpened((o) => (o[domain] === isOpen ? o : { ...o, [domain]: isOpen }));
+            }}
+          >
+            <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-1 font-serif text-base font-semibold">
+              <span>{title}</span>
+              <span className="font-sans text-sm font-normal text-muted">
                 Đang có {ticked}/{codes.length} quyền
               </span>
+            </summary>
+            <div className="flex flex-wrap items-center justify-end gap-2 text-sm text-muted">
               <span className="flex gap-3">
                 <button
                   type="button"
@@ -173,7 +193,7 @@ export function PermissionTree({
                 </tbody>
               </table>
             </div>
-          </fieldset>
+          </details>
         );
       })}
 
