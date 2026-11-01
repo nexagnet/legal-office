@@ -180,56 +180,6 @@ export function DmsAmendmentReview({ requestId }: { readonly requestId: string }
   );
 }
 
-/** Admin đổi cửa sổ tự duyệt (giờ sau khi ghi sổ); 0 = tắt. */
-export function DmsAmendmentWindowForm({
-  officeId,
-  hours,
-}: {
-  readonly officeId: string;
-  readonly hours: number;
-}) {
-  const { router, error, setError, busy, setBusy, done, setDone } = useAction();
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const value = Number(new FormData(e.currentTarget).get('hours'));
-    setBusy(true);
-    setError(null);
-    setDone(null);
-    try {
-      const res = await fetch('/api/dms/amendment-window', {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ officeId, hours: value }),
-      });
-      const json = (await res.json().catch(() => ({}))) as { code?: string };
-      if (!res.ok) return setError(messageFor(json.code));
-      setDone('Đã lưu.');
-      router.refresh();
-    } catch {
-      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <form
-      onSubmit={submit}
-      aria-label="Cửa sổ tự duyệt"
-      className="mb-4 flex flex-wrap items-end gap-2 text-sm"
-    >
-      <label className="flex flex-col gap-1">
-        Tự duyệt trong (giờ) sau khi ghi sổ, 0 = tắt
-        <input type="number" name="hours" min={0} max={720} defaultValue={hours} required />
-      </label>
-      <button type="submit" disabled={busy}>
-        Lưu
-      </button>
-      {done ? <span role="status">{done}</span> : null}
-      {error ? <p role="alert">{error}</p> : null}
-    </form>
-  );
-}
-
 /**
  * Thêm PHIÊN BẢN MỚI của một tệp đã lưu (bản cũ vẫn còn). Hai tệp: tệp mới và bản scan văn bản sửa đổi.
  * Tệp mới được tải lên bước đệm trước, rồi yêu cầu sửa đổi tham chiếu tới nó.

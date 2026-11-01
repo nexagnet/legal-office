@@ -12,7 +12,6 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  Put,
   Query,
   Req,
   Res,
@@ -37,7 +36,7 @@ const changes = z
 
 /**
  * Yêu cầu sửa đổi hồ sơ ĐÃ ghi sổ. Bắt buộc lý do và bản scan văn bản sửa đổi (thân yêu cầu là tệp). Admin: có hiệu lực ngay;
- * người khác: chờ Admin duyệt, hoặc tự duyệt nếu gửi trong cửa sổ N giờ sau khi ghi sổ. Quyền do hàm `dms_*` quyết định.
+ * người khác: luôn chờ Admin duyệt (không tự duyệt theo thời gian). Quyền do hàm `dms_*` quyết định.
  * Lát này mở HTTP cho sửa tiêu đề/thuộc tính hồ sơ và thuộc tính tài liệu; thêm phiên bản tệp mới đã có ở DB, HTTP làm sau
  * (cần tải lên hai tệp trong một yêu cầu).
  */
@@ -259,28 +258,5 @@ export class DmsAmendmentsController {
       'cache-control': 'private, no-store',
     });
     return new StreamableFile(bytes);
-  }
-
-  /** Cửa sổ duyệt tự động (giờ). Chỉ Admin đổi; 0 = tắt. */
-  @Get('amendment-window')
-  async window(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
-    const q = parse(z.object({ officeId: uuid }).strict(), query);
-    const rows = await this.repo.rows<{ dms_amendment_window: number }>(
-      a.tenantId,
-      'dms_amendment_window',
-      [a.tenantId, q.officeId],
-    );
-    return { hours: rows[0]?.dms_amendment_window ?? 48 };
-  }
-
-  @Put('amendment-window')
-  setWindow(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
-    const b = parse(
-      z.object({ officeId: uuid, hours: z.number().int().min(0).max(720) }).strict(),
-      body,
-    );
-    return this.repo
-      .call(a.tenantId, 'dms_amendment_window_set', [a.tenantId, a.userId, b.officeId, b.hours])
-      .then(respond);
   }
 }

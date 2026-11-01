@@ -1,11 +1,6 @@
 import Link from 'next/link';
-import { DmsAmendmentReview, DmsAmendmentWindowForm } from '../../../components/DmsAmendments';
-import {
-  AMENDMENT_STATUS_LABEL,
-  amendmentSummary,
-  loadAmendmentWindow,
-  loadDmsAmendments,
-} from '../../../lib/dms';
+import { DmsAmendmentReview } from '../../../components/DmsAmendments';
+import { AMENDMENT_STATUS_LABEL, amendmentSummary, loadDmsAmendments } from '../../../lib/dms';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -43,19 +38,15 @@ export default async function DmsAmendmentsPage() {
     );
   }
   const cookie = await requestCookie();
-  const [rows, hours] = await Promise.all([
-    loadDmsAmendments(cookie, officeId),
-    loadAmendmentWindow(cookie, officeId),
-  ]);
+  const rows = await loadDmsAmendments(cookie, officeId);
   return (
     <section aria-labelledby="t">
       <h1 id="t">Yêu cầu sửa đổi</h1>
       <p className="muted">
         Hồ sơ đã lưu chính thức không sửa trực tiếp. Mọi thay đổi cần lý do và bản scan văn bản sửa
-        đổi. Admin gửi thì có hiệu lực ngay; người khác chờ Admin duyệt hoặc được tự duyệt trong{' '}
-        {hours} giờ sau khi ghi sổ{hours === 0 ? ' (đang tắt)' : ''}.
+        đổi. Admin gửi thì có hiệu lực ngay; người khác luôn chờ Admin duyệt, không có tự duyệt theo
+        thời gian.
       </p>
-      <DmsAmendmentWindowForm officeId={officeId} hours={hours} />
       {rows === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được yêu cầu</h2>
@@ -89,7 +80,7 @@ export default async function DmsAmendmentsPage() {
                   <td>{a.reason}</td>
                   <td>
                     {AMENDMENT_STATUS_LABEL[a.status]}
-                    {a.auto_via === 'WINDOW' ? ' (tự duyệt trong cửa sổ)' : ''}
+                    {a.auto_via === 'WINDOW' ? ' (tự duyệt, quy tắc cũ đã bỏ)' : ''}
                   </td>
                   <td>
                     <a href={`/api/dms/amendments/${a.id}/evidence`}>Văn bản sửa đổi</a>

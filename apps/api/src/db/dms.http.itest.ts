@@ -412,13 +412,8 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
   });
 
   it('sửa đổi hồ sơ đã ghi sổ qua HTTP: bắt buộc lý do và scan, chờ duyệt, Admin duyệt thì áp dụng', async () => {
-    expect(
-      (await api('PUT', '/dms/amendment-window', U.approver1, { officeId: OFF, hours: 0 })).status,
-    ).toBe(200);
-    expect((await api('GET', `/dms/amendment-window?officeId=${OFF}`, U.a)).json.hours).toBe(0);
-    expect(
-      (await api('PUT', '/dms/amendment-window', U.a, { officeId: OFF, hours: 5 })).status,
-    ).toBe(403);
+    // Cấu hình cửa sổ tự duyệt đã gỡ: không còn đường nào.
+    expect((await api('GET', `/dms/amendment-window?officeId=${OFF}`, U.a)).status).toBe(404);
     const c = (
       await api('POST', '/dms/cases', U.a, {
         officeId: OFF,

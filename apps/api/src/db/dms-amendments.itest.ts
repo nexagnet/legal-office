@@ -171,7 +171,6 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
       'application/pdf',
       1234,
     ]);
-  const setWindow = (hours: number) => op(T, 'dms_amendment_window_set', [T, U.admin, OFF, hours]);
   const recorded = async (domain = 'vibang', attrs: object = { ghi_chu: 'gốc' }) => {
     const c = await mkCase(U.a, domain, OFF, attrs);
     expect((await record(U.a, c)).ok).toBe(true);
@@ -186,7 +185,6 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
     };
 
   it('Admin sửa có hiệu lực ngay; hồ sơ gốc không đổi, có bản sửa đổi và nhật ký', async () => {
-    await setWindow(0);
     const c = await recorded();
     const r = await propose(U.admin, c, 'CASE_FIELDS', { attributes: { ghi_chu: 'đã sửa' } });
     expect(r.code).toBe('AMENDMENT_APPLIED');
@@ -201,7 +199,6 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
   });
 
   it('người thường ngoài cửa sổ: chờ duyệt, Admin duyệt thì áp dụng; không tự duyệt', async () => {
-    await setWindow(0);
     const c = await recorded();
     const r = await propose(U.a, c, 'CASE_FIELDS', { title: 'Tên đã sửa' });
     expect(r.code).toBe('AMENDMENT_PENDING');
@@ -225,7 +222,6 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
   });
 
   it('từ chối cần lý do và không đổi gì', async () => {
-    await setWindow(0);
     const c = await recorded();
     const r = await propose(U.a, c, 'CASE_FIELDS', { attributes: { ghi_chu: 'x' } });
     expect(
@@ -234,26 +230,23 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
     expect((await effective(c)).attributes.ghi_chu).toBe('gốc');
   });
 
-  it('trong cửa sổ N giờ sau khi lưu thì tự duyệt; N = 0 thì tắt', async () => {
-    await setWindow(48);
+  it('không tự duyệt: vừa ghi sổ xong người thường cũng phải chờ Admin; không còn cấu hình cửa sổ', async () => {
     const c = await recorded();
-    const r = await propose(U.a, c, 'CASE_FIELDS', { attributes: { ghi_chu: 'trong cửa sổ' } });
-    expect(r.code).toBe('AMENDMENT_APPLIED');
-    const req = await owner.query(`SELECT auto_via FROM dms_amendment_requests WHERE id=$1`, [
-      r.label,
-    ]);
-    expect(req.rows[0].auto_via).toBe('WINDOW');
-    await setWindow(0);
-    const c2 = await recorded();
-    expect((await propose(U.a, c2, 'CASE_FIELDS', { title: 'y' })).code).toBe('AMENDMENT_PENDING');
-    expect((await op(T, 'dms_amendment_window_set', [T, U.a, OFF, 5])).code).toBe('ADMIN_ONLY');
-    expect((await op(T, 'dms_amendment_window_set', [T, U.admin, OFF, 9999])).code).toBe(
-      'INVALID_INPUT',
+    const r = await propose(U.a, c, 'CASE_FIELDS', { attributes: { ghi_chu: 'ngay sau khi lưu' } });
+    expect(r.code).toBe('AMENDMENT_PENDING');
+    const req = await owner.query(
+      `SELECT status, auto_via FROM dms_amendment_requests WHERE id=$1`,
+      [r.label],
     );
+    expect(req.rows[0]).toMatchObject({ status: 'PENDING', auto_via: null });
+    expect((await effective(c)).attributes.ghi_chu).toBe('gốc');
+    const gone = await owner.query(
+      `SELECT 1 FROM pg_proc WHERE proname IN ('dms_amendment_window', 'dms_amendment_window_set')`,
+    );
+    expect(gone.rowCount).toBe(0);
   });
 
   it('bắt buộc lý do, bằng chứng scan; nháp không sửa đổi; N-11 chỉ Vi bằng', async () => {
-    await setWindow(0);
     const c = await recorded();
     expect((await propose(U.a, c, 'CASE_FIELDS', { title: 'z' }, { reason: '  ' })).code).toBe(
       'REASON_REQUIRED',
@@ -276,7 +269,6 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
   });
 
   it('thêm phiên bản tệp mới (v2), bản cũ còn, tải về lấy bản mới nhất', async () => {
-    await setWindow(0);
     const c = await mkCase(U.a, 'vibang');
     const docId = (await op(T, 'dms_document_add', [T, U.a, c, 'Vi bằng', 'Bản chính', true, null]))
       .label!;
@@ -318,7 +310,6 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
   });
 
   it('yêu cầu sửa đổi không xoá, không đổi nội dung; thuộc tính tài liệu sửa qua bản sửa đổi', async () => {
-    await setWindow(0);
     const c = await mkCase(U.a, 'tongdat');
     const docId = (
       await op(T, 'dms_document_add', [

@@ -439,7 +439,7 @@ export default async function DmsCasePage({
                     {a.n11 ? '(N-11) ' : ''}
                     {amendmentSummary(a)} — {a.reason}{' '}
                     <a href={`/api/dms/amendments/${a.id}/evidence`}>Văn bản sửa đổi</a>
-                    {a.auto_via === 'WINDOW' ? ' · tự duyệt trong cửa sổ' : ''}
+                    {a.auto_via === 'WINDOW' ? ' · tự duyệt (quy tắc cũ đã bỏ)' : ''}
                     {a.review_note ? ` · ${a.review_note}` : ''}
                   </li>
                 ))}
