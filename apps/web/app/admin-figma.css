@@ -706,3 +706,33 @@
 .admin-main .toggle-row input:checked + .toggle {
   background: #1a8f4c;
 }
+
+/* Thẻ "Do bạn đề xuất · chờ người duyệt khác" (Figma Q6). */
+.admin-main .own-pending {
+  display: grid;
+  gap: 10px;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 6%);
+}
+.admin-main .own-pending h2 {
+  font: 700 15px/22px var(--font-serif);
+}
+.admin-main .own-pending ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-main .own-pending li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.admin-main .own-pending li .pill {
+  margin-left: auto;
+}
