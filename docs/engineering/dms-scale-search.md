@@ -35,8 +35,17 @@ Test chứng minh: facet và tìm OCR không lộ hồ sơ chi nhánh khác, h�
 
 - `GET /dms/case-search`: bộ lọc `domain, status, q, year, from, to, branch, creator, kind, scan (missing|complete|empty), pending`, sắp xếp `sort=newest|oldest`, `cursor`, `limit` (tối đa 200), `offset`, `total`. Trả `rows`, `nextCursor`, `total`, `totalCapped`. Gợi ý khi gõ (typeahead) dùng chính endpoint này với `limit=8&total=false`.
 - `GET /dms/case-facet-counts`: cùng bộ lọc, trả `creator, branch, kind, scan, year` mỗi nhóm có `{value, label, n}`.
+- `GET /dms/book-rows-for-cases`: dòng sổ (STT + ô) của đúng các hồ sơ đang hiện trên một trang (tối đa 200), cùng luật hiển thị và giá trị hiện hành như xuất sổ.
 - `GET /dms/search`: tìm nội dung scan, thêm `year, branch, creator, kind, offset`.
 - `GET/POST /dms/saved-filters`, `DELETE /dms/saved-filters/:id`.
+
+## Giá trị hiện hành
+
+Chỉ mục tìm chữ và dữ liệu trả về dùng giá trị HIỆN HÀNH (bản sửa đổi đã duyệt mới nhất, `dms_case_effective` / `dms_doc_effective_attrs`), đúng như danh sách và sổ đang hiển thị. Trigger trên `dms_case_revisions` và `dms_document_revisions` dựng lại dòng chỉ mục khi có sửa đổi được duyệt, nên tìm theo giá trị cũ không còn ra hồ sơ đó.
+
+## Trang danh sách web
+
+`apps/web/app/dms/[domain]/page.tsx` không còn tải 200 hồ sơ rồi lọc. Mỗi lần mở trang: một lần `case-search` (10 dòng, offset), một lần `case-facet-counts` cho ba ô lọc (Loại tài liệu, Người tạo, Đơn vị, mỗi lựa chọn kèm số hồ sơ), bốn lần đếm cho các chip (Chính thức, Chờ duyệt sửa đổi, Thiếu scan, Đủ scan), và một lần `book-rows-for-cases` cho dòng sổ của 10 hồ sơ đang hiện. Thanh trang gọn (đầu, cuối, hai trang mỗi bên); vượt 10.000 hồ sơ hiện "10.000+" và yêu cầu thu hẹp bộ lọc.
 
 ## Mục tiêu và kết quả đo
 
