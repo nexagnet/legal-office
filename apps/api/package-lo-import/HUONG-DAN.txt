@@ -1,0 +1,55 @@
+HƯỚNG DẪN NHẬP TÀI LIỆU CŨ (chạy trên máy tính của khách)
+==========================================================
+
+Chương trình này chỉ ĐỌC các tệp trong thư mục bạn chọn và gửi bản sao lên hệ thống Legal Office,
+đánh dấu là "tài liệu cũ". Nó KHÔNG xoá, KHÔNG di chuyển, KHÔNG sửa tệp gốc trên máy.
+Tệp đã lưu trên hệ thống thì không xoá/sửa được nữa (kể cả quản trị viên).
+
+CHUẨN BỊ (làm một lần)
+1. Giải nén toàn bộ thư mục lo-import-win-x64 ra ổ cứng (ví dụ C:\lo-import). Không cần cài thêm gì.
+2. Sao chép tệp lo-import.env.example thành lo-import.env, mở bằng Notepad và điền:
+     LO_API_URL=https://www.nexagnet.com/api
+     LO_COOKIE=lo_session=<giá trị>
+   Cách lấy giá trị cookie:
+     a. Mở Chrome, vào https://www.nexagnet.com và đăng nhập bằng tài khoản quản trị.
+     b. Nhấn F12 -> thẻ "Application" -> "Cookies" -> chọn https://www.nexagnet.com -> dòng lo_session.
+     c. Nhấp đúp vào cột "Value", copy toàn bộ giá trị, dán sau "lo_session=".
+   Cookie này tương đương mật khẩu. KHÔNG gửi cho ai, và XOÁ tệp lo-import.env khi nhập xong.
+3. Mở "Command Prompt" (cmd) rồi chuyển vào thư mục đã giải nén:  cd /d C:\lo-import
+
+CÁC BƯỚC NHẬP
+Bước 1 - Xem trước (không gửi gì):
+     lo-import scan "D:\Thu muc tai lieu"
+   Cho biết số tệp, dung lượng, số tệp bị bỏ qua (tệp tạm, Thumbs.db...). Đối chiếu với số liệu khách nói.
+
+Bước 2 - Thử với một thư mục nhỏ (vài chục tệp) trước khi nhập cả kho:
+     lo-import open --office <mã văn phòng> --label "Thử nghiệm" "D:\Thu muc nho"
+   In ra "Mã đợt". Rồi:
+     lo-import run --batch <mã đợt> "D:\Thu muc nho"
+   Khi báo failed là [] và có số registered, bấm đóng đợt thử:
+     lo-import close --batch <mã đợt>
+
+Bước 3 - Nhập cả kho:
+     lo-import open --office <mã văn phòng> --label "Kho tài liệu cũ" "D:\Thu muc tai lieu"
+     lo-import run --batch <mã đợt> "D:\Thu muc tai lieu"
+   Có thể mất nhiều giờ (200 GB, đường lên 20 Mbps khoảng 22 giờ). Để máy bật, không để máy ngủ.
+
+Bước 4 - Đối chiếu và đóng đợt:
+     lo-import report --batch <mã đợt>
+   Dòng "matches": true nghĩa là số tệp trên hệ thống khớp sổ trên máy.
+     lo-import close --batch <mã đợt>
+   Đóng đợt xong thì không thêm tệp vào đợt đó được nữa.
+
+NẾU CÓ SỰ CỐ
+- Đứt mạng, tắt máy, đóng cửa sổ giữa chừng: chạy lại ĐÚNG lệnh "run" ở Bước 3. Chương trình đọc sổ
+  tiến độ (tệp lo-import-<mã đợt>.jsonl nằm trong thư mục bạn đang đứng) và làm nốt phần còn lại.
+  Đừng xoá tệp .jsonl này trước khi đóng đợt.
+- "Phiên đăng nhập đã hết hạn": đăng nhập lại trên Chrome, lấy giá trị lo_session mới, dán vào cửa sổ lệnh
+  khi chương trình hỏi rồi nhấn Enter. Phiên sống khoảng 12 giờ nên nhập cả kho thường phải làm bước này.
+- Cuối lệnh run có mục "failed": liệt kê tệp lỗi và lý do. Chạy lại lệnh run để thử lại các tệp đó.
+  Tệp lớn hơn 5 GiB bị từ chối (FILE_TOO_LARGE): báo lại cho người phụ trách.
+- Mã thoát: 0 = xong; 2 = còn tệp lỗi; 3 = dừng vì hết phiên đăng nhập.
+
+BẢO MẬT
+- Chỉ nhập dữ liệu thật khi khách đã đồng ý bằng văn bản về nơi lưu trữ.
+- Xoá lo-import.env và đăng xuất trình duyệt khi xong.

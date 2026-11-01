@@ -24,6 +24,8 @@ export interface RunSummary {
   skipped: Record<string, number>;
   failed: { relPath: string; error: string }[];
   bytesUploaded: number;
+  /** Dừng giữa chừng vì phiên đăng nhập hết hạn và không có cookie mới. */
+  abortedByAuth: boolean;
 }
 
 /** Tải lên bằng liên kết hết hạn (403) thì xin liên kết mới, tối đa hai lần. */
@@ -136,11 +138,13 @@ export async function runImport(o: RunOptions): Promise<RunSummary> {
     skipped: {},
     failed: [],
     bytesUploaded: 0,
+    abortedByAuth: false,
   };
   const limit = Math.max(1, o.concurrency ?? 3);
   const running = new Set<Promise<void>>();
   const inflight = new Map<string, Promise<string>>();
   for await (const entry of scan(o.root, { ignore: o.ignore, skipAbsPaths: o.skipAbsPaths })) {
+    if (sum.abortedByAuth) break;
     if (entry.kind === 'skip') {
       sum.skipped[entry.reason] = (sum.skipped[entry.reason] ?? 0) + 1;
       continue;
@@ -150,6 +154,7 @@ export async function runImport(o: RunOptions): Promise<RunSummary> {
       .then((outcome) => o.onEvent?.({ relPath: entry.relPath, outcome }))
       .catch(async (e: unknown) => {
         const error = e instanceof Error ? e.message : String(e);
+        if (e instanceof ApiError && e.status === 401) sum.abortedByAuth = true;
         sum.failed.push({ relPath: entry.relPath, error });
         await o.ledger.record({
           relPath: entry.relPath,

@@ -23,19 +23,35 @@ Không tạo hồ sơ nghiệp vụ, không nhập dữ liệu nghiệp vụ. Đ
 
 ## Dùng công cụ `lo-import`
 
-```
-export LO_API_URL=https://<địa-chỉ-api>
-export LO_COOKIE='<tên-cookie-phiên>=<giá-trị>'   # đăng nhập bằng trình duyệt, lấy cookie phiên của tài khoản có dms.legacy.import
+Quyền: vai Admin của văn phòng mặc nhiên có `dms.legacy.import` và `dms.legacy.read` (xem #284). Người khác cần được thêm vào một Nhóm quyền có mã đó.
 
-node dist/legacy-import/import.cli.js scan D:\LuuTru                     # đếm, không gửi gì
-node dist/legacy-import/import.cli.js open --office <id> --label "Kho cũ 2016-2020" D:\LuuTru
-node dist/legacy-import/import.cli.js run  --batch <mã đợt> --concurrency 3 D:\LuuTru
-node dist/legacy-import/import.cli.js report --batch <mã đợt>
-node dist/legacy-import/import.cli.js close  --batch <mã đợt>
+**Gói chạy trên Windows không cần cài Node.** Tạo gói (cần mạng tới nodejs.org; kiểm sha256 của `node.exe` theo `SHASUMS256.txt`):
+
+```
+pnpm build
+pnpm --filter @legal-office/api package:import      # ra apps/api/dist-package/lo-import-win-x64.zip
+```
+
+Gói gồm `node\node.exe`, `app\*.js`, `lo-import.cmd`, `lo-import.env.example` và `HUONG-DAN.txt` (hướng dẫn từng bước cho người chạy, nguồn ở `apps/api/package-lo-import/`). Cấu hình đặt trong `lo-import.env` cạnh `lo-import.cmd`:
+
+```
+LO_API_URL=https://www.nexagnet.com/api
+LO_COOKIE=lo_session=<giá trị cookie phiên>      # đăng nhập bằng Chrome, F12 > Application > Cookies
+```
+
+Lệnh (trên máy phát triển có Node thì thay `lo-import` bằng `node dist/legacy-import/import.cli.js`):
+
+```
+lo-import scan   D:\LuuTru                                    # đếm, không gửi gì
+lo-import open   --office <id> --label "Kho cũ 2016-2020" D:\LuuTru
+lo-import run    --batch <mã đợt> --concurrency 3 D:\LuuTru
+lo-import report --batch <mã đợt>                            # so số tệp trên hệ thống với sổ trên máy
+lo-import close  --batch <mã đợt>
 ```
 
 - Sổ tiến độ `lo-import-<mã đợt>.jsonl` nằm ở thư mục hiện tại. **Giữ lại** để chạy tiếp; chạy lại lệnh `run` bỏ qua tệp đã xong (kích thước và ngày sửa không đổi) và làm nốt phần còn lại. Dòng cuối bị cắt do tắt máy đột ngột được bỏ qua.
-- Bỏ qua và báo trong tổng kết: `Thumbs.db`, `desktop.ini`, `.DS_Store`, `~$*`, `*.tmp`, liên kết tượng trưng, tên có `\`, đường dẫn dài quá 1000 ký tự, mục không đọc được.
+- Phiên đăng nhập sống 12 giờ (`SESSION_TTL_MINUTES`, mặc định 720), ngắn hơn một lần nhập 200 GB. Khi API trả 401, công cụ hỏi cookie mới ngay tại cửa sổ lệnh và làm tiếp, không phải chạy lại. Không có cửa sổ tương tác thì dừng với mã thoát 3.
+- Bỏ qua và báo trong tổng kết: `Thumbs.db`, `desktop.ini`, `.DS_Store`, `~$*`, `*.tmp`, liên kết tượng trưng, tên có `\`, đường dẫn dài quá 1000 ký tự, mục không đọc được. Trên Windows đường dẫn được thêm tiền tố `\\?\` để đọc được thư mục lồng sâu quá 260 ký tự.
 - Lỗi một tệp không dừng cả đợt; mã thoát 2 nếu có tệp lỗi. Tệp bị sửa trong lúc nhập không được đăng ký nội dung nửa vời (kho kiểm tra hash).
 
 ## Đã kiểm chứng
@@ -49,8 +65,8 @@ node dist/legacy-import/import.cli.js close  --batch <mã đợt>
 - **Chưa thử với Cloudflare R2 thật.** Liên kết ký sẵn mới được thử với kho giả lập. Phải thử một tệp thật trên bucket thử (PUT có checksum header, HEAD, GET) trước khi nhập dữ liệu thật.
 - **Tệp lớn hơn 5 GiB** bị từ chối (PUT một lần). Tải nhiều phần và chạy tiếp từng phần chưa làm; đứt mạng giữa một tệp lớn thì tệp đó tải lại từ đầu.
 - **`FILE_STORE=local` không hỗ trợ** đường nhập này (trả 501 `DIRECT_UPLOAD_NOT_SUPPORTED`); cần `FILE_STORE=r2` hoặc kho S3 khác.
-- **Đóng gói cho máy khách:** hiện chạy bằng Node 22 từ bản build của API. Chưa đóng gói thành một tệp chạy được trên PC khách không cài Node.
-- **Đăng nhập:** công cụ dùng cookie phiên dán tay; phiên hết hạn thì công cụ báo lỗi 401 và phải đăng nhập lại rồi chạy tiếp.
+- **Gói Windows chưa được chạy thử trên một máy Windows thật.** Đã kiểm: build, đóng gói, sha256 của `node.exe`, chạy mã trong gói bằng Node trên Linux. Phải chạy `scan` và một thư mục nhỏ trên máy khách trước khi nhập cả kho.
+- **Đăng nhập bằng cookie dán tay** (chưa có token riêng cho công cụ).
 - **Giao diện web** để duyệt thư mục tài liệu cũ và gán hai quyền mới vào Nhóm quyền chưa làm (hiện qua API và DB).
 - Chưa có giới hạn tốc độ băng thông và khung giờ chạy; tạm dùng `--concurrency` thấp.
 - Quét virus tệp nhập chưa làm.
