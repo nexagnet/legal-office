@@ -48,14 +48,59 @@ const STATUS: Record<string, string> = {
   CANCELLED: 'Đã hủy',
 };
 
-/** Thông tin cấp hợp đồng của hồ sơ Tống đạt (Figma "Tạo hồ sơ Tống đạt"); lưu trong thuộc tính hồ sơ. Từng giấy tờ là một dòng Sổ S-01 ở thuộc tính tài liệu. */
-const TONG_DAT_CONTRACT: readonly DmsBookColumn[] = [
-  { no: 1, heading: 'Số hợp đồng (nhập theo bản thực tế)', key: 'so_hop_dong' },
-  { no: 2, heading: 'Ngày ký', key: 'ngay_ky' },
-  { no: 3, heading: 'Bên yêu cầu (Bên B)', key: 'ben_yeu_cau' },
-  { no: 4, heading: 'Tên cơ quan', key: 'ten_co_quan' },
-  { no: 5, heading: 'Người đại diện Bên B', key: 'nguoi_dai_dien' },
-];
+/** Thông tin cấp hợp đồng/quyết định từng nghiệp vụ (Figma "Tạo hồ sơ ..."); lưu trong thuộc tính hồ sơ, tách khỏi cột sổ. Tống đạt: từng giấy tờ là một dòng Sổ S-01 ở thuộc tính tài liệu. */
+const col = (no: number, heading: string, key: string): DmsBookColumn => ({ no, heading, key });
+const CONTRACT_CARDS: Readonly<
+  Record<string, readonly { title: string; cols: readonly DmsBookColumn[] }[]>
+> = {
+  tongdat: [
+    {
+      title: 'Hợp đồng dịch vụ tống đạt (N-01)',
+      cols: [
+        col(1, 'Số hợp đồng (nhập theo bản thực tế)', 'so_hop_dong'),
+        col(2, 'Ngày ký', 'ngay_ky'),
+        col(3, 'Bên yêu cầu (Bên B)', 'ben_yeu_cau'),
+        col(4, 'Tên cơ quan', 'ten_co_quan'),
+        col(5, 'Người đại diện Bên B', 'nguoi_dai_dien'),
+      ],
+    },
+  ],
+  xacminh: [
+    {
+      title: 'Hợp đồng dịch vụ xác minh điều kiện thi hành án (N-05)',
+      cols: [
+        col(1, 'Số hợp đồng (nhập theo bản thực tế)', 'so_hop_dong'),
+        col(2, 'Ngày ký', 'ngay_ky'),
+        col(3, 'Người yêu cầu (Bên B)', 'nguoi_yeu_cau_xm'),
+        col(4, 'Đối tượng xác minh', 'doi_tuong_xac_minh'),
+        col(5, 'Nội dung yêu cầu xác minh', 'noi_dung_yeu_cau_xm'),
+      ],
+    },
+    {
+      title: 'Quyết định xác minh (N-06): có thể bổ sung sau khi lưu hồ sơ',
+      cols: [
+        col(1, 'Số quyết định (nhập theo bản đã ký)', 'so_quyet_dinh'),
+        col(2, 'Ngày quyết định', 'ngay_quyet_dinh'),
+        col(3, 'Căn cứ bản án/quyết định', 'can_cu'),
+        col(4, 'Hình thức xác minh', 'hinh_thuc_xac_minh'),
+      ],
+    },
+  ],
+  tochuc: [
+    {
+      title: 'Hợp đồng dịch vụ thi hành án (N-07)',
+      cols: [
+        col(1, 'Số hợp đồng (nhập theo bản thực tế)', 'so_hop_dong'),
+        col(2, 'Ngày ký', 'ngay_ky'),
+        col(3, 'Bên yêu cầu (Bên B)', 'ben_yeu_cau'),
+        col(4, 'Bên phải thi hành', 'ben_phai_thi_hanh'),
+        col(5, 'Khoản cần thi hành', 'khoan_can_thi_hanh'),
+        col(6, 'Bản án/quyết định', 'ban_an_quyet_dinh'),
+        col(7, 'Thời hạn', 'thoi_han'),
+      ],
+    },
+  ],
+};
 
 const sizeLabel = (n: number | string) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
 
@@ -231,8 +276,8 @@ export default async function DmsCasePage({
           </p>
           <section aria-labelledby="sec-a" className="rounded-2xl bg-surface p-5 shadow-sm">
             <h2 id="sec-a">
-              {domain.code === 'tongdat'
-                ? 'Hợp đồng dịch vụ tống đạt (N-01)'
+              {CONTRACT_CARDS[domain.code]?.[0]
+                ? CONTRACT_CARDS[domain.code]![0]!.title
                 : `A. Thông tin ${domain.label}${book ? ` — phục vụ Sổ ${book.code}` : ''}`}
             </h2>
             {canDraft(permissions, domain.code) && !isVanThu(domain.code) ? (
@@ -252,15 +297,18 @@ export default async function DmsCasePage({
                 legend={`Nội dung vào sổ ${book.code}`}
               />
             ) : null}
-            {domain.code === 'tongdat' && canDraft(permissions, domain.code) ? (
-              <DmsAttributesForm
-                url={`/api/dms/cases/${c.id}/draft`}
-                columns={TONG_DAT_CONTRACT}
-                current={c.attributes}
-                fixed={{ title: c.title }}
-                legend="Hợp đồng dịch vụ tống đạt (N-01)"
-              />
-            ) : null}
+            {canDraft(permissions, domain.code)
+              ? (CONTRACT_CARDS[domain.code] ?? []).map((card) => (
+                  <DmsAttributesForm
+                    key={card.title}
+                    url={`/api/dms/cases/${c.id}/draft`}
+                    columns={card.cols}
+                    current={c.attributes}
+                    fixed={{ title: c.title }}
+                    legend={card.title}
+                  />
+                ))
+              : null}
             <p className="muted mt-2 text-xs">
               Trước khi lưu còn sửa được; sau khi xác nhận lưu chính thức, mọi thay đổi phải thông
               qua yêu cầu sửa đổi.
@@ -270,7 +318,9 @@ export default async function DmsCasePage({
             <h2 id="sec-b">
               {domain.code === 'tongdat'
                 ? 'Phụ lục: giấy tờ cần tống đạt (mỗi giấy tờ là một dòng Sổ S-01)'
-                : 'B. Tài liệu đính kèm'}
+                : domain.code === 'tochuc'
+                  ? 'Tài liệu kèm theo'
+                  : 'B. Tài liệu đính kèm'}
             </h2>
             {docs.length === 0 ? (
               <p className="muted">Chưa có tài liệu.</p>
