@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { KpiStrip } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/field';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
   BOOK_OF_DOMAIN,
@@ -26,7 +28,14 @@ import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
-const FILTERS: readonly DmsFilter[] = ['chinh-thuc', 'thieu-scan', 'du-scan', 'nhap', 'da-huy'];
+const FILTERS: readonly DmsFilter[] = [
+  'chinh-thuc',
+  'cho-duyet',
+  'thieu-scan',
+  'du-scan',
+  'nhap',
+  'da-huy',
+];
 
 const yearOfVn = (d: Date): number =>
   Number(
@@ -112,18 +121,26 @@ export default async function DmsDomainPage({
     (r) => r.recorded_at !== null && yearOfVn(new Date(r.recorded_at)) === year,
   );
   const officialIds = new Set(officialYear.map((r) => r.id));
-  const pending =
+  const pendingIds = new Set(
     pendingAmendments === 'error'
-      ? 0
-      : new Set(pendingAmendments.filter((a) => officialIds.has(a.case_id)).map((a) => a.case_id))
-          .size;
-  const rows = filterDmsCases(drafts ?? officialYear, filter, q, (id) => {
-    const row = byCase.get(id);
-    return row && spec ? spec.columns.map((c) => bookCell(spec, c, row)) : [];
-  });
+      ? []
+      : pendingAmendments.filter((a) => officialIds.has(a.case_id)).map((a) => a.case_id),
+  );
+  const pending = pendingIds.size;
+  const rows = filterDmsCases(
+    drafts ?? officialYear,
+    filter,
+    q,
+    (id) => {
+      const row = byCase.get(id);
+      return row && spec ? spec.columns.map((c) => bookCell(spec, c, row)) : [];
+    },
+    pendingIds,
+  );
   const missingScan = officialYear.filter((r) => r.document_count > 0 && r.scan_count === 0);
   const counts: Record<DmsFilter, number | undefined> = {
     'chinh-thuc': officialYear.length,
+    'cho-duyet': pending,
     'thieu-scan': missingScan.length,
     'du-scan': officialYear.filter((r) => r.document_count > 0 && r.scan_count > 0).length,
     nhap: undefined,
@@ -205,11 +222,16 @@ export default async function DmsDomainPage({
           </span>
         }
       />
-      <form method="get" action={base} className="filters" role="search">
+      <form
+        method="get"
+        action={base}
+        role="search"
+        className="mb-4 flex flex-wrap items-center gap-3"
+      >
         {filter !== 'chinh-thuc' ? <input type="hidden" name="loc" value={filter} /> : null}
-        <label className="filter-search">
+        <label className="min-w-72 flex-1">
           <span className="sr-only">Tìm hồ sơ</span>
-          <input
+          <Input
             type="search"
             name="q"
             defaultValue={q}
@@ -217,13 +239,13 @@ export default async function DmsDomainPage({
             placeholder="Tìm số văn bản, tên người, trích yếu, nội dung…"
           />
         </label>
-        <label>
+        <label className="w-28">
           <span className="sr-only">Năm</span>
-          <input name="year" type="number" min={2000} max={2100} defaultValue={year} />
+          <Input name="year" type="number" min={2000} max={2100} defaultValue={year} />
         </label>
-        <button type="submit" className="primary">
+        <Button type="submit" variant="secondary">
           Tìm
-        </button>
+        </Button>
       </form>
       <DmsCaseTable
         rows={rows}
