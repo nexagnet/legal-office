@@ -128,6 +128,14 @@ export function canDraft(permissions: readonly string[], domainCode: string): bo
   );
 }
 
+/** Có quyền đề nghị sửa đổi hồ sơ đã lưu ở miền này (own hoặc all). */
+export function canRequestAmendment(permissions: readonly string[], domainCode: string): boolean {
+  return (
+    permissions.includes(`${domainCode}.amend_request.own`) ||
+    permissions.includes(`${domainCode}.amend_request.all`)
+  );
+}
+
 async function getJson<T>(path: string, cookie: string | null): Promise<T | 'error'> {
   try {
     const res = await fetch(`${API_URL}${path}`, {
