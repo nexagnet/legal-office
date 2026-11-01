@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultScopeLabel, type DmsGroup } from '../lib/permission-model';
+import { defaultScopeLabel, scopeSummary, type DmsGroup } from '../lib/permission-model';
 
 const group = (permissions: string[]) => ({ permissions }) as unknown as DmsGroup;
 
@@ -17,5 +17,15 @@ describe('defaultScopeLabel', () => {
   it('còn lại → theo địa điểm', () => {
     expect(defaultScopeLabel(group(['vibang.read.all']))).toBe('Theo địa điểm');
     expect(defaultScopeLabel(group([]))).toBe('Theo địa điểm');
+  });
+});
+
+describe('scopeSummary', () => {
+  it('một phạm vi thì ghi thẳng, nhiều phạm vi thì kèm số hành động', () => {
+    expect(scopeSummary([{ scope: 'own' }, { scope: 'own' }])).toBe('Hồ sơ do tôi tạo');
+    expect(scopeSummary([{ scope: 'all' }])).toBe('Mọi hồ sơ của văn phòng');
+    expect(scopeSummary([{ scope: 'all' }, { scope: 'own' }, { scope: 'own' }])).toBe(
+      'Mọi hồ sơ của văn phòng (1 hành động) · Hồ sơ do tôi tạo (2 hành động)',
+    );
   });
 });

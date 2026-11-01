@@ -505,6 +505,30 @@ const dateTime = new Intl.DateTimeFormat('vi-VN', {
 
 export const formatWhen = (iso: string): string => dateTime.format(new Date(iso));
 
+/** Giới hạn bắt buộc theo nghiệp vụ (Figma P2): luật cứng, không nhóm quyền hay quyền riêng nào mở được. */
+const RECORD_LIMIT =
+  'Bản nháp sửa tự do đến khi xác nhận lưu chính thức. Sau đó không xóa, không sửa trực tiếp; chỉ sửa qua đề nghị kèm bản quét căn cứ.';
+const BOOK_LIMIT =
+  'Số đến và STT do hệ thống tự đánh; không tự cấp số hoặc ký hiệu văn bản pháp lý.';
+export const DOMAIN_LIMIT: Readonly<Record<string, string>> = {
+  vibang: RECORD_LIMIT,
+  tongdat: RECORD_LIMIT,
+  xacminh: RECORD_LIMIT,
+  tochuc: RECORD_LIMIT,
+  vtden: BOOK_LIMIT,
+  vtdi: BOOK_LIMIT,
+  vtnb: BOOK_LIMIT,
+};
+
+/** Cột "Phạm vi" của bảng quyền hiệu lực: một phạm vi thì ghi thẳng; nhiều phạm vi thì kèm số hành động. */
+export function scopeSummary(actions: readonly { readonly scope: 'own' | 'all' }[]): string {
+  const all = actions.filter((a) => a.scope === 'all').length;
+  const own = actions.length - all;
+  if (all > 0 && own > 0)
+    return `${SCOPE_LABEL.all} (${all} hành động) · ${SCOPE_LABEL.own} (${own} hành động)`;
+  return SCOPE_LABEL[all > 0 ? 'all' : 'own'] ?? '';
+}
+
 export interface EffectiveRow {
   readonly domain: string;
   readonly title: string;
