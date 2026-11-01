@@ -125,7 +125,7 @@ export function DmsCaseTable({
                       >
                         Xem
                       </Link>
-                      <Link href={`${basePath}/${r.id}?tab=tep`}>Tải</Link>
+                      <Link href={`${basePath}/${r.id}?tab=scan`}>Tải</Link>
                     </span>
                   </td>
                 ) : null}

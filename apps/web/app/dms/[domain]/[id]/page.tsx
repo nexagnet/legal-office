@@ -51,7 +51,8 @@ const sizeLabel = (n: number | string) => `${Math.max(1, Math.round(Number(n) / 
 const TABS = [
   { key: 'chung', label: 'Thông tin chung' },
   { key: 'tai-lieu', label: 'Tài liệu' },
-  { key: 'tep', label: 'Tệp đính kèm' },
+  { key: 'scan', label: 'Scan' },
+  { key: 'phien-ban', label: 'Phiên bản' },
   { key: 'sua-doi', label: 'Yêu cầu sửa đổi' },
   { key: 'so', label: 'Sổ liên quan' },
 ] as const;
@@ -119,6 +120,8 @@ export default async function DmsCasePage({
     amendments === 'error' ? 0 : amendments.filter((a) => a.status === 'PENDING').length;
   const fileCount = filesByDoc.reduce((n, f) => n + f.length, 0);
   const allFiles = filesByDoc.flat();
+  const scanFileCount = allFiles.filter((f) => f.is_scan).length;
+  const docsWithoutScan = docs.filter((_, i) => !filesByDoc[i]!.some((f) => f.is_scan)).length;
   const preview =
     allFiles.find((f) => f.id === sp.file) ?? allFiles.find((f) => f.is_scan) ?? allFiles[0];
 
@@ -175,6 +178,14 @@ export default async function DmsCasePage({
           </p>
         </div>
       ) : null}
+      {docs.length > 0 ? (
+        <p className="rounded-xl bg-accent-soft px-4 py-2 text-sm font-medium text-accent">
+          {docs.length} tài liệu · {scanFileCount} tệp scan
+          {docsWithoutScan > 0
+            ? ` · ${docsWithoutScan} tài liệu chưa có bản scan`
+            : ' · mọi tài liệu đã có bản scan'}
+        </p>
+      ) : null}
       <TabNav
         label={`Chi tiết hồ sơ ${c.title}`}
         active={tab}
@@ -185,11 +196,13 @@ export default async function DmsCasePage({
           count:
             t.key === 'tai-lieu'
               ? docs.length
-              : t.key === 'tep'
-                ? fileCount
-                : t.key === 'sua-doi' && amendments !== 'error'
-                  ? amendments.length
-                  : undefined,
+              : t.key === 'scan'
+                ? scanFileCount
+                : t.key === 'phien-ban'
+                  ? fileCount
+                  : t.key === 'sua-doi' && amendments !== 'error'
+                    ? amendments.length
+                    : undefined,
         }))}
       />
 
@@ -274,10 +287,27 @@ export default async function DmsCasePage({
                   ) : (
                     <ul>
                       {filesByDoc[i]!.map((f) => (
-                        <li key={f.id}>
-                          {f.label} · {f.is_scan ? 'bản scan' : 'tệp'} · v{f.version} ·{' '}
-                          {sizeLabel(f.size_bytes)} ·{' '}
-                          <Link href={`${base}?tab=tai-lieu&file=${f.id}`}>Xem</Link> ·{' '}
+                        <li key={f.id} className="mb-1 flex flex-wrap items-center gap-2">
+                          <span className="min-w-0 flex-1">
+                            {f.label} · v{f.version} · {sizeLabel(f.size_bytes)}
+                          </span>
+                          <span
+                            className={
+                              f.is_scan
+                                ? 'rounded-full bg-[#d9f1e2] px-2.5 py-0.5 text-xs font-semibold text-[#1b6b3a]'
+                                : 'rounded-full bg-[#eef1f6] px-2.5 py-0.5 text-xs font-semibold text-muted'
+                            }
+                          >
+                            {f.is_scan ? 'Bản scan' : 'Bổ sung'}
+                          </span>
+                          <Button asChild variant="secondary">
+                            <Link
+                              className="no-underline"
+                              href={`${base}?tab=tai-lieu&file=${f.id}`}
+                            >
+                              Xem
+                            </Link>
+                          </Button>
                           <a href={`/api/dms/files/${f.id}/download`} download>
                             Tải
                           </a>
@@ -343,20 +373,23 @@ export default async function DmsCasePage({
         </div>
       ) : null}
 
-      {tab === 'tep' ? (
+      {tab === 'scan' || tab === 'phien-ban' ? (
         <>
           <p className="muted">
-            Tệp đính kèm = số tệp của mọi tài liệu ({fileCount}); tệp scan là bản ảnh/PDF của giấy
-            tờ gốc.
+            {tab === 'scan'
+              ? `Bản scan = ảnh/PDF của giấy tờ gốc (${scanFileCount} tệp).`
+              : `Mọi phiên bản tệp của hồ sơ (${fileCount}); bản cũ được giữ, không ghi đè.`}
           </p>
-          {fileCount === 0 ? (
+          {(tab === 'scan' ? scanFileCount : fileCount) === 0 ? (
             <div className="state" role="status">
               <h3>Chưa có tệp</h3>
             </div>
           ) : (
             <div className="table-wrap">
               <table>
-                <caption className="sr-only">Tệp đính kèm của hồ sơ</caption>
+                <caption className="sr-only">
+                  {tab === 'scan' ? 'Bản scan của hồ sơ' : 'Phiên bản tệp của hồ sơ'}
+                </caption>
                 <thead>
                   <tr>
                     <th scope="col">Tệp</th>
@@ -369,7 +402,7 @@ export default async function DmsCasePage({
                 </thead>
                 <tbody>
                   {docs.flatMap((d, i) =>
-                    filesByDoc[i]!.map((f) => (
+                    filesByDoc[i]!.filter((f) => tab === 'phien-ban' || f.is_scan).map((f) => (
                       <tr key={f.id}>
                         <th scope="row">{f.label}</th>
                         <td>{d.title}</td>
