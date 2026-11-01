@@ -80,7 +80,7 @@ describe('nhãn quyền', () => {
 
   it('danh mục gán được gồm 7 nghiệp vụ × 5 hành động × 2 phạm vi + quyền quản trị', () => {
     const all = allPermissionCodes();
-    expect(all).toHaveLength(7 * 6 * 2 + 6);
+    expect(all).toHaveLength(7 * 6 * 2 + 7);
     expect(new Set(all).size).toBe(all.length);
   });
 
