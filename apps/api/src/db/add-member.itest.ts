@@ -195,6 +195,44 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
     expect(none.rowCount).toBe(0);
   });
 
+  it('sets fine-grained permissions and branches while creating, and edits them afterwards (Admin only, immediate, audited)', async () => {
+    const r = await add(U.admin, {
+      email: 'chitiet@example.test',
+      groupIds: [G.clerk],
+      permissions: ['vtden.read.own', 'vtden.download.all'],
+      branchIds: [BR],
+    });
+    expect(r.status).toBe(200);
+    const uid = r.json.label as string;
+    const eff = await api('GET', `/dms/me/permissions?officeId=${OFF}`, uid);
+    expect((eff.json.permissions as string[]).sort()).toEqual([
+      'vtden.download.all',
+      'vtden.read.own',
+    ]);
+    const br = await api('GET', `/dms/me/branches?officeId=${OFF}`, uid);
+    expect((br.json.rows as { id: string }[]).map((x) => x.id)).toEqual([BR]);
+    // Mã quyền quản trị không cấp riêng được; chi nhánh lạ bị từ chối và không tạo người.
+    expect(
+      (await add(U.admin, { email: 'cx1@example.test', permissions: ['dms.permission.approve'] }))
+        .status,
+    ).toBe(422);
+    expect((await add(U.admin, { email: 'cx2@example.test', branchIds: [id()] })).status).toBe(404);
+    expect(
+      (await owner.query(`SELECT 1 FROM auth_credentials WHERE email ~ '^cx[12]@'`)).rowCount,
+    ).toBe(0);
+    // Sửa sau: chỉ Admin; người không phải Admin bị từ chối.
+    const body = { officeId: OFF, userId: uid, permissions: ['vtden.read.own'], reason: 'thu bớt' };
+    expect((await api('POST', '/dms/user-overrides', U.clerk, body)).status).toBe(403);
+    expect((await api('POST', '/dms/user-overrides', U.admin, body)).status).toBe(200);
+    const after = await api('GET', `/dms/me/permissions?officeId=${OFF}`, uid);
+    expect(after.json.permissions).toEqual(['vtden.read.own']);
+    const list = await api('GET', `/dms/user-overrides?officeId=${OFF}&userId=${uid}`, U.admin);
+    expect(
+      (list.json.rows as { effect: string; ended_at: string | null }[]).filter((x) => !x.ended_at),
+    ).toHaveLength(0);
+    expect((list.json.rows as unknown[]).length).toBeGreaterThanOrEqual(1);
+  });
+
   it('without a temporary password the stored hash matches no guessable password', async () => {
     const r = await add(U.admin, { email: 'link@example.test' });
     expect(r.status).toBe(200);

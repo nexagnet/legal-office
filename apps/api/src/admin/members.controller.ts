@@ -28,6 +28,13 @@ const memberBody = z
     fullName: z.string().trim().min(1).max(200),
     /** Nhóm quyền xếp vào ngay (có thể rỗng: tài khoản chưa có quyền). Không có "vai": quyền chỉ đến từ nhóm quyền. */
     groupIds: z.array(uuid).max(50).default([]),
+    /**
+     * Quyền chi tiết MONG MUỐN (sau khi tick/bỏ tick trên cây quyền). Thiếu = chỉ theo nhóm. Máy chủ tự suy ra cấp riêng / thu riêng
+     * so với nền của các nhóm và kiểm lại từng mã quyền.
+     */
+    permissions: z.array(z.string().trim().min(1).max(80)).max(200).optional(),
+    /** Chi nhánh được xem, cấp ngay lúc tạo (cùng giao dịch). */
+    branchIds: z.array(uuid).max(100).optional(),
     temporaryPassword: z.string().max(200).nullish(),
     reason: z.string().trim().min(1).max(1000),
   })
@@ -83,6 +90,8 @@ export class MembersController {
       b.groupIds,
       hash,
       b.reason,
+      b.permissions ?? null,
+      b.branchIds ?? null,
     ]);
   }
 
