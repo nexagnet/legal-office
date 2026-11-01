@@ -30,8 +30,13 @@ export type PrepareResult =
 
 export interface ClientOptions {
   readonly baseUrl: string;
-  /** Ví dụ { cookie: 'session=...' }. Không ghi ra nhật ký. */
+  /** Ví dụ { cookie: 'lo_session=...' }. Không ghi ra nhật ký. */
   readonly headers: Readonly<Record<string, string>>;
+  /**
+   * Gọi khi API trả 401 (phiên hết hạn). Trả cookie mới để thử lại, hoặc null để dừng.
+   * Nhiều yêu cầu cùng gặp 401 chỉ hỏi MỘT lần.
+   */
+  readonly onUnauthorized?: () => Promise<string | null>;
   readonly fetchImpl?: typeof fetch;
   readonly maxRetries?: number;
   readonly sleep?: (ms: number) => Promise<void>;
@@ -39,12 +44,27 @@ export interface ClientOptions {
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+export const SESSION_COOKIE_NAME = 'lo_session';
+
+/** Chấp nhận dán cả "lo_session=abc", "Cookie: lo_session=abc" hoặc chỉ giá trị "abc". */
+export function normalizeCookie(input: string): string {
+  const v = input
+    .trim()
+    .replace(/^cookie:\s*/i, '')
+    .replace(/^["']|["']$/g, '')
+    .trim();
+  return v.includes('=') ? v : `${SESSION_COOKIE_NAME}=${v}`;
+}
+
 /** Lỗi mạng và 5xx/429 thì thử lại với thời gian chờ tăng dần; 4xx là lỗi thật, báo ngay. */
 export class ImportApi {
   private readonly f: typeof fetch;
   private readonly retries: number;
   private readonly sleep: (ms: number) => Promise<void>;
+  private headers: Record<string, string>;
+  private refreshing: Promise<boolean> | null = null;
   constructor(private readonly opts: ClientOptions) {
+    this.headers = { ...opts.headers };
     this.f = opts.fetchImpl ?? fetch;
     this.retries = opts.maxRetries ?? 5;
     this.sleep = opts.sleep ?? wait;
@@ -62,12 +82,38 @@ export class ImportApi {
     }
   }
 
+  private refreshAuth(): Promise<boolean> {
+    const ask = this.opts.onUnauthorized;
+    if (!ask) return Promise.resolve(false);
+    this.refreshing ??= (async () => {
+      const cookie = await ask();
+      if (!cookie?.trim()) return false;
+      this.headers = { ...this.headers, cookie: normalizeCookie(cookie) };
+      return true;
+    })().finally(() => {
+      this.refreshing = null;
+    });
+    return this.refreshing;
+  }
+
   private async json<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
+    for (let auth = 0; ; auth++) {
+      try {
+        return await this.jsonOnce<T>(method, path, body);
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 401 && auth < 3 && (await this.refreshAuth()))
+          continue;
+        throw e;
+      }
+    }
+  }
+
+  private async jsonOnce<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
     return this.withRetry(async () => {
       const res = await this.f(`${this.opts.baseUrl}${path}`, {
         method,
         headers: {
-          ...this.opts.headers,
+          ...this.headers,
           ...(body === undefined ? {} : { 'content-type': 'application/json' }),
         },
         body: body === undefined ? undefined : JSON.stringify(body),
