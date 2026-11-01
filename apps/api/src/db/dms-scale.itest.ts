@@ -670,6 +670,64 @@ describe.skipIf(!ADMIN_URL)('DMS tìm kiếm và lọc quy mô lớn (PostgreSQL
     ).toBe(true);
   });
 
+  it('tìm và hiển thị theo giá trị HIỆN HÀNH sau sửa đổi đã duyệt; dòng sổ của một trang hồ sơ', async () => {
+    const cid = id();
+    const did = id();
+    await owner.query(
+      `INSERT INTO dms_case_files (id, tenant_id, office_id, domain, title, status, created_by, branch_id, recorded_at, recorded_by, attributes)
+       VALUES ($1,$2,$3,'vibang','Vi bằng Cũ Kỹ','RECORDED',$4,$5,now(),$4,'{"ben":"Ông Trần Gốc"}')`,
+      [cid, T, OFF, U.admin, B1],
+    );
+    await owner.query(
+      `INSERT INTO dms_documents (id, tenant_id, case_id, kind, title, status, created_by) VALUES ($1,$2,$3,'Biên bản','BB gốc','RECORDED',$4)`,
+      [did, T, cid, U.admin],
+    );
+    const am = await owner.query(
+      `INSERT INTO dms_amendment_requests (tenant_id, office_id, case_id, kind, proposed, reason, evidence_object_key, evidence_sha256,
+                                           evidence_mime, evidence_size_bytes, status, requested_by, reviewed_by, reviewed_at)
+       VALUES ($1,$2,$3,'CASE_FIELDS','{}','test','ev/rev',$4,'application/pdf',10,'APPROVED',$5,$6,now()) RETURNING id`,
+      [T, OFF, cid, 'd'.repeat(64), U.admin, U.clerk],
+    );
+    const ids = async (q: string) =>
+      (await search(U.admin, { q })).map((x: { id: string }) => x.id);
+    expect(await ids('tran goc')).toContain(cid);
+    await owner.query(
+      `INSERT INTO dms_case_revisions (tenant_id, case_id, rev, title, attributes, amendment_id, created_by)
+       VALUES ($1,$2,1,'Vi bằng Mới Tinh','{"ben":"Bà Lê Đổi"}',$3,$4)`,
+      [T, cid, am.rows[0].id, U.admin],
+    );
+    expect(await ids('tran goc')).not.toContain(cid);
+    expect(await ids('le doi')).toContain(cid);
+    const shown = (await search(U.admin, { q: 'moi tinh' })).find(
+      (x: { id: string }) => x.id === cid,
+    );
+    expect(shown.title).toBe('Vi bằng Mới Tinh');
+    expect(shown.attributes.ben).toBe('Bà Lê Đổi');
+    // khớp danh sách cũ
+    const old = (
+      await call('SELECT * FROM dms_list_cases($1,$2,$3,$4,$5,200,0)', [
+        T,
+        U.admin,
+        OFF,
+        'vibang',
+        'RECORDED',
+      ])
+    ).find((x: { id: string }) => x.id === cid);
+    expect(old.title).toBe(shown.title);
+
+    await owner.query(
+      `INSERT INTO dms_book_entries (tenant_id, office_id, book, year, stt, case_id, document_id, allocated_by) VALUES ($1,$2,'S-02',2026,9001,$3,NULL,$4)`,
+      [T, OFF, cid, U.admin],
+    );
+    const rowsFor = (u: string) =>
+      call('SELECT * FROM dms_book_rows_for_cases($1,$2,$3,$4,$5)', [T, u, OFF, 'S-02', [cid]]);
+    const br = await rowsFor(U.admin);
+    expect(br).toHaveLength(1);
+    expect(br[0].stt).toBe(9001);
+    expect(br[0].case_title).toBe('Vi bằng Mới Tinh');
+    expect(await rowsFor(U.none)).toHaveLength(0); // cùng luật hiển thị: không quyền thì không thấy
+  });
+
   it('danh sách miền cố định khớp ràng buộc CHECK của dms_case_files', async () => {
     const def = (
       await owner.query(

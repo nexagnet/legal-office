@@ -15,6 +15,7 @@ import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { VibangRepo } from '../vibang/vibang.repo';
+import { bookOf, type BookRowRaw } from './books';
 import { domain, parse, respond, uuid } from './dms-http';
 
 /** Bộ lọc chung của danh sách hồ sơ và facet. Mọi trường đều tuỳ chọn; quyền xem do DB quyết định, không do tham số. */
@@ -136,6 +137,35 @@ export class DmsBrowseController {
       g.sort((x, y) => y.n - x.n || x.label.localeCompare(y.label, 'vi'));
     groups.year?.sort((x, y) => Number(y.value) - Number(x.value));
     return groups;
+  }
+
+  /** Dòng sổ (STT + ô) của các hồ sơ đang hiện trên một trang danh sách; không tải cả sổ cả năm. */
+  @Get('book-rows-for-cases')
+  async bookRowsForCases(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(
+      z
+        .object({
+          officeId: uuid,
+          book: z.string().max(10),
+          cases: z
+            .string()
+            .max(8000)
+            .transform((v) => v.split(',').filter(Boolean))
+            .pipe(z.array(uuid).min(1).max(200)),
+        })
+        .strict(),
+      query,
+    );
+    const spec = bookOf(q.book);
+    if (!spec) return { book: null, rows: [] };
+    const rows = await this.repo.rows<BookRowRaw>(a.tenantId, 'dms_book_rows_for_cases', [
+      a.tenantId,
+      a.userId,
+      q.officeId,
+      spec.code,
+      q.cases,
+    ]);
+    return { book: spec, rows };
   }
 
   @Get('saved-filters')

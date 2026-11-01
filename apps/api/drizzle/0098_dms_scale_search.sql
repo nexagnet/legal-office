@@ -78,10 +78,12 @@ CREATE POLICY tenant_isolation ON dms_index_state
 
 -- Dựng lại dòng chỉ mục của một hồ sơ từ dữ liệu gốc.
 CREATE FUNCTION dms_case_index_refresh(p_tenant uuid, p_case uuid) RETURNS void LANGUAGE plpgsql AS $$
-DECLARE c dms_case_files;
+DECLARE c dms_case_files; ce record;
 BEGIN
   SELECT * INTO c FROM dms_case_files WHERE id = p_case AND tenant_id = p_tenant;
   IF NOT FOUND THEN RETURN; END IF;
+  -- Tìm theo giá trị HIỆN HÀNH (sau sửa đổi đã duyệt), đúng như danh sách và sổ hiển thị.
+  SELECT * INTO ce FROM dms_case_effective(p_tenant, p_case);
   INSERT INTO dms_case_index AS i (case_id, tenant_id, office_id, domain, status, branch_id, created_by, created_at, recorded_at, sort_at,
                                    rec_year, doc_count, scan_count, doc_kinds, pending_count, search_text)
   SELECT c.id, c.tenant_id, c.office_id, c.domain, c.status, c.branch_id, c.created_by, c.created_at, c.recorded_at,
@@ -93,9 +95,9 @@ BEGIN
          coalesce((SELECT array_agg(DISTINCT d.kind ORDER BY d.kind) FROM dms_documents d
                     WHERE d.tenant_id = c.tenant_id AND d.case_id = c.id AND d.status <> 'CANCELLED'), '{}'::text[]),
          (SELECT count(*)::integer FROM dms_amendment_requests a WHERE a.tenant_id = c.tenant_id AND a.case_id = c.id AND a.status = 'PENDING'),
-         dms_fold(left(concat_ws(' ', c.title,
-                  (SELECT string_agg(e.value, ' ') FROM jsonb_each_text(c.attributes) e),
-                  (SELECT string_agg(d.title || ' ' || coalesce((SELECT string_agg(e.value, ' ') FROM jsonb_each_text(d.attributes) e), ''), ' ')
+         dms_fold(left(concat_ws(' ', ce.title,
+                  (SELECT string_agg(e.value, ' ') FROM jsonb_each_text(ce.attributes) e),
+                  (SELECT string_agg(d.title || ' ' || coalesce((SELECT string_agg(e.value, ' ') FROM jsonb_each_text(dms_doc_effective_attrs(d.tenant_id, d.id)) e), ''), ' ')
                      FROM (SELECT * FROM dms_documents x WHERE x.tenant_id = c.tenant_id AND x.case_id = c.id AND x.status <> 'CANCELLED'
                             ORDER BY x.created_at, x.id LIMIT 50) d)), 6000))
   ON CONFLICT (case_id) DO UPDATE SET
@@ -125,6 +127,16 @@ CREATE TRIGGER dms_ci_file_trg AFTER INSERT ON dms_document_files FOR EACH ROW E
 CREATE FUNCTION dms_ci_trg_amend() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN PERFORM dms_case_index_refresh(NEW.tenant_id, NEW.case_id); RETURN NULL; END $$;
 CREATE TRIGGER dms_ci_amend_trg AFTER INSERT OR UPDATE OF status ON dms_amendment_requests FOR EACH ROW EXECUTE FUNCTION dms_ci_trg_amend();
+-- Bản sửa đổi đã duyệt đổi giá trị hiện hành: dựng lại chỉ mục của hồ sơ đó.
+CREATE TRIGGER dms_ci_caserev_trg AFTER INSERT ON dms_case_revisions FOR EACH ROW EXECUTE FUNCTION dms_ci_trg_amend();
+CREATE FUNCTION dms_ci_trg_docrev() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE cid uuid;
+BEGIN
+  SELECT d.case_id INTO cid FROM dms_documents d WHERE d.id = NEW.document_id AND d.tenant_id = NEW.tenant_id;
+  IF cid IS NOT NULL THEN PERFORM dms_case_index_refresh(NEW.tenant_id, cid); END IF;
+  RETURN NULL;
+END $$;
+CREATE TRIGGER dms_ci_docrev_trg AFTER INSERT ON dms_document_revisions FOR EACH ROW EXECUTE FUNCTION dms_ci_trg_docrev();
 
 -- ===== OCR: bảng phụ phục vụ tìm kiếm =====
 -- Mỗi phiên bản tệp đã nhận dạng xong (DONE) có một dòng: tsvector lưu sẵn (không phải tính lại to_tsvector khi xếp hạng), hồ sơ và tệp
@@ -286,11 +298,11 @@ BEGIN
     EXECUTE format('SELECT count(*) FROM (SELECT 1 FROM dms_case_index ci WHERE %s LIMIT 10001) x', w) INTO total;
   END IF;
   RETURN QUERY EXECUTE format($q$
-    SELECT p.case_id, p.domain, c.title, p.status, p.created_by,
+    SELECT p.case_id, p.domain, ce.title, p.status, p.created_by,
            coalesce(u.full_name, nullif(split_part(u.external_ref, '@', 1), '')), p.created_at, p.recorded_at, p.branch_id, b.name,
-           p.doc_count, p.scan_count, p.doc_kinds, p.pending_count, c.attributes, dms_ci_cursor(p.sort_at, p.case_id), %L::bigint
+           p.doc_count, p.scan_count, p.doc_kinds, p.pending_count, ce.attributes, dms_ci_cursor(p.sort_at, p.case_id), %L::bigint
       FROM (SELECT ci.* FROM dms_case_index ci WHERE %s%s ORDER BY ci.sort_at %s, ci.case_id %s LIMIT %s OFFSET %s) p
-      JOIN dms_case_files c ON c.id = p.case_id AND c.tenant_id = p.tenant_id
+      CROSS JOIN LATERAL dms_case_effective(p.tenant_id, p.case_id) ce
       LEFT JOIN users u ON u.id = p.created_by AND u.tenant_id = p.tenant_id
       LEFT JOIN branches b ON b.id = p.branch_id AND b.tenant_id = p.tenant_id
      ORDER BY p.sort_at %s, p.case_id %s$q$,
@@ -396,6 +408,24 @@ BEGIN
     mode_ = 'ranked', CASE WHEN mode_ = 'ranked' THEN format('ts_rank(r.tsv, %L::tsquery)', qs) ELSE '0::real' END, base, ord, lim, off, outer_q,
     CASE WHEN mode_ = 'ranked' THEN 'm.rank DESC, m.sort_at DESC, m.version_id' ELSE 'm.sort_at DESC, m.version_id' END);
 END $$;
+
+-- ===== Dòng sổ của MỘT TRANG hồ sơ =====
+-- Trang danh sách chỉ cần dòng sổ (STT + các ô) của vài chục hồ sơ đang hiện, không phải cả sổ cả năm. Cùng luật hiển thị và giá
+-- trị hiện hành như dms_book_rows; không ghi nhật ký xuất sổ vì đây là xem danh sách, không phải xuất.
+CREATE FUNCTION dms_book_rows_for_cases(p_tenant uuid, p_actor uuid, p_office uuid, p_book text, p_cases uuid[])
+RETURNS TABLE (stt integer, case_id uuid, document_id uuid, case_title text, case_attributes jsonb,
+               doc_kind text, doc_title text, doc_attributes jsonb, recorded_at timestamptz)
+LANGUAGE sql STABLE AS $$
+  SELECT e.stt, e.case_id, e.document_id, (dms_case_effective(c.tenant_id, c.id)).title, (dms_case_effective(c.tenant_id, c.id)).attributes,
+         d.kind, d.title, dms_doc_effective_attrs(d.tenant_id, d.id), c.recorded_at
+  FROM dms_book_entries e
+  JOIN dms_case_files c ON c.id = e.case_id AND c.tenant_id = e.tenant_id
+  LEFT JOIN dms_documents d ON d.id = e.document_id AND d.tenant_id = e.tenant_id
+  WHERE e.tenant_id = p_tenant AND e.office_id = p_office AND e.book = p_book
+    AND e.case_id = ANY (p_cases[1:200])
+    AND dms_case_visible(p_tenant, p_actor, c.office_id, c.domain, c.status, c.created_by, c.branch_id)
+  ORDER BY e.stt, d.created_at
+$$;
 
 -- ===== Bộ lọc đã lưu (của riêng từng người dùng; là tuỳ chọn giao diện, không phải hồ sơ nghiệp vụ) =====
 CREATE TABLE dms_saved_filters (
