@@ -44,3 +44,33 @@ export function movementQuery(sp: {
 export function signedQty(n: number): string {
   return n > 0 ? `+${n}` : String(n);
 }
+
+export interface StockSummaryRow {
+  readonly opening: number;
+  readonly received: number;
+  readonly issued: number;
+  readonly adjusted: number;
+  readonly last: StockMovement | null;
+}
+
+/**
+ * Cột Figma "Văn phòng phẩm": tồn đầu kỳ, nhập, xuất, giao dịch gần nhất, tính từ lịch sử biến động trong kỳ.
+ * Tồn đầu kỳ = tồn hiện tại − nhập + xuất − điều chỉnh (điều chỉnh có dấu), nên luôn khớp tồn hiện tại.
+ */
+export function summarizeStock(
+  onHand: number | null,
+  movements: readonly StockMovement[],
+): StockSummaryRow {
+  let received = 0;
+  let issued = 0;
+  let adjusted = 0;
+  let last: StockMovement | null = null;
+  for (const m of movements) {
+    if (m.kind === 'RECEIPT') received += m.delta;
+    else if (m.kind === 'ISSUE') issued += -m.delta;
+    else adjusted += m.delta;
+    if (!last || new Date(m.at) > new Date(last.at)) last = m;
+  }
+  const current = onHand ?? 0;
+  return { opening: current - received + issued - adjusted, received, issued, adjusted, last };
+}

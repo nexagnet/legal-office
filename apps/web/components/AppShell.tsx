@@ -94,6 +94,10 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Lịch làm việc',
     sub: 'Ngày làm việc trong tuần và ngày nghỉ. Dùng để tính hạn pháp định và nhắc việc.',
   },
+  '/vat-tu': {
+    title: 'Văn phòng phẩm',
+    sub: 'Danh mục, nhập, xuất, tồn kho và lịch sử điều chỉnh vật tư.',
+  },
   '/cai-dat': {
     title: 'Cấu hình văn phòng',
     sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',
