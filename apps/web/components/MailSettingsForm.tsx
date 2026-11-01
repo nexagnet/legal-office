@@ -198,8 +198,8 @@ export function MailSettingsForm({
             placeholder="Văn phòng <no-reply@example.com>"
           />
         </Field>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <label className="flex items-start gap-3 text-sm">
+        <div className="grid gap-5">
+          <label className="toggle-row text-sm">
             <input
               type="checkbox"
               role="switch"
@@ -207,8 +207,8 @@ export function MailSettingsForm({
               checked={loginLink}
               disabled={busy}
               onChange={(e) => toggleLoginLink(e.currentTarget.checked)}
-              className="mt-1"
             />
+            <span className="toggle" aria-hidden="true" />
             <span className="grid gap-0.5">
               <strong>Cho phép đăng nhập bằng link email</strong>
               <span className="text-xs text-muted">
@@ -217,7 +217,7 @@ export function MailSettingsForm({
               </span>
             </span>
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2.5">
             <Button
               type="button"
               variant="secondary"

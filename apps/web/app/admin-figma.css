@@ -682,3 +682,27 @@
   text-align: left;
   position: static;
 }
+
+/* Tiêu đề thẻ (Figma Q8/Q9): serif 17px. */
+.admin-main h2.font-serif,
+.admin-main h3.font-serif {
+  font: 700 17px/24px var(--font-serif);
+  color: var(--fg-ink);
+}
+.admin-main .toggle-row strong {
+  font: 600 13px/18px var(--font);
+}
+.admin-main .toggle-row .toggle {
+  width: 38px;
+  height: 22px;
+}
+.admin-main .toggle-row .toggle::after {
+  width: 16px;
+  height: 16px;
+}
+.admin-main .toggle-row input:checked + .toggle::after {
+  transform: translateX(16px);
+}
+.admin-main .toggle-row input:checked + .toggle {
+  background: #1a8f4c;
+}
