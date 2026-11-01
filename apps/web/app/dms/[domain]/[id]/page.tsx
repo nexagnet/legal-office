@@ -30,6 +30,7 @@ import {
   loadDmsFacets,
   loadDmsFiles,
   loadMyDmsPermissions,
+  type DmsBookColumn,
   loadThvOptions,
 } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
@@ -46,6 +47,15 @@ const STATUS: Record<string, string> = {
   RECORDED: 'Đã ghi sổ',
   CANCELLED: 'Đã hủy',
 };
+
+/** Thông tin cấp hợp đồng của hồ sơ Tống đạt (Figma "Tạo hồ sơ Tống đạt"); lưu trong thuộc tính hồ sơ. Từng giấy tờ là một dòng Sổ S-01 ở thuộc tính tài liệu. */
+const TONG_DAT_CONTRACT: readonly DmsBookColumn[] = [
+  { no: 1, heading: 'Số hợp đồng (nhập theo bản thực tế)', key: 'so_hop_dong' },
+  { no: 2, heading: 'Ngày ký', key: 'ngay_ky' },
+  { no: 3, heading: 'Bên yêu cầu (Bên B)', key: 'ben_yeu_cau' },
+  { no: 4, heading: 'Tên cơ quan', key: 'ten_co_quan' },
+  { no: 5, heading: 'Người đại diện Bên B', key: 'nguoi_dai_dien' },
+];
 
 const sizeLabel = (n: number | string) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
 
@@ -221,8 +231,9 @@ export default async function DmsCasePage({
           </p>
           <section aria-labelledby="sec-a" className="rounded-2xl bg-surface p-5 shadow-sm">
             <h2 id="sec-a">
-              A. Thông tin {domain.label}
-              {book ? ` — phục vụ Sổ ${book.code}` : ''}
+              {domain.code === 'tongdat'
+                ? 'Hợp đồng dịch vụ tống đạt (N-01)'
+                : `A. Thông tin ${domain.label}${book ? ` — phục vụ Sổ ${book.code}` : ''}`}
             </h2>
             {canDraft(permissions, domain.code) && !isVanThu(domain.code) ? (
               <DmsThvPicker
@@ -241,13 +252,26 @@ export default async function DmsCasePage({
                 legend={`Nội dung vào sổ ${book.code}`}
               />
             ) : null}
+            {domain.code === 'tongdat' && canDraft(permissions, domain.code) ? (
+              <DmsAttributesForm
+                url={`/api/dms/cases/${c.id}/draft`}
+                columns={TONG_DAT_CONTRACT}
+                current={c.attributes}
+                fixed={{ title: c.title }}
+                legend="Hợp đồng dịch vụ tống đạt (N-01)"
+              />
+            ) : null}
             <p className="muted mt-2 text-xs">
               Trước khi lưu còn sửa được; sau khi xác nhận lưu chính thức, mọi thay đổi phải thông
               qua yêu cầu sửa đổi.
             </p>
           </section>
           <section aria-labelledby="sec-b" className="rounded-2xl bg-surface p-5 shadow-sm">
-            <h2 id="sec-b">B. Tài liệu đính kèm</h2>
+            <h2 id="sec-b">
+              {domain.code === 'tongdat'
+                ? 'Phụ lục: giấy tờ cần tống đạt (mỗi giấy tờ là một dòng Sổ S-01)'
+                : 'B. Tài liệu đính kèm'}
+            </h2>
             {docs.length === 0 ? (
               <p className="muted">Chưa có tài liệu.</p>
             ) : (
