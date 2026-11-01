@@ -4,12 +4,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
 import {
+  isOverridable,
   isSensitivePermission,
+  overridableBaseline,
   parsePermission,
+  permissionMessage,
   summarizeGroup,
   type DmsGroup,
 } from '../lib/permission-model';
-import { messageFor } from '../lib/messages';
+import type { OfficeBranch } from '../lib/dms-admin';
+import { PermissionTree } from './permissions/PermissionTree';
 import { Pill } from './permissions/Pill';
 
 const STEPS: readonly [string, string, string][] = [
@@ -21,14 +25,23 @@ const STEPS: readonly [string, string, string][] = [
   [
     '2 · Đã áp dụng',
     'ok',
-    'Admin áp dụng ngay các nhóm quyền đã chọn, không cần ai duyệt. Mọi thay đổi ghi vào nhật ký phân quyền.',
+    'Admin áp dụng ngay các nhóm quyền đã chọn cùng quyền chi tiết đã tick, không cần ai duyệt. Mọi thay đổi ghi vào nhật ký phân quyền.',
   ],
-  ['3 · Hoạt động', 'ok', 'Đăng nhập bằng link email. Quyền hiệu lực chỉ đến từ các nhóm quyền.'],
+  [
+    '3 · Hoạt động',
+    'ok',
+    'Đăng nhập bằng link email. Quyền hiệu lực = quyền của các nhóm + quyền thêm riêng − quyền bỏ riêng.',
+  ],
 ];
 
 /** Hiệu lực dự kiến của việc xếp nhóm: tổng số quyền sau khi gộp, có quyền nhạy cảm không, có phạm vi rộng không. */
 export function previewGroups(groups: readonly DmsGroup[]) {
-  const codes = [...new Set(groups.flatMap((g) => g.permissions))];
+  return previewCodes(groups.flatMap((g) => g.permissions));
+}
+
+/** Như previewGroups nhưng nhận thẳng danh sách mã quyền (đã gộp nhóm và chỉnh riêng). */
+export function previewCodes(all: readonly string[]) {
+  const codes = [...new Set(all)];
   return {
     total: codes.length,
     sensitive: codes.some(isSensitivePermission),
@@ -43,16 +56,60 @@ export function previewGroups(groups: readonly DmsGroup[]) {
 export function AddMemberForm({
   officeId,
   groups,
+  branches = [],
 }: {
   readonly officeId: string;
   readonly groups: readonly DmsGroup[];
+  readonly branches?: readonly OfficeBranch[];
 }) {
   const router = useRouter();
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const chosen = useMemo(() => groups.filter((g) => picked.has(g.id)), [groups, picked]);
-  const preview = useMemo(() => previewGroups(chosen), [chosen]);
+  const [added, setAdded] = useState<ReadonlySet<string>>(new Set());
+  const [removed, setRemoved] = useState<ReadonlySet<string>>(new Set());
+  const [branchPicked, setBranchPicked] = useState<ReadonlySet<string>>(new Set());
+  const baseline = useMemo(
+    () => overridableBaseline(chosen.flatMap((g) => g.permissions)),
+    [chosen],
+  );
+  const groupOnly = useMemo(
+    () => [...new Set(chosen.flatMap((g) => g.permissions).filter((c) => !isOverridable(c)))],
+    [chosen],
+  );
+  // Quyền đang tick = nền của các nhóm + thêm riêng − bỏ riêng. Đổi nhóm thì nền đổi, các lựa chọn riêng giữ nguyên.
+  const value = useMemo(() => {
+    const out = new Set([...baseline, ...added]);
+    for (const c of removed) out.delete(c);
+    return out;
+  }, [baseline, added, removed]);
+  const customized = added.size > 0 || removed.size > 0;
+  const preview = useMemo(() => previewCodes([...value, ...groupOnly]), [value, groupOnly]);
+
+  const onTree = (next: Set<string>) => {
+    const a = new Set(added);
+    const r = new Set(removed);
+    for (const c of next) {
+      if (value.has(c)) continue;
+      if (baseline.has(c)) r.delete(c);
+      else a.add(c);
+    }
+    for (const c of value) {
+      if (next.has(c)) continue;
+      if (baseline.has(c)) r.add(c);
+      else a.delete(c);
+    }
+    setAdded(a);
+    setRemoved(r);
+  };
+  const toggleBranch = (id: string) =>
+    setBranchPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const toggle = (id: string) =>
     setPicked((prev) => {
@@ -76,11 +133,13 @@ export function AddMemberForm({
           email: String(f.get('email') ?? '').trim(),
           fullName: String(f.get('fullName') ?? '').trim(),
           groupIds: chosen.map((g) => g.id),
+          ...(customized ? { permissions: [...value] } : {}),
+          ...(branchPicked.size > 0 ? { branchIds: [...branchPicked] } : {}),
           reason: String(f.get('reason') ?? '').trim(),
         }),
       });
       const json = (await res.json().catch(() => ({}))) as { code?: string; label?: string };
-      if (!res.ok) return setError(messageFor(json.code));
+      if (!res.ok) return setError(permissionMessage(json.code));
       router.push(
         json.label ? `/quan-tri/phan-quyen/nguoi-dung/${json.label}` : '/quan-tri/nhan-su',
       );
@@ -140,14 +199,70 @@ export function AddMemberForm({
           )}
         </section>
 
+        <section className="mf-main" aria-labelledby="mf-tree">
+          <h2 id="mf-tree">3 · Quyền chi tiết (tùy chọn)</h2>
+          <p className="muted">
+            Quyền của các nhóm đã chọn được tick sẵn. Tick thêm hoặc bỏ tick từng quyền để chỉ áp
+            dụng cho riêng tài khoản này; nhóm quyền không bị đổi.
+          </p>
+          <PermissionTree
+            baseline={baseline}
+            value={value}
+            onChange={onTree}
+            groupOnly={groupOnly}
+          />
+          {customized ? (
+            <p role="status" className="callout">
+              <strong>Đã chỉnh riêng</strong>
+              Thêm riêng {added.size} quyền, bỏ riêng {removed.size} quyền so với nhóm.{' '}
+              <button
+                type="button"
+                className="btn-link"
+                onClick={() => {
+                  setAdded(new Set());
+                  setRemoved(new Set());
+                }}
+              >
+                Quay về đúng theo nhóm
+              </button>
+            </p>
+          ) : null}
+        </section>
+
+        {branches.length > 0 ? (
+          <section className="mf-main" aria-labelledby="mf-branches">
+            <h2 id="mf-branches">4 · Chi nhánh được xem</h2>
+            <p className="muted">
+              Người này chỉ thấy hồ sơ và sổ của các chi nhánh được chọn. Không chọn thì chưa thấy
+              hồ sơ chi nhánh nào; có thể cấp sau ở trang quyền hiệu lực của người đó.
+            </p>
+            <ul className="mf-groups">
+              {branches.map((b) => (
+                <li key={b.id}>
+                  <label className="mf-group">
+                    <input
+                      type="checkbox"
+                      checked={branchPicked.has(b.id)}
+                      onChange={() => toggleBranch(b.id)}
+                    />
+                    <span>
+                      <strong>{b.name}</strong>
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <section className="mf-main" aria-labelledby="mf-preview">
-          <h2 id="mf-preview">3 · Xem trước và lý do</h2>
+          <h2 id="mf-preview">{branches.length > 0 ? '5' : '4'} · Xem trước và lý do</h2>
           <div className="mf-preview" aria-live="polite">
             <strong>Quyền hiệu lực sau khi gửi</strong>
             <span>
-              {chosen.length === 0
+              {chosen.length === 0 && !customized
                 ? 'Chưa chọn nhóm nào: tài khoản vào được hệ thống nhưng chưa có quyền nào.'
-                : `${preview.total} quyền từ ${chosen.length} nhóm: ${chosen.map((g) => g.name).join(', ')}.`}
+                : `${preview.total} quyền${chosen.length > 0 ? ` từ ${chosen.length} nhóm: ${chosen.map((g) => g.name).join(', ')}` : ''}${customized ? `; chỉnh riêng +${added.size} / −${removed.size}` : ''}.`}
             </span>
           </div>
           <div className="mf-pills">
@@ -172,7 +287,7 @@ export function AddMemberForm({
             Hủy
           </Link>
           <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
-            Tạo tài khoản và áp dụng nhóm quyền
+            Tạo tài khoản và áp dụng quyền
           </button>
         </div>
       </div>
@@ -191,7 +306,8 @@ export function AddMemberForm({
         </section>
         <p className="callout">
           <strong>Không có vai trò</strong>
-          Quyền của mỗi người chỉ đến từ nhóm quyền. Thu hồi hay đổi nhóm sau này làm ở mục Phân
+          Quyền của mỗi người = quyền của các nhóm + quyền thêm riêng − quyền bỏ riêng. Quyền đề
+          xuất, duyệt thay đổi quyền chỉ theo nhóm. Đổi nhóm hay quyền riêng sau này làm ở mục Phân
           quyền.
         </p>
       </aside>

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { BranchAccessSection } from '../../../../../components/permissions/BranchAccessSection';
 import { MemberSuspendButton } from '../../../../../components/permissions/MemberSuspendButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
+import { UserOverridesEditor } from '../../../../../components/permissions/UserOverridesEditor';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
 import { Avatar } from '../../../../../components/ui/avatar';
 import { StateCard } from '../../../../../components/ui/state-card';
@@ -11,6 +12,7 @@ import {
   loadBranchAccess,
   loadOfficeBranches,
   loadPermissionContext,
+  loadUserOverrides,
 } from '../../../../../lib/dms-admin';
 import { requestCookie } from '../../../../../lib/server';
 import {
@@ -23,6 +25,10 @@ import {
   effectiveByDomain,
   effectivePermissions,
   formatWhen,
+  isOverridable,
+  overridableBaseline,
+  PERMISSION_SOURCE_LABEL,
+  permissionLabel,
   makeNameBook,
   requestCode,
 } from '../../../../../lib/permission-model';
@@ -58,14 +64,19 @@ export default async function EffectivePage({
   );
   if (!person) notFound();
   const names = makeNameBook(ctx.groups, ctx.members);
-  const rows = person.suspended ? [] : effectiveByDomain(ctx.groups, id);
-  const state = accountState(person);
-  const history = ctx.requests.filter((r) => r.user_id === id);
   const cookie = await requestCookie();
-  const [officeBranches, branchAccess] = await Promise.all([
+  const [officeBranches, branchAccess, allOverrides] = await Promise.all([
     loadOfficeBranches(cookie, ctx.officeId),
     loadBranchAccess(cookie, ctx.officeId),
+    loadUserOverrides(cookie, ctx.officeId, id),
   ]);
+  const activeOverrides = allOverrides.filter((o) => o.ended_at === null);
+  const groupCodes = person.groups.flatMap((g) => g.permissions);
+  const baseline = [...overridableBaseline(groupCodes)];
+  const effective = effectivePermissions(ctx.groups, id, activeOverrides);
+  const rows = person.suspended ? [] : effectiveByDomain(ctx.groups, id, activeOverrides);
+  const state = accountState(person);
+  const history = ctx.requests.filter((r) => r.user_id === id);
 
   return (
     <>
@@ -168,18 +179,69 @@ export default async function EffectivePage({
         branches={officeBranches}
         granted={branchAccess.filter((b) => b.userId === id)}
         canEdit={ctx.canApprove && !person.suspended}
-        seesAll={
-          person.isAdmin || effectivePermissions(ctx.groups, id).includes('dms.permission.approve')
-        }
+        seesAll={person.isAdmin || effective.includes('dms.permission.approve')}
       />
+
+      <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="ovr-t">
+        <h2 id="ovr-t" className="font-serif text-lg">
+          Quyền chi tiết của riêng người này
+        </h2>
+        <p className="text-sm text-muted">
+          Quyền hiệu lực = quyền của các nhóm + quyền{' '}
+          <strong>{PERMISSION_SOURCE_LABEL.grant.toLowerCase()}</strong> − quyền{' '}
+          <strong>{PERMISSION_SOURCE_LABEL.revoke.toLowerCase()}</strong>. Ô đã tick là quyền đang
+          có; màu vàng là thêm riêng, màu đỏ là bỏ riêng so với nhóm. Admin áp dụng ngay, cần lý do,
+          có nhật ký.
+        </p>
+        {person.isAdmin ? (
+          <p className="text-sm">
+            Admin mặc nhiên có mọi quyền nên không đặt quyền riêng. Quyền đề xuất, duyệt thay đổi
+            quyền chỉ theo nhóm.
+          </p>
+        ) : (
+          <UserOverridesEditor
+            officeId={ctx.officeId}
+            userId={id}
+            baseline={baseline}
+            current={effective.filter(isOverridable)}
+            groupOnly={[...new Set(groupCodes.filter((c) => !isOverridable(c)))]}
+            canEdit={ctx.canApprove && id !== ctx.userId}
+          />
+        )}
+        {allOverrides.length > 0 ? (
+          <ul className="m-0 grid list-none gap-2 p-0 text-sm">
+            {allOverrides.map((o) => (
+              <li key={o.id} className="grid gap-0.5 border-b border-line pb-2">
+                <span>
+                  <strong>{formatWhen(o.set_at)}</strong> ·{' '}
+                  <Pill tone={o.effect === 'GRANT' ? 'brass' : 'danger'}>
+                    {o.effect === 'GRANT'
+                      ? PERMISSION_SOURCE_LABEL.grant
+                      : PERMISSION_SOURCE_LABEL.revoke}
+                  </Pill>{' '}
+                  {permissionLabel(o.permission)}
+                  {o.ended_at ? ` · đã hết hiệu lực ${formatWhen(o.ended_at)}` : ' · đang hiệu lực'}
+                </span>
+                <span className="text-muted">
+                  Người đặt: {names.userName(o.set_by)} · Lý do: {o.reason}
+                  {o.ended_by
+                    ? ` · Người gỡ: ${names.userName(o.ended_by)} (${o.end_reason ?? ''})`
+                    : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
 
       <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="eff-t">
         <h2 id="eff-t" className="font-serif text-lg">
           Quyền hiệu lực theo nghiệp vụ
         </h2>
         <p className="text-sm text-muted">
-          Mỗi dòng là một nghiệp vụ. Phạm vi lấy rộng nhất trong các nhóm của người này. Màn này chỉ
-          để xem; muốn đổi hãy gửi đề xuất.
+          Mỗi dòng là một nghiệp vụ. Phạm vi lấy rộng nhất trong các nhóm và quyền thêm riêng của
+          người này, đã trừ quyền bỏ riêng. Muốn đổi nhóm hãy gửi đề xuất; muốn đổi quyền riêng dùng
+          mục phía trên.
         </p>
         {person.isAdmin && !person.suspended ? (
           <p className="text-sm">

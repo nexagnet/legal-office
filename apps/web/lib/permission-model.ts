@@ -166,6 +166,78 @@ export function allPermissionCodes(): string[] {
   ];
 }
 
+/* ───────────── Quyền riêng theo tài khoản (migration 0099) ───────────── */
+
+/** Quyền quản trị phân quyền chỉ theo nhóm, không cấp/thu riêng (DB từ chối). */
+const GROUP_ONLY = new Set([
+  'dms.permission.propose',
+  'dms.permission.approve',
+  'dms.amendment.approve',
+]);
+export const isOverridable = (code: string): boolean => !GROUP_ONLY.has(code);
+
+/** Mọi mã quyền tick được trên cây quyền riêng. */
+export function overridableCodes(): string[] {
+  return allPermissionCodes().filter(isOverridable);
+}
+
+export interface UserOverride {
+  readonly id: string;
+  readonly user_id: string;
+  readonly permission: string;
+  readonly effect: 'GRANT' | 'REVOKE';
+  readonly set_by: string;
+  readonly set_at: string;
+  readonly reason: string;
+  readonly ended_by: string | null;
+  readonly ended_at: string | null;
+  readonly end_reason: string | null;
+}
+
+export type PermissionSource = 'group' | 'grant' | 'revoke' | 'none';
+
+/** Nền của các nhóm (chỉ phần cấp/thu riêng được) mà một danh sách mã quyền tạo ra. */
+export const overridableBaseline = (groupCodes: readonly string[]): Set<string> =>
+  new Set(groupCodes.filter(isOverridable));
+
+/** Một quyền đến từ đâu: theo nhóm, cấp riêng, thu riêng, hay không có. `desired` là tập đang tick. */
+export function permissionSource(
+  code: string,
+  baseline: ReadonlySet<string>,
+  desired: ReadonlySet<string>,
+): PermissionSource {
+  const inBase = baseline.has(code);
+  const on = desired.has(code);
+  if (inBase && on) return 'group';
+  if (!inBase && on) return 'grant';
+  if (inBase && !on) return 'revoke';
+  return 'none';
+}
+
+/** Tập quyền mong muốn từ nền nhóm + các dòng quyền riêng đang hiệu lực. */
+export function applyOverrides(
+  baseline: ReadonlySet<string>,
+  active: readonly Pick<UserOverride, 'permission' | 'effect'>[],
+): Set<string> {
+  const out = new Set(baseline);
+  for (const o of active) {
+    if (o.effect === 'GRANT') out.add(o.permission);
+    else out.delete(o.permission);
+  }
+  return out;
+}
+
+export const PERMISSION_SOURCE_LABEL: Readonly<Record<Exclude<PermissionSource, 'none'>, string>> =
+  {
+    group: 'Theo nhóm',
+    grant: 'Thêm riêng',
+    revoke: 'Bỏ riêng',
+  };
+
+/** Hai tập quyền có giống nhau không (để biết đã tick lệch so với nền hay chưa). */
+export const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean =>
+  a.size === b.size && [...a].every((x) => b.has(x));
+
 /* ───────────── Yêu cầu đổi quyền ───────────── */
 
 export const KIND_LABEL: Readonly<Record<RequestKind, string>> = {
@@ -248,8 +320,17 @@ export function groupsOfUser(groups: readonly DmsGroup[], userId: string): DmsGr
   return groups.filter((g) => isGroupActive(g) && g.member_ids.includes(userId));
 }
 
-export function effectivePermissions(groups: readonly DmsGroup[], userId: string): string[] {
-  return [...new Set(groupsOfUser(groups, userId).flatMap((g) => g.permissions))].sort();
+export function effectivePermissions(
+  groups: readonly DmsGroup[],
+  userId: string,
+  overrides: readonly Pick<UserOverride, 'permission' | 'effect'>[] = [],
+): string[] {
+  const fromGroups = new Set(groupsOfUser(groups, userId).flatMap((g) => g.permissions));
+  for (const o of overrides) {
+    if (o.effect === 'GRANT') fromGroups.add(o.permission);
+    else fromGroups.delete(o.permission);
+  }
+  return [...fromGroups].sort();
 }
 
 /** Tên hiển thị tách khỏi nhãn "Tên (email)" do API ghép sẵn. */
@@ -396,13 +477,25 @@ export interface EffectiveRow {
 }
 
 /** Quyền hiệu lực của một người theo từng nghiệp vụ (P2): mỗi hành động lấy phạm vi rộng nhất trong các nhóm của họ. */
-export function effectiveByDomain(groups: readonly DmsGroup[], userId: string): EffectiveRow[] {
+export function effectiveByDomain(
+  groups: readonly DmsGroup[],
+  userId: string,
+  overrides: readonly Pick<UserOverride, 'permission' | 'effect'>[] = [],
+): EffectiveRow[] {
   const mine = groupsOfUser(groups, userId);
+  const revoked = new Set(overrides.filter((o) => o.effect === 'REVOKE').map((o) => o.permission));
   const rows: EffectiveRow[] = [];
   for (const [domain, title] of PERMISSION_DOMAINS) {
-    const hits = mine.flatMap((g) =>
-      g.permissions.map((code) => ({ p: parsePermission(code), name: g.name })),
-    );
+    const hits = [
+      ...mine.flatMap((g) =>
+        g.permissions
+          .filter((code) => !revoked.has(code))
+          .map((code) => ({ p: parsePermission(code), name: g.name })),
+      ),
+      ...overrides
+        .filter((o) => o.effect === 'GRANT')
+        .map((o) => ({ p: parsePermission(o.permission), name: 'Thêm riêng' })),
+    ];
     const inDomain = hits.filter((h) => h.p?.domain === domain);
     if (inDomain.length === 0) continue;
     const actions: { label: string; scope: 'own' | 'all' }[] = [];

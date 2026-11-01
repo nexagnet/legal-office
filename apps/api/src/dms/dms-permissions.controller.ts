@@ -122,6 +122,46 @@ export class DmsPermissionsController {
     ]);
   }
 
+  /** Quyền riêng của từng người (đang hiệu lực + lịch sử). Cần quyền đề xuất hoặc duyệt thay đổi quyền; ngoài ra nhận rỗng. */
+  @Get('user-overrides')
+  async userOverrides(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(z.object({ officeId: uuid, userId: uuid.optional() }).strict(), query);
+    const rows = await this.repo.rows<{
+      id: string;
+      user_id: string;
+      permission: string;
+      effect: 'GRANT' | 'REVOKE';
+      set_by: string;
+      set_at: Date;
+      reason: string;
+      ended_by: string | null;
+      ended_at: Date | null;
+      end_reason: string | null;
+    }>(a.tenantId, 'dms_list_user_overrides', [a.tenantId, a.userId, q.officeId, q.userId ?? null]);
+    return { rows };
+  }
+
+  /**
+   * Đặt quyền chi tiết cho một tài khoản: gửi TẬP quyền mong muốn (đã tick/bỏ tick), máy chủ suy ra cấp riêng / thu riêng so với nền
+   * của các nhóm. Chỉ Admin (quyền duyệt phân quyền); áp dụng ngay, bắt buộc lý do, có nhật ký; không tự đặt cho chính mình.
+   */
+  @Post('user-overrides')
+  @HttpCode(HttpStatus.OK)
+  setUserOverrides(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z
+        .object({
+          officeId: uuid,
+          userId: uuid,
+          permissions: z.array(z.string().trim().min(1).max(80)).max(200),
+          reason: z.string().trim().min(1).max(1000),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'dms_user_overrides_apply', [b.officeId, b.userId, b.permissions, b.reason]);
+  }
+
   /** Hồ sơ chưa có chi nhánh (dữ liệu trước ngày áp dụng phạm vi chi nhánh). Chỉ Admin thấy; người khác nhận danh sách rỗng. */
   @Get('cases-without-branch')
   async casesWithoutBranch(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {

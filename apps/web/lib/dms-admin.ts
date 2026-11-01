@@ -1,7 +1,7 @@
 import { loadMembers, type Member } from './admin-api';
 import { loadMyDmsPermissions } from './dms';
 import { API_URL, currentSession, requestCookie } from './server';
-import type { DmsGroup, PermissionRequest } from './permission-model';
+import type { DmsGroup, PermissionRequest, UserOverride } from './permission-model';
 
 export type { DmsGroup, PermissionRequest } from './permission-model';
 
@@ -42,6 +42,19 @@ export async function loadBranchAccess(
 ): Promise<BranchAccessRow[]> {
   const body = await getJson<{ rows: BranchAccessRow[] }>(
     `/dms/branch-access?${q(officeId)}`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.rows;
+}
+
+/** Quyền riêng của một người (đang hiệu lực + lịch sử). Lỗi/không đủ quyền = rỗng, trang vẫn dựng được. */
+export async function loadUserOverrides(
+  cookie: string | null,
+  officeId: string,
+  userId: string,
+): Promise<UserOverride[]> {
+  const body = await getJson<{ rows: UserOverride[] }>(
+    `/dms/user-overrides?${q(officeId)}&userId=${encodeURIComponent(userId)}`,
     cookie,
   );
   return body === 'error' ? [] : body.rows;
