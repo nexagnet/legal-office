@@ -86,7 +86,7 @@ const MESSAGES: Record<string, string> = {
   REQUEST_FINAL: 'Đề xuất này đã được xử lý, không thay đổi thêm được.',
   ROLE_ALREADY_GRANTED: 'Người này đã có vai trò đó.',
   ROLE_NOT_HELD: 'Người này không có vai trò đó.',
-  EMAIL_IN_USE: 'Email này đã có tài khoản. Dùng "Đề xuất cấp quyền" để cấp vai cho người đó.',
+  EMAIL_IN_USE: 'Email này đã có tài khoản. Xếp nhóm quyền cho người đó ở mục Phân quyền.',
   SELF_TARGET_NOT_ALLOWED:
     'Bạn không được duyệt đề xuất về chính mình. Cần một Trưởng văn phòng khác duyệt.',
   BRANCH_NAME_TAKEN: 'Đã có địa điểm trùng tên trong văn phòng.',
@@ -409,6 +409,7 @@ export const ROLE_LABEL: Record<string, string> = {
   THV: 'Thừa hành viên',
   VAN_THU: 'Văn thư',
   KE_TOAN: 'Kế toán',
+  THANH_VIEN: 'Thành viên',
 };
 
 export const ACCESS_KIND_LABEL: Record<string, string> = {

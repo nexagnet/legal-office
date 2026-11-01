@@ -101,6 +101,19 @@ export function isSensitivePermission(code: string): boolean {
   return p?.action === 'download' || p?.action === 'confirm';
 }
 
+/** Mô tả ngắn: các nghiệp vụ nhóm đụng tới, hoặc "Quản trị" nếu có quyền duyệt/đề xuất. */
+export function summarizeGroup(g: DmsGroup): string {
+  const domains = [
+    ...new Set(
+      g.permissions.map((c) => parsePermission(c)?.domain).filter((d): d is string => !!d),
+    ),
+  ];
+  const names = PERMISSION_DOMAINS.filter(([k]) => domains.includes(k)).map(([, label]) => label);
+  const admin = g.permissions.some((c) => c.startsWith('dms.'));
+  const parts = [...names, ...(admin ? ['Quản trị'] : [])];
+  return parts.length > 0 ? parts.join(', ') : 'Chưa có quyền nào';
+}
+
 export interface PermissionSection {
   readonly title: string;
   readonly items: readonly { readonly code: string; readonly label: string }[];
@@ -295,7 +308,9 @@ export function buildPersonRows(
   return [...byUser.entries()].map(([userId, rows]) => {
     const first = rows[0] as MemberInput;
     const { name, email } = splitLabel(first.label);
-    const nonAdmin = rows.find((r) => r.role && r.role !== 'ADMIN')?.role ?? null;
+    // THANH_VIEN chỉ là tư cách thành viên không quyền, không phải "vai cũ" đáng hiển thị.
+    const nonAdmin =
+      rows.find((r) => r.role && r.role !== 'ADMIN' && r.role !== 'THANH_VIEN')?.role ?? null;
     return {
       userId,
       label: first.label,

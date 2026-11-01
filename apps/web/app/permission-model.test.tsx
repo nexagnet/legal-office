@@ -106,6 +106,16 @@ describe('dòng người dùng', () => {
     expect(rows[0]?.groups.map((g) => g.id)).toEqual(['g1', 'g2']);
   });
 
+  it('tư cách THANH_VIEN không hiện như một "vai cũ"', () => {
+    const [p] = buildPersonRows(
+      [{ userId: 'u9', label: 'Mới (m@x.test)', role: 'THANH_VIEN', hasLogin: true, branches: [] }],
+      [],
+      [],
+    );
+    expect(p?.legacyRole).toBeNull();
+    expect(p ? accountState(p) : null).toBe('no-access');
+  });
+
   it('phân trạng thái tài khoản theo nhóm quyền, không theo vai cũ', () => {
     expect(rows.map((r) => accountState(r))).toEqual(['active', 'active', 'waiting', 'no-access']);
   });
