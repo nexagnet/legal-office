@@ -61,7 +61,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'dms',
-    label: 'Hồ sơ lưu trữ',
+    label: 'Hồ sơ của tôi',
     group: 'work',
     roles: ALL,
     summary: 'Hồ sơ và bản scan bốn nghiệp vụ; xuất sổ S-01/02/04/05.',
