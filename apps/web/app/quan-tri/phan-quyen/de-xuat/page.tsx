@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ProposeChangeForm } from '../../../../components/permissions/ProposeChangeForm';
-import { BLOCK_RULES } from '../../../../lib/permission-model';
+import { BLOCK_RULES, isGroupActive } from '../../../../lib/permission-model';
 import { StateCard } from '../../../../components/ui/state-card';
 import { loadPermissionContext } from '../../../../lib/dms-admin';
 
@@ -41,7 +41,11 @@ export default async function ProposePage({
             description="Tạo nhóm quyền ở tab Nhóm quyền trước, rồi quay lại để đề xuất."
           />
         ) : (
-          <ProposeChangeForm groups={ctx.groups} people={people} initial={await searchParams} />
+          <ProposeChangeForm
+            groups={ctx.groups.filter(isGroupActive)}
+            people={people}
+            initial={await searchParams}
+          />
         )}
         <aside className="grid gap-4">
           <section

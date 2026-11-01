@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { GroupStatusButton } from '../../../../../components/permissions/GroupStatusButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
 import { Avatar } from '../../../../../components/ui/avatar';
@@ -10,6 +11,9 @@ import {
   describeRequest,
   formatWhen,
   groupPermissionSections,
+  groupVersion,
+  isGroupActive,
+  isTemplateGroup,
   isSensitivePermission,
   makeNameBook,
   requestCode,
@@ -50,6 +54,9 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
     return { uid, ...(m ? splitLabel(m.label) : { name: names.userName(uid), email: null }) };
   });
   const sensitive = group.permissions.filter(isSensitivePermission).length;
+  const active = isGroupActive(group);
+  const version = groupVersion(group);
+  const pendingPerm = pending.filter((r) => r.kind === 'GRANT' || r.kind === 'REVOKE').length;
 
   return (
     <>
@@ -63,7 +70,12 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
       </p>
       <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="grp-t">
         <div className="flex flex-wrap gap-2">
-          <Pill tone="ok">Đang dùng</Pill>
+          {active ? <Pill tone="ok">Đang dùng</Pill> : <Pill tone="mute">Ngừng dùng</Pill>}
+          <Pill tone={isTemplateGroup(group) ? 'info' : 'brass'}>
+            {isTemplateGroup(group) ? 'Nhóm mẫu' : 'Tùy chỉnh'}
+          </Pill>
+          <Pill tone="mute">v{version}</Pill>
+          {pendingPerm > 0 ? <Pill tone="brass">Đề xuất v{version + 1} chờ duyệt</Pill> : null}
           <Pill tone="info">{group.permissions.length} quyền</Pill>
           {sensitive > 0 ? <Pill tone="warn">{sensitive} quyền nhạy cảm</Pill> : null}
           {pending.length > 0 ? <Pill tone="brass">{pending.length} đề xuất chờ duyệt</Pill> : null}
@@ -73,26 +85,39 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
         </h2>
         <p className="text-sm text-muted">
           {group.member_ids.length} thành viên. Quyền và thành viên chỉ đổi qua đề xuất có duyệt.
+          {isTemplateGroup(group)
+            ? ' Nhóm mẫu được bảo vệ: không đổi quyền trực tiếp, hãy sao chép thành nhóm tùy chỉnh.'
+            : ''}
+          {active ? '' : ' Nhóm đã ngừng dùng nên không cấp quyền hiệu lực cho ai.'}
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link
-            className="primary btn-link"
-            href={`/quan-tri/phan-quyen/de-xuat?loai=GRANT&nhom=${group.id}`}
-          >
-            Thêm quyền vào nhóm
-          </Link>
-          <Link
-            className="btn-link"
-            href={`/quan-tri/phan-quyen/de-xuat?loai=REVOKE&nhom=${group.id}`}
-          >
-            Thu hồi quyền
-          </Link>
-          <Link
-            className="btn-link"
-            href={`/quan-tri/phan-quyen/de-xuat?loai=ADD_MEMBER&nhom=${group.id}`}
-          >
-            Thêm thành viên
-          </Link>
+          {active && !isTemplateGroup(group) ? (
+            <>
+              <Link
+                className="primary btn-link"
+                href={`/quan-tri/phan-quyen/de-xuat?loai=GRANT&nhom=${group.id}`}
+              >
+                Thêm quyền vào nhóm
+              </Link>
+              <Link
+                className="btn-link"
+                href={`/quan-tri/phan-quyen/de-xuat?loai=REVOKE&nhom=${group.id}`}
+              >
+                Thu hồi quyền
+              </Link>
+            </>
+          ) : null}
+          {active ? (
+            <Link
+              className="btn-link"
+              href={`/quan-tri/phan-quyen/de-xuat?loai=ADD_MEMBER&nhom=${group.id}`}
+            >
+              Thêm thành viên
+            </Link>
+          ) : null}
+          {ctx.canApprove && !isTemplateGroup(group) ? (
+            <GroupStatusButton groupId={group.id} retire={active} />
+          ) : null}
         </div>
       </section>
 

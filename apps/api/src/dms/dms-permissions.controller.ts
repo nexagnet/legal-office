@@ -58,6 +58,35 @@ export class DmsPermissionsController {
     return this.run(a, 'dms_group_create', [b.officeId, b.name]);
   }
 
+  /** Sao chép nhóm thành nhóm tùy chỉnh mới (không chép quyền quản trị phân quyền, chưa có thành viên). */
+  @Post('groups/:id/copy')
+  @HttpCode(HttpStatus.OK)
+  copyGroup(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ name: z.string().min(1).max(200) }).strict(), body);
+    return this.run(a, 'dms_group_copy', [id, b.name]);
+  }
+
+  /** Ngừng dùng / dùng lại nhóm: người có quyền duyệt, áp dụng ngay, có lý do. Không xoá gì. */
+  @Post('groups/:id/status')
+  @HttpCode(HttpStatus.OK)
+  setGroupStatus(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({ status: z.enum(['ACTIVE', 'RETIRED']), reason: z.string().min(1).max(1000) })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'dms_group_set_status', [id, b.status, b.reason]);
+  }
+
   @Post('groups/:id/requests')
   propose(
     @CurrentActor() a: AuthenticatedActor,

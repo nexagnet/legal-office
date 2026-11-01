@@ -7,6 +7,9 @@ import {
   effectiveByDomain,
   effectivePermissions,
   groupPermissionSections,
+  groupVersion,
+  isGroupActive,
+  isTemplateGroup,
   isRequestStale,
   isSensitivePermission,
   makeNameBook,
@@ -184,5 +187,26 @@ describe('quyền hiệu lực theo nghiệp vụ', () => {
     ]);
     expect(rows[0]?.sources).toEqual(['Văn thư chi nhánh', 'Kế toán', 'Thừa hành viên']);
     expect(effectiveByDomain([G1], 'nobody')).toEqual([]);
+  });
+});
+
+describe('vòng đời nhóm quyền', () => {
+  it('API cũ không có trường mới thì coi là nhóm tùy chỉnh đang dùng, phiên bản 1', () => {
+    expect(isGroupActive(G1)).toBe(true);
+    expect(isTemplateGroup(G1)).toBe(false);
+    expect(groupVersion(G1)).toBe(1);
+  });
+
+  it('nhóm ngừng dùng không cấp quyền hiệu lực trên giao diện, giống DB', () => {
+    const retired: DmsGroup = { ...G1, status: 'RETIRED', version: 4 };
+    expect(groupVersion(retired)).toBe(4);
+    expect(isGroupActive(retired)).toBe(false);
+    expect(effectivePermissions([retired], 'u1')).toEqual([]);
+    expect(effectivePermissions([G1], 'u1')).toContain('vtden.read.all');
+  });
+
+  it('có câu tiếng Việt cho nhóm mẫu được bảo vệ và nhóm đã ngừng dùng', () => {
+    expect(permissionMessage('TEMPLATE_PROTECTED')).toContain('sao chép');
+    expect(permissionMessage('GROUP_RETIRED')).toContain('ngừng dùng');
   });
 });

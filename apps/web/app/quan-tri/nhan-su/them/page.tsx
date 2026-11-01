@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { AddMemberForm } from '../../../../components/AddMemberForm';
 import { loadDmsGroups } from '../../../../lib/dms-admin';
+import { isGroupActive } from '../../../../lib/permission-model';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,10 @@ export default async function AddMemberPage() {
         </p>
       </div>
       {officeId && session.roles.includes('ADMIN') ? (
-        <AddMemberForm officeId={officeId} groups={groups === 'error' ? [] : groups} />
+        <AddMemberForm
+          officeId={officeId}
+          groups={groups === 'error' ? [] : groups.filter(isGroupActive)}
+        />
       ) : (
         <p className="muted">Chỉ Admin thêm được thành viên.</p>
       )}
