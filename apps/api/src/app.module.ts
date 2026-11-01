@@ -19,6 +19,7 @@ import { AssetsController } from './assets/assets.controller';
 import { DmsAmendmentsController } from './dms/dms-amendments.controller';
 import { DmsCasesController } from './dms/dms-cases.controller';
 import { DmsLegacyController } from './dms/dms-legacy.controller';
+import { DmsBrowseController } from './dms/dms-browse.controller';
 import { DmsSearchController } from './dms/dms-search.controller';
 import { DmsPermissionsController } from './dms/dms-permissions.controller';
 import { DmsThvController } from './dms/dms-thv.controller';
@@ -80,6 +81,7 @@ export class AppModule {
         DmsAmendmentsController,
         DmsCasesController,
         DmsLegacyController,
+        DmsBrowseController,
         DmsSearchController,
         DmsPermissionsController,
         DmsThvController,
