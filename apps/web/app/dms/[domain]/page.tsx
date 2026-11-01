@@ -197,6 +197,7 @@ export default async function DmsDomainPage({
       />
       <TabNav
         label={`Bộ lọc hồ sơ ${domain.label}`}
+        compact
         active={filter}
         tabs={FILTERS.map((k) => ({
           key: k,
