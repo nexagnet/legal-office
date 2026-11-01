@@ -77,6 +77,7 @@ export const SPECIAL_PERMISSIONS: Readonly<Record<string, string>> = {
   'dms.stock.write': 'Nhập, xuất, kiểm kê văn phòng phẩm',
   'dms.legacy.import': 'Nhập tài liệu cũ',
   'dms.legacy.read': 'Xem tài liệu cũ đã nhập',
+  'dms.audit.export': 'Xuất bản sao nhật ký phân quyền',
 };
 
 const DOMAIN_LABEL = new Map<string, string>(PERMISSION_DOMAINS);

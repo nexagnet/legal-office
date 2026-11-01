@@ -81,6 +81,8 @@ export interface PermissionContext {
   readonly roles: readonly string[];
   readonly canApprove: boolean;
   readonly canPropose: boolean;
+  /** Quyền riêng xuất bản sao nhật ký phân quyền (Admin mặc nhiên có). */
+  readonly canExportAudit: boolean;
   readonly members: readonly Member[] | 'error';
   readonly groups: DmsGroup[] | 'error';
   readonly requests: PermissionRequest[] | 'error';
@@ -113,6 +115,7 @@ export async function loadPermissionContext(): Promise<PermissionContext | null>
     roles: session.roles,
     canApprove,
     canPropose,
+    canExportAudit: perms.includes('dms.audit.export'),
     members,
     groups,
     requests,

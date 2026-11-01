@@ -98,7 +98,13 @@ export default async function PermissionPage({
           <LegacyRequests rows={legacyRows} roles={ctx.roles} />
         </>
       ) : (
-        <AuditTab requests={ctx.requests} names={names} searchParams={params} />
+        <AuditTab
+          requests={ctx.requests}
+          names={names}
+          searchParams={params}
+          officeId={ctx.officeId}
+          canExport={ctx.canExportAudit}
+        />
       )}
     </>
   );

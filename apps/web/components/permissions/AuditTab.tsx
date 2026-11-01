@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from '../ui/button';
 import { FilterChips } from '../ui/filter-chips';
 import {
   RESULT_LABEL,
@@ -46,10 +47,15 @@ export function AuditTab({
   requests,
   names,
   searchParams,
+  officeId,
+  canExport = false,
 }: {
   readonly requests: readonly PermissionRequest[];
   readonly names: NameBook;
   readonly searchParams: { loc?: string; q?: string };
+  readonly officeId?: string;
+  /** Có quyền riêng `dms.audit.export`. Máy chủ vẫn kiểm quyền và ghi lại việc xuất. */
+  readonly canExport?: boolean;
 }) {
   const loc: Loc = isLoc(searchParams.loc) ? searchParams.loc : 'tat-ca';
   const q = normalizeText((searchParams.q ?? '').trim());
@@ -86,6 +92,16 @@ export function AuditTab({
             { key: 'bi-chan', label: 'Bị từ chối', href: href('bi-chan', q) },
           ]}
         />
+        {canExport && officeId ? (
+          <Button asChild variant="secondary" className="ml-auto">
+            <a
+              href={`/api/dms/permission-log/export?officeId=${encodeURIComponent(officeId)}`}
+              download
+            >
+              Xuất bản sao
+            </a>
+          </Button>
+        ) : null}
       </div>
       <div className="table-wrap member-card">
         <table>
@@ -151,7 +167,7 @@ export function AuditTab({
       </div>
       <NoteBox title="Nhật ký chỉ thêm, không xóa">
         Mỗi dòng giữ mã yêu cầu, người đề xuất, người duyệt, thời điểm và lý do. Yêu cầu đã duyệt
-        hoặc từ chối không sửa lại được. Chưa có nút xuất bản sao nhật ký.
+        hoặc từ chối không sửa lại được. Xuất bản sao nhật ký là quyền riêng và cũng được ghi lại.
       </NoteBox>
     </>
   );

@@ -9,15 +9,36 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
+import { buildXlsx, XLSX_MIME } from '../office/xlsx-export';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { parse, respond, uuid } from './dms-http';
 
 const KINDS = ['GRANT', 'REVOKE', 'ADD_MEMBER', 'REMOVE_MEMBER'] as const;
+
+const KIND_LABEL: Readonly<Record<string, string>> = {
+  GRANT: 'Thêm quyền cho nhóm',
+  REVOKE: 'Thu hồi quyền của nhóm',
+  ADD_MEMBER: 'Gán người vào nhóm',
+  REMOVE_MEMBER: 'Gỡ người khỏi nhóm',
+};
+const when = (v: Date | string | null): string =>
+  v === null
+    ? ''
+    : new Intl.DateTimeFormat('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(v));
 
 /**
  * Nhóm quyền DMS. Quyền trong nhóm và thành viên chỉ đổi qua yêu cầu đề xuất → duyệt; người đề xuất không tự duyệt
@@ -138,6 +159,82 @@ export class DmsPermissionsController {
       body,
     );
     return this.run(a, 'dms_cases_assign_branch', [b.officeId, b.caseIds, b.branchId]);
+  }
+
+  /**
+   * Xuất bản sao nhật ký phân quyền (Figma P10). Quyền riêng `dms.audit.export`; chính việc xuất được ghi vào nhật ký
+   * (ai, lúc nào, bao nhiêu dòng) TRƯỚC khi trả dữ liệu. Bị từ chối cũng được ghi.
+   */
+  @Get('permission-log/export')
+  async exportPermissionLog(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query() query: unknown,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+  ) {
+    const q = parse(z.object({ officeId: uuid }).strict(), query);
+    await this.run(a, 'dms_audit_export_log', [q.officeId, 'xlsx']);
+    const rows = await this.repo.rows<{
+      id: string;
+      kind: string;
+      group_name: string;
+      permission: string | null;
+      target_label: string | null;
+      reason: string;
+      status: string;
+      auto_applied: boolean;
+      proposed_by_label: string | null;
+      proposed_at: Date;
+      reviewed_by_label: string | null;
+      reviewed_at: Date | null;
+      review_reason: string | null;
+    }>(a.tenantId, 'dms_audit_export_rows', [a.tenantId, a.userId, q.officeId]);
+    const result = (r: (typeof rows)[number]) =>
+      r.status === 'PENDING'
+        ? 'Chờ duyệt'
+        : r.status === 'REJECTED'
+          ? 'Bị từ chối'
+          : r.auto_applied
+            ? 'Đã áp dụng (Admin tự đề xuất)'
+            : 'Đã áp dụng';
+    const buf = await buildXlsx({
+      name: 'Nhật ký phân quyền',
+      title: 'Nhật ký phân quyền',
+      notice: `Bản sao xuất ngày ${when(new Date())}. Nhật ký chỉ thêm, không sửa hay xóa; việc xuất bản sao này cũng được ghi lại.`,
+      columns: [
+        'Mã yêu cầu',
+        'Thời điểm đề xuất',
+        'Người đề xuất',
+        'Loại thay đổi',
+        'Nhóm quyền',
+        'Quyền',
+        'Người bị tác động',
+        'Lý do đề xuất',
+        'Người duyệt',
+        'Thời điểm duyệt',
+        'Kết quả',
+        'Lý do từ chối',
+      ],
+      rows: rows.map((r) => [
+        `PQ-${r.id.replace(/-/g, '').slice(-4).toUpperCase()}`,
+        when(r.proposed_at),
+        r.proposed_by_label,
+        KIND_LABEL[r.kind] ?? r.kind,
+        r.group_name,
+        r.permission,
+        r.target_label,
+        r.reason,
+        r.reviewed_by_label,
+        when(r.reviewed_at),
+        result(r),
+        r.review_reason,
+      ]),
+    });
+    res.set({
+      'Content-Type': XLSX_MIME,
+      'Content-Disposition': 'attachment; filename="nhat-ky-phan-quyen.xlsx"',
+      'Cache-Control': 'private, no-store',
+    });
+    return new StreamableFile(buf);
   }
 
   @Get('groups')

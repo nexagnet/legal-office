@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
+import ExcelJS from 'exceljs';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
@@ -583,5 +584,72 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect((await api('POST', '/dms/cases-without-branch/assign', U.approver1, body)).status).toBe(
       422,
     );
+  });
+
+  it('xuất bản sao nhật ký phân quyền: quyền riêng, bị từ chối cũng ghi, xuất xong có dòng nhật ký', async () => {
+    const exporter = id();
+    await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$3)`, [
+      exporter,
+      T,
+      exporter,
+    ]);
+    const fetchXlsx = (user: string) =>
+      fetch(`${base}/dms/permission-log/export?officeId=${OFF}`, {
+        headers: { 'x-synthetic-user': user, 'x-synthetic-tenant': T },
+      });
+    // Không có quyền riêng (kể cả người duyệt phân quyền): 403 và có dòng từ chối
+    const denied = await fetchXlsx(U.approver1);
+    expect(denied.status).toBe(403);
+    const deniedRows = await owner.query(
+      `SELECT outcome FROM audit_log WHERE tenant_id = $1 AND action = 'dms.audit.export' ORDER BY id DESC LIMIT 1`,
+      [T],
+    );
+    expect(deniedRows.rows[0].outcome).toBe('deny');
+    // Cấp quyền riêng cho một nhóm rồi xuất
+    const g = (
+      await owner.query(
+        `INSERT INTO dms_permission_groups (tenant_id, office_id, name) VALUES ($1,$2,'Xuất nhật ký') RETURNING id`,
+        [T, OFF],
+      )
+    ).rows[0].id;
+    await owner.query(
+      `INSERT INTO dms_group_permissions (tenant_id, group_id, permission) VALUES ($1,$2,'dms.audit.export')`,
+      [T, g],
+    );
+    await owner.query(
+      `INSERT INTO dms_group_members (tenant_id, group_id, user_id) VALUES ($1,$2,$3)`,
+      [T, g, exporter],
+    );
+    const ok = await fetchXlsx(exporter);
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get('content-type')).toContain('spreadsheetml');
+    const bytes = Buffer.from(await ok.arrayBuffer());
+    expect(bytes.subarray(0, 2).toString()).toBe('PK');
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(bytes as unknown as ExcelJS.Buffer);
+    const ws = wb.worksheets[0]!;
+    expect(String(ws.getRow(3).getCell(1).value)).toBe('Mã yêu cầu');
+    expect(ws.rowCount).toBeGreaterThan(3); // có dòng dữ liệu từ các test trước
+    // Việc xuất được ghi lại: ai, bao nhiêu dòng
+    const logged = await owner.query(
+      `SELECT actor_id, detail FROM dms_audit_records WHERE tenant_id = $1 AND action = 'dms.audit.export'`,
+      [T],
+    );
+    expect(logged.rows).toHaveLength(1);
+    expect(logged.rows[0].actor_id).toBe(exporter);
+    expect(logged.rows[0].detail.rows).toBe(ws.rowCount - 3);
+    // Quyền riêng này không được sao chép sang nhóm mới
+    const copy = await api('POST', `/dms/groups/${g}/copy`, U.approver1, {
+      name: 'Bản sao xuất nhật ký',
+    });
+    expect(copy.status).toBe(200);
+    const perms = await owner.query(
+      `SELECT permission FROM dms_group_permissions WHERE group_id = (SELECT id FROM dms_permission_groups WHERE name = 'Bản sao xuất nhật ký' AND tenant_id = $1)`,
+      [T],
+    );
+    expect(perms.rows).toEqual([]);
+    // Danh mục quyền hiệu lực của người xuất có mã mới
+    const mine = await api('GET', `/dms/me/permissions?officeId=${OFF}`, exporter);
+    expect(mine.json.permissions).toContain('dms.audit.export');
   });
 });
