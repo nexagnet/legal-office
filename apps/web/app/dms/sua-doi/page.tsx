@@ -89,6 +89,69 @@ export default async function DmsAmendmentsPage() {
         đổi. Admin gửi thì có hiệu lực ngay; người khác luôn chờ Admin duyệt, không có tự duyệt theo
         thời gian.
       </p>
+      {rows !== 'error' && rows.some((a) => a.status === 'PENDING') ? (
+        <section aria-labelledby="cho-duyet" className="mb-5 grid gap-3">
+          <h2 id="cho-duyet">Chờ duyệt ({rows.filter((a) => a.status === 'PENDING').length})</h2>
+          {rows
+            .filter((a) => a.status === 'PENDING')
+            .map((a) => {
+              const c = caseById.get(a.case_id);
+              const d = c ? slugOf(c.domain) : undefined;
+              const changes = Object.entries(a.proposed.attributes ?? {});
+              return (
+                <article key={a.id} className="rounded-2xl bg-surface p-5 shadow-sm">
+                  <h3>
+                    So sánh trước / sau ·{' '}
+                    {c && d ? <Link href={`/dms/${d.slug}/${c.id}`}>{c.title}</Link> : '—'}
+                  </h3>
+                  {a.proposed.title ? (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <p className="rounded-lg bg-[#fde8e5] px-3 py-2 text-sm">
+                        Trước (hiện hành): Tiêu đề: {c?.title ?? '—'}
+                      </p>
+                      <p className="rounded-lg bg-[#dff3e6] px-3 py-2 text-sm">
+                        Sau (đề nghị): Tiêu đề: {a.proposed.title}
+                      </p>
+                    </div>
+                  ) : null}
+                  {changes.map(([k, v]) => {
+                    const label = heading.get(k)?.replace(/\s*\(.*?\)/g, '') ?? k;
+                    return (
+                      <div key={k} className="mt-2 grid gap-2 sm:grid-cols-2">
+                        <p className="rounded-lg bg-[#fde8e5] px-3 py-2 text-sm">
+                          Trước (hiện hành): {label}: {String(c?.attributes?.[k] ?? '—') || '—'}
+                        </p>
+                        <p className="rounded-lg bg-[#dff3e6] px-3 py-2 text-sm">
+                          Sau (đề nghị): {label}: {String(v)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                  <p className="muted mt-3 text-sm">
+                    Gửi {fmt.format(new Date(a.requested_at))} · Lý do: {a.reason}
+                  </p>
+                  <p className="mt-3 flex flex-wrap items-center gap-3">
+                    <Button asChild variant="secondary">
+                      <a
+                        className="no-underline"
+                        href={`/api/dms/amendments/${a.id}/evidence`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Xem bản scan căn cứ
+                      </a>
+                    </Button>
+                    <DmsAmendmentReview requestId={a.id} />
+                  </p>
+                  <p className="muted mt-2 text-xs">
+                    Duyệt lưu bản trước và sau, không xóa bản cũ, không ghi đè file gốc. Duyệt trên
+                    phần mềm không thay chữ ký hoặc thẩm quyền ngoài đời.
+                  </p>
+                </article>
+              );
+            })}
+        </section>
+      ) : null}
       {rows === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tải được yêu cầu</h2>
