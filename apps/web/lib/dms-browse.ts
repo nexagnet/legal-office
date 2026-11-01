@@ -1,5 +1,14 @@
 import { API_URL } from './server';
 import type { DmsBookRow, DmsBookSpec, DmsCaseRow, DmsFilter } from './dms';
+import { filterToParams } from './dms-filter-params';
+
+export {
+  filterToParams,
+  savedParamsToHref,
+  viewToSavedParams,
+  type DmsSavedParams,
+  type DmsView,
+} from './dms-filter-params';
 
 /**
  * Danh sách hồ sơ DMS ở quy mô lớn: lọc, tìm, đếm và phân trang chạy trong cơ sở dữ liệu (`/dms/case-search`,
@@ -37,27 +46,6 @@ export interface DmsCaseSearchResult {
 }
 
 export const TOTAL_CAP = 10_000;
-
-/** Chip lọc -> bộ lọc của API. Nháp và đã hủy không có năm ghi sổ nên không lọc theo năm. */
-export function filterToParams(
-  filter: DmsFilter,
-  year: number,
-): { status: 'RECORDED' | 'DRAFT' | 'CANCELLED'; year?: number; scan?: string; pending?: string } {
-  switch (filter) {
-    case 'nhap':
-      return { status: 'DRAFT' };
-    case 'da-huy':
-      return { status: 'CANCELLED' };
-    case 'cho-duyet':
-      return { status: 'RECORDED', year, pending: 'true' };
-    case 'thieu-scan':
-      return { status: 'RECORDED', year, scan: 'missing' };
-    case 'du-scan':
-      return { status: 'RECORDED', year, scan: 'complete' };
-    default:
-      return { status: 'RECORDED', year };
-  }
-}
 
 function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
   const q = new URLSearchParams({ officeId: p.officeId, domain: p.domain });
@@ -172,3 +160,29 @@ export function pageWindow(page: number, pageCount: number): (number | '…')[] 
 
 export const formatTotal = (total: number, capped: boolean): string =>
   capped ? `${TOTAL_CAP.toLocaleString('vi-VN')}+` : total.toLocaleString('vi-VN');
+
+export interface DmsOcrFacets extends DmsFacetCounts {
+  readonly year: readonly DmsFacetOption[];
+}
+
+/** Lựa chọn lọc cho trang tìm nội dung scan: toàn văn phòng, chỉ hồ sơ đã ghi sổ (bản nháp không có OCR được tìm). */
+export async function loadDmsOcrFacets(
+  cookie: string | null,
+  officeId: string,
+  domain?: string,
+): Promise<DmsOcrFacets> {
+  const q = new URLSearchParams({ officeId, status: 'RECORDED' });
+  if (domain) q.set('domain', domain);
+  const body = await getJson<Partial<Record<keyof DmsOcrFacets, DmsFacetOption[]>>>(
+    `/dms/case-facet-counts?${q}`,
+    cookie,
+  );
+  return body === 'error'
+    ? { creator: [], branch: [], kind: [], year: [] }
+    : {
+        creator: body.creator ?? [],
+        branch: body.branch ?? [],
+        kind: body.kind ?? [],
+        year: body.year ?? [],
+      };
+}

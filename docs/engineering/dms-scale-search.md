@@ -78,3 +78,9 @@ Lưu ý khi đọc bảng: cột "trước" là các truy vấn mà API đang g�
 - `pg_trgm` là extension "trusted" nên tài khoản chủ DB thường tạo được. Nếu host không cho, migration vẫn chạy, chỉ thiếu chỉ mục trigram: tìm chữ trên hồ sơ quét tuần tự bảng chỉ mục (vài trăm ms ở 150.000 hồ sơ).
 - Hồ sơ bị huỷ hoặc tài liệu bị huỷ được xử lý qua trigger như mọi thay đổi khác.
 - Tái tạo dữ liệu đo: `psql -v cases=150000 -d <db cách ly> -f apps/api/bench/dms-scale/generate.sql`, `setup-role.sql`, rồi `node bench.mjs scenarios.optimized.mjs`. Không bao giờ chạy trên dev hay prod.
+
+## Gợi ý khi gõ, bộ lọc đã lưu, lọc ở trang tìm nội dung scan
+
+- Ô tìm hồ sơ (`DmsCaseSuggest`) gợi ý tối đa 8 hồ sơ sau khi ngừng gõ 0,2 giây (từ 2 ký tự), dùng `case-search` với `total=false`. Chọn gợi ý mở thẳng hồ sơ; Enter khi chưa chọn gửi biểu mẫu tìm như cũ. Lỗi gợi ý không chặn việc tìm.
+- Nút "Bộ lọc đã lưu" (`DmsSavedFilters`): lưu cách lọc hiện tại (chip, năm đã chọn, từ khoá, người tạo, loại tài liệu, đơn vị) với một tên, mở lại bằng một cú bấm, xoá được; tối đa 30 mỗi miền, riêng từng người.
+- Trang `/dms/tim-kiem` thêm lọc nghiệp vụ, năm ghi sổ, loại tài liệu, người tạo, đơn vị (kèm số hồ sơ) và phân trang Trước/Sau, tối đa 220 kết quả (thu hẹp bằng bộ lọc nếu cần thêm).

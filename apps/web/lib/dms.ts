@@ -485,15 +485,34 @@ export interface DmsSearchRow {
   readonly snippet: string;
 }
 
-/** Tìm toàn văn trong chữ OCR của tệp scan; chỉ trả hồ sơ người xem được quyền thấy. */
+export interface DmsOcrFilters {
+  readonly domain?: string;
+  readonly year?: number;
+  readonly creator?: string;
+  readonly kind?: string;
+  readonly branch?: string;
+  readonly offset?: number;
+}
+
+export const OCR_PAGE_SIZE = 20;
+
+/** Tìm toàn văn trong chữ OCR của tệp scan; chỉ trả hồ sơ người xem được quyền thấy. Lấy thêm 1 dòng để biết còn trang sau. */
 export async function searchDmsOcr(
   cookie: string | null,
   officeId: string,
   q: string,
-): Promise<DmsSearchRow[] | 'error'> {
-  const params = new URLSearchParams({ officeId, q, limit: '30' });
+  f: DmsOcrFilters = {},
+): Promise<{ rows: DmsSearchRow[]; hasMore: boolean } | 'error'> {
+  const params = new URLSearchParams({ officeId, q, limit: String(OCR_PAGE_SIZE + 1) });
+  if (f.domain) params.set('domain', f.domain);
+  if (f.year) params.set('year', String(f.year));
+  if (f.creator) params.set('creator', f.creator);
+  if (f.kind) params.set('kind', f.kind);
+  if (f.branch) params.set('branch', f.branch);
+  if (f.offset) params.set('offset', String(f.offset));
   const body = await getJson<{ rows: DmsSearchRow[] }>(`/dms/search?${params}`, cookie);
-  return body === 'error' ? 'error' : body.rows;
+  if (body === 'error') return 'error';
+  return { rows: body.rows.slice(0, OCR_PAGE_SIZE), hasMore: body.rows.length > OCR_PAGE_SIZE };
 }
 
 export interface DmsFacet {
@@ -527,4 +546,44 @@ export function matchFacet(f: DmsFacet | undefined, want: DmsFacetFilter): boole
   if (want.kind && !f?.doc_kinds.includes(want.kind)) return false;
   if (want.branch && f?.branch_id !== want.branch) return false;
   return true;
+}
+
+export interface DmsRevision {
+  readonly rev: number;
+  readonly title: string;
+  readonly attributes: Record<string, unknown>;
+  readonly created_at: string;
+  readonly created_by_name: string | null;
+  readonly reason: string | null;
+}
+
+/** Phiên bản hồ sơ: rev 0 là bản gốc, rev >= 1 là các bản sửa đổi đã duyệt. Lỗi thì trả rỗng, không chặn trang. */
+export async function loadDmsRevisions(
+  cookie: string | null,
+  caseId: string,
+): Promise<DmsRevision[]> {
+  const body = await getJson<{ rows: DmsRevision[] }>(
+    `/dms/cases/${encodeURIComponent(caseId)}/revisions`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.rows;
+}
+
+export interface DmsFieldChange {
+  readonly key: string;
+  readonly before: string;
+  readonly after: string;
+}
+
+/** Trường nào khác giữa hai phiên bản liên tiếp (gồm tiêu đề dưới khóa "title"); trống hiện là "—" ở giao diện. */
+export function diffRevision(prev: DmsRevision, next: DmsRevision): DmsFieldChange[] {
+  const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
+  const out: DmsFieldChange[] = [];
+  if (prev.title !== next.title) out.push({ key: 'title', before: prev.title, after: next.title });
+  for (const k of new Set([...Object.keys(prev.attributes), ...Object.keys(next.attributes)])) {
+    const b = str(prev.attributes[k]);
+    const a = str(next.attributes[k]);
+    if (a !== b) out.push({ key: k, before: b, after: a });
+  }
+  return out;
 }

@@ -4,9 +4,11 @@ import {
   activeDmsFilter,
   filterDmsCases,
   tabForFilter,
+  diffRevision,
   matchFacet,
   type DmsCaseRow,
   type DmsFacet,
+  type DmsRevision,
 } from '../lib/dms';
 
 const row = (id: string, title: string, docs: number, scans: number): DmsCaseRow => ({
@@ -77,5 +79,24 @@ describe('bộ lọc danh sách hồ sơ DMS', () => {
     // Chưa có dữ liệu phụ cho hồ sơ: chọn bộ lọc thì không khớp, không chọn thì khớp.
     expect(matchFacet(undefined, { creator: 'Nguyễn Văn A' })).toBe(false);
     expect(matchFacet(undefined, {})).toBe(true);
+  });
+
+  it('so sánh hai phiên bản liên tiếp: chỉ trả trường thay đổi, gồm tiêu đề', () => {
+    const rev = (n: number, title: string, a: Record<string, unknown>): DmsRevision => ({
+      rev: n,
+      title,
+      attributes: a,
+      created_at: '2026-11-01T00:00:00Z',
+      created_by_name: 'A',
+      reason: null,
+    });
+    const v1 = rev(0, 'Hồ sơ', { dia_chi: 'Phường Hồng Hà', ghi_chu: 'x' });
+    const v2 = rev(1, 'Hồ sơ mới', { dia_chi: 'Phường Hồng Hà, Hà Nội', ghi_chu: 'x', moi: 'y' });
+    expect(diffRevision(v1, v2)).toEqual([
+      { key: 'title', before: 'Hồ sơ', after: 'Hồ sơ mới' },
+      { key: 'dia_chi', before: 'Phường Hồng Hà', after: 'Phường Hồng Hà, Hà Nội' },
+      { key: 'moi', before: '', after: 'y' },
+    ]);
+    expect(diffRevision(v1, v1)).toEqual([]);
   });
 });

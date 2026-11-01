@@ -1,5 +1,6 @@
 import { DataTable } from '../../../components/ui/data-table';
 import Link from 'next/link';
+import { ErrorRetry } from '../../../components/ErrorRetry';
 import { CopyValueButton } from '../../../components/CopyValueButton';
 import { TabNav } from '../../../components/ui/tab-nav';
 import { loadDmsReport, type DmsReportRow } from '../../../lib/dms';
@@ -179,9 +180,10 @@ export default async function DmsReportPage({
         hết ngày cuối kỳ (Điều 36 TT 08/2026/TT-BTP).
       </p>
       {rows === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được báo cáo</h2>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được báo cáo. Kiểm tra kết nối và thử lại."
+        />
       ) : (
         <DataTable tableKey="dms-bao-cao-page-1">
           <table>
