@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { AdminBannerContext, type BannerOverride } from './admin-banner';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
@@ -314,6 +315,7 @@ export function AppShell({
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [banner, setBanner] = useState<BannerOverride | undefined>();
   useEffect(() => {
     try {
       setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === '1');
@@ -347,155 +349,176 @@ export function AppShell({
     STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
     (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
   return (
-    <div className="shell" data-domain={domain} data-collapsed={collapsed ? 'true' : undefined}>
-      <a className="skip" href="#main">
-        Bỏ qua điều hướng
-      </a>
-      <aside className="side" data-open={open}>
-        <div className="brand">
-          <div data-testid="tenant-logo-slot" className="logo-slot" aria-hidden="true">
-            <Scale aria-hidden="true" />
+    <AdminBannerContext.Provider value={setBanner}>
+      <div
+        className="shell"
+        data-domain={domain}
+        data-area={pathname.startsWith('/quan-tri') ? 'admin' : undefined}
+        data-collapsed={collapsed ? 'true' : undefined}
+      >
+        <a className="skip" href="#main">
+          Bỏ qua điều hướng
+        </a>
+        <aside className="side" data-open={open}>
+          <div className="brand">
+            <div data-testid="tenant-logo-slot" className="logo-slot" aria-hidden="true">
+              <Scale aria-hidden="true" />
+            </div>
+            <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
           </div>
-          <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
-        </div>
-        <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
-          {GROUPS.map(({ group, title }) => {
-            const inGroup = items.filter((i) => i.group === group);
-            if (inGroup.length === 0) return null;
-            return (
-              <div key={group} className="nav-group">
-                <h2 className="nav-title">{title}</h2>
-                <ul>
-                  {inGroup.map((i) => (
-                    <li key={i.slug}>
-                      <Link
-                        href={hrefOf(i)}
-                        aria-current={current === i ? 'page' : undefined}
-                        onClick={() => setOpen(false)}
-                      >
-                        <NavIcon slug={i.slug} />
-                        <span className="nav-label">{i.label}</span>
-                        {badges[i.slug] ? (
-                          <span className="nav-badge">
-                            <span className="sr-only">Đang chờ: </span>
-                            {badges[i.slug]}
-                          </span>
-                        ) : null}
-                        <NavPending />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </nav>
-        {signedIn ? (
-          <div className="profile">
-            {userName ? (
-              <Avatar name={userName} id={userId} size="lg" />
-            ) : (
-              <span className="avatar" aria-hidden="true">
-                {initials(roleLabel ?? 'Nhân viên')}
+          <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
+            {GROUPS.map(({ group, title }) => {
+              const inGroup = items.filter((i) => i.group === group);
+              if (inGroup.length === 0) return null;
+              return (
+                <div key={group} className="nav-group">
+                  <h2 className="nav-title">{title}</h2>
+                  <ul>
+                    {inGroup.map((i) => (
+                      <li key={i.slug}>
+                        <Link
+                          href={hrefOf(i)}
+                          aria-current={current === i ? 'page' : undefined}
+                          onClick={() => setOpen(false)}
+                        >
+                          <NavIcon slug={i.slug} />
+                          <span className="nav-label">{i.label}</span>
+                          {badges[i.slug] ? (
+                            <span className="nav-badge">
+                              <span className="sr-only">Đang chờ: </span>
+                              {badges[i.slug]}
+                            </span>
+                          ) : null}
+                          <NavPending />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </nav>
+          {signedIn ? (
+            <div className="profile">
+              {userName ? (
+                <Avatar name={userName} id={userId} size="lg" />
+              ) : (
+                <span className="avatar" aria-hidden="true">
+                  {initials(roleLabel ?? 'Nhân viên')}
+                </span>
+              )}
+              <span className="profile-text">
+                <strong>{userName ?? roleLabel ?? 'Nhân viên văn phòng'}</strong>
+                <small>
+                  {userName ? (roleLabel ?? 'Nhân viên văn phòng') : 'Xem quyền theo tài khoản'}
+                </small>
               </span>
-            )}
-            <span className="profile-text">
-              <strong>{userName ?? roleLabel ?? 'Nhân viên văn phòng'}</strong>
-              <small>
-                {userName ? (roleLabel ?? 'Nhân viên văn phòng') : 'Xem quyền theo tài khoản'}
-              </small>
-            </span>
+              <button
+                type="button"
+                className="link-btn"
+                onClick={async () => {
+                  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
+                  router.push('/login');
+                  router.refresh();
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            className="side-collapse"
+            aria-pressed={collapsed}
+            aria-label={collapsed ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'}
+            onClick={toggleCollapsed}
+          >
+            {collapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
+            <span className="nav-label">Thu gọn</span>
+          </button>
+        </aside>
+        <div className="content">
+          {signedIn ? (
+            <div className="appbar">
+              <SearchPalette items={items} />
+              <span className="appbar-gap" />
+              <Link
+                href="/thong-bao"
+                className="appbar-icon"
+                aria-label={badges['viec-cua-toi'] ? 'Thông báo: có việc đang chờ' : 'Thông báo'}
+              >
+                <Bell aria-hidden="true" />
+                {badges['viec-cua-toi'] || badges['hop-duyet'] ? (
+                  <span className="appbar-dot" aria-hidden="true" />
+                ) : null}
+              </Link>
+              <span className="appbar-divider" aria-hidden="true" />
+              <ProfileMenu
+                initials={initials(roleLabel ?? 'Nhân viên')}
+                roleLabel={roleLabel ?? 'Nhân viên văn phòng'}
+                userName={userName}
+                userId={userId}
+              />
+            </div>
+          ) : null}
+          <header className="topbar">
             <button
               type="button"
-              className="link-btn"
-              onClick={async () => {
-                await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
-                router.push('/login');
-                router.refresh();
-              }}
+              className="menu-btn"
+              aria-expanded={open}
+              aria-controls="primary-nav"
+              onClick={() => setOpen((v) => !v)}
             >
-              Đăng xuất
+              {open ? 'Đóng menu' : 'Menu'}
             </button>
-          </div>
-        ) : null}
-        <button
-          type="button"
-          className="side-collapse"
-          aria-pressed={collapsed}
-          aria-label={collapsed ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'}
-          onClick={toggleCollapsed}
-        >
-          {collapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
-          <span className="nav-label">Thu gọn</span>
-        </button>
-      </aside>
-      <div className="content">
-        {signedIn ? (
-          <div className="appbar">
-            <SearchPalette items={items} />
-            <span className="appbar-gap" />
-            <Link
-              href="/thong-bao"
-              className="appbar-icon"
-              aria-label={badges['viec-cua-toi'] ? 'Thông báo: có việc đang chờ' : 'Thông báo'}
-            >
-              <Bell aria-hidden="true" />
-              {badges['viec-cua-toi'] || badges['hop-duyet'] ? (
-                <span className="appbar-dot" aria-hidden="true" />
+            <div className="topbar-title" data-case={caseFrame ? 'true' : undefined}>
+              {caseFrame ? <div id="case-banner" className="case-banner" /> : null}
+              {!caseFrame && banner?.crumb ? (
+                <nav className="topbar-crumb" aria-label="Đường dẫn">
+                  {banner.crumb.map(([label, href], i, all) => (
+                    <span key={label}>
+                      {i > 0 ? ' › ' : ''}
+                      {href && i < all.length - 1 ? <Link href={href}>{label}</Link> : label}
+                    </span>
+                  ))}
+                </nav>
               ) : null}
-            </Link>
-            <span className="appbar-divider" aria-hidden="true" />
-            <ProfileMenu
-              initials={initials(roleLabel ?? 'Nhân viên')}
-              roleLabel={roleLabel ?? 'Nhân viên văn phòng'}
-              userName={userName}
-              userId={userId}
-            />
-          </div>
+              <p className="topbar-h" hidden={caseFrame}>
+                {banner?.title ??
+                  head?.title ??
+                  current?.label ??
+                  tenantName ??
+                  'Quản lý văn phòng'}
+              </p>
+              {!caseFrame && (head || current) ? (
+                <p className="topbar-sub">{banner?.sub ?? head?.sub ?? current?.summary}</p>
+              ) : null}
+            </div>
+          </header>
+          <main id="main" className="main" tabIndex={-1}>
+            {children}
+          </main>
+        </div>
+        {quick.length > 0 ? (
+          <nav className="bottom-nav" aria-label="Truy cập nhanh">
+            {quick.map((i) => (
+              <Link key={i.slug} href={hrefOf(i)} aria-current={current === i ? 'page' : undefined}>
+                <NavIcon slug={i.slug} />
+                <span>{i.label}</span>
+              </Link>
+            ))}
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls="primary-nav"
+              onClick={() => setOpen((v) => !v)}
+            >
+              <Menu className="nav-icon" aria-hidden="true" />
+              <span>Thêm</span>
+            </button>
+          </nav>
         ) : null}
-        <header className="topbar">
-          <button
-            type="button"
-            className="menu-btn"
-            aria-expanded={open}
-            aria-controls="primary-nav"
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? 'Đóng menu' : 'Menu'}
-          </button>
-          <div className="topbar-title" data-case={caseFrame ? 'true' : undefined}>
-            {caseFrame ? <div id="case-banner" className="case-banner" /> : null}
-            <p className="topbar-h" hidden={caseFrame}>
-              {head?.title ?? current?.label ?? tenantName ?? 'Quản lý văn phòng'}
-            </p>
-            {!caseFrame && (head || current) ? (
-              <p className="topbar-sub">{head?.sub ?? current?.summary}</p>
-            ) : null}
-          </div>
-        </header>
-        <main id="main" className="main" tabIndex={-1}>
-          {children}
-        </main>
       </div>
-      {quick.length > 0 ? (
-        <nav className="bottom-nav" aria-label="Truy cập nhanh">
-          {quick.map((i) => (
-            <Link key={i.slug} href={hrefOf(i)} aria-current={current === i ? 'page' : undefined}>
-              <NavIcon slug={i.slug} />
-              <span>{i.label}</span>
-            </Link>
-          ))}
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls="primary-nav"
-            onClick={() => setOpen((v) => !v)}
-          >
-            <Menu className="nav-icon" aria-hidden="true" />
-            <span>Thêm</span>
-          </button>
-        </nav>
-      ) : null}
-    </div>
+    </AdminBannerContext.Provider>
   );
 }
