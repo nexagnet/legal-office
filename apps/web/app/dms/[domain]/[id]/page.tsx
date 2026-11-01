@@ -8,6 +8,7 @@ import {
   DmsDraftActions,
   UploadDmsFile,
 } from '../../../../components/DmsCaseActions';
+import { Button } from '../../../../components/ui/button';
 import { TabNav } from '../../../../components/ui/tab-nav';
 import {
   AMENDMENT_STATUS_LABEL,
@@ -62,10 +63,11 @@ export default async function DmsCasePage({
   searchParams,
 }: {
   params: Promise<{ domain: string; id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; file?: string }>;
 }) {
   const { domain: slug, id } = await params;
-  const tab = activeTab((await searchParams).tab);
+  const sp = await searchParams;
+  const tab = activeTab(sp.tab);
   const domain = domainBySlug(slug);
   if (!domain) notFound();
   const session = await currentSession();
@@ -114,6 +116,9 @@ export default async function DmsCasePage({
   const pendingCount =
     amendments === 'error' ? 0 : amendments.filter((a) => a.status === 'PENDING').length;
   const fileCount = filesByDoc.reduce((n, f) => n + f.length, 0);
+  const allFiles = filesByDoc.flat();
+  const preview =
+    allFiles.find((f) => f.id === sp.file) ?? allFiles.find((f) => f.is_scan) ?? allFiles[0];
 
   // STT của hồ sơ trong sổ (chỉ hồ sơ đã ghi sổ): lấy từ dữ liệu sổ của năm ghi sổ.
   const bookCode = BOOK_OF_DOMAIN[domain.code];
@@ -243,57 +248,97 @@ export default async function DmsCasePage({
       ) : null}
 
       {tab === 'tai-lieu' ? (
-        <>
-          {isDraft && canAddDocument(permissions, domain.code) ? (
-            <AddDmsDocumentForm caseId={c.id} />
-          ) : null}
-          {docs.length === 0 ? (
-            <div className="state" role="status">
-              <h3>Chưa có tài liệu</h3>
-            </div>
-          ) : (
-            docs.map((d, i) => (
-              <article key={d.id} className="mb-4" aria-label={d.title}>
-                <h3>
-                  {d.title}{' '}
-                  <span className="muted">
-                    ({d.kind}
-                    {d.is_official ? ' · chính thức' : ''})
-                  </span>
-                </h3>
-                {filesByDoc[i]!.length === 0 ? (
-                  <p className="muted">Chưa có tệp.</p>
-                ) : (
-                  <ul>
-                    {filesByDoc[i]!.map((f) => (
-                      <li key={f.id}>
-                        {f.label} · {f.is_scan ? 'bản scan' : 'tệp'} · v{f.version} ·{' '}
-                        {sizeLabel(f.size_bytes)} ·{' '}
-                        <a href={`/api/dms/files/${f.id}/download`}>Xem</a> ·{' '}
-                        <a href={`/api/dms/files/${f.id}/download`} download>
-                          Tải
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {isDraft &&
-                book &&
-                book.source === 'document' &&
-                canDraft(permissions, domain.code) ? (
-                  <DmsAttributesForm
-                    url={`/api/dms/documents/${d.id}/draft`}
-                    columns={inputColumns(book)}
-                    current={d.attributes}
-                    fixed={{ kind: d.kind, title: d.title, isOfficial: d.is_official }}
-                    legend={`Giấy tờ vào sổ ${book.code}`}
-                  />
-                ) : null}
-                {c.status !== 'CANCELLED' ? <UploadDmsFile documentId={d.id} /> : null}
-              </article>
-            ))
-          )}
-        </>
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div>
+            {isDraft && canAddDocument(permissions, domain.code) ? (
+              <AddDmsDocumentForm caseId={c.id} />
+            ) : null}
+            {docs.length === 0 ? (
+              <div className="state" role="status">
+                <h3>Chưa có tài liệu</h3>
+              </div>
+            ) : (
+              docs.map((d, i) => (
+                <article key={d.id} className="mb-4" aria-label={d.title}>
+                  <h3>
+                    {d.title}{' '}
+                    <span className="muted">
+                      ({d.kind}
+                      {d.is_official ? ' · chính thức' : ''})
+                    </span>
+                  </h3>
+                  {filesByDoc[i]!.length === 0 ? (
+                    <p className="muted">Chưa có tệp.</p>
+                  ) : (
+                    <ul>
+                      {filesByDoc[i]!.map((f) => (
+                        <li key={f.id}>
+                          {f.label} · {f.is_scan ? 'bản scan' : 'tệp'} · v{f.version} ·{' '}
+                          {sizeLabel(f.size_bytes)} ·{' '}
+                          <Link href={`${base}?tab=tai-lieu&file=${f.id}`}>Xem</Link> ·{' '}
+                          <a href={`/api/dms/files/${f.id}/download`} download>
+                            Tải
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {isDraft &&
+                  book &&
+                  book.source === 'document' &&
+                  canDraft(permissions, domain.code) ? (
+                    <DmsAttributesForm
+                      url={`/api/dms/documents/${d.id}/draft`}
+                      columns={inputColumns(book)}
+                      current={d.attributes}
+                      fixed={{ kind: d.kind, title: d.title, isOfficial: d.is_official }}
+                      legend={`Giấy tờ vào sổ ${book.code}`}
+                    />
+                  ) : null}
+                  {c.status !== 'CANCELLED' ? <UploadDmsFile documentId={d.id} /> : null}
+                </article>
+              ))
+            )}
+          </div>
+          <aside aria-label="Xem trước tệp">
+            {preview ? (
+              <>
+                <iframe
+                  title={`Xem trước ${preview.label}`}
+                  src={`/api/dms/files/${preview.id}/download?inline=1`}
+                  className="h-[560px] w-full rounded-2xl border border-line bg-surface"
+                />
+                <p className="muted mt-2">Xem trước · {preview.label}</p>
+                <p className="mt-2 flex flex-wrap items-center gap-2">
+                  <Button asChild>
+                    <a href={`/api/dms/files/${preview.id}/download`} download>
+                      Tải bản scan chính
+                    </a>
+                  </Button>
+                  <Button asChild variant="secondary">
+                    <a
+                      href={`/api/dms/files/${preview.id}/download?inline=1`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      In
+                    </a>
+                  </Button>
+                  {c.status === 'RECORDED' ? (
+                    <Button asChild variant="secondary">
+                      <Link href={`${base}?tab=sua-doi`}>Tạo yêu cầu sửa đổi</Link>
+                    </Button>
+                  ) : null}
+                </p>
+                <p className="muted">Không có nút xóa hồ sơ, xóa tài liệu hay ghi đè tệp.</p>
+              </>
+            ) : (
+              <div className="state" role="status">
+                <h3>Chọn một tệp để xem trước</h3>
+              </div>
+            )}
+          </aside>
+        </div>
       ) : null}
 
       {tab === 'tep' ? (

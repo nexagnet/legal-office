@@ -279,6 +279,9 @@ export default async function DmsDomainPage({
         <Button type="submit" variant="secondary">
           Tìm
         </Button>
+        <Link href="/dms/tim-kiem" className="text-sm">
+          Tìm trong nội dung scan
+        </Link>
       </form>
       <DmsCaseTable
         rows={pageRows}
