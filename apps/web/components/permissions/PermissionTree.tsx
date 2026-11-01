@@ -114,7 +114,11 @@ export function PermissionTree({
   const [opened, setOpened] = useState<Readonly<Record<string, boolean>>>({});
 
   return (
-    <div className="grid gap-4" role="group" aria-label="Cây quyền chi tiết theo nghiệp vụ">
+    <div
+      className="grid grid-cols-[minmax(0,1fr)] gap-4"
+      role="group"
+      aria-label="Cây quyền chi tiết theo nghiệp vụ"
+    >
       {PERMISSION_DOMAINS.map(([domain, title]) => {
         const codes = PERMISSION_ACTIONS.flatMap(([a]) =>
           (['own', 'all'] as const).map((s) => `${domain}.${a}.${s}`),
@@ -123,7 +127,7 @@ export function PermissionTree({
         return (
           <details
             key={domain}
-            className="tree-domain grid gap-2 rounded-xl border border-line p-4"
+            className="tree-domain grid grid-cols-[minmax(0,1fr)] gap-2 rounded-xl border border-line p-4"
             open={opened[domain] ?? initiallyOpen.current.has(domain)}
             onToggle={(e) => {
               const isOpen = e.currentTarget.open;
