@@ -3,39 +3,31 @@
 import Link from 'next/link';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ROLE_LABEL } from '../lib/messages';
-import type { Member } from '../lib/admin-api';
+import {
+  ACCOUNT_STATE_LABEL,
+  normalizeText,
+  type AccountState,
+  type MemberRow,
+} from '../lib/permission-model';
 import { CaseActionDialog } from './CaseActionDialog';
 import { MemberNameForm } from './MemberNameForm';
+import { NoteBox, Pill, type PillTone } from './permissions/Pill';
 import { Avatar } from './ui/avatar';
 
-export interface MemberRow extends Member {
-  readonly pending: boolean;
-}
+export type { MemberRow } from '../lib/permission-model';
 
 type Filter = 'all' | 'pending' | 'norole';
 
-const normalize = (s: string) =>
-  s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
+const STATE_TONE: Record<AccountState, PillTone> = {
+  active: 'ok',
+  'no-access': 'warn',
+  waiting: 'brass',
+};
 
-/** "Tên (email)" → { name, email }. Nhãn do API ghép sẵn nên tách lại để hiển thị hai dòng. */
-function splitLabel(label: string): { name: string; email: string | null } {
-  const m = /^(.*?)\s*\(([^()]+)\)\s*$/.exec(label);
-  const name = m?.[1];
-  const email = m?.[2];
-  return name && email ? { name, email } : { name: email ?? label, email: null };
-}
-
-function statusOf(m: MemberRow): { label: string; tone: 'ok' | 'warn' | 'idle' } {
-  if (!m.role)
-    return m.pending
-      ? { label: 'Chờ duyệt', tone: 'warn' }
-      : { label: 'Chưa có vai', tone: 'idle' };
-  return m.hasLogin
-    ? { label: 'Hoạt động', tone: 'ok' }
-    : { label: 'Chưa có tài khoản', tone: 'idle' };
-}
-
-/** Danh bạ thành viên: tìm theo tên/email (không dấu) và lọc theo trạng thái (Figma N11 · Q1). */
+/**
+ * Danh bạ thành viên (Figma N11 · Q1): tên, email, địa điểm làm việc là dữ liệu nhân sự. Quyền truy cập ứng dụng
+ * nằm ở mục Phân quyền, nên bảng này chỉ cho biết nhóm quyền của từng người và dẫn sang "Xem quyền hiệu lực".
+ */
 export function MemberTable({
   members,
   action,
@@ -48,26 +40,28 @@ export function MemberTable({
 }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const match = (m: MemberRow, f: Filter) =>
+    f === 'all' || (f === 'pending' ? m.pending : m.state !== 'active');
   const counts = useMemo(
     () => ({
       all: members.length,
-      pending: members.filter((m) => !m.role && m.pending).length,
-      norole: members.filter((m) => !m.role).length,
+      pending: members.filter((m) => match(m, 'pending')).length,
+      norole: members.filter((m) => match(m, 'norole')).length,
     }),
     [members],
   );
   const shown = useMemo(() => {
-    const needle = normalize(query.trim());
+    const needle = normalizeText(query.trim());
     return members.filter(
       (m) =>
-        (filter === 'all' || (filter === 'pending' ? !m.role && m.pending : !m.role)) &&
-        (!needle || normalize(m.label).includes(needle)),
+        match(m, filter) &&
+        (!needle || normalizeText(`${m.name} ${m.email ?? ''}`).includes(needle)),
     );
   }, [members, query, filter]);
   const chips: readonly [Filter, string][] = [
     ['all', 'Tất cả'],
     ['pending', 'Chờ duyệt'],
-    ['norole', 'Chưa có vai'],
+    ['norole', 'Chưa có quyền'],
   ];
 
   return (
@@ -78,9 +72,10 @@ export function MemberTable({
           aria-label="Tìm thành viên"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Tìm theo tên hoặc email…"
+          placeholder="Tìm thành viên…"
+          className="!max-w-[220px] !flex-none"
         />
-        <div className="chip-row" role="group" aria-label="Lọc theo trạng thái">
+        <div className="chip-row flex-1" role="group" aria-label="Lọc theo trạng thái">
           {chips.map(([k, label]) => (
             <button
               key={k}
@@ -104,74 +99,89 @@ export function MemberTable({
           <thead>
             <tr>
               <th scope="col">Thành viên</th>
-              <th scope="col">Vai trò</th>
-              <th scope="col">Địa điểm</th>
-              <th scope="col">Quyền ký</th>
-              <th scope="col">Trạng thái</th>
+              <th scope="col">Địa điểm làm việc</th>
+              <th scope="col">Tài khoản</th>
+              <th scope="col">Nhóm quyền</th>
+              <th scope="col">
+                <span className="sr-only">Quyền hiệu lực</span>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {shown.map((m) => {
-              const { name, email } = splitLabel(m.label);
-              const st = statusOf(m);
-              return (
-                <tr key={`${m.userId}-${m.role ?? 'none'}`}>
-                  <th scope="row">
-                    <span className="person w-full">
-                      <Avatar
-                        name={name}
-                        id={m.userId}
-                        size="lg"
-                        className={m.role ? undefined : 'opacity-50'}
-                      />
-                      <span className="grid min-w-0 flex-1">
-                        <span className="person-name">{name}</span>
-                        {email ? <span className="person-mail">{email}</span> : null}
-                      </span>
-                      {officeId && m.role ? (
-                        <CaseActionDialog
-                          label="Sửa tên"
-                          title="Sửa họ tên hiển thị"
-                          description={email ?? undefined}
-                          className="link-btn ml-auto shrink-0 whitespace-nowrap text-[13px] font-semibold"
-                        >
-                          <MemberNameForm
-                            userId={m.userId}
-                            officeId={officeId}
-                            currentName={name}
-                          />
-                        </CaseActionDialog>
+            {shown.map((m) => (
+              <tr key={m.userId}>
+                <th scope="row" className="min-w-[260px]">
+                  <span className="person w-full">
+                    <Avatar
+                      name={m.name}
+                      id={m.userId}
+                      size="lg"
+                      className={m.state === 'active' ? undefined : 'opacity-60'}
+                    />
+                    <span className="grid min-w-0 flex-1">
+                      <span className="person-name">{m.name}</span>
+                      {m.email ? <span className="person-mail">{m.email}</span> : null}
+                    </span>
+                    {officeId ? (
+                      <CaseActionDialog
+                        label="Sửa tên"
+                        title="Sửa họ tên hiển thị"
+                        description={m.email ?? undefined}
+                        className="link-btn ml-auto shrink-0 whitespace-nowrap text-[13px] font-semibold"
+                      >
+                        <MemberNameForm
+                          userId={m.userId}
+                          officeId={officeId}
+                          currentName={m.name}
+                        />
+                      </CaseActionDialog>
+                    ) : null}
+                  </span>
+                </th>
+                <td>
+                  {m.isAdmin
+                    ? 'Toàn văn phòng'
+                    : m.branches.length > 0
+                      ? m.branches.join(', ')
+                      : '—'}
+                </td>
+                <td>
+                  <Pill tone={STATE_TONE[m.state]}>{ACCOUNT_STATE_LABEL[m.state]}</Pill>
+                </td>
+                <td>
+                  {m.groupNames.length > 0 ? (
+                    m.groupNames.join(' + ')
+                  ) : m.isAdmin ? (
+                    'Admin (mặc nhiên)'
+                  ) : (
+                    <span className="grid">
+                      <span>Chưa có nhóm</span>
+                      {m.legacyRole ? (
+                        <span className="person-mail">
+                          Vai cũ: {ROLE_LABEL[m.legacyRole] ?? m.legacyRole}
+                        </span>
                       ) : null}
                     </span>
-                  </th>
-                  <td>
-                    {m.role ? (
-                      <span className="role-pill" data-role={m.role}>
-                        {ROLE_LABEL[m.role] ?? m.role}
-                      </span>
-                    ) : (
-                      <span className="muted">Chưa có vai</span>
-                    )}
-                  </td>
-                  <td>
-                    {m.branches.length > 0 ? (
-                      m.branches.join(', ')
-                    ) : (
-                      <span className="muted">Không</span>
-                    )}
-                  </td>
-                  <td>{m.legalSigner ? <strong className="ok-text">Có</strong> : '—'}</td>
-                  <td>
-                    <span className="state-pill" data-tone={st.tone}>
-                      {st.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+                  )}
+                </td>
+                <td>
+                  <Link
+                    className="link-btn font-semibold whitespace-nowrap"
+                    href={`/quan-tri/phan-quyen/nguoi-dung/${m.userId}`}
+                  >
+                    Xem quyền hiệu lực ›
+                  </Link>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
+      <NoteBox title="Không còn cột “Quyền ký”">
+        Một người có thể thuộc nhiều nhóm quyền; quyền hiệu lực là tập hợp quyền của từng nhóm, giữ
+        đúng phạm vi. Việc ký pháp lý không đến từ nhóm quyền: tư cách hành nghề quản lý riêng ở mục
+        Thẻ THV.
+      </NoteBox>
     </>
   );
 }

@@ -64,21 +64,24 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   '/': { title: 'Tổng quan hoạt động Văn phòng', sub: 'Một đơn vị pháp lý · ba địa điểm' },
   '/quan-tri/nhan-su': {
     title: 'Nhân sự',
-    sub: 'Danh bạ thành viên văn phòng: vai trò, địa điểm được cấp và quyền ký pháp lý.',
+    sub: 'Danh bạ thành viên văn phòng. Tên, email, địa điểm làm việc là dữ liệu nhân sự; quyền truy cập ứng dụng nằm ở mục Phân quyền.',
   },
   '/quan-tri/nhan-su/them': {
     title: 'Thêm thành viên',
-    sub: 'Tạo tài khoản và gửi đề xuất cấp vai',
+    sub: 'Tạo tài khoản và gửi đề xuất cấp vai. Nhóm quyền gán ở mục Phân quyền.',
   },
   '/quan-tri/chi-nhanh': {
     title: 'Chi nhánh',
-    sub: 'Địa điểm hoạt động của văn phòng. Thêm địa điểm mới hoặc đổi tên; địa điểm đã có hồ sơ không xoá được.',
+    sub: 'Địa điểm hoạt động của văn phòng. Đổi tên hoặc thêm địa điểm không tự cấp quyền cho ai; địa điểm đã có hồ sơ không xóa được.',
   },
   '/quan-tri/phan-quyen': {
-    title: 'Phân quyền và đề xuất',
-    sub: 'Mọi thay đổi vai, quyền ký và địa điểm cần Trưởng văn phòng duyệt.',
+    title: 'Phân quyền',
+    sub: 'Ai được làm gì, ở đâu. Quyền hiệu lực = nhóm quyền + phạm vi, rồi trừ đi các quy tắc bắt buộc của hồ sơ lưu trữ.',
   },
-  '/quan-tri/phan-quyen/de-xuat': { title: 'Đề xuất đổi quyền', sub: 'Chờ Trưởng văn phòng duyệt' },
+  '/quan-tri/phan-quyen/de-xuat': {
+    title: 'Đề xuất đổi quyền',
+    sub: 'Chọn nhóm và một loại thay đổi. Đề xuất của người không phải Admin chỉ có hiệu lực sau khi Admin có quyền duyệt thay đổi quyền chấp thuận.',
+  },
   '/quan-tri/the-thv': { title: 'Thẻ THV', sub: 'Họ tên và số Thẻ thừa hành viên' },
   '/quan-tri/email': { title: 'Email gửi thư', sub: 'Máy chủ gửi thư của văn phòng' },
   '/quan-tri/lich': { title: 'Lịch làm việc', sub: 'Ngày làm việc và ngày nghỉ' },
@@ -100,6 +103,28 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   },
   '/vi-bang/tao-moi': { title: 'Tạo hồ sơ Vi bằng', sub: 'Tiếp nhận yêu cầu lập Vi bằng' },
 };
+
+/** Trang chi tiết của mục Phân quyền: tên nhóm/người nằm trong thân trang nên đầu trang dùng tên chung. */
+const PERMISSION_DETAIL_HEAD: readonly [RegExp, { title: string; sub: string }][] = [
+  [
+    /^\/quan-tri\/phan-quyen\/yeu-cau\/[^/]+$/,
+    {
+      title: 'Duyệt thay đổi quyền',
+      sub: 'Đọc tác động, kiểm tra điều kiện rồi duyệt hoặc từ chối kèm lý do. Người đề xuất không tự duyệt.',
+    },
+  ],
+  [
+    /^\/quan-tri\/phan-quyen\/nhom\/[^/]+$/,
+    { title: 'Nhóm quyền', sub: 'Quyền và thành viên của nhóm chỉ đổi qua đề xuất có duyệt.' },
+  ],
+  [
+    /^\/quan-tri\/phan-quyen\/nguoi-dung\/[^/]+$/,
+    {
+      title: 'Quyền hiệu lực',
+      sub: 'Tổng hợp từ các nhóm quyền của người này. Màn này chỉ để xem; muốn đổi hãy gửi đề xuất.',
+    },
+  ],
+];
 
 const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
 /** Trang dùng khung hồ sơ: banner do trang đổ vào (`CaseBanner`), không lấy tên từ đường dẫn. */
@@ -289,6 +314,7 @@ export function AppShell({
   const caseFrame = CASE_FRAME_PATH.test(pathname);
   const head =
     SUBPAGE_HEAD[pathname] ??
+    PERMISSION_DETAIL_HEAD.find(([re]) => re.test(pathname))?.[1] ??
     STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
     (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
   return (

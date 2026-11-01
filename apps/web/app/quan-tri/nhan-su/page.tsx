@@ -1,5 +1,7 @@
-import { loadMembers, loadRequests } from '../../../lib/admin-api';
 import { AddMemberLink, MemberTable } from '../../../components/MemberTable';
+import { loadMembers } from '../../../lib/admin-api';
+import { loadDmsGroups, loadPermissionRequests } from '../../../lib/dms-admin';
+import { buildPersonRows, toMemberRow } from '../../../lib/permission-model';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -9,35 +11,35 @@ export default async function MembersPage() {
   if (session.status !== 'authenticated') return null;
   const officeId = session.memberships[0]?.officeId ?? session.branches[0]?.officeId;
   const cookie = await requestCookie();
-  const members = officeId ? await loadMembers(cookie, officeId) : [];
-  const requests = officeId ? await loadRequests(cookie, officeId) : [];
-  const pendingAdds = new Set(
-    requests === 'error'
-      ? []
-      : requests
-          .filter((r) => r.kind === 'ADD_MEMBER' && r.status === 'PENDING')
-          .map((r) => r.targetUserId),
-  );
+  const [members, groups, requests] = officeId
+    ? await Promise.all([
+        loadMembers(cookie, officeId),
+        loadDmsGroups(cookie, officeId),
+        loadPermissionRequests(cookie, officeId),
+      ])
+    : ([[], [], []] as const);
+  // Nhóm hoặc yêu cầu không tải được thì vẫn hiện danh bạ, chỉ thiếu cột nhóm quyền.
   const rows =
     members === 'error'
       ? []
-      : members.map((m) => ({ ...m, pending: !m.role && pendingAdds.has(m.userId) }));
-  return (
-    <>
-      {members === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được danh bạ</h2>
-          <p>Vui lòng thử lại sau.</p>
-        </div>
-      ) : members.length === 0 ? (
-        <p className="muted">Chỉ Admin của văn phòng xem được danh bạ thành viên.</p>
-      ) : (
-        <MemberTable
-          members={rows}
-          officeId={session.roles.includes('ADMIN') ? officeId : undefined}
-          action={session.roles.includes('ADMIN') ? <AddMemberLink /> : undefined}
-        />
-      )}
-    </>
+      : buildPersonRows(
+          members,
+          groups === 'error' ? [] : groups,
+          requests === 'error' ? [] : requests,
+        ).map(toMemberRow);
+  const isAdmin = session.roles.includes('ADMIN');
+  return members === 'error' ? (
+    <div className="state" role="alert">
+      <h2>Không tải được danh bạ</h2>
+      <p>Vui lòng thử lại sau.</p>
+    </div>
+  ) : members.length === 0 ? (
+    <p className="muted">Chỉ Admin của văn phòng xem được danh bạ thành viên.</p>
+  ) : (
+    <MemberTable
+      members={rows}
+      officeId={isAdmin ? officeId : undefined}
+      action={isAdmin ? <AddMemberLink /> : undefined}
+    />
   );
 }
