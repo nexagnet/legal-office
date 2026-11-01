@@ -485,15 +485,34 @@ export interface DmsSearchRow {
   readonly snippet: string;
 }
 
-/** Tìm toàn văn trong chữ OCR của tệp scan; chỉ trả hồ sơ người xem được quyền thấy. */
+export interface DmsOcrFilters {
+  readonly domain?: string;
+  readonly year?: number;
+  readonly creator?: string;
+  readonly kind?: string;
+  readonly branch?: string;
+  readonly offset?: number;
+}
+
+export const OCR_PAGE_SIZE = 20;
+
+/** Tìm toàn văn trong chữ OCR của tệp scan; chỉ trả hồ sơ người xem được quyền thấy. Lấy thêm 1 dòng để biết còn trang sau. */
 export async function searchDmsOcr(
   cookie: string | null,
   officeId: string,
   q: string,
-): Promise<DmsSearchRow[] | 'error'> {
-  const params = new URLSearchParams({ officeId, q, limit: '30' });
+  f: DmsOcrFilters = {},
+): Promise<{ rows: DmsSearchRow[]; hasMore: boolean } | 'error'> {
+  const params = new URLSearchParams({ officeId, q, limit: String(OCR_PAGE_SIZE + 1) });
+  if (f.domain) params.set('domain', f.domain);
+  if (f.year) params.set('year', String(f.year));
+  if (f.creator) params.set('creator', f.creator);
+  if (f.kind) params.set('kind', f.kind);
+  if (f.branch) params.set('branch', f.branch);
+  if (f.offset) params.set('offset', String(f.offset));
   const body = await getJson<{ rows: DmsSearchRow[] }>(`/dms/search?${params}`, cookie);
-  return body === 'error' ? 'error' : body.rows;
+  if (body === 'error') return 'error';
+  return { rows: body.rows.slice(0, OCR_PAGE_SIZE), hasMore: body.rows.length > OCR_PAGE_SIZE };
 }
 
 export interface DmsFacet {
