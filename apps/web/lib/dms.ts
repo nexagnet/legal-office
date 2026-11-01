@@ -402,7 +402,7 @@ export interface DmsAmendmentRow {
   readonly proposed: { title?: string; attributes?: Record<string, unknown> };
   readonly reason: string;
   readonly status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  /** ADMIN = Admin gửi nên có hiệu lực ngay; WINDOW = tự duyệt trong N giờ sau khi ghi sổ. */
+  /** ADMIN = Admin gửi nên có hiệu lực ngay; WINDOW chỉ còn ở yêu cầu cũ (đã bỏ tự duyệt theo giờ 2026-11-01). */
   readonly auto_via: 'ADMIN' | 'WINDOW' | null;
   readonly requested_by: string;
   readonly requested_at: string;
@@ -434,17 +434,6 @@ export async function loadDmsAmendments(
   if (opts.status) q.set('status', opts.status);
   const body = await getJson<{ rows: DmsAmendmentRow[] }>(`/dms/amendments?${q}`, cookie);
   return body === 'error' ? 'error' : body.rows;
-}
-
-export async function loadAmendmentWindow(
-  cookie: string | null,
-  officeId: string,
-): Promise<number> {
-  const body = await getJson<{ hours: number }>(
-    `/dms/amendment-window?officeId=${encodeURIComponent(officeId)}`,
-    cookie,
-  );
-  return body === 'error' ? 48 : body.hours;
 }
 
 export interface DmsReportRow {
