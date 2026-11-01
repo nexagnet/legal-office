@@ -19,6 +19,8 @@ import {
   loadDmsAmendments,
   loadDmsBookRows,
   loadDmsCases,
+  loadDmsFacets,
+  matchFacet,
   loadMyDmsPermissions,
   tabForFilter,
   type DmsBookRow,
@@ -54,7 +56,16 @@ export default async function DmsDomainPage({
   searchParams,
 }: {
   params: Promise<{ domain: string }>;
-  searchParams: Promise<{ tab?: string; loc?: string; q?: string; year?: string; p?: string }>;
+  searchParams: Promise<{
+    tab?: string;
+    loc?: string;
+    q?: string;
+    year?: string;
+    p?: string;
+    nt?: string;
+    lt?: string;
+    dv?: string;
+  }>;
 }) {
   const domain = domainBySlug((await params).domain);
   if (!domain) notFound();
@@ -94,15 +105,18 @@ export default async function DmsDomainPage({
   const q = (sp.q ?? '').slice(0, 200);
   const year = activeYear(sp.year);
   const cookie = await requestCookie();
-  const [official, drafts, permissions, bookData, pendingAmendments] = await Promise.all([
-    loadDmsCases(cookie, officeId, domain.code, 'chinh-thuc'),
-    tabForFilter(filter) === 'chinh-thuc'
-      ? Promise.resolve(null)
-      : loadDmsCases(cookie, officeId, domain.code, tabForFilter(filter)),
-    loadMyDmsPermissions(cookie, officeId),
-    loadDmsBookRows(cookie, officeId, bookCode, year),
-    loadDmsAmendments(cookie, officeId, { status: 'PENDING' }),
-  ]);
+  const [official, drafts, permissions, bookData, pendingAmendments, facetRows] = await Promise.all(
+    [
+      loadDmsCases(cookie, officeId, domain.code, 'chinh-thuc'),
+      tabForFilter(filter) === 'chinh-thuc'
+        ? Promise.resolve(null)
+        : loadDmsCases(cookie, officeId, domain.code, tabForFilter(filter)),
+      loadMyDmsPermissions(cookie, officeId),
+      loadDmsBookRows(cookie, officeId, bookCode, year),
+      loadDmsAmendments(cookie, officeId, { status: 'PENDING' }),
+      loadDmsFacets(cookie, officeId, domain.code),
+    ],
+  );
   if (official === 'error' || drafts === 'error') {
     return (
       <section aria-labelledby="t">
@@ -128,7 +142,9 @@ export default async function DmsDomainPage({
       : pendingAmendments.filter((a) => officialIds.has(a.case_id)).map((a) => a.case_id),
   );
   const pending = pendingIds.size;
-  const rows = filterDmsCases(
+  const facetBy = new Map(facetRows.map((f) => [f.case_id, f]));
+  const facetWant = { creator: sp.nt, kind: sp.lt, branch: sp.dv };
+  const rowsAll = filterDmsCases(
     drafts ?? officialYear,
     filter,
     q,
@@ -138,6 +154,7 @@ export default async function DmsDomainPage({
     },
     pendingIds,
   );
+  const rows = rowsAll.filter((r) => matchFacet(facetBy.get(r.id), facetWant));
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const page = Math.min(pageCount, Math.max(1, Math.floor(Number(sp.p)) || 1));
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -155,6 +172,9 @@ export default async function DmsDomainPage({
     if (f !== 'chinh-thuc') p.set('loc', f);
     if (q) p.set('q', q);
     if (sp.year) p.set('year', String(year));
+    if (sp.nt) p.set('nt', sp.nt);
+    if (sp.lt) p.set('lt', sp.lt);
+    if (sp.dv) p.set('dv', sp.dv);
     const s = p.toString();
     return s ? `${base}?${s}` : base;
   };
@@ -163,6 +183,9 @@ export default async function DmsDomainPage({
     if (filter !== 'chinh-thuc') p.set('loc', filter);
     if (q) p.set('q', q);
     if (sp.year) p.set('year', String(year));
+    if (sp.nt) p.set('nt', sp.nt);
+    if (sp.lt) p.set('lt', sp.lt);
+    if (sp.dv) p.set('dv', sp.dv);
     if (n > 1) p.set('p', String(n));
     const s = p.toString();
     return s ? `${base}?${s}` : base;
@@ -259,6 +282,55 @@ export default async function DmsDomainPage({
             placeholder="Tìm số văn bản, tên người, trích yếu, nội dung…"
           />
         </label>
+        {(() => {
+          const creators = [
+            ...new Set(facetRows.map((f) => f.creator_name).filter(Boolean)),
+          ] as string[];
+          const kinds = [...new Set(facetRows.flatMap((f) => f.doc_kinds))];
+          const branchOpts = new Map(
+            facetRows
+              .filter((f) => f.branch_id)
+              .map((f) => [f.branch_id as string, f.branch_name ?? '']),
+          );
+          const cls = 'min-h-11 rounded-[10px] border border-line-strong bg-surface px-3 text-sm';
+          return (
+            <>
+              <label>
+                <span className="sr-only">Loại tài liệu</span>
+                <select name="lt" defaultValue={sp.lt ?? ''} className={cls}>
+                  <option value="">Loại tài liệu</option>
+                  {kinds.map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className="sr-only">Người tạo</span>
+                <select name="nt" defaultValue={sp.nt ?? ''} className={cls}>
+                  <option value="">Người tạo</option>
+                  {creators.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className="sr-only">Đơn vị</span>
+                <select name="dv" defaultValue={sp.dv ?? ''} className={cls}>
+                  <option value="">Đơn vị</option>
+                  {[...branchOpts].map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          );
+        })()}
         <label className="w-28">
           <span className="sr-only">Năm</span>
           <select

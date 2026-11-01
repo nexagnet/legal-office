@@ -495,3 +495,36 @@ export async function searchDmsOcr(
   const body = await getJson<{ rows: DmsSearchRow[] }>(`/dms/search?${params}`, cookie);
   return body === 'error' ? 'error' : body.rows;
 }
+
+export interface DmsFacet {
+  readonly case_id: string;
+  readonly creator_name: string | null;
+  readonly branch_id: string | null;
+  readonly branch_name: string | null;
+  readonly doc_kinds: readonly string[];
+}
+
+/** Người tạo, chi nhánh, loại tài liệu của từng hồ sơ để lọc danh sách; lỗi thì bỏ qua bộ lọc phụ, không chặn trang. */
+export async function loadDmsFacets(
+  cookie: string | null,
+  officeId: string,
+  domainCode: string,
+): Promise<DmsFacet[]> {
+  const q = new URLSearchParams({ officeId, domain: domainCode });
+  const body = await getJson<{ rows: DmsFacet[] }>(`/dms/case-facets?${q}`, cookie);
+  return body === 'error' ? [] : body.rows;
+}
+
+export interface DmsFacetFilter {
+  readonly creator?: string;
+  readonly kind?: string;
+  readonly branch?: string;
+}
+
+/** Khớp bộ lọc phụ: đã chọn mục nào thì hồ sơ phải có đúng giá trị đó; chưa có dữ liệu phụ thì không khớp. */
+export function matchFacet(f: DmsFacet | undefined, want: DmsFacetFilter): boolean {
+  if (want.creator && f?.creator_name !== want.creator) return false;
+  if (want.kind && !f?.doc_kinds.includes(want.kind)) return false;
+  if (want.branch && f?.branch_id !== want.branch) return false;
+  return true;
+}

@@ -76,6 +76,15 @@ export class DmsCasesController {
       .then((rows) => ({ rows }));
   }
 
+  /** Dữ liệu phụ cho bộ lọc danh sách: người tạo, chi nhánh, loại tài liệu của từng hồ sơ. Cùng phạm vi hiển thị với danh sách. */
+  @Get('case-facets')
+  facets(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(z.object({ officeId: uuid, domain: domain.optional() }).strict(), query);
+    return this.repo
+      .rows(a.tenantId, 'dms_case_facets', [a.tenantId, a.userId, q.officeId, q.domain ?? null])
+      .then((rows) => ({ rows }));
+  }
+
   /** Định nghĩa các sổ (tiêu đề + cột đúng mẫu) để giao diện dựng form nhập và bản xem trước. */
   @Get('books')
   books() {
