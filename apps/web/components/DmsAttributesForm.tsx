@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import type { DmsBookColumn } from '../lib/dms';
+import { Button } from './ui/button';
+import { Input } from './ui/field';
 import { messageFor } from '../lib/messages';
 
 /**
@@ -53,17 +55,19 @@ export function DmsAttributesForm({
     }
   }
 
+  const isBook = /^(Nội dung|Giấy tờ) vào sổ/.test(legend);
   return (
     <form onSubmit={submit} aria-label={legend} className="mb-4">
-      <fieldset className="grid gap-2">
-        <legend>{legend}</legend>
+      <fieldset className="grid gap-x-4 gap-y-3 border-0 p-0 sm:grid-cols-2 lg:grid-cols-4">
+        <legend className="mb-2 font-serif text-lg font-bold">{legend}</legend>
         {columns.map((c) => (
-          <label key={c.key} className="flex flex-col gap-1 text-sm">
+          <label key={c.key} className="flex flex-col gap-1 text-[13px] font-semibold">
             <span>
-              Cột {c.no}: {c.group ? `${c.group} · ` : ''}
+              {isBook ? `Cột ${c.no}: ` : ''}
+              {c.group ? `${c.group} · ` : ''}
               {c.heading}
             </span>
-            <input
+            <Input
               name={c.key}
               defaultValue={String(current[c.key] ?? '')}
               maxLength={2000}
@@ -72,10 +76,12 @@ export function DmsAttributesForm({
           </label>
         ))}
       </fieldset>
-      <button type="submit" disabled={busy}>
-        Lưu nháp
-      </button>
-      {saved ? <span role="status"> Đã lưu nháp.</span> : null}
+      <p className="mt-3 flex items-center gap-3">
+        <Button type="submit" variant="secondary" loading={busy}>
+          Lưu nháp
+        </Button>
+        {saved ? <span role="status"> Đã lưu nháp.</span> : null}
+      </p>
       {error ? <p role="alert">{error}</p> : null}
     </form>
   );
