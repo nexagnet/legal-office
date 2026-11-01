@@ -4,7 +4,9 @@ import {
   activeDmsFilter,
   filterDmsCases,
   tabForFilter,
+  matchFacet,
   type DmsCaseRow,
+  type DmsFacet,
 } from '../lib/dms';
 
 const row = (id: string, title: string, docs: number, scans: number): DmsCaseRow => ({
@@ -57,5 +59,23 @@ describe('bộ lọc danh sách hồ sơ DMS', () => {
       xacminh: 'S-04',
       tochuc: 'S-05',
     });
+  });
+
+  it('bộ lọc phụ theo người tạo, loại tài liệu và đơn vị', () => {
+    const f: DmsFacet = {
+      case_id: 'a',
+      creator_name: 'Nguyễn Văn A',
+      branch_id: 'b1',
+      branch_name: 'Chi nhánh 1',
+      doc_kinds: ['Công văn', 'Vi bằng'],
+    };
+    expect(matchFacet(f, {})).toBe(true);
+    expect(matchFacet(f, { creator: 'Nguyễn Văn A', kind: 'Vi bằng', branch: 'b1' })).toBe(true);
+    expect(matchFacet(f, { creator: 'Khác' })).toBe(false);
+    expect(matchFacet(f, { kind: 'Hợp đồng' })).toBe(false);
+    expect(matchFacet(f, { branch: 'b2' })).toBe(false);
+    // Chưa có dữ liệu phụ cho hồ sơ: chọn bộ lọc thì không khớp, không chọn thì khớp.
+    expect(matchFacet(undefined, { creator: 'Nguyễn Văn A' })).toBe(false);
+    expect(matchFacet(undefined, {})).toBe(true);
   });
 });
