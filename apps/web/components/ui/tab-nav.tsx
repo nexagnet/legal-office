@@ -15,15 +15,18 @@ export function TabNav({
   active,
   label,
   action,
+  compact = false,
 }: {
   readonly tabs: readonly TabItem[];
   readonly active: string;
   readonly label: string;
   /** Nút chính của danh sách (vd. "+ Tạo ..."), nằm cùng hàng với bộ lọc ở bên phải. */
   readonly action?: ReactNode;
+  /** Chip nhỏ gọn để chip lọc và nút hành động nằm cùng một hàng (Figma danh sách). */
+  readonly compact?: boolean;
 }) {
   const nav = (
-    <nav aria-label={label} className="flex flex-wrap gap-2.5">
+    <nav aria-label={label} className={cn('flex flex-wrap', compact ? 'gap-1.5' : 'gap-2.5')}>
       {tabs.map((t) => {
         const on = t.key === active;
         return (
@@ -32,7 +35,8 @@ export function TabNav({
             href={t.href}
             aria-current={on ? 'page' : undefined}
             className={cn(
-              'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold whitespace-nowrap no-underline',
+              'inline-flex shrink-0 items-center gap-2 rounded-full border text-sm font-semibold whitespace-nowrap no-underline',
+              compact ? 'min-h-10 px-3' : 'min-h-11 px-4',
               on
                 ? 'border-accent bg-accent text-white'
                 : 'border-transparent bg-head text-muted hover:text-ink',
