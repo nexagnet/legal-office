@@ -103,7 +103,6 @@ export default async function PermissionPage({
           requests={ctx.requests}
           searchParams={params}
           canPropose={ctx.canPropose}
-          officeId={ctx.officeId}
         />
       ) : tab === 'yeu-cau' ? (
         <>

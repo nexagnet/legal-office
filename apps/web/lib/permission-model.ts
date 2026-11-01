@@ -17,6 +17,11 @@ export interface DmsGroup {
   readonly status?: 'ACTIVE' | 'RETIRED';
   readonly version?: number;
   readonly source_group_id?: string | null;
+  /** Từ migration 0100, lấy từ nhật ký: người tạo nhóm, và người duyệt thay đổi quyền gần nhất. Thiếu = chưa biết. */
+  readonly created_by?: string | null;
+  readonly created_at?: string | null;
+  readonly approved_by?: string | null;
+  readonly approved_at?: string | null;
 }
 
 export const isGroupActive = (g: DmsGroup): boolean => (g.status ?? 'ACTIVE') === 'ACTIVE';
