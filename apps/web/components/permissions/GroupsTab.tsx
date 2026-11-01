@@ -1,15 +1,19 @@
 import Link from 'next/link';
 import { FilterChips } from '../ui/filter-chips';
 import {
+  groupVersion,
+  isGroupActive,
+  isTemplateGroup,
   normalizeText,
   summarizeGroup,
   type DmsGroup,
   type PermissionRequest,
 } from '../../lib/permission-model';
+import { CopyGroupButton } from './CopyGroupButton';
 import { CreateGroupButton } from './CreateGroupButton';
 import { NoteBox, Pill } from './Pill';
 
-type Loc = 'dang-dung' | 'cho-duyet';
+type Loc = 'dang-dung' | 'cho-duyet' | 'ngung-dung';
 
 const href = (loc: Loc, q: string) => {
   const p = new URLSearchParams({ tab: 'nhom' });
@@ -32,12 +36,19 @@ export function GroupsTab({
   readonly canPropose: boolean;
   readonly officeId: string;
 }) {
-  const loc: Loc = searchParams.loc === 'cho-duyet' ? 'cho-duyet' : 'dang-dung';
+  const loc: Loc =
+    searchParams.loc === 'cho-duyet' || searchParams.loc === 'ngung-dung'
+      ? searchParams.loc
+      : 'dang-dung';
   const q = normalizeText((searchParams.q ?? '').trim());
-  const pendingOf = (id: string) =>
-    requests.filter((r) => r.status === 'PENDING' && r.group_id === id).length;
-  const waiting = groups.filter((g) => pendingOf(g.id) > 0);
-  const base = loc === 'cho-duyet' ? waiting : groups;
+  const pendingOf = (id: string, kinds?: readonly string[]) =>
+    requests.filter(
+      (r) => r.status === 'PENDING' && r.group_id === id && (!kinds || kinds.includes(r.kind)),
+    ).length;
+  const active = groups.filter(isGroupActive);
+  const retired = groups.filter((g) => !isGroupActive(g));
+  const waiting = active.filter((g) => pendingOf(g.id) > 0);
+  const base = loc === 'cho-duyet' ? waiting : loc === 'ngung-dung' ? retired : active;
   const shown = base.filter((g) => !q || normalizeText(g.name).includes(q));
 
   return (
@@ -52,10 +63,10 @@ export function GroupsTab({
             aria-label="Tìm nhóm"
             defaultValue={searchParams.q ?? ''}
             placeholder="Tìm nhóm…"
-            className="!max-w-[220px] !flex-none"
+            className="!max-w-[160px] !flex-none"
           />
         </form>
-        <div className="flex-1">
+        <div className="min-w-[400px] flex-1">
           <FilterChips
             label="Lọc nhóm quyền"
             active={loc}
@@ -64,7 +75,7 @@ export function GroupsTab({
                 key: 'dang-dung',
                 label: 'Đang dùng',
                 href: href('dang-dung', q),
-                count: groups.length,
+                count: active.length,
               },
               {
                 key: 'cho-duyet',
@@ -72,10 +83,21 @@ export function GroupsTab({
                 href: href('cho-duyet', q),
                 count: waiting.length,
               },
+              {
+                key: 'ngung-dung',
+                label: 'Ngừng dùng',
+                href: href('ngung-dung', q),
+                count: retired.length,
+              },
             ]}
           />
         </div>
-        {canPropose ? <CreateGroupButton officeId={officeId} /> : null}
+        {canPropose ? (
+          <div className="ml-auto flex gap-3">
+            <CopyGroupButton groups={active} />
+            <CreateGroupButton officeId={officeId} />
+          </div>
+        ) : null}
       </div>
       <div className="table-wrap member-card">
         <table>
@@ -83,8 +105,10 @@ export function GroupsTab({
           <thead>
             <tr>
               <th scope="col">Nhóm quyền</th>
+              <th scope="col">Loại</th>
               <th scope="col">Số quyền</th>
               <th scope="col">Người dùng</th>
+              <th scope="col">Phiên bản</th>
               <th scope="col">Trạng thái</th>
               <th scope="col">
                 <span className="sr-only">Mở</span>
@@ -94,32 +118,47 @@ export function GroupsTab({
           <tbody>
             {shown.length === 0 ? (
               <tr>
-                <td colSpan={5} className="muted">
+                <td colSpan={7} className="muted">
                   Chưa có nhóm quyền nào.
                 </td>
               </tr>
             ) : (
               shown.map((g) => {
-                const pending = pendingOf(g.id);
+                const pendingPerm = pendingOf(g.id, ['GRANT', 'REVOKE']);
+                const pendingMember = pendingOf(g.id, ['ADD_MEMBER', 'REMOVE_MEMBER']);
+                const version = groupVersion(g);
                 return (
                   <tr key={g.id}>
                     <th scope="row">
                       <span className="grid">
                         <span className="person-name">{g.name}</span>
-                        <span className="person-mail">{summarizeGroup(g)}</span>
+                        <span className="person-mail">{g.description ?? summarizeGroup(g)}</span>
                       </span>
                     </th>
+                    <td>
+                      <Pill tone={isTemplateGroup(g) ? 'info' : 'brass'}>
+                        {isTemplateGroup(g) ? 'Mẫu' : 'Tùy chỉnh'}
+                      </Pill>
+                    </td>
                     <td>{g.permissions.length}</td>
                     <td>{g.member_ids.length}</td>
+                    <td>v{version}</td>
                     <td>
                       <span className="flex flex-wrap gap-1.5">
-                        <Pill tone="ok">Đang dùng</Pill>
-                        {pending > 0 ? <Pill tone="warn">{pending} đề xuất chờ duyệt</Pill> : null}
+                        {isGroupActive(g) ? (
+                          <Pill tone="ok">Đang dùng</Pill>
+                        ) : (
+                          <Pill tone="mute">Ngừng dùng</Pill>
+                        )}
+                        {pendingPerm > 0 ? <Pill tone="brass">Đề xuất v{version + 1}</Pill> : null}
+                        {pendingMember > 0 ? (
+                          <Pill tone="warn">{pendingMember} đề xuất thành viên</Pill>
+                        ) : null}
                       </span>
                     </td>
                     <td>
                       <Link
-                        className="link-btn font-semibold"
+                        className="link-btn font-semibold whitespace-nowrap"
                         href={`/quan-tri/phan-quyen/nhom/${g.id}`}
                       >
                         Mở ›

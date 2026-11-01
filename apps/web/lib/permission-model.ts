@@ -11,7 +11,17 @@ export interface DmsGroup {
   readonly name: string;
   readonly permissions: readonly string[];
   readonly member_ids: readonly string[];
+  /** Từ migration 0088; thiếu khi nói chuyện với API cũ thì coi như nhóm tùy chỉnh đang dùng, phiên bản 1. */
+  readonly kind?: 'TEMPLATE' | 'CUSTOM';
+  readonly description?: string | null;
+  readonly status?: 'ACTIVE' | 'RETIRED';
+  readonly version?: number;
+  readonly source_group_id?: string | null;
 }
+
+export const isGroupActive = (g: DmsGroup): boolean => (g.status ?? 'ACTIVE') === 'ACTIVE';
+export const isTemplateGroup = (g: DmsGroup): boolean => g.kind === 'TEMPLATE';
+export const groupVersion = (g: DmsGroup): number => g.version ?? 1;
 
 export type RequestKind = 'GRANT' | 'REVOKE' | 'ADD_MEMBER' | 'REMOVE_MEMBER';
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -231,7 +241,8 @@ export const RESULT_LABEL: Readonly<Record<RequestResult, string>> = {
 
 /** Nhóm nào của một người, và quyền hiệu lực là hợp các quyền của các nhóm đó (P2). */
 export function groupsOfUser(groups: readonly DmsGroup[], userId: string): DmsGroup[] {
-  return groups.filter((g) => g.member_ids.includes(userId));
+  // Nhóm ngừng dùng không cấp quyền hiệu lực (DB bỏ qua), nên không tính ở đây.
+  return groups.filter((g) => isGroupActive(g) && g.member_ids.includes(userId));
 }
 
 export function effectivePermissions(groups: readonly DmsGroup[], userId: string): string[] {
@@ -349,6 +360,9 @@ const PERMISSION_MESSAGES: Readonly<Record<string, string>> = {
   REQUEST_STALE: 'Nhóm đã đổi sau khi đề xuất được gửi. Hãy gửi lại đề xuất mới.',
   WOULD_REMOVE_LAST_APPROVER: 'Không thể làm văn phòng mất người duyệt cuối cùng.',
   GROUP_NAME_IN_USE: 'Đã có nhóm quyền trùng tên.',
+  GROUP_RETIRED: 'Nhóm này đã ngừng dùng. Hãy dùng lại nhóm trước khi đề xuất thay đổi.',
+  TEMPLATE_PROTECTED:
+    'Nhóm mẫu được bảo vệ, không sửa trực tiếp. Hãy sao chép thành nhóm tùy chỉnh.',
 };
 
 export function permissionMessage(code: string | undefined): string {
