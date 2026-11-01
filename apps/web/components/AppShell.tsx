@@ -87,7 +87,10 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Email gửi thư',
     sub: 'Cấu hình máy chủ gửi thư để gửi link đăng nhập và nhắc hạn. Chưa cấu hình thì người dùng chỉ đăng nhập bằng mật khẩu.',
   },
-  '/quan-tri/lich': { title: 'Lịch làm việc', sub: 'Ngày làm việc và ngày nghỉ' },
+  '/quan-tri/lich': {
+    title: 'Lịch làm việc',
+    sub: 'Ngày làm việc trong tuần và ngày nghỉ. Dùng để tính hạn pháp định và nhắc việc.',
+  },
   '/cai-dat': {
     title: 'Cấu hình văn phòng',
     sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',

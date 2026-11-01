@@ -12,12 +12,6 @@ export default async function CalendarPage() {
   const calendar = await loadCalendar(await requestCookie(), officeId);
   return (
     <>
-      <div>
-        <h1>Lịch làm việc</h1>
-        <p className="muted">
-          Ngày làm việc trong tuần và ngày nghỉ. Dùng để tính hạn pháp định và nhắc việc.
-        </p>
-      </div>
       {calendar === 'error' || !calendar ? (
         <div className="state" role="alert">
           <h2>Không tải được lịch làm việc</h2>

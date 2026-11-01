@@ -3,16 +3,20 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { formatDay, type OfficeCalendar } from '../lib/deadlines';
+import { cn } from '../lib/cn';
 import { messageFor } from '../lib/messages';
+import { Button } from './ui/button';
+import { Modal } from './ui/dialog';
+import { Field, Input } from './ui/field';
 
-const WEEKDAYS: readonly (readonly [number, string])[] = [
-  [1, 'Thứ Hai'],
-  [2, 'Thứ Ba'],
-  [3, 'Thứ Tư'],
-  [4, 'Thứ Năm'],
-  [5, 'Thứ Sáu'],
-  [6, 'Thứ Bảy'],
-  [7, 'Chủ nhật'],
+const WEEKDAYS: readonly (readonly [number, string, string])[] = [
+  [1, 'Thứ Hai', 'Thứ 2'],
+  [2, 'Thứ Ba', 'Thứ 3'],
+  [3, 'Thứ Tư', 'Thứ 4'],
+  [4, 'Thứ Năm', 'Thứ 5'],
+  [5, 'Thứ Sáu', 'Thứ 6'],
+  [6, 'Thứ Bảy', 'Thứ 7'],
+  [7, 'Chủ nhật', 'CN'],
 ];
 
 type Holiday = OfficeCalendar['holidays'][number];
@@ -51,6 +55,7 @@ export function CalendarSettings({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [computed, setComputed] = useState<string | null>(null);
   const [computeError, setComputeError] = useState<string | null>(null);
 
@@ -98,6 +103,7 @@ export function CalendarSettings({
       if (!ok) return { error: messageFor(json.code as string | undefined) };
       setHolidays((cur) => sortHolidays([...cur.filter((h) => h.day !== day), { day, label }]));
       form.reset();
+      setAdding(false);
       router.refresh();
       return { notice: 'Đã thêm ngày nghỉ.' };
     });
@@ -135,108 +141,146 @@ export function CalendarSettings({
   }
 
   return (
-    <section className="calendar-settings" aria-labelledby="cal-t">
-      <h2 id="cal-t">Lịch làm việc</h2>
-      <p className="muted">
-        Hạn chỉ là nhắc việc, không thay đổi trạng thái hồ sơ. Thứ Bảy mặc định không phải ngày làm
-        việc.
-      </p>
+    <section className="grid gap-4" aria-labelledby="cal-t">
+      <h2 id="cal-t" className="sr-only">
+        Lịch làm việc
+      </h2>
       <p role="alert" className="error" hidden={!error}>
         {error}
       </p>
       <p role="status" className="success" hidden={!notice}>
         {notice}
       </p>
-      <div className="calendar-grid">
-        <div className="card form">
-          <h3>Ngày làm việc trong tuần</h3>
-          <fieldset className="weekdays" disabled={!canEdit || busy}>
-            <legend className="sr-only">Ngày làm việc trong tuần</legend>
-            {WEEKDAYS.map(([n, label]) => (
-              <label key={n} className="check">
-                <input type="checkbox" checked={weekdays.includes(n)} onChange={() => toggle(n)} />
-                {label}
-              </label>
-            ))}
-          </fieldset>
-          {canEdit ? (
-            <button
-              type="button"
-              className="primary"
-              disabled={busy || weekdays.length === 0}
-              onClick={saveWeekdays}
-            >
-              Lưu ngày làm việc
-            </button>
-          ) : (
-            <p className="muted">Chỉ Admin được đổi ngày làm việc.</p>
-          )}
-        </div>
-        <div className="card form">
-          <h3>Ngày nghỉ và ngày lễ</h3>
-          {holidays.length === 0 ? (
-            <p className="muted">Chưa có ngày nghỉ nào được khai báo.</p>
-          ) : (
-            <ul className="rows holiday-rows">
-              {holidays.map((h) => (
-                <li key={h.day}>
-                  <span>
-                    <strong>{formatDay(`${h.day}T00:00:00+07:00`)}</strong>
-                    <span className="muted"> · {h.label}</span>
-                  </span>
-                  {canEdit ? (
-                    <button
-                      type="button"
-                      className="link-btn"
-                      disabled={busy}
-                      aria-busy={busy}
-                      aria-label={`Xoá ngày nghỉ ${h.label}`}
-                      onClick={() => removeHoliday(h.day)}
-                    >
-                      Xoá
-                    </button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          {canEdit ? (
-            <form onSubmit={addHoliday} aria-label="Thêm ngày nghỉ">
-              <label>
-                Ngày nghỉ
-                <input name="day" type="date" required />
-              </label>
-              <label>
-                Tên ngày nghỉ
-                <input name="label" required maxLength={200} />
-              </label>
-              <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
-                Thêm ngày nghỉ
+      <div className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm">
+        <h3 className="font-serif text-lg">Ngày làm việc trong tuần</h3>
+        <fieldset className="flex flex-wrap gap-3 border-0 p-0" disabled={!canEdit || busy}>
+          <legend className="sr-only">Ngày làm việc trong tuần</legend>
+          {WEEKDAYS.map(([n, , short]) => {
+            const on = weekdays.includes(n);
+            return (
+              <button
+                key={n}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggle(n)}
+                className={cn(
+                  'min-h-11 min-w-20 flex-1 rounded-[10px] border px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed',
+                  on
+                    ? 'border-accent bg-accent-soft text-accent'
+                    : 'border-line-strong bg-surface text-muted hover:bg-surface-2',
+                )}
+              >
+                {short}
               </button>
-            </form>
+            );
+          })}
+        </fieldset>
+        {!canEdit ? <p className="muted">Chỉ Admin được đổi ngày làm việc.</p> : null}
+      </div>
+
+      <div className="grid gap-2 rounded-2xl bg-surface p-6 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-serif text-lg">Ngày nghỉ</h3>
+          {canEdit ? (
+            <Button variant="secondary" onClick={() => setAdding(true)} disabled={busy}>
+              + Thêm ngày nghỉ
+            </Button>
           ) : null}
         </div>
-        <form className="card form" onSubmit={compute} aria-labelledby="calc-t">
-          <h3 id="calc-t">Tính thử hạn</h3>
-          <label>
-            Từ ngày
-            <input name="from" type="date" required />
-          </label>
-          <label>
-            Số ngày làm việc
-            <input name="days" type="number" min={0} max={366} step={1} required defaultValue={5} />
-          </label>
-          <button type="submit" className="primary">
-            Tính hạn
-          </button>
-          <p role="status" className="success" hidden={!computed}>
-            Hạn dự kiến: {computed ? formatDay(`${computed}T00:00:00+07:00`) : ''}
-          </p>
-          <p role="alert" className="error" hidden={!computeError}>
-            {computeError}
-          </p>
-        </form>
+        {holidays.length === 0 ? (
+          <p className="muted">Chưa có ngày nghỉ nào được khai báo.</p>
+        ) : (
+          <ul className="m-0 grid list-none p-0">
+            {holidays.map((h) => (
+              <li
+                key={h.day}
+                className="flex items-center justify-between gap-3 border-t border-line py-4 text-sm"
+              >
+                <span>
+                  <strong>{formatDay(`${h.day}T00:00:00+07:00`)}</strong>
+                  <span className="text-muted"> {h.label}</span>
+                </span>
+                {canEdit ? (
+                  <button
+                    type="button"
+                    className="link-btn"
+                    disabled={busy}
+                    aria-busy={busy}
+                    aria-label={`Xoá ngày nghỉ ${h.label}`}
+                    onClick={() => removeHoliday(h.day)}
+                  >
+                    Xoá
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
+
+      {canEdit ? (
+        <div className="flex justify-end">
+          <Button disabled={busy || weekdays.length === 0} onClick={saveWeekdays}>
+            Lưu lịch
+          </Button>
+        </div>
+      ) : null}
+
+      <form
+        className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+        onSubmit={compute}
+        aria-labelledby="calc-t"
+      >
+        <h3 id="calc-t" className="font-serif text-lg sm:col-span-3">
+          Tính thử hạn
+        </h3>
+        <Field id="cal-from" label="Từ ngày">
+          <Input id="cal-from" name="from" type="date" required />
+        </Field>
+        <Field id="cal-days" label="Số ngày làm việc">
+          <Input
+            id="cal-days"
+            name="days"
+            type="number"
+            min={0}
+            max={366}
+            step={1}
+            required
+            defaultValue={5}
+          />
+        </Field>
+        <Button type="submit">Tính hạn</Button>
+        <p role="status" className="success sm:col-span-3" hidden={!computed}>
+          Hạn dự kiến: {computed ? formatDay(`${computed}T00:00:00+07:00`) : ''}
+        </p>
+        <p role="alert" className="error sm:col-span-3" hidden={!computeError}>
+          {computeError}
+        </p>
+      </form>
+
+      <Modal
+        open={adding}
+        onOpenChange={setAdding}
+        title="Thêm ngày nghỉ"
+        description="Ngày nghỉ được loại khỏi ngày làm việc khi tính hạn pháp định và nhắc việc."
+      >
+        <form onSubmit={addHoliday} aria-label="Thêm ngày nghỉ" className="grid gap-4">
+          <Field id="hol-day" label="Ngày nghỉ">
+            <Input id="hol-day" name="day" type="date" required />
+          </Field>
+          <Field id="hol-label" label="Tên ngày nghỉ">
+            <Input id="hol-label" name="label" required maxLength={200} />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setAdding(false)}>
+              Hủy
+            </Button>
+            <Button type="submit" disabled={busy} aria-busy={busy}>
+              Thêm ngày nghỉ
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </section>
   );
 }
