@@ -1,3 +1,4 @@
+import { DataTable } from './ui/data-table';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
@@ -69,7 +70,7 @@ export function DmsCaseTable({
     );
   }
   return (
-    <div className="table-wrap">
+    <DataTable tableKey="DmsCaseTable-1">
       <table>
         <caption className="sr-only">{caption}</caption>
         <thead>
@@ -134,6 +135,6 @@ export function DmsCaseTable({
           })}
         </tbody>
       </table>
-    </div>
+    </DataTable>
   );
 }

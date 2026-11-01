@@ -1,3 +1,4 @@
+import { DataTable } from '../../components/ui/data-table';
 import Link from 'next/link';
 import { KpiStrip, countStatus } from '../../components/KpiStrip';
 import { TabNav } from '../../components/ui/tab-nav';
@@ -110,7 +111,7 @@ export default async function VerificationPage({
             active={tab}
             action={<NewVerificationSheet branches={session.branches} />}
           />
-          <div className="table-wrap">
+          <DataTable tableKey="xac-minh-page-1">
             <table className="table-cards">
               <caption className="sr-only">Hồ sơ xác minh</caption>
               <thead>
@@ -171,7 +172,7 @@ export default async function VerificationPage({
                 ))}
               </tbody>
             </table>
-          </div>
+          </DataTable>
         </>
       )}
     </section>

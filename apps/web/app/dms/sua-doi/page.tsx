@@ -1,3 +1,4 @@
+import { DataTable } from '../../../components/ui/data-table';
 import Link from 'next/link';
 import { DmsAmendmentReview } from '../../../components/DmsAmendments';
 import { Button } from '../../../components/ui/button';
@@ -97,7 +98,7 @@ export default async function DmsAmendmentsPage() {
           <h2>Chưa có yêu cầu sửa đổi</h2>
         </div>
       ) : (
-        <div className="table-wrap">
+        <DataTable tableKey="dms-sua-doi-page-1">
           <table>
             <caption className="sr-only">Yêu cầu sửa đổi</caption>
             <thead>
@@ -164,7 +165,7 @@ export default async function DmsAmendmentsPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
     </section>
   );

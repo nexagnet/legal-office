@@ -1,3 +1,4 @@
+import { DataTable } from '../ui/data-table';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { FilterChips } from '../ui/filter-chips';
@@ -103,7 +104,7 @@ export function AuditTab({
           </Button>
         ) : null}
       </div>
-      <div className="table-wrap member-card">
+      <DataTable tableKey="permissions-AuditTab-1" className="member-card">
         <table>
           <caption className="sr-only">Nhật ký phân quyền</caption>
           <thead>
@@ -164,7 +165,7 @@ export function AuditTab({
             )}
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <NoteBox title="Nhật ký chỉ thêm, không xóa">
         Mỗi dòng giữ mã yêu cầu, người đề xuất, người duyệt, thời điểm và lý do. Yêu cầu đã duyệt
         hoặc từ chối không sửa lại được. Xuất bản sao nhật ký là quyền riêng và cũng được ghi lại.

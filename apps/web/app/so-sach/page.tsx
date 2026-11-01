@@ -1,3 +1,4 @@
+import { DataTable } from '../../components/ui/data-table';
 import Link from 'next/link';
 import { TabNav } from '../../components/ui/tab-nav';
 import { LedgerSeal } from '../../components/LedgerSeal';
@@ -181,7 +182,7 @@ export default async function LedgerPage({
           <p>Chưa có hồ sơ nào khớp năm đã chọn.</p>
         </div>
       ) : (
-        <div className="table-wrap">
+        <DataTable tableKey="so-sach-page-1">
           <table>
             <caption className="sr-only">{ledger.title}</caption>
             <thead>
@@ -209,7 +210,7 @@ export default async function LedgerPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
       {ledger !== 'error' ? (
         <aside className="panel">

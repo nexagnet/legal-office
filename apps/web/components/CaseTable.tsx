@@ -1,5 +1,6 @@
 'use client';
 
+import { DataTable } from './ui/data-table';
 import Link from 'next/link';
 import { useMemo, useState, type ReactNode } from 'react';
 import type { CaseItem } from '../lib/cases';
@@ -74,7 +75,7 @@ export function CaseTable({
           <p>Không có hồ sơ nào khớp bộ lọc hiện tại.</p>
         </div>
       ) : (
-        <div className="table-wrap">
+        <DataTable tableKey="CaseTable-1">
           <table>
             <caption className="sr-only">Danh sách hồ sơ Vi bằng</caption>
             <thead>
@@ -115,7 +116,7 @@ export function CaseTable({
               ))}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
     </>
   );

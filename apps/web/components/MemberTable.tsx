@@ -1,5 +1,6 @@
 'use client';
 
+import { DataTable } from './ui/data-table';
 import Link from 'next/link';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ROLE_LABEL } from '../lib/messages';
@@ -101,7 +102,7 @@ export function MemberTable({
       <p className="sr-only" role="status">
         {shown.length}/{members.length} thành viên
       </p>
-      <div className="table-wrap member-card">
+      <DataTable tableKey="MemberTable-1" className="member-card">
         <table>
           <caption className="sr-only">Thành viên văn phòng</caption>
           <thead>
@@ -189,7 +190,7 @@ export function MemberTable({
             ))}
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <NoteBox title="Không còn cột “Quyền ký”">
         Một người có thể thuộc nhiều nhóm quyền; quyền hiệu lực là tập hợp quyền của từng nhóm, giữ
         đúng phạm vi. Việc ký pháp lý không đến từ nhóm quyền: tư cách hành nghề quản lý riêng ở mục

@@ -1,3 +1,4 @@
+import { DataTable } from './ui/data-table';
 import Link from 'next/link';
 import type { Contract, Customer } from '../lib/customers';
 import { PARTY_KIND_LABEL } from '../lib/messages';
@@ -30,7 +31,7 @@ export function CustomerDirectory({ customers, contracts, query, numberCounts = 
           </p>
         </div>
       ) : (
-        <div className="table-wrap">
+        <DataTable tableKey="CustomerDirectory-1">
           <table>
             <caption className="sr-only">Danh bạ khách hàng</caption>
             <thead>
@@ -74,7 +75,7 @@ export function CustomerDirectory({ customers, contracts, query, numberCounts = 
               })}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
       <section className="panel note-panel">
         <p>

@@ -1,3 +1,4 @@
+import { DataTable } from '../../../../components/ui/data-table';
 import Link from 'next/link';
 import { FilterChips } from '../../../../components/ui/filter-chips';
 import { getJson } from '../../../../lib/case-api';
@@ -93,7 +94,7 @@ export default async function Page({
         {shown.length === 0 ? (
           <p className="muted">Hồ sơ {c.title} chưa có tài liệu nào.</p>
         ) : (
-          <div className="table-wrap">
+          <DataTable tableKey="vi-bang-id-tai-lieu-page-1">
             <table>
               <caption className="sr-only">Tài liệu của hồ sơ</caption>
               <thead>
@@ -123,7 +124,7 @@ export default async function Page({
                 ))}
               </tbody>
             </table>
-          </div>
+          </DataTable>
         )}
       </section>
     );

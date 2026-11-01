@@ -1,5 +1,6 @@
 'use client';
 
+import { DataTable } from '../ui/data-table';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
 import { postJson } from '../../lib/post-json';
@@ -231,7 +232,7 @@ export function ProposeChangeForm({
         <h2 id="prev-t" className="font-serif text-lg">
           Nếu được duyệt
         </h2>
-        <div className="table-wrap">
+        <DataTable tableKey="permissions-ProposeChangeForm-1">
           <table>
             <thead>
               <tr>
@@ -274,7 +275,7 @@ export function ProposeChangeForm({
               </tr>
             </tbody>
           </table>
-        </div>
+        </DataTable>
         {sensitive > 0 ? (
           <p className="rounded-[10px] bg-brass-soft/60 px-4 py-3 text-sm">
             <strong className="text-warn">{sensitive} quyền nhạy cảm</strong> trong đề xuất này:

@@ -1,5 +1,6 @@
 'use client';
 
+import { DataTable } from './ui/data-table';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState, type FormEvent } from 'react';
@@ -168,7 +169,7 @@ export function BranchManager({
           + Thêm địa điểm
         </button>
       </div>
-      <div className="table-wrap member-card">
+      <DataTable tableKey="BranchManager-1" className="member-card">
         <table>
           <caption className="sr-only">Địa điểm hoạt động</caption>
           <thead>
@@ -193,7 +194,7 @@ export function BranchManager({
             ))}
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <NoteBox tone="warn" title="Địa điểm không phải là quyền">
         Cấp hoặc thu hồi địa điểm cho một người là việc phân quyền, không phải đổi tên địa điểm. Đổi
         tên hoặc thêm địa điểm có hiệu lực ngay, được ghi nhật ký và không tự cấp quyền cho ai.
