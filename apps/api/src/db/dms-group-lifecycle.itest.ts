@@ -255,6 +255,13 @@ describe.skipIf(!ADMIN_URL)('DMS vòng đời nhóm quyền (PostgreSQL)', () =>
     expect(copy).toMatchObject({ kind: 'CUSTOM', source_group_id: G.tmpl });
   });
 
+  it('danh sách nhóm trả người tạo từ nhật ký; nhóm mẫu của hệ thống thì không có', async () => {
+    const rows = await call('SELECT * FROM dms_list_groups($1,$2,$3)', [T, U.adm, OFF]);
+    expect(rows.find((r) => r.name === 'Từ mẫu')).toMatchObject({ created_by: U.adm });
+    expect(rows.find((r) => r.name === 'Từ mẫu')?.created_at).toBeTruthy();
+    expect(rows.find((r) => r.id === G.tmpl)).toMatchObject({ created_by: null, created_at: null });
+  });
+
   it('thêm thành viên chỉ vào nhóm đang dùng', async () => {
     await setStatus(U.adm, G.work, 'RETIRED');
     const r = await op('ad_member_create', [

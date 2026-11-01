@@ -18,7 +18,7 @@ import {
 import { requestCookie } from '../../../../../lib/server';
 import {
   ACCOUNT_STATE_LABEL,
-  SCOPE_LABEL,
+  DOMAIN_LIMIT,
   STATUS_LABEL,
   accountState,
   buildPersonRows,
@@ -32,6 +32,7 @@ import {
   permissionLabel,
   makeNameBook,
   requestCode,
+  scopeSummary,
 } from '../../../../../lib/permission-model';
 
 export const dynamic = 'force-dynamic';
@@ -172,6 +173,61 @@ export default async function EffectivePage({
           </p>
         </section>
       </div>
+      <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="eff-t">
+        <h2 id="eff-t" className="font-serif text-lg">
+          Quyền hiệu lực theo nghiệp vụ
+        </h2>
+        <p className="text-sm text-muted">
+          Mỗi dòng là một nghiệp vụ. Phạm vi lấy rộng nhất trong các nhóm và quyền thêm riêng của
+          người này, đã trừ quyền bỏ riêng. Muốn đổi nhóm hãy gửi đề xuất; muốn đổi quyền riêng dùng
+          mục phía trên.
+        </p>
+        {person.isAdmin && !person.suspended ? (
+          <p className="text-sm">
+            Admin mặc nhiên có mọi quyền ở tất cả nghiệp vụ, phạm vi toàn văn phòng.
+          </p>
+        ) : null}
+        {rows.length === 0 && (!person.isAdmin || person.suspended) ? (
+          <p className="muted">
+            {person.suspended ? 'Đang tạm khóa: không có quyền hiệu lực.' : 'Chưa có quyền nào.'}
+          </p>
+        ) : null}
+        {rows.length > 0 ? (
+          <DataTable tableKey="quan-tri-phan-quyen-nguoi-dung-id-page-1">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Nghiệp vụ</th>
+                  <th scope="col">Được phép</th>
+                  <th scope="col">Nguồn</th>
+                  <th scope="col">Phạm vi</th>
+                  <th scope="col">Giới hạn bắt buộc</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.domain}>
+                    <th scope="row">{r.title}</th>
+                    <td className="text-sm">{r.actions.map((a) => a.label).join(' · ')}</td>
+                    <td>
+                      <span className="flex flex-wrap gap-1.5">
+                        {r.sources.map((s) => (
+                          <Pill key={s} tone="ok">
+                            {s}
+                          </Pill>
+                        ))}
+                      </span>
+                    </td>
+                    <td className="text-sm">{scopeSummary(r.actions)}</td>
+                    <td className="text-xs text-muted">{DOMAIN_LIMIT[r.domain] ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </DataTable>
+        ) : null}
+      </section>
+
       <BranchAccessSection
         officeId={ctx.officeId}
         userId={id}
@@ -230,59 +286,6 @@ export default async function EffectivePage({
               </li>
             ))}
           </ul>
-        ) : null}
-      </section>
-
-      <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="eff-t">
-        <h2 id="eff-t" className="font-serif text-lg">
-          Quyền hiệu lực theo nghiệp vụ
-        </h2>
-        <p className="text-sm text-muted">
-          Mỗi dòng là một nghiệp vụ. Phạm vi lấy rộng nhất trong các nhóm và quyền thêm riêng của
-          người này, đã trừ quyền bỏ riêng. Muốn đổi nhóm hãy gửi đề xuất; muốn đổi quyền riêng dùng
-          mục phía trên.
-        </p>
-        {person.isAdmin && !person.suspended ? (
-          <p className="text-sm">
-            Admin mặc nhiên có mọi quyền ở tất cả nghiệp vụ, phạm vi toàn văn phòng.
-          </p>
-        ) : null}
-        {rows.length === 0 && (!person.isAdmin || person.suspended) ? (
-          <p className="muted">
-            {person.suspended ? 'Đang tạm khóa: không có quyền hiệu lực.' : 'Chưa có quyền nào.'}
-          </p>
-        ) : null}
-        {rows.length > 0 ? (
-          <DataTable tableKey="quan-tri-phan-quyen-nguoi-dung-id-page-1">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Nghiệp vụ</th>
-                  <th scope="col">Được phép</th>
-                  <th scope="col">Nguồn</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.domain}>
-                    <th scope="row">{r.title}</th>
-                    <td className="text-sm">
-                      {r.actions.map((a) => `${a.label} (${SCOPE_LABEL[a.scope]})`).join(' · ')}
-                    </td>
-                    <td>
-                      <span className="flex flex-wrap gap-1.5">
-                        {r.sources.map((s) => (
-                          <Pill key={s} tone="ok">
-                            {s}
-                          </Pill>
-                        ))}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </DataTable>
         ) : null}
       </section>
 

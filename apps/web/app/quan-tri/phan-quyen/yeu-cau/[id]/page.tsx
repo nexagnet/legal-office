@@ -10,6 +10,7 @@ import {
   STATUS_LABEL,
   describeRequest,
   formatWhen,
+  groupVersion,
   isRequestStale,
   isSensitivePermission,
   makeNameBook,
@@ -61,6 +62,13 @@ export default async function RequestPage({
       .flatMap((g) => g.member_ids),
   ]);
   const approvers = [...approverIds];
+  const permChange = r.kind === 'GRANT' || r.kind === 'REVOKE';
+  const widened = permChange && r.kind === 'GRANT' && (r.permission?.endsWith('.all') ?? false);
+  const version = group ? groupVersion(group) : 1;
+  const remaining = Math.max(
+    0,
+    (group?.permissions.length ?? 0) - (r.permission && r.kind === 'REVOKE' ? 1 : 0),
+  );
   const canDecide = r.status === 'PENDING' && ctx.canApprove && !mine && !stale;
 
   return (
@@ -74,6 +82,26 @@ export default async function RequestPage({
           [requestCode(r.id)],
         ]}
       />
+      {permChange ? (
+        <div className="kpi-strip" role="list" aria-label="Tác động của đề xuất">
+          <div role="listitem" data-tone="info">
+            <strong>{impact}</strong>
+            <span>Người bị ảnh hưởng</span>
+          </div>
+          <div role="listitem" data-tone="ok">
+            <strong>{r.kind === 'GRANT' ? '+1' : '0'}</strong>
+            <span>Quyền được thêm</span>
+          </div>
+          <div role="listitem" data-tone="danger">
+            <strong>{r.kind === 'REVOKE' ? '−1' : '0'}</strong>
+            <span>Quyền bị thu hồi</span>
+          </div>
+          <div role="listitem" data-tone="warn">
+            <strong>{widened ? 1 : 0}</strong>
+            <span>Phạm vi mở rộng · mức độ cao</span>
+          </div>
+        </div>
+      ) : null}
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_270px]">
         <section
           className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm"
@@ -98,6 +126,17 @@ export default async function RequestPage({
               {names.userName(r.proposed_by)} · {formatWhen(r.proposed_at)}
               {r.auto_applied ? ' · Admin tự đề xuất, áp dụng ngay' : ''}
             </dd>
+            {permChange ? (
+              <>
+                <dt className="text-muted">Phiên bản nhóm</dt>
+                <dd>
+                  v{version} hiện hành
+                  {r.status === 'PENDING' ? ` · v${version + 1} đề xuất, chưa áp dụng` : ''}
+                </dd>
+                <dt className="text-muted">Mức nhạy cảm</dt>
+                <dd>{sensitive ? 'Cao: quyền nhạy cảm' : 'Thường'}</dd>
+              </>
+            ) : null}
             <dt className="text-muted">Lý do</dt>
             <dd>{r.reason}</dd>
             <dt className="text-muted">Người bị ảnh hưởng</dt>
@@ -122,6 +161,49 @@ export default async function RequestPage({
                 {r.kind === 'GRANT' ? '+ Thêm quyền' : '− Thu hồi quyền'}
               </Pill>
             </div>
+          ) : null}
+          {permChange && r.permission ? (
+            <table className="compare-table">
+              <thead>
+                <tr>
+                  <th scope="col">Quyền</th>
+                  <th scope="col">v{version} · hiện hành</th>
+                  <th scope="col">v{version + 1} · đề xuất</th>
+                  <th scope="col">Thay đổi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    {permissionLabel(r.permission)}
+                    {sensitive ? <small>Quyền nhạy cảm</small> : null}
+                  </th>
+                  <td>
+                    <Pill tone={r.kind === 'REVOKE' ? 'ok' : 'mute'}>
+                      {r.kind === 'REVOKE' ? 'Có' : 'Không có'}
+                    </Pill>
+                  </td>
+                  <td>
+                    <Pill tone={r.kind === 'GRANT' ? 'ok' : 'mute'}>
+                      {r.kind === 'GRANT' ? 'Có' : 'Không có'}
+                    </Pill>
+                  </td>
+                  <td>
+                    <Pill tone={r.kind === 'GRANT' ? 'ok' : 'danger'}>
+                      {r.kind === 'GRANT' ? '+ Thêm' : '− Thu hồi'}
+                    </Pill>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">{remaining} quyền còn lại</th>
+                  <td>Giữ nguyên</td>
+                  <td>Giữ nguyên</td>
+                  <td>
+                    <Pill tone="mute">Không đổi</Pill>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           ) : null}
           {sensitive && r.permission ? (
             <aside className="rounded-[10px] bg-brass-soft/60 px-4 py-3 text-sm">

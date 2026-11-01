@@ -101,6 +101,24 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
             <dt>Người đang dùng</dt>
             <dd>{group.member_ids.length} thành viên</dd>
           </div>
+          {group.created_by ? (
+            <div>
+              <dt>Tạo bởi</dt>
+              <dd>
+                {names.userName(group.created_by)}
+                {group.created_at ? ` · ${formatWhen(group.created_at)}` : ''}
+              </dd>
+            </div>
+          ) : null}
+          {group.approved_by ? (
+            <div>
+              <dt>Duyệt bởi</dt>
+              <dd>
+                {names.userName(group.approved_by)} · v{version}
+                {group.approved_at ? ` · ${formatWhen(group.approved_at)}` : ''}
+              </dd>
+            </div>
+          ) : null}
         </dl>
         <p className="muted">
           Quyền và thành viên chỉ đổi qua đề xuất có duyệt.
