@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AdminBanner } from '../../../../../components/admin-banner';
 import { notFound } from 'next/navigation';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
 import { Pill } from '../../../../../components/permissions/Pill';
@@ -66,11 +66,15 @@ export default async function RequestPage({
   return (
     <>
       <PermissionTabs active="yeu-cau" pending={pendingCount} />
-      <p className="admin-crumb">
-        <Link href="/quan-tri/phan-quyen">Phân quyền</Link> ›{' '}
-        <Link href="/quan-tri/phan-quyen?tab=yeu-cau">Yêu cầu chờ duyệt</Link> › {requestCode(r.id)}
-      </p>
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <AdminBanner
+        crumb={[
+          ['Quản trị', '/quan-tri'],
+          ['Phân quyền', '/quan-tri/phan-quyen'],
+          ['Yêu cầu chờ duyệt', '/quan-tri/phan-quyen?tab=yeu-cau'],
+          [requestCode(r.id)],
+        ]}
+      />
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_270px]">
         <section
           className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm"
           aria-labelledby="req-t"

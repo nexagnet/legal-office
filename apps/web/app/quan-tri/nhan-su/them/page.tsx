@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AdminBanner } from '../../../../components/admin-banner';
 import { AddMemberForm } from '../../../../components/AddMemberForm';
 import { loadDmsGroups, loadOfficeBranches } from '../../../../lib/dms-admin';
 import { isGroupActive } from '../../../../lib/permission-model';
@@ -19,10 +19,9 @@ export default async function AddMemberPage() {
   return (
     <>
       <div>
-        <p className="admin-crumb">
-          <Link href="/quan-tri">Quản trị</Link> › <Link href="/quan-tri/nhan-su">Nhân sự</Link> ›
-          Thêm thành viên
-        </p>
+        <AdminBanner
+          crumb={[['Quản trị', '/quan-tri'], ['Nhân sự', '/quan-tri/nhan-su'], ['Thêm thành viên']]}
+        />
       </div>
       {officeId && session.roles.includes('ADMIN') ? (
         <AddMemberForm

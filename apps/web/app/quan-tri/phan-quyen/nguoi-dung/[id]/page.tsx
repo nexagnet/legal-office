@@ -1,4 +1,5 @@
 import { DataTable } from '../../../../../components/ui/data-table';
+import { AdminBanner } from '../../../../../components/admin-banner';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BranchAccessSection } from '../../../../../components/permissions/BranchAccessSection';
@@ -84,9 +85,7 @@ export default async function EffectivePage({
         active="nguoi-dung"
         pending={ctx.requests.filter((r) => r.status === 'PENDING').length}
       />
-      <p className="admin-crumb">
-        <Link href="/quan-tri/phan-quyen">Phân quyền</Link> › Quyền hiệu lực · {person.name}
-      </p>
+      <AdminBanner title={`Quyền hiệu lực · ${person.name}`} />
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-surface p-6 shadow-sm">
         <div className="flex items-center gap-4">
           <Avatar name={person.name} id={person.userId} size="lg" />
