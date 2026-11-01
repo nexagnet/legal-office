@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ErrorRetry } from '../../../components/ErrorRetry';
 import { domainBySlug, DMS_DOMAINS, loadThvPending } from '../../../lib/dms';
 import { currentSession, requestCookie } from '../../../lib/server';
 
@@ -28,9 +29,10 @@ export default async function DmsThvPending() {
         xác nhận.
       </p>
       {rows === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được danh sách</h2>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được danh sách. Kiểm tra kết nối và thử lại."
+        />
       ) : rows.length === 0 ? (
         <div className="state" role="status">
           <h2>Không có hồ sơ nào chờ bạn xác nhận</h2>

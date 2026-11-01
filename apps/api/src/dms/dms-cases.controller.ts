@@ -85,6 +85,14 @@ export class DmsCasesController {
       .then((rows) => ({ rows }));
   }
 
+  /** Các phiên bản của hồ sơ (bản gốc + sửa đổi đã duyệt) để so sánh trước/sau. Cùng phạm vi hiển thị với danh sách. */
+  @Get('cases/:id/revisions')
+  revisions(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    return this.repo
+      .rows(a.tenantId, 'dms_case_revision_list', [a.tenantId, a.userId, id])
+      .then((rows) => ({ rows }));
+  }
+
   /** Định nghĩa các sổ (tiêu đề + cột đúng mẫu) để giao diện dựng form nhập và bản xem trước. */
   @Get('books')
   books() {

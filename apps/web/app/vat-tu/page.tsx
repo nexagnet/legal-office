@@ -1,5 +1,6 @@
 import { DataTable } from '../../components/ui/data-table';
 import Link from 'next/link';
+import { ErrorRetry } from '../../components/ErrorRetry';
 import { Search } from 'lucide-react';
 import { StatusPill } from '../../components/StatusPill';
 import {
@@ -341,10 +342,10 @@ export default async function SuppliesPage({
             </form>
           </div>
           {stock === 'error' ? (
-            <div className="state" role="alert">
-              <h2>Không tải được tồn kho</h2>
-              <p>Vui lòng thử lại sau.</p>
-            </div>
+            <ErrorRetry
+              title="Lỗi tải dữ liệu"
+              message="Không tải được tồn kho. Kiểm tra kết nối và thử lại."
+            />
           ) : shown.length === 0 ? (
             <div className="state" role="status">
               <h2>Chưa có vật tư</h2>
@@ -484,10 +485,10 @@ export default async function SuppliesPage({
             {officeId ? <StocktakeOpen officeId={officeId} branches={session.branches} /> : null}
           </div>
           {stocktakes === 'error' ? (
-            <div className="state" role="alert">
-              <h2>Không tải được các phiên kiểm kê</h2>
-              <p>Vui lòng thử lại sau.</p>
-            </div>
+            <ErrorRetry
+              title="Lỗi tải dữ liệu"
+              message="Không tải được các phiên kiểm kê. Kiểm tra kết nối và thử lại."
+            />
           ) : sessions.length === 0 ? (
             <div className="state" role="status">
               <h2>Chưa có phiên kiểm kê</h2>
@@ -630,10 +631,10 @@ export default async function SuppliesPage({
             <Button type="submit">Lọc</Button>
           </form>
           {movements === 'error' ? (
-            <div className="state" role="alert">
-              <h2>Không tải được lịch sử</h2>
-              <p>Vui lòng thử lại sau.</p>
-            </div>
+            <ErrorRetry
+              title="Lỗi tải dữ liệu"
+              message="Không tải được lịch sử. Kiểm tra kết nối và thử lại."
+            />
           ) : movements.length === 0 ? (
             <div className="state" role="status">
               <h2>Chưa có biến động</h2>

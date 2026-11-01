@@ -547,3 +547,43 @@ export function matchFacet(f: DmsFacet | undefined, want: DmsFacetFilter): boole
   if (want.branch && f?.branch_id !== want.branch) return false;
   return true;
 }
+
+export interface DmsRevision {
+  readonly rev: number;
+  readonly title: string;
+  readonly attributes: Record<string, unknown>;
+  readonly created_at: string;
+  readonly created_by_name: string | null;
+  readonly reason: string | null;
+}
+
+/** Phiên bản hồ sơ: rev 0 là bản gốc, rev >= 1 là các bản sửa đổi đã duyệt. Lỗi thì trả rỗng, không chặn trang. */
+export async function loadDmsRevisions(
+  cookie: string | null,
+  caseId: string,
+): Promise<DmsRevision[]> {
+  const body = await getJson<{ rows: DmsRevision[] }>(
+    `/dms/cases/${encodeURIComponent(caseId)}/revisions`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.rows;
+}
+
+export interface DmsFieldChange {
+  readonly key: string;
+  readonly before: string;
+  readonly after: string;
+}
+
+/** Trường nào khác giữa hai phiên bản liên tiếp (gồm tiêu đề dưới khóa "title"); trống hiện là "—" ở giao diện. */
+export function diffRevision(prev: DmsRevision, next: DmsRevision): DmsFieldChange[] {
+  const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
+  const out: DmsFieldChange[] = [];
+  if (prev.title !== next.title) out.push({ key: 'title', before: prev.title, after: next.title });
+  for (const k of new Set([...Object.keys(prev.attributes), ...Object.keys(next.attributes)])) {
+    const b = str(prev.attributes[k]);
+    const a = str(next.attributes[k]);
+    if (a !== b) out.push({ key: k, before: b, after: a });
+  }
+  return out;
+}

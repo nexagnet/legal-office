@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
 import { DmsBookTable } from '../../../../components/DmsBookTable';
 import { PrintButton } from '../../../../components/PrintButton';
@@ -7,6 +8,9 @@ import { loadDmsBookRows } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
+
+/** Số dòng sổ in được trên một trang A4 ngang của mẫu TP-THV (dùng để đếm tổng số trang ở bìa 2). */
+const ROWS_PER_PAGE = 20;
 
 const CODES: Record<string, string> = {
   's-01': 'S-01',
@@ -53,16 +57,18 @@ export default async function DmsBookPage({
     return (
       <section aria-labelledby="t">
         <h1 id="t">Xuất sổ {code}</h1>
-        <div className="state" role="alert">
-          <h2>Không tải được sổ</h2>
-          <p>Máy chủ chưa trả về dữ liệu. Vui lòng thử lại sau.</p>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được sổ. Kiểm tra kết nối và thử lại."
+        />
       </section>
     );
   }
   const csv = `/api/dms/books/${code}?${new URLSearchParams({ officeId, year: String(year), format: 'csv' })}`;
   const office = session.tenantName ?? 'Văn phòng thi hành án dân sự';
   const title = data.book.title;
+  // Số trang ruột = số dòng chia cho số dòng mỗi trang in (khổ A4 ngang); cộng 2 bìa. Dựng cùng lúc với bản xem trước nên khớp số dòng đang xuất.
+  const totalPages = 2 + Math.max(1, Math.ceil(data.rows.length / ROWS_PER_PAGE));
   const years = [year - 2, year - 1, year, year + 1].filter((y) => y >= 2000);
   return (
     <section aria-labelledby="t">
@@ -116,7 +122,7 @@ export default async function DmsBookPage({
           <p className="muted text-xs">Bìa 2 (A4)</p>
           <p className="text-sm font-semibold uppercase">{office}</p>
           <p className="font-semibold">{title}</p>
-          <p className="text-sm">Quyển số: 01</p>
+          <p className="text-sm">Quyển số: 01 · Tổng số trang: {totalPages}</p>
           <p className="text-sm font-semibold">TRƯỞNG VĂN PHÒNG (Ký tên, đóng dấu)</p>
         </div>
       </div>

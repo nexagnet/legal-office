@@ -91,7 +91,7 @@ describe('DmsCaseTable', () => {
     expect(screen.getByText('—')).toBeTruthy();
     unmount();
     render(<DmsCaseTable caption="x" rows={[]} />);
-    expect(screen.getByRole('status').textContent).toContain('Chưa có hồ sơ');
+    expect(screen.getByRole('status').textContent).toContain('Chưa có dữ liệu');
   });
 });
 

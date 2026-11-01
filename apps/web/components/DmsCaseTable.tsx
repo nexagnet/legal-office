@@ -50,7 +50,12 @@ export function DmsCaseTable({
   basePath,
   book,
   sttLabel = 'STT',
+  emptyText,
+  emptyAction,
 }: {
+  /** Chữ trạng thái trống (Figma S1) và nút hành động, ví dụ + Tạo hồ sơ. */
+  readonly emptyText?: string;
+  readonly emptyAction?: ReactNode;
   /** Tên cột số thứ tự: "Số đến" cho sổ Văn bản đến, còn lại "STT". */
   readonly sttLabel?: string;
   readonly rows: readonly DmsCaseRow[];
@@ -64,8 +69,9 @@ export function DmsCaseTable({
   if (rows.length === 0) {
     return (
       <div className="state" role="status">
-        <h2>Chưa có hồ sơ</h2>
-        <p>Không có hồ sơ nào trong mục này thuộc phạm vi quyền của bạn.</p>
+        <h2>Chưa có dữ liệu</h2>
+        <p>{emptyText ?? 'Không có hồ sơ nào trong mục này thuộc phạm vi quyền của bạn.'}</p>
+        {emptyAction}
       </div>
     );
   }

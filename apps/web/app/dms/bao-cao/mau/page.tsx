@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { N09Form, N10Form } from '../../../../components/DmsStatForms';
 import { loadDmsReport } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
@@ -56,9 +57,10 @@ export default async function DmsStatFormsPage({
         <Link href={`/dms/bao-cao?year=${year}`}>Số liệu tổng hợp</Link>
       </p>
       {rows === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được số liệu</h2>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được số liệu. Kiểm tra kết nối và thử lại."
+        />
       ) : (
         <>
           <N09Form unit={session.tenantName} year={year} rows={rows} />

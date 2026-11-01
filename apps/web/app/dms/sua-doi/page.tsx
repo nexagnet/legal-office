@@ -1,5 +1,6 @@
 import { DataTable } from '../../../components/ui/data-table';
 import Link from 'next/link';
+import { ErrorRetry } from '../../../components/ErrorRetry';
 import { DmsAmendmentReview } from '../../../components/DmsAmendments';
 import { Button } from '../../../components/ui/button';
 import {
@@ -153,9 +154,10 @@ export default async function DmsAmendmentsPage() {
         </section>
       ) : null}
       {rows === 'error' ? (
-        <div className="state" role="alert">
-          <h2>Không tải được yêu cầu</h2>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được yêu cầu. Kiểm tra kết nối và thử lại."
+        />
       ) : rows.length === 0 ? (
         <div className="state" role="status">
           <h2>Chưa có yêu cầu sửa đổi</h2>

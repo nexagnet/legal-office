@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
 import { DmsThvConfirmButton } from '../../../../components/DmsThvActions';
 import { loadDmsBooks, loadThvReview } from '../../../../lib/dms';
@@ -31,9 +32,10 @@ export default async function DmsThvReviewPage({ params }: { params: Promise<{ i
     return (
       <section aria-labelledby="t">
         <h1 id="t">Xác nhận nội dung</h1>
-        <div className="state" role="alert">
-          <h2>Không tải được hồ sơ</h2>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được hồ sơ. Kiểm tra kết nối và thử lại."
+        />
       </section>
     );
   }
