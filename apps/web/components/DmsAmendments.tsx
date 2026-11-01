@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import type { DmsBookColumn } from '../lib/dms';
 import { messageFor } from '../lib/messages';
+import { ConfirmModal } from './ui/confirm-modal';
 
 function useAction() {
   const router = useRouter();
@@ -135,8 +136,8 @@ export function DmsAmendmentForm({
 /** Admin duyệt hoặc từ chối một yêu cầu đang chờ. Từ chối cần lý do. */
 export function DmsAmendmentReview({ requestId }: { readonly requestId: string }) {
   const { router, error, setError, busy, setBusy } = useAction();
-  async function review(approve: boolean) {
-    const note = approve ? '' : (window.prompt('Lý do từ chối (bắt buộc):') ?? '').trim();
+  const [rejecting, setRejecting] = useState(false);
+  async function review(approve: boolean, note = '') {
     if (!approve && !note) return setError(messageFor('REASON_REQUIRED'));
     setBusy(true);
     setError(null);
@@ -160,9 +161,20 @@ export function DmsAmendmentReview({ requestId }: { readonly requestId: string }
       <button type="button" disabled={busy} onClick={() => void review(true)}>
         Duyệt
       </button>{' '}
-      <button type="button" disabled={busy} onClick={() => void review(false)}>
+      <button type="button" disabled={busy} onClick={() => setRejecting(true)}>
         Từ chối
       </button>
+      <ConfirmModal
+        open={rejecting}
+        onOpenChange={setRejecting}
+        title="Từ chối yêu cầu sửa đổi"
+        description="Hồ sơ gốc giữ nguyên. Người gửi sẽ thấy lý do từ chối."
+        confirmLabel="Từ chối"
+        danger
+        reasonLabel="Lý do từ chối (bắt buộc)"
+        busy={busy}
+        onConfirm={(note) => void review(false, note).then(() => setRejecting(false))}
+      />
       {error ? <span role="alert"> {error}</span> : null}
     </span>
   );

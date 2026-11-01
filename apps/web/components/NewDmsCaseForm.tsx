@@ -8,9 +8,12 @@ import { messageFor } from '../lib/messages';
 export function NewDmsCaseForm({
   officeId,
   domainCode,
+  redirectBase,
 }: {
   readonly officeId: string;
   readonly domainCode: string;
+  /** Có thì tạo xong chuyển thẳng tới trang chi tiết `${redirectBase}/<mã hồ sơ>` (Figma A1 → A2). */
+  readonly redirectBase?: string;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +36,11 @@ export function NewDmsCaseForm({
           attributes: { note: String(f.get('note') ?? '').trim() },
         }),
       });
-      const json = (await res.json().catch(() => ({}))) as { code?: string };
+      const json = (await res.json().catch(() => ({}))) as { code?: string; label?: string };
       if (!res.ok) return setError(messageFor(json.code));
       form.reset();
-      router.refresh();
+      if (redirectBase && json.label) router.push(`${redirectBase}/${json.label}`);
+      else router.refresh();
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
     } finally {

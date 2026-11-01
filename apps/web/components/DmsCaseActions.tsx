@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
+import { ConfirmModal } from './ui/confirm-modal';
 
 type Send = (path: string, body?: unknown) => Promise<boolean>;
 
@@ -140,23 +141,26 @@ export function DmsDraftActions({
 }) {
   const { send, error, busy } = useSender();
   const [reason, setReason] = useState('');
+  const [confirming, setConfirming] = useState(false);
   return (
     <div className="mb-4 flex flex-wrap items-end gap-3">
       {canRecord ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            if (
-              window.confirm(
-                'Sau khi xác nhận lưu chính thức, hồ sơ và tài liệu không thể sửa trực tiếp hay xoá. Tiếp tục?',
-              )
-            )
-              void send(`/api/dms/cases/${caseId}/record`);
-          }}
-        >
-          Xác nhận lưu chính thức
-        </button>
+        <>
+          <button type="button" disabled={busy} onClick={() => setConfirming(true)}>
+            Xác nhận lưu chính thức
+          </button>
+          <ConfirmModal
+            open={confirming}
+            onOpenChange={setConfirming}
+            title="Xác nhận lưu chính thức"
+            description="Sau khi xác nhận lưu chính thức, hồ sơ và tài liệu không thể sửa trực tiếp hay xoá. Muốn thay đổi phải gửi yêu cầu sửa đổi."
+            confirmLabel="Lưu chính thức"
+            busy={busy}
+            onConfirm={() => {
+              void send(`/api/dms/cases/${caseId}/record`).then(() => setConfirming(false));
+            }}
+          />
+        </>
       ) : null}
       {canCancel ? (
         <>
