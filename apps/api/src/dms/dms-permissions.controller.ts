@@ -101,6 +101,45 @@ export class DmsPermissionsController {
     ]);
   }
 
+  /** Hồ sơ chưa có chi nhánh (dữ liệu trước ngày áp dụng phạm vi chi nhánh). Chỉ Admin thấy; người khác nhận danh sách rỗng. */
+  @Get('cases-without-branch')
+  async casesWithoutBranch(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(z.object({ officeId: uuid }).strict(), query);
+    const rows = await this.repo.rows<{
+      id: string;
+      domain: string;
+      title: string;
+      status: string;
+      created_at: string;
+    }>(a.tenantId, 'dms_cases_without_branch', [a.tenantId, a.userId, q.officeId, 200]);
+    const total = await this.repo.rows<{ dms_cases_without_branch_count: string }>(
+      a.tenantId,
+      'dms_cases_without_branch_count',
+      [a.tenantId, a.userId, q.officeId],
+    );
+    return {
+      total: Number(total[0]?.dms_cases_without_branch_count ?? 0),
+      rows: rows.map((r) => ({
+        id: r.id,
+        domain: r.domain,
+        title: r.title,
+        status: r.status,
+        createdAt: r.created_at,
+      })),
+    };
+  }
+
+  /** Admin gắn chi nhánh cho hồ sơ chưa có chi nhánh. Một lần, không đổi được sau đó; có nhật ký. */
+  @Post('cases-without-branch/assign')
+  @HttpCode(HttpStatus.OK)
+  assignBranch(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(
+      z.object({ officeId: uuid, caseIds: z.array(uuid).min(1).max(500), branchId: uuid }).strict(),
+      body,
+    );
+    return this.run(a, 'dms_cases_assign_branch', [b.officeId, b.caseIds, b.branchId]);
+  }
+
   @Get('groups')
   groups(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
     const q = parse(z.object({ officeId: uuid }).strict(), query);

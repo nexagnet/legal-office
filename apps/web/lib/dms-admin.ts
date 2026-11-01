@@ -118,3 +118,23 @@ export async function loadPermissionContext(): Promise<PermissionContext | null>
     requests,
   };
 }
+
+export interface UnassignedCase {
+  readonly id: string;
+  readonly domain: string;
+  readonly title: string;
+  readonly status: string;
+  readonly createdAt: string;
+}
+
+/** Hồ sơ chưa có chi nhánh (chỉ Admin thấy). Lỗi/không đủ quyền = rỗng, trang vẫn dựng được. */
+export async function loadUnassignedCases(
+  cookie: string | null,
+  officeId: string,
+): Promise<{ total: number; rows: UnassignedCase[] }> {
+  const body = await getJson<{ total: number; rows: UnassignedCase[] }>(
+    `/dms/cases-without-branch?${q(officeId)}`,
+    cookie,
+  );
+  return body === 'error' ? { total: 0, rows: [] } : body;
+}
