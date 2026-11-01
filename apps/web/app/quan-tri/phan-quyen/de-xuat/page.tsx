@@ -40,7 +40,7 @@ export default async function ProposePage({
           ['Đề xuất đổi quyền'],
         ]}
       />
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_270px]">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_270px]">
         {ctx.groups.length === 0 ? (
           <StateCard
             mark="!"
