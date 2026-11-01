@@ -1,10 +1,22 @@
 'use client';
 
-/** In trang hiện tại (sổ xem trước theo mẫu). Ẩn khi in nhờ lớp `print-hide`. */
-export function PrintButton() {
+import { Button } from './ui/button';
+
+/** In trang hiện tại (sổ xem trước theo mẫu). Ẩn khi in nhờ lớp `print-hide` ở trang gọi. */
+export function PrintButton({
+  label = 'In sổ',
+  primary = false,
+}: {
+  label?: string;
+  primary?: boolean;
+}) {
   return (
-    <button type="button" onClick={() => window.print()}>
-      In sổ
-    </button>
+    <Button
+      type="button"
+      variant={primary ? 'primary' : 'secondary'}
+      onClick={() => window.print()}
+    >
+      {label}
+    </Button>
   );
 }
