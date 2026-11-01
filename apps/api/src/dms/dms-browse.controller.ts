@@ -104,7 +104,13 @@ export class DmsBrowseController {
       q.offset,
       q.total,
     ]);
-    const total = rows[0]?.total_capped == null ? null : Number(rows[0].total_capped);
+    // Trang đầu không có dòng nào thì tổng là 0 (DB chỉ gắn tổng vào dòng), không phải "không biết".
+    const emptyFirstPage = q.total && rows.length === 0 && q.offset === 0 && q.cursor === undefined;
+    const total = emptyFirstPage
+      ? 0
+      : rows[0]?.total_capped == null
+        ? null
+        : Number(rows[0].total_capped);
     return {
       rows: rows.map((r) =>
         Object.fromEntries(Object.entries(r).filter(([k]) => k !== 'total_capped')),

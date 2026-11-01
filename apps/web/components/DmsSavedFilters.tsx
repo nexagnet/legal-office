@@ -116,7 +116,7 @@ export function DmsSavedFilters({
       <div
         id={panelId}
         hidden={!open}
-        className="absolute left-0 z-20 mt-1 w-80 sm:left-auto sm:right-0 max-w-[calc(100vw-2rem)] rounded-xl border border-line-strong bg-surface p-3 shadow-lg"
+        className="absolute left-0 z-20 mt-1 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-line-strong bg-surface p-3 shadow-lg"
       >
         {error ? (
           <p role="alert" className="mb-2 text-sm text-danger">
