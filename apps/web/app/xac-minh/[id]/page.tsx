@@ -1,3 +1,4 @@
+import { DataTable } from '../../../components/ui/data-table';
 import { notFound } from 'next/navigation';
 import { AssignHandler } from '../../../components/AssignHandler';
 import { CaseActionDialog } from '../../../components/CaseActionDialog';
@@ -348,7 +349,7 @@ export default async function VerificationDetailPage({
           {c.rounds.length === 0 ? (
             <p className="muted">Chưa có lượt xác minh.</p>
           ) : (
-            <div className="table-wrap">
+            <DataTable tableKey="xac-minh-id-page-1">
               <table className="table-cards">
                 <caption className="sr-only">Các lượt xác minh</caption>
                 <thead>
@@ -398,7 +399,7 @@ export default async function VerificationDetailPage({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DataTable>
           )}
           <p className="muted">Kết luận chỉ đề xuất được khi mọi lượt đã có kết quả.</p>
         </section>

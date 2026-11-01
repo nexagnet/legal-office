@@ -1,3 +1,4 @@
+import { DataTable } from '../../components/ui/data-table';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { StatusPill } from '../../components/StatusPill';
@@ -350,7 +351,7 @@ export default async function SuppliesPage({
               <p>Không có vật tư nào khớp bộ lọc.</p>
             </div>
           ) : (
-            <div className="table-wrap">
+            <DataTable tableKey="vat-tu-page-1">
               <table>
                 <caption className="sr-only">Tồn kho vật tư</caption>
                 <thead>
@@ -424,7 +425,7 @@ export default async function SuppliesPage({
                   })}
                 </tbody>
               </table>
-            </div>
+            </DataTable>
           )}
           <p className="muted mt-4">
             Mọi giao dịch nhập/xuất được giữ lại. Điều chỉnh giao dịch đã ghi nhận phải qua ghi nhận
@@ -440,7 +441,7 @@ export default async function SuppliesPage({
               <p>Thêm vật tư ở menu "…" cạnh nút Nhập / xuất.</p>
             </div>
           ) : (
-            <div className="table-wrap">
+            <DataTable tableKey="vat-tu-page-2">
               <table>
                 <caption className="sr-only">Danh mục vật tư</caption>
                 <thead>
@@ -470,7 +471,7 @@ export default async function SuppliesPage({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DataTable>
           )}
         </>
       ) : tab === 'kiem-ke' ? (
@@ -530,7 +531,7 @@ export default async function SuppliesPage({
                       {STOCKTAKE_STATUS_LABEL[current.status] ?? current.status}
                     </h2>
                     {current.note ? <p className="muted">{current.note}</p> : null}
-                    <div className="table-wrap">
+                    <DataTable tableKey="vat-tu-page-3">
                       <table>
                         <caption className="sr-only">Số đếm theo lô của phiên kiểm kê</caption>
                         <thead>
@@ -572,7 +573,7 @@ export default async function SuppliesPage({
                           })}
                         </tbody>
                       </table>
-                    </div>
+                    </DataTable>
                   </div>
                   {current.status === 'OPEN' && canAdjust ? (
                     <div className="panel">
@@ -639,7 +640,7 @@ export default async function SuppliesPage({
               <p>Không có lần nhập, xuất hay điều chỉnh nào khớp bộ lọc.</p>
             </div>
           ) : (
-            <div className="table-wrap">
+            <DataTable tableKey="vat-tu-page-4">
               <table>
                 <caption className="sr-only">Lịch sử nhập, xuất và điều chỉnh vật tư</caption>
                 <thead>
@@ -669,7 +670,7 @@ export default async function SuppliesPage({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DataTable>
           )}
           <p className="muted mt-4">
             Xuất kho trừ theo lô nhập trước (FIFO) và chặn khi vượt tồn; mọi biến động đều ghi người
@@ -682,7 +683,7 @@ export default async function SuppliesPage({
           <p>Chưa có lô nhập nào để kiểm kê.</p>
         </div>
       ) : (
-        <div className="table-wrap">
+        <DataTable tableKey="vat-tu-page-5">
           <table>
             <caption className="sr-only">Lô vật tư</caption>
             <thead>
@@ -714,7 +715,7 @@ export default async function SuppliesPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </DataTable>
       )}
     </section>
   );

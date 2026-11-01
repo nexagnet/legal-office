@@ -1,3 +1,4 @@
+import { DataTable } from '../../../components/ui/data-table';
 import Link from 'next/link';
 import { CaseActionDialog } from '../../../components/CaseActionDialog';
 import { CaseActions } from '../../../components/CaseActions';
@@ -182,7 +183,7 @@ export default async function CasePage({
         {changes.length === 0 ? (
           <p className="muted">Chưa có đề nghị thay đổi.</p>
         ) : (
-          <div className="table-wrap">
+          <DataTable tableKey="vi-bang-id-page-1">
             <table>
               <caption className="sr-only">Đề nghị thay đổi của hồ sơ</caption>
               <thead>
@@ -224,7 +225,7 @@ export default async function CasePage({
                 })}
               </tbody>
             </table>
-          </div>
+          </DataTable>
         )}
       </section>
     );

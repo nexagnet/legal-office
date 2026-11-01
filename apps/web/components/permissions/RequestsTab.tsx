@@ -1,3 +1,4 @@
+import { DataTable } from '../ui/data-table';
 import Link from 'next/link';
 import { FilterChips } from '../ui/filter-chips';
 import {
@@ -108,7 +109,7 @@ export function RequestsTab({
           </Link>
         ) : null}
       </div>
-      <div className="table-wrap member-card">
+      <DataTable tableKey="permissions-RequestsTab-1" className="member-card">
         <table>
           <caption className="sr-only">Yêu cầu đổi quyền</caption>
           <thead>
@@ -159,7 +160,7 @@ export function RequestsTab({
             )}
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <NoteBox title="Vì sao bạn có thể không thấy nút Duyệt?">
         Người đề xuất không được tự duyệt, kể cả khi thuộc nhiều nhóm. Admin khác có quyền duyệt
         thay đổi quyền nhận việc trong Hộp duyệt. Bấm vào mã yêu cầu để xem nội dung, người bị ảnh

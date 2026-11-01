@@ -1,5 +1,6 @@
 'use client';
 
+import { DataTable } from '../ui/data-table';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { formatDay } from '../../lib/deadlines';
@@ -82,7 +83,7 @@ export function UnassignedCasesSection({
         cấp chi nhánh đó mới thấy. Mỗi hồ sơ chỉ gắn được một lần, không đổi lại được.
       </NoteBox>
       <form className="grid gap-3 rounded-2xl bg-surface p-4 shadow-sm" onSubmit={submit}>
-        <div className="table-wrap">
+        <DataTable tableKey="permissions-UnassignedCasesSection-1">
           <table>
             <caption className="sr-only">Hồ sơ chưa gắn chi nhánh</caption>
             <thead>
@@ -120,7 +121,7 @@ export function UnassignedCasesSection({
               ))}
             </tbody>
           </table>
-        </div>
+        </DataTable>
         {total > cases.length ? (
           <p className="muted">
             Đang hiển thị {cases.length} hồ sơ đầu tiên trong {total}. Gắn xong sẽ hiện tiếp.

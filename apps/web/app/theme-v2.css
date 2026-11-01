@@ -1874,3 +1874,165 @@ fieldset.person-choice .person-choice-name {
 .appbar {
   min-width: 0;
 }
+
+/* ==== Bảng dùng chung (DataTable): cột đầu/cuối cố định, cắt chữ dài, đầu bảng dính, chế độ gọn ==== */
+.dt {
+  min-width: 0;
+}
+.dt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.dt-menu {
+  position: relative;
+}
+.dt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  font: 600 13px/1 var(--font);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.dt-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.dt-btn:hover,
+.dt-btn[aria-pressed='true'],
+.dt-btn[aria-expanded='true'] {
+  background: var(--surface-2);
+}
+.dt-btn[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.dt-btn:focus-visible,
+.dt-popover input:focus-visible,
+.dt-reset:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.dt-count {
+  padding: 2px 7px;
+  font-size: 11px;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 999px;
+}
+.dt-popover {
+  position: absolute;
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: 2px;
+  width: min(280px, 86vw);
+  max-height: 60vh;
+  margin-top: 6px;
+  padding: 8px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 45, 85, 0.18);
+}
+.dt-popover label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 8px;
+  font-size: 13px;
+  color: var(--ink);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dt-popover label:hover {
+  background: var(--surface-2);
+}
+.dt-reset {
+  margin-top: 4px;
+  min-height: 34px;
+  font: 600 13px/1 var(--font);
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.dt-scroll {
+  max-height: 72vh;
+  overflow: auto;
+}
+.dt-scroll table {
+  min-width: max-content;
+  width: 100%;
+}
+/* Chữ dài cắt bằng "…"; ngày, số, trạng thái đã nằm trong ô hẹp nên không xuống dòng */
+.dt-scroll tbody td,
+.dt-scroll tbody th {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dt-scroll tbody td:last-child {
+  max-width: none;
+  overflow: visible;
+}
+/* Đầu bảng dính khi cuộn dọc */
+.dt-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+/* Cột đầu và cột thao tác cố định khi cuộn ngang */
+.dt-scroll tr > :first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+.dt-scroll thead tr > :first-child {
+  z-index: 4;
+}
+.dt-scroll tr > :last-child:not(:first-child) {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  box-shadow: -8px 0 8px -8px rgba(15, 45, 85, 0.25);
+}
+.dt-scroll thead tr > :last-child:not(:first-child) {
+  z-index: 4;
+}
+.dt-scroll tr > :first-child:not(:last-child) {
+  box-shadow: 8px 0 8px -8px rgba(15, 45, 85, 0.25);
+}
+/* Xen kẽ màu dòng; ô cố định phải đặc nên đặt nền theo từng ô */
+.dt-scroll tbody tr:nth-child(even) > td,
+.dt-scroll tbody tr:nth-child(even) > th {
+  background: var(--surface-2);
+}
+.dt-scroll tbody tr:hover > td,
+.dt-scroll tbody tr:hover > th {
+  background: var(--accent-soft);
+}
+/* Chế độ gọn */
+.dt[data-compact='true'] .dt-scroll th,
+.dt[data-compact='true'] .dt-scroll td {
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.dt[data-compact='true'] .dt-scroll thead th {
+  padding: 8px 12px;
+  font-size: 10.5px;
+}

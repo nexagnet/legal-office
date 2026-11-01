@@ -1,3 +1,4 @@
+import { DataTable } from '../../components/ui/data-table';
 import Link from 'next/link';
 import { StatCard } from '../../components/StatCard';
 import { ReportExport } from '../../components/ReportExport';
@@ -289,7 +290,7 @@ export default async function ReportPage({
                   </li>
                 ))}
               </ul>
-              <div className="table-wrap">
+              <DataTable tableKey="bao-cao-page-1">
                 <table>
                   <caption className="sr-only">
                     Báo cáo từ {from} đến {to}
@@ -314,7 +315,7 @@ export default async function ReportPage({
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </DataTable>
             </>
           )}
         </div>
@@ -334,7 +335,7 @@ export default async function ReportPage({
             Công văn theo ngày tạo, vật tư theo ngày phát sinh; nhân sự là hiện trạng, không theo
             kỳ. Mỗi dòng đếm một đơn vị riêng.
           </p>
-          <div className="table-wrap">
+          <DataTable tableKey="bao-cao-page-2">
             <table>
               <caption className="sr-only">Công văn, vật tư và nhân sự</caption>
               <thead>
@@ -357,7 +358,7 @@ export default async function ReportPage({
                 ))}
               </tbody>
             </table>
-          </div>
+          </DataTable>
         </div>
       )}
     </section>

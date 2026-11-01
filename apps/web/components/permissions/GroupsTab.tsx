@@ -1,3 +1,4 @@
+import { DataTable } from '../ui/data-table';
 import Link from 'next/link';
 import { FilterChips } from '../ui/filter-chips';
 import {
@@ -99,7 +100,7 @@ export function GroupsTab({
           </div>
         ) : null}
       </div>
-      <div className="table-wrap member-card">
+      <DataTable tableKey="permissions-GroupsTab-1" className="member-card">
         <table>
           <caption className="sr-only">Nhóm quyền</caption>
           <thead>
@@ -170,7 +171,7 @@ export function GroupsTab({
             )}
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <NoteBox tone="warn" title="Quyền quản trị phân quyền do Admin giữ">
         Quyền duyệt thay đổi quyền và duyệt yêu cầu sửa đổi hồ sơ gắn với Admin; người đề xuất không
         tự duyệt đề xuất của mình. Tư cách hành nghề không phải là quyền: không nhóm nào cấp được.

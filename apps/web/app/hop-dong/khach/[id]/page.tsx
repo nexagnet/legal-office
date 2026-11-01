@@ -1,3 +1,4 @@
+import { DataTable } from '../../../../components/ui/data-table';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CustomerAddenda } from '../../../../components/CustomerAddenda';
@@ -190,7 +191,7 @@ export default async function CustomerPage({
                 <p>Chưa ghi nhận lần nhắc hoặc báo kết quả nào cho các hồ sơ của khách.</p>
               </div>
             ) : (
-              <div className="table-wrap">
+              <DataTable tableKey="hop-dong-khach-id-page-1">
                 <table>
                   <caption className="sr-only">Nhật ký liên hệ khách</caption>
                   <thead>
@@ -214,7 +215,7 @@ export default async function CustomerPage({
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </DataTable>
             )
           ) : null}
           {tab === 'vi-bang' ? (
@@ -224,7 +225,7 @@ export default async function CustomerPage({
                 <p>Khách chưa có Vi bằng nào được cấp số.</p>
               </div>
             ) : (
-              <div className="table-wrap">
+              <DataTable tableKey="hop-dong-khach-id-page-2">
                 <table>
                   <caption className="sr-only">Vi bằng của khách</caption>
                   <thead>
@@ -255,7 +256,7 @@ export default async function CustomerPage({
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </DataTable>
             )
           ) : null}
         </div>

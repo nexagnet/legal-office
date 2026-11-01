@@ -1,3 +1,4 @@
+import { DataTable } from '../../../../components/ui/data-table';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DmsAmendmentForm, DmsFileVersionForm } from '../../../../components/DmsAmendments';
@@ -385,7 +386,7 @@ export default async function DmsCasePage({
               <h3>Chưa có tệp</h3>
             </div>
           ) : (
-            <div className="table-wrap">
+            <DataTable tableKey="dms-domain-id-page-1">
               <table>
                 <caption className="sr-only">
                   {tab === 'scan' ? 'Bản scan của hồ sơ' : 'Phiên bản tệp của hồ sơ'}
@@ -419,7 +420,7 @@ export default async function DmsCasePage({
                   )}
                 </tbody>
               </table>
-            </div>
+            </DataTable>
           )}
         </>
       ) : null}
