@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
-import { savedParamsToHref, type DmsSavedParams } from '../lib/dms-browse';
+import { savedParamsToHref, type DmsSavedParams } from '../lib/dms-filter-params';
 import { messageFor } from '../lib/messages';
 import { Button } from './ui/button';
 import { Input } from './ui/field';
