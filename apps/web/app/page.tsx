@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { FileText, Gavel, Search, Send, type LucideIcon } from 'lucide-react';
+import { DmsOverview } from '../components/DmsOverview';
 import { ModuleState } from '../components/ModuleState';
 import { WorkGroups } from '../components/WorkGroups';
 import { loadCases, summarizeCases } from '../lib/cases';
@@ -90,6 +91,8 @@ export default async function HomePage() {
   }
   const cookie = await requestCookie();
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
+  // Tổng quan theo Figma DMS v2 (T1): số liệu hồ sơ, theo nghiệp vụ, cần bổ sung scan.
+  if (officeId) return <DmsOverview cookie={cookie} officeId={officeId} />;
   const canReview = (NAV.find((n) => n.slug === 'hop-duyet')?.roles ?? []).some((r) =>
     session.roles.includes(r),
   );
