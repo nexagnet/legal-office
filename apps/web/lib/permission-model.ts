@@ -278,6 +278,8 @@ export interface PersonRow {
   readonly email: string | null;
   readonly isAdmin: boolean;
   readonly hasLogin: boolean;
+  /** Tạm khóa: không đăng nhập, không có quyền hiệu lực; dữ liệu và lịch sử giữ nguyên. */
+  readonly suspended: boolean;
   readonly legacyRole: string | null;
   readonly branches: readonly string[];
   readonly groups: readonly DmsGroup[];
@@ -285,10 +287,11 @@ export interface PersonRow {
   readonly pending: readonly PermissionRequest[];
 }
 
-export type AccountState = 'active' | 'no-access' | 'waiting';
+export type AccountState = 'active' | 'no-access' | 'waiting' | 'suspended';
 
 /** Admin (vai ADMIN) mặc nhiên đủ quyền; người khác có quyền khi thuộc ít nhất một nhóm. */
 export function accountState(p: PersonRow): AccountState {
+  if (p.suspended) return 'suspended';
   if (p.isAdmin || p.groups.length > 0) return 'active';
   return p.pending.length > 0 ? 'waiting' : 'no-access';
 }
@@ -297,6 +300,7 @@ export const ACCOUNT_STATE_LABEL: Readonly<Record<AccountState, string>> = {
   active: 'Hoạt động',
   'no-access': 'Đã tạo, chưa có quyền',
   waiting: 'Chờ phê duyệt',
+  suspended: 'Tạm khóa',
 };
 
 interface MemberInput {
@@ -304,6 +308,7 @@ interface MemberInput {
   readonly label: string;
   readonly role: string | null;
   readonly hasLogin: boolean;
+  readonly suspended?: boolean;
   readonly branches: readonly string[];
 }
 
@@ -329,6 +334,7 @@ export function buildPersonRows(
       email,
       isAdmin: rows.some((r) => r.role === 'ADMIN'),
       hasLogin: rows.some((r) => r.hasLogin),
+      suspended: rows.some((r) => r.suspended === true),
       legacyRole: nonAdmin,
       branches: [...new Set(rows.flatMap((r) => r.branches))],
       groups: groupsOfUser(groups, userId),
@@ -361,6 +367,8 @@ const PERMISSION_MESSAGES: Readonly<Record<string, string>> = {
   WOULD_REMOVE_LAST_APPROVER: 'Không thể làm văn phòng mất người duyệt cuối cùng.',
   GROUP_NAME_IN_USE: 'Đã có nhóm quyền trùng tên.',
   GROUP_RETIRED: 'Nhóm này đã ngừng dùng. Hãy dùng lại nhóm trước khi đề xuất thay đổi.',
+  MEMBER_SUSPENDED: 'Đã tạm khóa tài khoản.',
+  MEMBER_REACTIVATED: 'Đã mở khóa tài khoản.',
   TEMPLATE_PROTECTED:
     'Nhóm mẫu được bảo vệ, không sửa trực tiếp. Hãy sao chép thành nhóm tùy chỉnh.',
 };
@@ -418,6 +426,7 @@ export interface MemberRow {
   /** Có đề xuất đang chờ liên quan người này. */
   readonly pending: boolean;
   readonly legacyRole: string | null;
+  readonly suspended: boolean;
 }
 
 export function toMemberRow(p: PersonRow): MemberRow {
@@ -431,5 +440,6 @@ export function toMemberRow(p: PersonRow): MemberRow {
     groupNames: p.groups.map((g) => g.name),
     pending: p.pending.length > 0,
     legacyRole: p.legacyRole,
+    suspended: p.suspended,
   };
 }

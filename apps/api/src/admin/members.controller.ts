@@ -33,6 +33,9 @@ const memberBody = z
   })
   .strict();
 const nameBody = z.object({ officeId: uuid, fullName: z.string().trim().min(1).max(200) }).strict();
+const suspendBody = z
+  .object({ officeId: uuid, suspended: z.boolean(), reason: z.string().trim().min(1).max(1000) })
+  .strict();
 const branchBody = z.object({ officeId: uuid, name: z.string().trim().min(1).max(100) }).strict();
 
 function parse<S extends z.ZodType>(schema: S, value: unknown): z.infer<S> {
@@ -92,6 +95,18 @@ export class MembersController {
   ) {
     const b = parse(nameBody, body);
     return this.run(a, 'ad_member_set_name', [b.officeId, id, b.fullName]);
+  }
+
+  /** Tạm khóa / mở khóa tài khoản: thu hồi phiên và quyền hiệu lực, giữ nguyên lịch sử. Admin áp dụng ngay, có lý do và nhật ký. */
+  @Post('members/:id/suspension')
+  @HttpCode(HttpStatus.OK)
+  suspendMember(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(suspendBody, body);
+    return this.run(a, 'ad_member_suspend', [b.officeId, id, b.suspended, b.reason]);
   }
 
   @Post('branches')
