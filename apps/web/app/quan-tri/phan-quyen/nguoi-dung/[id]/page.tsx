@@ -90,8 +90,8 @@ export default async function EffectivePage({
         <div className="flex items-center gap-4">
           <Avatar name={person.name} id={person.userId} size="lg" />
           <div className="grid gap-1">
-            <h2 className="font-serif text-xl">{person.name}</h2>
-            <span className="flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span className="flex flex-wrap items-center gap-2">
+              <h2 className="font-serif text-xl">{person.name}</h2>
               <Pill
                 tone={
                   state === 'active'
@@ -105,8 +105,8 @@ export default async function EffectivePage({
               >
                 {ACCOUNT_STATE_LABEL[state]}
               </Pill>
-              {person.email}
             </span>
+            <span className="text-sm text-muted">{person.email}</span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">

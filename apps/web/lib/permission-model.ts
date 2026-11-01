@@ -141,7 +141,15 @@ export function defaultScopeLabel(g: DmsGroup): string {
 
 export interface PermissionSection {
   readonly title: string;
-  readonly items: readonly { readonly code: string; readonly label: string }[];
+  readonly items: readonly {
+    readonly code: string;
+    readonly label: string;
+    /** Tên hành động (không kèm phạm vi) và nhãn phạm vi; quyền quản trị thì không có phạm vi. */
+    readonly action: string;
+    readonly scope: string | null;
+  }[];
+  /** Hành động của nghiệp vụ này mà nhóm không có (cả hai phạm vi). Rỗng với mục Quản trị. */
+  readonly missing: readonly string[];
 }
 
 /** Gom quyền của một nhóm theo nghiệp vụ để hiển thị (P6). Quyền quản trị đứng cuối. */
@@ -152,16 +160,27 @@ export function groupPermissionSections(permissions: readonly string[]): Permiss
       .map((code) => ({ code, p: parsePermission(code) }))
       .filter((x) => x.p?.domain === domain)
       .sort((a, b) => actionRank(a.p?.action) - actionRank(b.p?.action))
-      .map(({ code, p }) => ({
-        code,
-        label: `${ACTION_LABEL.get(p?.action ?? '') ?? code} · ${SCOPE_LABEL[p?.scope ?? ''] ?? ''}`,
-      }));
-    if (items.length > 0) sections.push({ title, items });
+      .map(({ code, p }) => {
+        const action = ACTION_LABEL.get(p?.action ?? '') ?? code;
+        const scope = SCOPE_LABEL[p?.scope ?? ''] ?? '';
+        return { code, label: `${action} · ${scope}`, action, scope };
+      });
+    const have = new Set(
+      permissions
+        .map((c) => parsePermission(c))
+        .filter((x) => x?.domain === domain)
+        .map((x) => x?.action),
+    );
+    const missing = PERMISSION_ACTIONS.filter(([a]) => !have.has(a)).map(([, label]) => label);
+    if (items.length > 0) sections.push({ title, items, missing });
   }
   const special = permissions
     .filter((c) => c in SPECIAL_PERMISSIONS)
-    .map((code) => ({ code, label: SPECIAL_PERMISSIONS[code] ?? code }));
-  if (special.length > 0) sections.push({ title: 'Quản trị', items: special });
+    .map((code) => {
+      const label = SPECIAL_PERMISSIONS[code] ?? code;
+      return { code, label, action: label, scope: null };
+    });
+  if (special.length > 0) sections.push({ title: 'Quản trị', items: special, missing: [] });
   return sections;
 }
 

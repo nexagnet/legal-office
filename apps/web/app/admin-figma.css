@@ -56,6 +56,9 @@
   .shell[data-area='admin'] .topbar-crumb a:hover {
     text-decoration: underline;
   }
+  .shell[data-area='admin'] .topbar:has(.topbar-crumb) + .main {
+    padding-top: 4px;
+  }
   .shell[data-area='admin'] .main {
     padding: 23px 32px 48px;
     max-width: none;
@@ -684,8 +687,9 @@
 }
 
 /* Tiêu đề thẻ (Figma Q8/Q9): serif 17px. */
-.admin-main h2.font-serif,
-.admin-main h3.font-serif {
+.admin-main section[aria-labelledby='cal-t'] h3.font-serif,
+.admin-main section[aria-labelledby='mail-t'] h2.font-serif,
+.admin-main form[aria-label='Cấu hình máy chủ gửi thư'] h2.font-serif {
   font: 700 17px/24px var(--font-serif);
   color: var(--fg-ink);
 }
@@ -735,4 +739,125 @@
 }
 .admin-main .own-pending li .pill {
   margin-left: auto;
+}
+
+/* ===== Chi tiết nhóm quyền (Figma P6) ===== */
+.admin-main .group-summary,
+.admin-main .group-perms {
+  display: grid;
+  gap: 12px;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 6%);
+}
+.admin-main .group-summary .kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 6px 32px;
+  margin: 0;
+}
+.admin-main .group-summary .kv > div {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+}
+.admin-main .group-summary .kv dt {
+  min-width: 112px;
+  margin: 0;
+  color: var(--fg-muted);
+}
+.admin-main .group-summary .kv dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--fg-ink);
+}
+.admin-main .group-perms-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 220px);
+  gap: 12px;
+  font: 700 11px/16px var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.admin-main .group-perms-head h2 {
+  font: inherit;
+  color: inherit;
+}
+.admin-main .group-perms-sec {
+  display: grid;
+  gap: 2px;
+}
+.admin-main .group-perms-sec h3 {
+  padding: 8px 12px;
+  background: var(--bg-head, #eef1f6);
+  border-radius: 8px;
+  font: 700 11px/16px var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.admin-main .group-perms-sec ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-main .group-perms-sec li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 220px);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line, #e6eaf0);
+  font-size: 13px;
+}
+.admin-main .group-perms-sec li > span:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.admin-main .group-perms-missing {
+  padding: 8px 12px 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.admin-main .group-summary .btn-link:not(.primary),
+.admin-main .group-summary button:not(.primary) {
+  padding: 9px 16px;
+  font: 600 13px/18px var(--font);
+  color: var(--fg-ink);
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid var(--fg-input);
+  border-radius: 10px;
+}
+.admin-main .group-perms ~ div a,
+.admin-main section[aria-labelledby='mem-t'] a {
+  text-decoration: none;
+}
+
+/* ===== Quyền hiệu lực của một người (Figma P2) ===== */
+.admin-main h2.font-serif.text-xl {
+  font: 700 20px/28px var(--font-serif);
+  color: var(--fg-ink);
+}
+.admin-main h2.text-xs.uppercase {
+  font: 700 10.5px/14px var(--font);
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+}
+.admin-main button.danger-outline {
+  padding: 9px 16px;
+  font: 600 13px/18px var(--font);
+  color: #c0382f;
+  background: #fff;
+  border: 1px solid #e9b4b0;
+  border-radius: 10px;
+}
+.admin-main .group-summary button.danger-outline {
+  color: #c0382f;
+  border-color: #e9b4b0;
 }
