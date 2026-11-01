@@ -47,6 +47,7 @@ const NOT_FOUND = new Set([
   'GROUP_NOT_FOUND',
 ]);
 const INVALID = new Set([
+  'BRANCH_REQUIRED',
   'INVALID_LEDGER_PERIOD',
   'INVALID_STATUS',
   'INVALID_DOCUMENT',

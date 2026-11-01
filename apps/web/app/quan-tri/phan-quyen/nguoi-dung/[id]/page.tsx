@@ -1,11 +1,17 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { BranchAccessSection } from '../../../../../components/permissions/BranchAccessSection';
 import { MemberSuspendButton } from '../../../../../components/permissions/MemberSuspendButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
 import { Avatar } from '../../../../../components/ui/avatar';
 import { StateCard } from '../../../../../components/ui/state-card';
-import { loadPermissionContext } from '../../../../../lib/dms-admin';
+import {
+  loadBranchAccess,
+  loadOfficeBranches,
+  loadPermissionContext,
+} from '../../../../../lib/dms-admin';
+import { requestCookie } from '../../../../../lib/server';
 import {
   ACCOUNT_STATE_LABEL,
   SCOPE_LABEL,
@@ -14,6 +20,7 @@ import {
   buildPersonRows,
   describeRequest,
   effectiveByDomain,
+  effectivePermissions,
   formatWhen,
   makeNameBook,
   requestCode,
@@ -53,6 +60,11 @@ export default async function EffectivePage({
   const rows = person.suspended ? [] : effectiveByDomain(ctx.groups, id);
   const state = accountState(person);
   const history = ctx.requests.filter((r) => r.user_id === id);
+  const cookie = await requestCookie();
+  const [officeBranches, branchAccess] = await Promise.all([
+    loadOfficeBranches(cookie, ctx.officeId),
+    loadBranchAccess(cookie, ctx.officeId),
+  ]);
 
   return (
     <>
@@ -149,6 +161,16 @@ export default async function EffectivePage({
           </p>
         </section>
       </div>
+      <BranchAccessSection
+        officeId={ctx.officeId}
+        userId={id}
+        branches={officeBranches}
+        granted={branchAccess.filter((b) => b.userId === id)}
+        canEdit={ctx.canApprove && !person.suspended}
+        seesAll={
+          person.isAdmin || effectivePermissions(ctx.groups, id).includes('dms.permission.approve')
+        }
+      />
 
       <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="eff-t">
         <h2 id="eff-t" className="font-serif text-lg">

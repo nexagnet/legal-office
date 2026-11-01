@@ -27,6 +27,42 @@ export async function loadDmsGroups(
   return body === 'error' ? 'error' : body.rows;
 }
 
+export interface BranchAccessRow {
+  readonly userId: string;
+  readonly branchId: string;
+  readonly branchName: string;
+  /** DMS: cấp theo mô hình mới, thu hồi được. LEGACY: cấp phát cũ theo vai, chỉ hiển thị. */
+  readonly source: 'DMS' | 'LEGACY';
+}
+
+/** Ai đang được xem chi nhánh nào. Lỗi (không đủ quyền...) = danh sách rỗng, trang vẫn dựng được. */
+export async function loadBranchAccess(
+  cookie: string | null,
+  officeId: string,
+): Promise<BranchAccessRow[]> {
+  const body = await getJson<{ rows: BranchAccessRow[] }>(
+    `/dms/branch-access?${q(officeId)}`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.rows;
+}
+
+export interface OfficeBranch {
+  readonly id: string;
+  readonly name: string;
+}
+
+export async function loadOfficeBranches(
+  cookie: string | null,
+  officeId: string,
+): Promise<OfficeBranch[]> {
+  const body = await getJson<{ branches: OfficeBranch[] }>(
+    `/office/settings?${q(officeId)}`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.branches;
+}
+
 export async function loadPermissionRequests(
   cookie: string | null,
   officeId: string,

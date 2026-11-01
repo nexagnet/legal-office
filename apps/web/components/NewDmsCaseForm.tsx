@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
 
 /** Tạo hồ sơ NHÁP (chưa ghi sổ). Quyền do máy chủ kiểm; lỗi hiển thị bằng tiếng Việt. */
@@ -18,6 +18,21 @@ export function NewDmsCaseForm({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [branches, setBranches] = useState<readonly { id: string; name: string }[]>([]);
+
+  // Chi nhánh người này được cấp. Một chi nhánh: máy chủ tự gắn. Nhiều chi nhánh: phải chọn. Lỗi tải: để máy chủ quyết định.
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/dms/me/branches?officeId=${encodeURIComponent(officeId)}`)
+      .then((r) => (r.ok ? (r.json() as Promise<{ rows: { id: string; name: string }[] }>) : null))
+      .then((b) => {
+        if (alive && b) setBranches(b.rows);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [officeId]);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +49,7 @@ export function NewDmsCaseForm({
           domain: domainCode,
           title: String(f.get('title') ?? '').trim(),
           attributes: { note: String(f.get('note') ?? '').trim() },
+          ...(f.get('branch') ? { branchId: String(f.get('branch')) } : {}),
         }),
       });
       const json = (await res.json().catch(() => ({}))) as { code?: string; label?: string };
@@ -62,6 +78,21 @@ export function NewDmsCaseForm({
         Ghi chú
         <input name="note" maxLength={1000} className="min-w-72" />
       </label>
+      {branches.length > 1 ? (
+        <label className="flex flex-col gap-1 text-sm">
+          Chi nhánh
+          <select name="branch" required defaultValue="">
+            <option value="" disabled>
+              Chọn chi nhánh
+            </option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <button type="submit" disabled={busy}>
         + Tạo nháp
       </button>
