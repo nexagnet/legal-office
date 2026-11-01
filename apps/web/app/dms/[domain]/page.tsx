@@ -28,6 +28,7 @@ import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
+const PAGE_SIZE = 10;
 const FILTERS: readonly DmsFilter[] = [
   'chinh-thuc',
   'cho-duyet',
@@ -53,7 +54,7 @@ export default async function DmsDomainPage({
   searchParams,
 }: {
   params: Promise<{ domain: string }>;
-  searchParams: Promise<{ tab?: string; loc?: string; q?: string; year?: string }>;
+  searchParams: Promise<{ tab?: string; loc?: string; q?: string; year?: string; p?: string }>;
 }) {
   const domain = domainBySlug((await params).domain);
   if (!domain) notFound();
@@ -137,6 +138,9 @@ export default async function DmsDomainPage({
     },
     pendingIds,
   );
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const page = Math.min(pageCount, Math.max(1, Math.floor(Number(sp.p)) || 1));
+  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const missingScan = officialYear.filter((r) => r.document_count > 0 && r.scan_count === 0);
   const counts: Record<DmsFilter, number | undefined> = {
     'chinh-thuc': officialYear.length,
@@ -151,6 +155,15 @@ export default async function DmsDomainPage({
     if (f !== 'chinh-thuc') p.set('loc', f);
     if (q) p.set('q', q);
     if (sp.year) p.set('year', String(year));
+    const s = p.toString();
+    return s ? `${base}?${s}` : base;
+  };
+  const pageHref = (n: number) => {
+    const p = new URLSearchParams();
+    if (filter !== 'chinh-thuc') p.set('loc', filter);
+    if (q) p.set('q', q);
+    if (sp.year) p.set('year', String(year));
+    if (n > 1) p.set('p', String(n));
     const s = p.toString();
     return s ? `${base}?${s}` : base;
   };
@@ -241,21 +254,53 @@ export default async function DmsDomainPage({
         </label>
         <label className="w-28">
           <span className="sr-only">Năm</span>
-          <Input name="year" type="number" min={2000} max={2100} defaultValue={year} />
+          <select
+            name="year"
+            defaultValue={year}
+            className="min-h-11 w-full rounded-[10px] border border-line-strong bg-surface px-3 text-sm"
+          >
+            {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
+              .concat(year)
+              .filter((y, i, a) => a.indexOf(y) === i)
+              .sort((x, y) => y - x)
+              .map((y) => (
+                <option key={y} value={y}>
+                  Năm {y}
+                </option>
+              ))}
+          </select>
         </label>
         <Button type="submit" variant="secondary">
           Tìm
         </Button>
       </form>
       <DmsCaseTable
-        rows={rows}
+        rows={pageRows}
         caption={`Danh sách hồ sơ ${domain.label}`}
         basePath={base}
         book={!isDraftView && spec ? { spec, byCase } : undefined}
         sttLabel={sttLabel}
       />
+      {pageCount > 1 ? (
+        <nav aria-label="Phân trang" className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+          {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+            <Link
+              key={n}
+              href={pageHref(n)}
+              aria-current={n === page ? 'page' : undefined}
+              className={
+                n === page
+                  ? 'rounded-full bg-accent px-3 py-1 font-semibold text-white'
+                  : 'px-3 py-1'
+              }
+            >
+              {n}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       <p className="muted mt-3">
-        Hiển thị {rows.length} hồ sơ{' '}
+        Hiển thị {pageRows.length} / {rows.length} hồ sơ{' '}
         {isDraftView ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase() : `chính thức năm ${year}`}
         . Nháp và nháp đã hủy không có {sttLabel}, không vào xuất sổ, không tính thống kê chính
         thức.

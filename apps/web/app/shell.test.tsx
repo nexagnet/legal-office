@@ -306,7 +306,7 @@ describe('menu DMS', () => {
     const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
     expect(nav.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
     expect(
-      nav.getByRole('link', { name: 'Hồ sơ lưu trữ' }).getAttribute('aria-current'),
+      nav.getByRole('link', { name: 'Hồ sơ của tôi' }).getAttribute('aria-current'),
     ).toBeNull();
     expect(container.querySelector('.shell')?.getAttribute('data-domain')).toBe('vi-bang');
   });
