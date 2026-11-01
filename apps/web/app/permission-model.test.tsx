@@ -7,6 +7,11 @@ import {
   describeRequest,
   effectiveByDomain,
   effectivePermissions,
+  applyOverrides,
+  isOverridable,
+  overridableBaseline,
+  overridableCodes,
+  permissionSource,
   groupPermissionSections,
   groupVersion,
   isGroupActive,
@@ -246,5 +251,43 @@ describe('vòng đời nhóm quyền', () => {
   it('có câu tiếng Việt cho nhóm mẫu được bảo vệ và nhóm đã ngừng dùng', () => {
     expect(permissionMessage('TEMPLATE_PROTECTED')).toContain('sao chép');
     expect(permissionMessage('GROUP_RETIRED')).toContain('ngừng dùng');
+  });
+});
+
+describe('quyền riêng theo tài khoản', () => {
+  const base = new Set(['vtden.read.all', 'vtden.draft.all']);
+  it('classifies each permission as group / grant / revoke / none', () => {
+    const want = new Set(['vtden.read.all', 'dms.stock.write']);
+    expect(permissionSource('vtden.read.all', base, want)).toBe('group');
+    expect(permissionSource('dms.stock.write', base, want)).toBe('grant');
+    expect(permissionSource('vtden.draft.all', base, want)).toBe('revoke');
+    expect(permissionSource('vtden.confirm.all', base, want)).toBe('none');
+  });
+  it('keeps admin-class permissions out of the overridable catalog', () => {
+    expect(isOverridable('dms.permission.approve')).toBe(false);
+    expect(isOverridable('dms.amendment.approve')).toBe(false);
+    expect(isOverridable('dms.stock.write')).toBe(true);
+    expect(overridableCodes()).not.toContain('dms.permission.propose');
+    expect(overridableBaseline(['vtden.read.all', 'dms.permission.approve'])).toEqual(
+      new Set(['vtden.read.all']),
+    );
+  });
+  it('applies active overrides on top of the baseline, and on effective permissions', () => {
+    const active = [
+      { permission: 'vtden.draft.all', effect: 'REVOKE' as const },
+      { permission: 'dms.stock.write', effect: 'GRANT' as const },
+    ];
+    expect([...applyOverrides(base, active)].sort()).toEqual(['dms.stock.write', 'vtden.read.all']);
+    const g = {
+      id: 'g',
+      name: 'G',
+      permissions: ['vtden.read.all', 'vtden.draft.all'],
+      member_ids: ['u'],
+    };
+    expect(effectivePermissions([g], 'u', active)).toEqual(['dms.stock.write', 'vtden.read.all']);
+    const rows = effectiveByDomain([g], 'u', active);
+    expect(rows.map((r) => r.domain)).toEqual(['vtden']);
+    expect(rows[0]!.actions.map((a) => a.label)).toEqual(['Xem hồ sơ']);
+    expect(rows[0]!.sources).toEqual(['G']);
   });
 });

@@ -72,7 +72,7 @@ describe('AddMemberForm', () => {
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'nhân sự mới' } });
   };
   const submit = () =>
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo tài khoản và áp dụng nhóm quyền' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo tài khoản và áp dụng quyền' }));
 
   it('sends the chosen permission groups, no role, and opens the new person', async () => {
     const push = vi.fn();
@@ -119,6 +119,51 @@ describe('AddMemberForm', () => {
     submit();
     await waitFor(() => expect(spy).toHaveBeenCalled());
     expect(bodyOf(spy)).toMatchObject({ groupIds: [] });
+  });
+
+  it('pre-ticks the group permissions, and sends the ticked set plus branches only after a per-account change', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'u2' }));
+    pushSpy = vi.fn();
+    render(
+      <AddMemberForm officeId="o1" groups={groups} branches={[{ id: 'b1', name: 'Bắc Ninh' }]} />,
+    );
+    fill();
+    fireEvent.click(screen.getByLabelText(/Văn thư chi nhánh/));
+    const read = screen.getByLabelText('Văn thư · Văn bản đến · Xem hồ sơ (Hồ sơ do tôi tạo)');
+    expect((read as HTMLInputElement).checked).toBe(true); // kế thừa từ nhóm
+    const dl = screen.getByLabelText(
+      'Văn thư · Văn bản đến · Tải tệp, in (Mọi hồ sơ của văn phòng)',
+    );
+    expect((dl as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(dl); // thêm riêng
+    fireEvent.click(read); // bỏ riêng quyền của nhóm
+    expect(screen.getByText(/Thêm riêng 1 quyền, bỏ riêng 1 quyền/)).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Bắc Ninh'));
+    submit();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const body = bodyOf(spy);
+    expect([...(body.permissions as string[])].sort()).toEqual([
+      'vtden.download.all',
+      'vtden.draft.own',
+    ]);
+    expect(body.branchIds).toEqual(['b1']);
+  });
+
+  it('restoring to the group baseline stops sending a per-account permission set', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'u3' }));
+    pushSpy = vi.fn();
+    render(<AddMemberForm officeId="o1" groups={groups} />);
+    fill();
+    fireEvent.click(screen.getByLabelText(/Văn thư chi nhánh/));
+    fireEvent.click(screen.getByLabelText('Văn thư · Văn bản đến · Xem hồ sơ (Hồ sơ do tôi tạo)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Quay về đúng theo nhóm' }));
+    submit();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect(bodyOf(spy)).not.toHaveProperty('permissions');
   });
 
   it('shows a readable message when the email already has an account', async () => {

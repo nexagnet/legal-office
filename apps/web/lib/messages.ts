@@ -4,6 +4,9 @@ const MESSAGES: Record<string, string> = {
   BRANCH_NOT_GRANTED: 'Bạn chưa được cấp quyền ở chi nhánh này.',
   NOT_ASSIGNED_HANDLER: 'Bạn không phải người phụ trách hồ sơ này.',
   ADMIN_ONLY: 'Chỉ Admin được thực hiện thao tác này.',
+  SELF_NOT_ALLOWED: 'Không tự đổi quyền riêng của chính mình. Hãy nhờ Admin khác.',
+  ADMIN_TARGET: 'Admin mặc nhiên có đủ quyền, không đặt quyền riêng cho Admin.',
+  OVERRIDES_APPLIED: 'Đã lưu quyền riêng, có hiệu lực ngay.',
   WOULD_MOVE_BACKWARDS: 'Số cuối nhập vào nhỏ hơn số đang dùng. Số chỉ được tăng, không giảm.',
   INVALID_NUMBER: 'Số cuối hoặc năm chưa hợp lệ.',
   MAIL_KEY_MISSING:

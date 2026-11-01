@@ -1,6 +1,6 @@
 import { AdminBanner } from '../../../../components/admin-banner';
 import { AddMemberForm } from '../../../../components/AddMemberForm';
-import { loadDmsGroups } from '../../../../lib/dms-admin';
+import { loadDmsGroups, loadOfficeBranches } from '../../../../lib/dms-admin';
 import { isGroupActive } from '../../../../lib/permission-model';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
@@ -10,10 +10,12 @@ export default async function AddMemberPage() {
   const session = await currentSession();
   if (session.status !== 'authenticated') return null;
   const officeId = session.memberships[0]?.officeId ?? session.branches[0]?.officeId;
-  const groups =
-    officeId && session.roles.includes('ADMIN')
-      ? await loadDmsGroups(await requestCookie(), officeId)
-      : [];
+  const isAdmin = !!officeId && session.roles.includes('ADMIN');
+  const cookie = await requestCookie();
+  const [groups, branches] =
+    officeId && isAdmin
+      ? await Promise.all([loadDmsGroups(cookie, officeId), loadOfficeBranches(cookie, officeId)])
+      : [[], []];
   return (
     <>
       <div>
@@ -25,6 +27,7 @@ export default async function AddMemberPage() {
         <AddMemberForm
           officeId={officeId}
           groups={groups === 'error' ? [] : groups.filter(isGroupActive)}
+          branches={branches}
         />
       ) : (
         <p className="muted">Chỉ Admin thêm được thành viên.</p>
