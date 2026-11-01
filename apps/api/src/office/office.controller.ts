@@ -1071,6 +1071,7 @@ export class OfficeController {
       legal_signer: boolean;
       has_login: boolean;
       branches: string[];
+      suspended: boolean;
     }>(a, 'of_search_members', [officeId]);
     return rows.map((r) => ({
       userId: r.user_id,
@@ -1079,6 +1080,7 @@ export class OfficeController {
       legalSigner: r.legal_signer,
       hasLogin: r.has_login,
       branches: r.branches,
+      suspended: r.suspended,
     }));
   }
 

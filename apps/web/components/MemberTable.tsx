@@ -16,12 +16,13 @@ import { Avatar } from './ui/avatar';
 
 export type { MemberRow } from '../lib/permission-model';
 
-type Filter = 'all' | 'pending' | 'norole';
+type Filter = 'all' | 'pending' | 'norole' | 'suspended';
 
 const STATE_TONE: Record<AccountState, PillTone> = {
   active: 'ok',
   'no-access': 'warn',
   waiting: 'brass',
+  suspended: 'danger',
 };
 
 /**
@@ -41,12 +42,18 @@ export function MemberTable({
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const match = (m: MemberRow, f: Filter) =>
-    f === 'all' || (f === 'pending' ? m.pending : m.state !== 'active');
+    f === 'all' ||
+    (f === 'pending'
+      ? m.pending
+      : f === 'suspended'
+        ? m.suspended
+        : m.state === 'no-access' || m.state === 'waiting');
   const counts = useMemo(
     () => ({
       all: members.length,
       pending: members.filter((m) => match(m, 'pending')).length,
       norole: members.filter((m) => match(m, 'norole')).length,
+      suspended: members.filter((m) => match(m, 'suspended')).length,
     }),
     [members],
   );
@@ -62,6 +69,7 @@ export function MemberTable({
     ['all', 'Tất cả'],
     ['pending', 'Chờ duyệt'],
     ['norole', 'Chưa có quyền'],
+    ['suspended', 'Tạm khóa'],
   ];
 
   return (
@@ -149,7 +157,12 @@ export function MemberTable({
                   <Pill tone={STATE_TONE[m.state]}>{ACCOUNT_STATE_LABEL[m.state]}</Pill>
                 </td>
                 <td>
-                  {m.groupNames.length > 0 ? (
+                  {m.suspended ? (
+                    <span className="grid">
+                      <span>Không còn quyền hiệu lực</span>
+                      <span className="person-mail">Đã tạm khóa, lịch sử giữ nguyên</span>
+                    </span>
+                  ) : m.groupNames.length > 0 ? (
                     m.groupNames.join(' + ')
                   ) : m.isAdmin ? (
                     'Admin (mặc nhiên)'
