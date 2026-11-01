@@ -27,6 +27,7 @@ import {
   MOVEMENT_KIND_LABEL,
   movementQuery,
   signedQty,
+  summarizeStock,
   type StockMovement,
 } from '../../lib/stock-movements';
 import { FilterChips } from '../../components/ui/filter-chips';
@@ -74,7 +75,15 @@ async function get<T>(
   }
 }
 
-type Tab = 'ton-kho' | 'lich-su' | 'kiem-ke' | 'lo';
+type Tab =
+  'ton-kho' | 'danh-muc' | 'nhap-kho' | 'xuat-kho' | 'dieu-chinh' | 'lich-su' | 'kiem-ke' | 'lo';
+
+/** Tab xem biến động theo loại (Figma): nhập kho, xuất kho, lịch sử điều chỉnh. */
+const KIND_TAB: Partial<Record<Tab, string>> = {
+  'nhap-kho': 'RECEIPT',
+  'xuat-kho': 'ISSUE',
+  'dieu-chinh': 'ADJUSTMENT',
+};
 
 async function loadLines(
   cookie: string | null,
@@ -173,9 +182,13 @@ export default async function SuppliesPage({
       ? 'lo'
       : sp.tab === 'lich-su' && canManage
         ? 'lich-su'
-        : sp.tab === 'kiem-ke' && canCount
-          ? 'kiem-ke'
-          : 'ton-kho';
+        : sp.tab && sp.tab in KIND_TAB && canManage
+          ? (sp.tab as Tab)
+          : sp.tab === 'danh-muc'
+            ? 'danh-muc'
+            : sp.tab === 'kiem-ke' && canCount
+              ? 'kiem-ke'
+              : 'ton-kho';
   const stocktakes =
     tab === 'kiem-ke' && officeId ? await get<Stocktake>(cookie, 'stocktakes', officeId) : [];
   const sessions = stocktakes === 'error' ? [] : stocktakes;
@@ -190,9 +203,24 @@ export default async function SuppliesPage({
       )
     : [];
   const countedCount = currentRows.filter((r) => r.countedQty !== null).length;
-  const movementFilters = movementQuery(sp);
+  // Cột tồn đầu kỳ/nhập/xuất tính từ biến động trong năm hiện tại (giờ Việt Nam); tab lịch sử dùng bộ lọc ngày của người dùng.
+  const yearVn = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  }).format(new Date());
+  const movementFilters = movementQuery(
+    tab === 'lich-su' ? sp : { ...sp, from: sp.from ?? `${yearVn}-01-01` },
+  );
+  const needMovements = tab === 'ton-kho' || tab === 'lich-su' || tab in KIND_TAB;
+  const movementsAll =
+    needMovements && officeId && canManage
+      ? await loadMovements(cookie, officeId, movementFilters)
+      : [];
+  const kindFilter = KIND_TAB[tab];
   const movements =
-    tab === 'lich-su' && officeId ? await loadMovements(cookie, officeId, movementFilters) : [];
+    movementsAll === 'error' || !kindFilter
+      ? movementsAll
+      : movementsAll.filter((m) => m.kind === kindFilter);
   const branchName = new Map(session.branches.map((b) => [b.id, b.name]));
   const rows = stock === 'error' ? [] : stock;
   const items = [
@@ -235,7 +263,8 @@ export default async function SuppliesPage({
     <section aria-labelledby="t">
       <div className="page-head">
         <div>
-          <h1 id="t">Vật tư</h1>
+          <h1 id="t">Văn phòng phẩm</h1>
+          <p className="muted">Danh mục, nhập, xuất, tồn kho và lịch sử điều chỉnh vật tư.</p>
         </div>
         {officeId && canManage ? (
           <div className="flex flex-wrap gap-3">
@@ -249,8 +278,18 @@ export default async function SuppliesPage({
         active={tab}
         tabs={[
           { key: 'ton-kho', label: 'Tồn kho', href: href({ tab: 'ton-kho' }), count: items.length },
+          { key: 'danh-muc', label: 'Danh mục', href: href({ tab: 'danh-muc' }) },
           ...(canManage
-            ? [{ key: 'lich-su', label: 'Lịch sử nhập/xuất', href: href({ tab: 'lich-su' }) }]
+            ? [
+                { key: 'nhap-kho', label: 'Nhập kho', href: href({ tab: 'nhap-kho' }) },
+                { key: 'xuat-kho', label: 'Xuất kho', href: href({ tab: 'xuat-kho' }) },
+                {
+                  key: 'dieu-chinh',
+                  label: 'Lịch sử điều chỉnh',
+                  href: href({ tab: 'dieu-chinh' }),
+                },
+                { key: 'lich-su', label: 'Lịch sử nhập/xuất', href: href({ tab: 'lich-su' }) },
+              ]
             : []),
           ...(canCount
             ? [{ key: 'kiem-ke', label: 'Kiểm kê', href: href({ tab: 'kiem-ke' }) }]
@@ -317,19 +356,104 @@ export default async function SuppliesPage({
                 <thead>
                   <tr>
                     <th scope="col">Vật tư</th>
-                    <th scope="col">Chi nhánh</th>
-                    <th scope="col">Tồn kho</th>
-                    <th scope="col">Đơn vị</th>
+                    <th scope="col">ĐVT</th>
+                    <th scope="col">Tồn đầu kỳ</th>
+                    <th scope="col">Nhập</th>
+                    <th scope="col">Xuất</th>
+                    <th scope="col">Tồn hiện tại</th>
+                    <th scope="col">Giao dịch gần nhất</th>
                     <th scope="col">Ngưỡng</th>
                     <th scope="col">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {shown.map((r) => (
-                    <tr key={`${r.itemId}-${r.branchId ?? 'none'}`}>
+                  {shown.map((r) => {
+                    const sum = summarizeStock(
+                      r.onHand,
+                      movementsAll === 'error'
+                        ? []
+                        : movementsAll.filter(
+                            (m) =>
+                              m.itemId === r.itemId && m.branchId === (r.branchId ?? m.branchId),
+                          ),
+                    );
+                    const shownSum = canManage && movementsAll !== 'error';
+                    return (
+                      <tr key={`${r.itemId}-${r.branchId ?? 'none'}`}>
+                        <th scope="row">
+                          {r.name}
+                          <br />
+                          <span className="muted">{r.branchName ?? 'Chưa có tồn'}</span>
+                        </th>
+                        <td>{r.unit}</td>
+                        <td>{shownSum ? sum.opening : ''}</td>
+                        <td>{shownSum ? sum.received : ''}</td>
+                        <td>{shownSum ? sum.issued : ''}</td>
+                        <td className="font-bold">{r.onHand === null ? '' : r.onHand}</td>
+                        <td>
+                          {shownSum && sum.last ? (
+                            `${MOVEMENT_KIND_LABEL[sum.last.kind] ?? sum.last.kind} ${new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(sum.last.at))}${sum.last.purpose ? ` · ${sum.last.purpose}` : ''}`
+                          ) : (
+                            <span className="muted">—</span>
+                          )}
+                        </td>
+                        <td>
+                          {canAdjust ? (
+                            <ThresholdDialog
+                              itemId={r.itemId}
+                              itemName={r.name}
+                              current={thresholdOf.get(r.itemId) ?? null}
+                            />
+                          ) : (
+                            (thresholdOf.get(r.itemId) ?? <span className="muted">—</span>)
+                          )}
+                        </td>
+                        <td>
+                          {isLow(r) ? (
+                            <StatusPill status="LOW" label="Sắp hết" tone="warn" />
+                          ) : (
+                            <StatusPill
+                              status={hasStock(r) ? 'IN_STOCK' : 'OUT'}
+                              label={hasStock(r) ? 'Còn tồn' : 'Hết tồn'}
+                              tone={hasStock(r) ? 'ok' : 'warn'}
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="muted mt-4">
+            Mọi giao dịch nhập/xuất được giữ lại. Điều chỉnh giao dịch đã ghi nhận phải qua ghi nhận
+            điều chỉnh có lưu vết, không xóa lịch sử. Nguyên tắc xuất kho: ưu tiên lô nhập trước
+            (FIFO), có lịch sử người nhập/xuất, thời gian và chi nhánh.
+          </p>
+        </>
+      ) : tab === 'danh-muc' ? (
+        <>
+          {items.length === 0 ? (
+            <div className="state" role="status">
+              <h2>Chưa có vật tư</h2>
+              <p>Thêm vật tư ở menu "…" cạnh nút Nhập / xuất.</p>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <caption className="sr-only">Danh mục vật tư</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Vật tư</th>
+                    <th scope="col">ĐVT</th>
+                    <th scope="col">Ngưỡng sắp hết</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...new Map(rows.map((r) => [r.itemId, r])).values()].map((r) => (
+                    <tr key={r.itemId}>
                       <th scope="row">{r.name}</th>
-                      <td>{r.branchName ?? <span className="muted">Chưa có tồn</span>}</td>
-                      <td>{r.onHand === null ? '' : r.onHand}</td>
                       <td>{r.unit}</td>
                       <td>
                         {canAdjust ? (
@@ -342,27 +466,12 @@ export default async function SuppliesPage({
                           (thresholdOf.get(r.itemId) ?? <span className="muted">—</span>)
                         )}
                       </td>
-                      <td>
-                        {isLow(r) ? (
-                          <StatusPill status="LOW" label="Sắp hết" tone="warn" />
-                        ) : (
-                          <StatusPill
-                            status={hasStock(r) ? 'IN_STOCK' : 'OUT'}
-                            label={hasStock(r) ? 'Còn tồn' : 'Hết tồn'}
-                            tone={hasStock(r) ? 'ok' : 'warn'}
-                          />
-                        )}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          <p className="muted mt-4">
-            Nguyên tắc xuất kho: ưu tiên lô nhập trước (FIFO), có lịch sử người nhập/xuất, thời gian
-            và chi nhánh.
-          </p>
         </>
       ) : tab === 'kiem-ke' ? (
         <>
@@ -483,10 +592,10 @@ export default async function SuppliesPage({
             </div>
           )}
         </>
-      ) : tab === 'lich-su' ? (
+      ) : tab === 'lich-su' || tab in KIND_TAB ? (
         <>
           <form method="get" role="search" className="mb-4 flex flex-wrap items-end gap-3">
-            <input type="hidden" name="tab" value="lich-su" />
+            <input type="hidden" name="tab" value={tab} />
             <label className="grid gap-1 text-[13px] font-semibold">
               Vật tư
               <Select name="item" defaultValue={sp.item ?? ''}>
