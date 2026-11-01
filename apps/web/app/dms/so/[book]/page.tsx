@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DmsBookTable } from '../../../../components/DmsBookTable';
 import { PrintButton } from '../../../../components/PrintButton';
+import { Button } from '../../../../components/ui/button';
 import { loadDmsBookRows } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
@@ -60,20 +61,77 @@ export default async function DmsBookPage({
     );
   }
   const csv = `/api/dms/books/${code}?${new URLSearchParams({ officeId, year: String(year), format: 'csv' })}`;
+  const office = session.tenantName ?? 'Văn phòng thi hành án dân sự';
+  const title = data.book.title;
+  const years = [year - 2, year - 1, year, year + 1].filter((y) => y >= 2000);
   return (
     <section aria-labelledby="t">
       <h1 id="t">
         Xuất sổ {code} · {year}
       </h1>
-      <p className="muted print-hide">
-        {data.book.form} (Ban hành kèm theo Thông tư số 08/2026/TT-BTP). Mở sổ 01/01, khóa sổ 31/12.
-        Bản điện tử hỗ trợ in; ô chưa có dữ liệu để trống.
+      <div className="print-hide mb-4 flex flex-wrap items-center justify-between gap-3">
+        <form method="get" className="flex flex-wrap items-center gap-3 text-sm">
+          <label>
+            <span className="sr-only">Năm</span>
+            <select
+              name="year"
+              defaultValue={year}
+              className="min-h-11 rounded-[10px] border border-line-strong bg-surface px-3"
+            >
+              {years.map((y) => (
+                <option key={y} value={y}>
+                  Năm {y}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button type="submit" variant="secondary">
+            Xem
+          </Button>
+          <span className="muted">
+            Quyển số: 01 · Mở sổ 01/01 · Khóa sổ 31/12 · in hàng tháng, giáp lai
+          </span>
+        </form>
+        <span className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="secondary">
+            <a className="no-underline" href={csv}>
+              Xuất Excel
+            </a>
+          </Button>
+          <PrintButton label="Xuất PDF để in" primary />
+        </span>
+      </div>
+      <div className="print-hide mb-4 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl bg-surface p-5 text-center shadow-sm">
+          <p className="muted text-xs">Bìa 1 (bìa cứng, A4)</p>
+          <p className="font-serif text-2xl font-bold">SỔ</p>
+          <p className="font-semibold">{title.replace(/^SỔ\s+/i, '')}</p>
+          <p className="text-sm">Quyển số: 01</p>
+          <p className="text-sm">
+            Thời gian sử dụng: từ ngày 01/01/{year} đến ngày 31/12/{year}
+          </p>
+          <p className="muted text-xs">{data.book.form}</p>
+        </div>
+        <div className="rounded-2xl bg-surface p-5 text-center shadow-sm">
+          <p className="muted text-xs">Bìa 2 (A4)</p>
+          <p className="text-sm font-semibold uppercase">{office}</p>
+          <p className="font-semibold">{title}</p>
+          <p className="text-sm">Quyển số: 01</p>
+          <p className="text-sm font-semibold">TRƯỞNG VĂN PHÒNG (Ký tên, đóng dấu)</p>
+        </div>
+      </div>
+      <div className="book-sheet rounded-xl border border-line bg-surface p-4">
+        <p className="muted text-xs">
+          {data.book.form} (Ban hành kèm theo Thông tư số 08/2026/TT-BTP)
+        </p>
+        <p className="text-center text-sm font-bold uppercase">{office}</p>
+        <h2 className="book-title">{title}</h2>
+        <DmsBookTable spec={data.book} rows={data.rows} />
+      </div>
+      <p className="print-hide mt-3 rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
+        Bản xuất theo đúng mẫu {data.book.form}: tiêu đề và đánh số cột như mẫu chính thức. STT
+        trong sổ do hệ thống tự cấp theo sổ, văn phòng và năm; ô chưa có dữ liệu để trống.
       </p>
-      <p className="print-hide">
-        <a href={csv}>Tải CSV</a> · <PrintButton />
-      </p>
-      <h2 className="book-title">{data.book.title}</h2>
-      <DmsBookTable spec={data.book} rows={data.rows} />
     </section>
   );
 }
