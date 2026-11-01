@@ -1,5 +1,6 @@
 import { DataTable } from '../../../../components/ui/data-table';
 import Link from 'next/link';
+import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
 import { DmsAmendmentForm, DmsFileVersionForm } from '../../../../components/DmsAmendments';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
@@ -28,7 +29,9 @@ import {
   loadDmsCase,
   loadDmsDocuments,
   loadDmsFacets,
+  diffRevision,
   loadDmsFiles,
+  loadDmsRevisions,
   loadMyDmsPermissions,
   type DmsBookColumn,
   loadThvOptions,
@@ -150,10 +153,10 @@ export default async function DmsCasePage({
     return (
       <section aria-labelledby="t">
         <h1 id="t">{domain.label}</h1>
-        <div className="state" role="alert">
-          <h2>Không tải được hồ sơ</h2>
-          <p>Máy chủ chưa trả về hồ sơ. Vui lòng thử lại sau.</p>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được hồ sơ. Kiểm tra kết nối và thử lại."
+        />
       </section>
     );
   }
@@ -204,6 +207,21 @@ export default async function DmsCasePage({
     ? ((await loadDmsFacets(cookie, c.office_id, domain.code)).find((f) => f.case_id === c.id)
         ?.creator_name ?? null)
     : null;
+  const revisions = tab === 'phien-ban' ? await loadDmsRevisions(cookie, c.id) : [];
+  const headingOf = new Map<string, string>(
+    (book?.columns ?? []).map((col) => [col.key, col.heading]),
+  );
+  // Mỗi tài liệu có từ hai phiên bản tệp cùng nhãn trở lên: xem cạnh nhau hai bản mới nhất.
+  const pairs = filesByDoc.flatMap((list) => {
+    const byLabel = new Map<string, typeof list>();
+    for (const f of list) byLabel.set(f.label, [...(byLabel.get(f.label) ?? []), f]);
+    return [...byLabel.values()]
+      .filter((v) => v.length >= 2)
+      .map((v) => {
+        const sorted = [...v].sort((x, y) => x.version - y.version);
+        return { older: sorted[sorted.length - 2]!, newer: sorted[sorted.length - 1]! };
+      });
+  });
   const base = `/dms/${domain.slug}/${c.id}`;
   const listKey = isVanThu(domain.code) ? 'tab' : 'loc';
   const backQuery = isDraft
@@ -555,6 +573,77 @@ export default async function DmsCasePage({
             )}
           </aside>
         </div>
+      ) : null}
+
+      {tab === 'phien-ban' ? (
+        <section aria-labelledby="rev-title" className="mb-5 grid gap-3">
+          <h2 id="rev-title">Phiên bản dữ liệu</h2>
+          {revisions.length <= 1 ? (
+            <p className="muted">
+              Hồ sơ chưa có bản sửa đổi nào. Bản gốc giữ nguyên; mỗi sửa đổi được duyệt sẽ thêm một
+              phiên bản và bản cũ vẫn được giữ.
+            </p>
+          ) : (
+            revisions.slice(1).map((r, i) => {
+              const prev = revisions[i]!;
+              const changes = diffRevision(prev, r);
+              return (
+                <article key={r.rev} className="rounded-2xl bg-surface p-5 shadow-sm">
+                  <h3>
+                    So sánh phiên bản v{prev.rev + 1} → v{r.rev + 1}
+                  </h3>
+                  <p className="muted text-sm">
+                    {fmt.format(new Date(r.created_at))} · {r.created_by_name ?? '—'} · Lý do:{' '}
+                    {r.reason ?? '—'}
+                  </p>
+                  {changes.length === 0 ? (
+                    <p className="muted">
+                      Không có trường dữ liệu nào thay đổi (chỉ thêm bản scan).
+                    </p>
+                  ) : (
+                    changes.map((ch) => {
+                      const label =
+                        ch.key === 'title'
+                          ? 'Tiêu đề'
+                          : (headingOf.get(ch.key)?.replace(/\s*\(.*?\)/g, '') ?? ch.key);
+                      return (
+                        <div key={ch.key} className="mt-2 grid gap-2 sm:grid-cols-2">
+                          <p className="rounded-lg bg-[#fde8e5] px-3 py-2 text-sm">
+                            Trước (v{prev.rev + 1}): {label}: {ch.before || '—'}
+                          </p>
+                          <p className="rounded-lg bg-[#dff3e6] px-3 py-2 text-sm">
+                            Sau (v{r.rev + 1}): {label}: {ch.after || '—'}
+                          </p>
+                        </div>
+                      );
+                    })
+                  )}
+                </article>
+              );
+            })
+          )}
+          {pairs.map((pr) => (
+            <article key={pr.newer.id} className="rounded-2xl bg-surface p-5 shadow-sm">
+              <h3>
+                So sánh tệp {pr.newer.label}: v{pr.older.version} và v{pr.newer.version}
+              </h3>
+              <div className="grid gap-3 lg:grid-cols-2">
+                {[pr.older, pr.newer].map((f) => (
+                  <figure key={f.id} className="m-0">
+                    <iframe
+                      title={`Tệp ${f.label} v${f.version}`}
+                      src={`/api/dms/files/${f.id}/download?inline=1`}
+                      className="h-[420px] w-full rounded-xl border border-line bg-surface"
+                    />
+                    <figcaption className="muted text-xs">
+                      v{f.version} · {f.label} · {sizeLabel(f.size_bytes)}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </article>
+          ))}
+        </section>
       ) : null}
 
       {tab === 'scan' || tab === 'phien-ban' ? (

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ErrorRetry } from '../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
 import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
@@ -145,10 +146,10 @@ export default async function DmsDomainPage({
     return (
       <section aria-labelledby="t">
         <h1 id="t">{domain.label}</h1>
-        <div className="state" role="alert">
-          <h2>Không tải được hồ sơ</h2>
-          <p>Máy chủ chưa trả về danh sách. Vui lòng thử lại sau.</p>
-        </div>
+        <ErrorRetry
+          title="Lỗi tải dữ liệu"
+          message="Không tải được hồ sơ. Kiểm tra kết nối và thử lại."
+        />
       </section>
     );
   }
@@ -374,6 +375,18 @@ export default async function DmsDomainPage({
         basePath={base}
         book={!isDraftView && spec ? { spec, byCase } : undefined}
         sttLabel={sttLabel}
+        emptyText={`Chưa có hồ sơ nào trong năm ${year}. Bắt đầu bằng "${vanThu ? 'Thêm bản ghi' : 'Tạo hồ sơ'}".`}
+        emptyAction={
+          canDraft(permissions, domain.code) ? (
+            <NewDmsCaseButton
+              officeId={officeId}
+              domainCode={domain.code}
+              label={domain.label}
+              buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
+              redirectBase={base}
+            />
+          ) : undefined
+        }
       />
       {pageCount > 1 ? (
         <nav aria-label="Phân trang" className="mt-3 flex flex-wrap items-center gap-2 text-sm">
