@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
+import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
 import { KpiStrip } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
 import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/field';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
   BOOK_OF_DOMAIN,
@@ -22,12 +23,14 @@ import {
 } from '../../../lib/dms';
 import {
   countDmsCases,
+  filterToParams,
   formatTotal,
   loadBookRowsForCases,
   loadDmsFacetCounts,
   pageWindow,
   searchDmsCases,
   TOTAL_CAP,
+  viewToSavedParams,
 } from '../../../lib/dms-browse';
 import { currentSession, requestCookie } from '../../../lib/server';
 
@@ -277,16 +280,14 @@ export default async function DmsDomainPage({
         className="mb-4 flex flex-wrap items-center gap-3"
       >
         {filter !== 'chinh-thuc' ? <input type="hidden" name="loc" value={filter} /> : null}
-        <label className="min-w-72 flex-1">
-          <span className="sr-only">Tìm hồ sơ</span>
-          <Input
-            type="search"
-            name="q"
-            defaultValue={q}
-            maxLength={200}
-            placeholder="Tìm số văn bản, tên người, trích yếu, nội dung…"
-          />
-        </label>
+        <DmsCaseSuggest
+          officeId={officeId}
+          domain={domain.code}
+          basePath={base}
+          status={filterToParams(filter, year).status}
+          year={filterToParams(filter, year).year}
+          defaultValue={q}
+        />
         {(() => {
           const cls = 'min-h-11 rounded-[10px] border border-line-strong bg-surface px-3 text-sm';
           const options = (
@@ -350,6 +351,19 @@ export default async function DmsDomainPage({
         <Button type="submit" variant="secondary">
           Tìm
         </Button>
+        <DmsSavedFilters
+          officeId={officeId}
+          domain={domain.code}
+          basePath={base}
+          current={viewToSavedParams({
+            filter,
+            year: sp.year ? year : undefined,
+            q,
+            creator: sp.nt,
+            kind: sp.lt,
+            branch: sp.dv,
+          })}
+        />
         <Link href="/dms/tim-kiem" className="text-sm">
           Tìm trong nội dung scan
         </Link>

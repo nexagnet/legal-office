@@ -172,3 +172,75 @@ export function pageWindow(page: number, pageCount: number): (number | '…')[] 
 
 export const formatTotal = (total: number, capped: boolean): string =>
   capped ? `${TOTAL_CAP.toLocaleString('vi-VN')}+` : total.toLocaleString('vi-VN');
+
+/** Cách nhìn hiện tại của trang danh sách (đúng như trên thanh địa chỉ). */
+export interface DmsView {
+  readonly filter: DmsFilter;
+  readonly year?: number;
+  readonly q?: string;
+  readonly creator?: string;
+  readonly kind?: string;
+  readonly branch?: string;
+}
+
+/** Tham số lưu trong DB cho bộ lọc đã lưu: cùng tên với bộ lọc của `/dms/case-search`. */
+export type DmsSavedParams = Readonly<Record<string, string | number | boolean>>;
+
+/** Cách nhìn -> tham số lưu. Năm chỉ lưu khi người dùng đã chọn năm cụ thể (không ghim năm mặc định). */
+export function viewToSavedParams(v: DmsView): DmsSavedParams {
+  const base = filterToParams(v.filter, v.year ?? 0);
+  const out: Record<string, string | number | boolean> = { status: base.status };
+  if (base.scan) out.scan = base.scan;
+  if (base.pending) out.pending = true;
+  if (v.year && base.year !== undefined) out.year = v.year;
+  if (v.q?.trim()) out.q = v.q.trim();
+  if (v.creator) out.creator = v.creator;
+  if (v.kind) out.kind = v.kind;
+  if (v.branch) out.branch = v.branch;
+  return out;
+}
+
+/** Tham số lưu -> đường dẫn trang danh sách (`base` + chuỗi truy vấn). */
+export function savedParamsToHref(base: string, p: DmsSavedParams): string {
+  let loc: DmsFilter = 'chinh-thuc';
+  if (p.status === 'DRAFT') loc = 'nhap';
+  else if (p.status === 'CANCELLED') loc = 'da-huy';
+  else if (p.pending === true || p.pending === 'true') loc = 'cho-duyet';
+  else if (p.scan === 'missing') loc = 'thieu-scan';
+  else if (p.scan === 'complete') loc = 'du-scan';
+  const qs = new URLSearchParams();
+  if (loc !== 'chinh-thuc') qs.set('loc', loc);
+  if (typeof p.q === 'string' && p.q) qs.set('q', p.q);
+  if (p.year !== undefined) qs.set('year', String(p.year));
+  if (typeof p.creator === 'string') qs.set('nt', p.creator);
+  if (typeof p.kind === 'string') qs.set('lt', p.kind);
+  if (typeof p.branch === 'string') qs.set('dv', p.branch);
+  const s = qs.toString();
+  return s ? `${base}?${s}` : base;
+}
+
+export interface DmsOcrFacets extends DmsFacetCounts {
+  readonly year: readonly DmsFacetOption[];
+}
+
+/** Lựa chọn lọc cho trang tìm nội dung scan: toàn văn phòng, chỉ hồ sơ đã ghi sổ (bản nháp không có OCR được tìm). */
+export async function loadDmsOcrFacets(
+  cookie: string | null,
+  officeId: string,
+  domain?: string,
+): Promise<DmsOcrFacets> {
+  const q = new URLSearchParams({ officeId, status: 'RECORDED' });
+  if (domain) q.set('domain', domain);
+  const body = await getJson<Partial<Record<keyof DmsOcrFacets, DmsFacetOption[]>>>(
+    `/dms/case-facet-counts?${q}`,
+    cookie,
+  );
+  return body === 'error'
+    ? { creator: [], branch: [], kind: [], year: [] }
+    : {
+        creator: body.creator ?? [],
+        branch: body.branch ?? [],
+        kind: body.kind ?? [],
+        year: body.year ?? [],
+      };
+}

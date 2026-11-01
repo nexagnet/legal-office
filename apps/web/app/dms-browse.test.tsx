@@ -23,3 +23,50 @@ describe('lib/dms-browse', () => {
     expect(formatTotal(10001, true)).toBe('10.000+');
   });
 });
+
+import { savedParamsToHref, viewToSavedParams } from '../lib/dms-browse';
+
+describe('bộ lọc đã lưu', () => {
+  it('lưu rồi mở lại cho đúng cùng một cách nhìn', () => {
+    const view = {
+      filter: 'thieu-scan' as const,
+      year: 2025,
+      q: ' trần ',
+      creator: 'u1',
+      kind: 'Biên bản',
+      branch: 'b1',
+    };
+    const saved = viewToSavedParams(view);
+    expect(saved).toEqual({
+      status: 'RECORDED',
+      scan: 'missing',
+      year: 2025,
+      q: 'trần',
+      creator: 'u1',
+      kind: 'Biên bản',
+      branch: 'b1',
+    });
+    const href = savedParamsToHref('/dms/vi-bang', saved);
+    const qs = new URLSearchParams(href.split('?')[1]);
+    expect(href.startsWith('/dms/vi-bang?')).toBe(true);
+    expect(Object.fromEntries(qs)).toEqual({
+      loc: 'thieu-scan',
+      q: 'trần',
+      year: '2025',
+      nt: 'u1',
+      lt: 'Biên bản',
+      dv: 'b1',
+    });
+  });
+
+  it('nháp, đã hủy, chờ duyệt và chính thức không năm', () => {
+    expect(viewToSavedParams({ filter: 'nhap', year: 2025 })).toEqual({ status: 'DRAFT' });
+    expect(viewToSavedParams({ filter: 'cho-duyet' })).toEqual({
+      status: 'RECORDED',
+      pending: true,
+    });
+    expect(savedParamsToHref('/dms/x', { status: 'DRAFT' })).toBe('/dms/x?loc=nhap');
+    expect(savedParamsToHref('/dms/x', { status: 'RECORDED' })).toBe('/dms/x');
+    expect(savedParamsToHref('/dms/x', { status: 'CANCELLED' })).toBe('/dms/x?loc=da-huy');
+  });
+});
