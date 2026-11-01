@@ -126,14 +126,14 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
     });
   const membership = async (email: string) =>
     (
-      await owner.query(
+      await owner.query<{ role: string; legal_signer: boolean; groups: string[] }>(
         `SELECT m.role, m.legal_signer,
-                coalesce((SELECT array_agg(g.name ORDER BY g.name) FROM dms_group_members gm
+                coalesce((SELECT array_agg(g.name) FROM dms_group_members gm
                           JOIN dms_permission_groups g ON g.id = gm.group_id WHERE gm.user_id = m.user_id), ARRAY[]::text[]) AS groups
            FROM memberships m JOIN auth_credentials c ON c.user_id = m.user_id WHERE c.email = $1`,
         [email],
       )
-    ).rows;
+    ).rows.map((r) => ({ ...r, groups: [...r.groups].sort() }));
 
   it('creates the account with no role and puts it in the chosen groups at once (Admin applies directly)', async () => {
     await owner.query(`INSERT INTO offices (id, tenant_id, name) VALUES ($1,$2,'VP B')`, [OFF2, T]);
