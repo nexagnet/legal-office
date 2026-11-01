@@ -79,15 +79,7 @@ const req = (over: Partial<PermissionRequest>): PermissionRequest => ({
 });
 
 const tab = (loc?: string, requests: PermissionRequest[] = []) =>
-  render(
-    <GroupsTab
-      groups={groups}
-      requests={requests}
-      searchParams={{ loc }}
-      canPropose
-      officeId="o1"
-    />,
-  );
+  render(<GroupsTab groups={groups} requests={requests} searchParams={{ loc }} canPropose />);
 
 describe('GroupsTab (Figma P3)', () => {
   it('đếm Đang dùng, Chờ duyệt, Ngừng dùng và hiện loại, phiên bản, đề xuất v+1', () => {

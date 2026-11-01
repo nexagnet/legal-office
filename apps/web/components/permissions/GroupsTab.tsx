@@ -12,7 +12,6 @@ import {
   type PermissionRequest,
 } from '../../lib/permission-model';
 import { CopyGroupButton } from './CopyGroupButton';
-import { CreateGroupButton } from './CreateGroupButton';
 import { NoteBox, Pill } from './Pill';
 
 type Loc = 'dang-dung' | 'cho-duyet' | 'ngung-dung';
@@ -30,13 +29,11 @@ export function GroupsTab({
   requests,
   searchParams,
   canPropose,
-  officeId,
 }: {
   readonly groups: readonly DmsGroup[];
   readonly requests: readonly PermissionRequest[];
   readonly searchParams: { loc?: string; q?: string };
   readonly canPropose: boolean;
-  readonly officeId: string;
 }) {
   const loc: Loc =
     searchParams.loc === 'cho-duyet' || searchParams.loc === 'ngung-dung'
@@ -148,7 +145,9 @@ export function GroupsTab({
         {canPropose ? (
           <div className="ml-auto flex gap-3">
             <CopyGroupButton groups={active} />
-            <CreateGroupButton officeId={officeId} />
+            <Link className="primary btn-link" href="/quan-tri/phan-quyen/nhom/tao">
+              + Tạo nhóm quyền
+            </Link>
           </div>
         ) : null}
       </div>
