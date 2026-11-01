@@ -57,7 +57,7 @@ export function RequestsTab({
   const pick = (l: Loc) =>
     requests.filter((r) =>
       l === 'cho-duyet'
-        ? r.status === 'PENDING'
+        ? r.status === 'PENDING' && r.proposed_by !== userId
         : l === 'da-xu-ly'
           ? r.status !== 'PENDING'
           : r.proposed_by === userId,
@@ -67,6 +67,7 @@ export function RequestsTab({
       !q ||
       normalizeText(`${requestCode(r.id)} ${describeRequest(r, names)} ${r.reason}`).includes(q),
   );
+  const mine = loc === 'cho-duyet' ? pick('cua-toi').filter((r) => r.status === 'PENDING') : [];
   return (
     <>
       <div className="member-bar">
@@ -89,9 +90,15 @@ export function RequestsTab({
             chips={[
               {
                 key: 'cho-duyet',
-                label: 'Chờ duyệt',
+                label: 'Chờ bạn duyệt',
                 href: href('cho-duyet', q),
                 count: pick('cho-duyet').length,
+              },
+              {
+                key: 'cua-toi',
+                label: 'Do bạn đề xuất',
+                href: href('cua-toi', q),
+                count: pick('cua-toi').length,
               },
               {
                 key: 'da-xu-ly',
@@ -99,7 +106,6 @@ export function RequestsTab({
                 href: href('da-xu-ly', q),
                 count: pick('da-xu-ly').length,
               },
-              { key: 'cua-toi', label: 'Của tôi', href: href('cua-toi', q) },
             ]}
           />
         </div>
@@ -119,7 +125,7 @@ export function RequestsTab({
               <th scope="col">Đối tượng</th>
               <th scope="col">Nội dung</th>
               <th scope="col">Đề xuất</th>
-              <th scope="col">Trạng thái</th>
+              <th scope="col">Quyết định</th>
             </tr>
           </thead>
           <tbody>
@@ -153,7 +159,16 @@ export function RequestsTab({
                     <span className="muted">{formatWhen(r.proposed_at)}</span>
                   </td>
                   <td>
-                    <Pill tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Pill>
+                    {r.status === 'PENDING' && r.proposed_by !== userId ? (
+                      <Link
+                        className="link-btn font-semibold whitespace-nowrap"
+                        href={`/quan-tri/phan-quyen/yeu-cau/${r.id}`}
+                      >
+                        Mở để xem so sánh ›
+                      </Link>
+                    ) : (
+                      <Pill tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Pill>
+                    )}
                   </td>
                 </tr>
               ))
@@ -161,6 +176,38 @@ export function RequestsTab({
           </tbody>
         </table>
       </DataTable>
+      {mine.length > 0 ? (
+        <section className="own-pending member-card" aria-labelledby="own-pending-t">
+          <h2 id="own-pending-t" className="font-serif">
+            Do bạn đề xuất · chờ người duyệt khác
+          </h2>
+          <ul>
+            {mine.map((r) => (
+              <li key={r.id}>
+                <Link
+                  className="link-btn font-semibold whitespace-nowrap"
+                  href={`/quan-tri/phan-quyen/yeu-cau/${r.id}`}
+                >
+                  {requestCode(r.id)}
+                </Link>
+                <span>
+                  {describeRequest(r, names)} · bạn đề xuất {formatWhen(r.proposed_at)}
+                </span>
+                <Pill tone="danger">Không có nút Duyệt</Pill>
+              </li>
+            ))}
+          </ul>
+          <p className="muted">
+            Người đề xuất không tự duyệt đề xuất của mình, kể cả khi thuộc nhiều nhóm quyền. Chờ
+            Admin khác có quyền duyệt xử lý trong Hộp duyệt.
+          </p>
+        </section>
+      ) : null}
+      <NoteBox tone="warn" title="Duyệt là áp dụng ngay, nhưng có kiểm tra lại">
+        Khi bạn duyệt, hệ thống kiểm tra phiên bản nhóm hiện tại. Nếu nhóm đã đổi trong lúc chờ, đề
+        xuất bị chặn. Từ chối phải ghi lý do. Chi tiết và nút quyết định nằm ở màn Duyệt thay đổi
+        quyền.
+      </NoteBox>
       <NoteBox title="Vì sao bạn có thể không thấy nút Duyệt?">
         Người đề xuất không được tự duyệt, kể cả khi thuộc nhiều nhóm. Admin khác có quyền duyệt
         thay đổi quyền nhận việc trong Hộp duyệt. Bấm vào mã yêu cầu để xem nội dung, người bị ảnh

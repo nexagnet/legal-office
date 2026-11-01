@@ -2,6 +2,7 @@ import { DataTable } from '../ui/data-table';
 import Link from 'next/link';
 import { FilterChips } from '../ui/filter-chips';
 import {
+  defaultScopeLabel,
   groupVersion,
   isGroupActive,
   isTemplateGroup,
@@ -52,6 +53,57 @@ export function GroupsTab({
   const base = loc === 'cho-duyet' ? waiting : loc === 'ngung-dung' ? retired : active;
   const shown = base.filter((g) => !q || normalizeText(g.name).includes(q));
 
+  const renderRow = (g: DmsGroup) => {
+    const pendingPerm = pendingOf(g.id, ['GRANT', 'REVOKE']);
+    const pendingMember = pendingOf(g.id, ['ADD_MEMBER', 'REMOVE_MEMBER']);
+    const version = groupVersion(g);
+    return (
+      <tr key={g.id}>
+        <th scope="row">
+          <span className="grid">
+            <span className="person-name">{g.name}</span>
+            <span className="person-mail">{g.description ?? summarizeGroup(g)}</span>
+          </span>
+        </th>
+        <td>
+          <Pill tone={isTemplateGroup(g) ? 'info' : 'brass'}>
+            {isTemplateGroup(g) ? 'Mẫu' : 'Tùy chỉnh'}
+          </Pill>
+        </td>
+        <td>{defaultScopeLabel(g)}</td>
+        <td>{g.permissions.length}</td>
+        <td>{g.member_ids.length}</td>
+        <td>v{version}</td>
+        <td>
+          <span className="flex flex-wrap gap-1.5">
+            {isGroupActive(g) ? (
+              <Pill tone="ok">Đang dùng</Pill>
+            ) : (
+              <Pill tone="mute">Ngừng dùng</Pill>
+            )}
+            {pendingPerm > 0 ? <Pill tone="brass">Đề xuất v{version + 1}</Pill> : null}
+            {pendingMember > 0 ? <Pill tone="warn">{pendingMember} đề xuất thành viên</Pill> : null}
+          </span>
+        </td>
+        <td>
+          <Link
+            className="link-btn font-semibold whitespace-nowrap"
+            href={`/quan-tri/phan-quyen/nhom/${g.id}`}
+          >
+            {isTemplateGroup(g) ? 'Xem ›' : 'Mở ›'}
+          </Link>
+        </td>
+      </tr>
+    );
+  };
+  const SECTIONS: readonly (readonly [string, readonly DmsGroup[]])[] = [
+    ['Nhóm mẫu của hệ thống · được bảo vệ, không sửa trực tiếp', shown.filter(isTemplateGroup)],
+    [
+      'Nhóm tùy chỉnh của văn phòng · sao chép từ mẫu, sửa cần duyệt',
+      shown.filter((g) => !isTemplateGroup(g)),
+    ],
+  ];
+
   return (
     <>
       <div className="member-bar">
@@ -67,7 +119,7 @@ export function GroupsTab({
             className="!max-w-[160px] !flex-none"
           />
         </form>
-        <div className="min-w-[400px] flex-1">
+        <div className="min-w-0 flex-1">
           <FilterChips
             label="Lọc nhóm quyền"
             active={loc}
@@ -107,6 +159,7 @@ export function GroupsTab({
             <tr>
               <th scope="col">Nhóm quyền</th>
               <th scope="col">Loại</th>
+              <th scope="col">Phạm vi mặc định</th>
               <th scope="col">Số quyền</th>
               <th scope="col">Người dùng</th>
               <th scope="col">Phiên bản</th>
@@ -119,55 +172,23 @@ export function GroupsTab({
           <tbody>
             {shown.length === 0 ? (
               <tr>
-                <td colSpan={7} className="muted">
+                <td colSpan={8} className="muted">
                   Chưa có nhóm quyền nào.
                 </td>
               </tr>
             ) : (
-              shown.map((g) => {
-                const pendingPerm = pendingOf(g.id, ['GRANT', 'REVOKE']);
-                const pendingMember = pendingOf(g.id, ['ADD_MEMBER', 'REMOVE_MEMBER']);
-                const version = groupVersion(g);
-                return (
-                  <tr key={g.id}>
-                    <th scope="row">
-                      <span className="grid">
-                        <span className="person-name">{g.name}</span>
-                        <span className="person-mail">{g.description ?? summarizeGroup(g)}</span>
-                      </span>
-                    </th>
-                    <td>
-                      <Pill tone={isTemplateGroup(g) ? 'info' : 'brass'}>
-                        {isTemplateGroup(g) ? 'Mẫu' : 'Tùy chỉnh'}
-                      </Pill>
-                    </td>
-                    <td>{g.permissions.length}</td>
-                    <td>{g.member_ids.length}</td>
-                    <td>v{version}</td>
-                    <td>
-                      <span className="flex flex-wrap gap-1.5">
-                        {isGroupActive(g) ? (
-                          <Pill tone="ok">Đang dùng</Pill>
-                        ) : (
-                          <Pill tone="mute">Ngừng dùng</Pill>
-                        )}
-                        {pendingPerm > 0 ? <Pill tone="brass">Đề xuất v{version + 1}</Pill> : null}
-                        {pendingMember > 0 ? (
-                          <Pill tone="warn">{pendingMember} đề xuất thành viên</Pill>
-                        ) : null}
-                      </span>
-                    </td>
-                    <td>
-                      <Link
-                        className="link-btn font-semibold whitespace-nowrap"
-                        href={`/quan-tri/phan-quyen/nhom/${g.id}`}
-                      >
-                        Mở ›
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })
+              SECTIONS.flatMap(([title, rows]) =>
+                rows.length === 0
+                  ? []
+                  : [
+                      <tr key={`h-${title}`} className="section-row">
+                        <th scope="colgroup" colSpan={8}>
+                          {title}
+                        </th>
+                      </tr>,
+                      ...rows.map(renderRow),
+                    ],
+              )
             )}
           </tbody>
         </table>
