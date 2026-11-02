@@ -2620,9 +2620,23 @@ fieldset.person-choice .person-choice-name {
   font-size: 14px;
 }
 
-/* Văn thư (Figma 352:2009): hàng lọc chỉ có ô tìm + Năm */
-.dms-list[data-domain^='vt'] .dms-filters .dms-select:not([name='year']) {
-  display: none;
+/* Văn thư (Figma 352:2009): hàng lọc mặc định chỉ có ô tìm + Năm; còn lại nằm trong "Bộ lọc nâng cao" (đóng sẵn) */
+.dms-adv {
+  flex: 1 0 100%;
+}
+.dms-adv > summary {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+.dms-adv-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
 }
 .dms-th-sub {
   display: block;
