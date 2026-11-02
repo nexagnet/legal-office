@@ -86,8 +86,8 @@ describe('trang danh sách hồ sơ DMS dùng lọc và phân trang ở cơ sở
     expect(screen.getByText('Vi bằng số 1')).toBeTruthy();
     expect(screen.getByRole('option', { name: 'Nguyễn Văn A (7)' })).toBeTruthy();
     expect(screen.getByText(/Hiển thị 2 \/ 35 hồ sơ/)).toBeTruthy();
-    expect(screen.getByRole('link', { name: '‹ Trước' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Sau ›' })).toBeTruthy(); // trang 2/4
+    expect(screen.getByRole('link', { name: 'Trang trước' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Trang sau' })).toBeTruthy(); // trang 2/4
     expect(screen.getByText('4.321')).toBeTruthy(); // tài liệu hiện hành từ báo cáo
   });
 

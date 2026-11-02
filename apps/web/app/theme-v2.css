@@ -631,7 +631,7 @@ tbody tr:hover > td {
   width: 400px;
   height: 104px;
   pointer-events: none;
-  background: url('/banner-scene.svg') no-repeat right bottom / contain;
+  background: url('/banner-doc.svg') no-repeat right bottom / contain;
   -webkit-mask-image: linear-gradient(to right, transparent 20%, #000 54%);
   mask-image: linear-gradient(to right, transparent 20%, #000 54%);
 }
@@ -1776,7 +1776,7 @@ fieldset.person-choice .person-choice-name {
 /* Cột nội dung phải được phép co hẹp hơn nội dung bên trong (bảng rộng cuộn trong .table-wrap) */
 @media (min-width: 900px) {
   .shell {
-    grid-template-columns: 248px minmax(0, 1fr);
+    grid-template-columns: 256px minmax(0, 1fr);
   }
   .shell[data-collapsed='true'] {
     grid-template-columns: 72px minmax(0, 1fr);
@@ -2035,4 +2035,454 @@ fieldset.person-choice .person-choice-name {
 .dt[data-compact='true'] .dt-scroll thead th {
   padding: 8px 12px;
   font-size: 10.5px;
+}
+
+/* ==== Danh sách hồ sơ 4 nghiệp vụ theo Figma "DMS v2 · Danh sách" (352:964/1415/1613/1811, 1440px) ==== */
+@media (min-width: 900px) {
+  /* Banner: nền trắng, cao 104px, tiêu đề 32px màu mực, tranh minh hoạ nhỏ bên phải */
+  .topbar {
+    align-items: flex-start;
+    min-height: 104px;
+    padding: 14px 32px 0;
+    background: var(--surface);
+  }
+  .topbar::before {
+    content: none;
+  }
+  .topbar::after {
+    content: '';
+    right: 85px;
+    bottom: 10px;
+    width: 105px;
+    height: 84px;
+    -webkit-mask-image: none;
+    mask-image: none;
+    opacity: 0.9;
+  }
+  .topbar-h,
+  .shell[data-domain] .topbar-h {
+    font-size: 32px;
+    line-height: 38px;
+    color: #12263f;
+  }
+  .topbar-sub {
+    margin-top: 4px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .main:has(> .dms-list) {
+    max-width: none;
+    padding: 8px 20px 24px;
+  }
+}
+.dms-list .kpi-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 46px;
+}
+.dms-list .kpi {
+  min-height: 87px;
+  padding: 14px 22px 0;
+}
+.dms-list .kpi::before {
+  inset: 0 auto auto 0;
+  height: 51px;
+}
+.dms-list .kpi dt {
+  font-size: 14px;
+  line-height: 16px;
+}
+.dms-list .kpi dd {
+  margin: 2px 0 0;
+  font-size: 32px;
+  line-height: 41px;
+}
+.dms-list .kpi:nth-child(2) {
+  --kpi: var(--ok);
+}
+.dms-list[data-domain='tongdat'] .kpi:first-child {
+  --kpi: var(--d-tongdat);
+}
+.dms-list[data-domain='xacminh'] .kpi:first-child {
+  --kpi: var(--d-xacminh);
+}
+.dms-list[data-domain='tochuc'] .kpi:first-child {
+  --kpi: var(--d-tha);
+}
+
+/* Chip lọc mềm + nút Xuất sổ / Tạo hồ sơ cùng một hàng */
+.tabs-soft-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 46px;
+}
+.tabs-soft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.tabs-soft a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 31px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  text-decoration: none;
+  background: #eceff4;
+  border-radius: 999px;
+}
+.tabs-soft a:hover {
+  color: var(--ink);
+}
+.tabs-soft a[aria-current='page'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.tabs-soft a[data-tone='warn'] {
+  color: var(--ink);
+  background: #fbefd2;
+}
+.tabs-soft a[data-tone='warn'][aria-current='page'] {
+  box-shadow: inset 0 0 0 1.5px var(--brass);
+}
+.dms-actionbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.dms-actionbar > a,
+.dms-actionbar > button {
+  min-height: 40px !important;
+  padding: 0 20px !important;
+  font-size: 15px !important;
+  font-weight: 700;
+  border-radius: 8px !important;
+}
+
+/* Hàng tìm: ô tìm + các ô lọc dạng viên thuốc + Tìm + Bộ lọc đã lưu + tìm trong nội dung scan */
+.dms-filters {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding-right: 76px;
+}
+.dms-filters > div:first-of-type {
+  flex: 0 1 360px;
+  min-width: 200px;
+}
+.dms-filters input[type='search'] {
+  min-height: 35px !important;
+  padding: 0 13px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.dms-select {
+  min-height: 27px;
+  padding: 0 20px 0 10px;
+  font: 500 12px/1 var(--font);
+  color: var(--muted);
+  appearance: none;
+  background:
+    #eceff4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%235b6b82'/%3E%3C/svg%3E")
+    no-repeat right 8px center;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.dms-select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.dms-filters .dms-find,
+.dms-filters button {
+  min-height: 27px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+  border-radius: 999px !important;
+}
+.dms-scan-link {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.dms-scan-link:hover {
+  text-decoration: underline;
+}
+/* Công cụ bảng (Cột hiển thị / Hiển thị gọn) thu thành hai nút biểu tượng ở mép phải hàng tìm */
+.dms-list .dt {
+  position: relative;
+}
+.dms-list .dt-toolbar {
+  position: absolute;
+  top: -51px;
+  right: 0;
+  margin: 0;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.dms-list .dt-btn {
+  min-height: 32px;
+  padding: 0 8px;
+}
+.dms-list .dt-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.dms-list .dt-count {
+  padding: 1px 5px;
+}
+
+/* Thẻ bảng + chân bảng */
+.dms-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.dms-card .state {
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+}
+.dms-table-wrap {
+  max-height: none;
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+}
+.dms-table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 12px;
+}
+.dms-table th,
+.dms-table td {
+  height: 86px;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+  color: var(--ink);
+  background: var(--surface);
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--line);
+}
+.shell[data-domain] .dms-table thead th,
+.dms-table thead th {
+  height: 46px;
+  padding: 10px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #3f4f66;
+  background: var(--surface);
+}
+.shell[data-domain] .dms-table-wrap tbody tr > :first-child,
+.dms-table tr > :first-child:not(:last-child) {
+  box-shadow: none;
+}
+.dms-table tr > :first-child {
+  padding-left: 14px;
+}
+.dms-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.dms-table tbody tr:nth-child(even) > td,
+.dms-table tbody tr:nth-child(even) > th {
+  background: var(--surface);
+}
+.dms-table tbody tr:hover > td,
+.dms-table tbody tr:hover > th {
+  background: #f6f9fe;
+}
+.dms-table tbody td {
+  max-width: none;
+  white-space: normal;
+  overflow: visible;
+}
+.dms-clamp {
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.dms-sub {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.dms-stt {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  font-weight: 400;
+}
+.dms-stt b {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.dms-code {
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.dms-code:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.dms-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 17px;
+  white-space: nowrap;
+  border-radius: 999px;
+}
+.dms-pill[data-tone='info'] {
+  color: #1d4f91;
+  background: #e3ecfb;
+}
+.dms-pill[data-tone='ok'] {
+  color: #1b6b3a;
+  background: #dcf2e5;
+}
+.dms-pill[data-tone='danger'] {
+  color: #b02a22;
+  background: #fde4e1;
+}
+.dms-pill[data-tone='warn'] {
+  color: #b76a00;
+  background: #fdf0d5;
+}
+.dms-scan {
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+}
+.dms-scan small {
+  font-size: 11px;
+  color: var(--faint);
+}
+.dms-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+.dms-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink) !important;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+}
+.dms-btn:hover {
+  background: var(--surface-2);
+}
+.dms-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent) !important;
+}
+.dms-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-height: 35px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+}
+.dms-foot p {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dms-pager {
+  display: flex;
+  margin-left: auto;
+  white-space: nowrap;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.dms-pager a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.dms-pager a[aria-current='page'] {
+  color: var(--ink);
+}
+
+/* Danh sách DMS ở màn hẹp: thẻ số 2 cột, công cụ bảng nằm trong thẻ, không tranh minh hoạ chen chữ */
+@media (max-width: 1399px) {
+  .dms-filters {
+    padding-right: 0;
+  }
+  .dms-list .dt-toolbar {
+    position: static;
+    justify-content: flex-end;
+    padding: 8px 10px 0;
+  }
+}
+@media (max-width: 1199px) {
+  .topbar::after {
+    content: none !important;
+  }
+}
+@media (max-width: 899px) {
+  .dms-list .kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .dms-list .kpi {
+    padding: 12px 14px 0 18px;
+  }
+  .dms-list .kpi dd {
+    font-size: 26px;
+  }
+  .tabs-soft-row,
+  .dms-list .dms-filters {
+    margin-bottom: 16px;
+  }
+  .dms-filters > div:first-of-type {
+    flex: 1 1 100%;
+    max-width: none;
+  }
 }

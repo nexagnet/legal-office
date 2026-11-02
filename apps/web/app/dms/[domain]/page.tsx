@@ -3,6 +3,7 @@ import { ErrorRetry } from '../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
 import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
+import { DmsDomainTable } from '../../../components/DmsDomainTable';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
 import { KpiStrip } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
@@ -16,6 +17,7 @@ import {
   activeDmsFilter,
   canDraft,
   domainBySlug,
+  type DmsBookRow as BookRowT,
   loadDmsReport,
   loadMyDmsPermissions,
   tabForFilter,
@@ -33,6 +35,7 @@ import {
   TOTAL_CAP,
   viewToSavedParams,
 } from '../../../lib/dms-browse';
+import { listLayoutFor } from '../../../lib/dms-list-layout';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -127,7 +130,7 @@ export default async function DmsDomainPage({
   };
   const chipCount = (f: DmsFilter) =>
     countDmsCases(cookie, { officeId, domain: domain.code, filter: f, year });
-  const [result, permissions, facets, report, nOfficial, nPending, nMissing, nComplete] =
+  const [result, permissions, facets, report, nOfficial, nPending, nMissing, nDraft, nCancelled] =
     await Promise.all([
       searchDmsCases(cookie, {
         ...search,
@@ -140,7 +143,8 @@ export default async function DmsDomainPage({
       chipCount('chinh-thuc'),
       chipCount('cho-duyet'),
       chipCount('thieu-scan'),
-      chipCount('du-scan'),
+      chipCount('nhap'),
+      chipCount('da-huy'),
     ]);
   if (result === 'error') {
     return (
@@ -164,22 +168,28 @@ export default async function DmsDomainPage({
         result.rows.map((r) => r.id),
       );
   const byCase = new Map<string, DmsBookRow>();
+  const rowsByCase = new Map<string, BookRowT[]>();
   if (bookData && bookData !== 'error')
-    for (const r of bookData.rows) if (!byCase.has(r.case_id)) byCase.set(r.case_id, r);
+    for (const r of bookData.rows) {
+      if (!byCase.has(r.case_id)) byCase.set(r.case_id, r);
+      rowsByCase.set(r.case_id, [...(rowsByCase.get(r.case_id) ?? []), r]);
+    }
   const spec = bookData && bookData !== 'error' ? bookData.book : undefined;
   const total = result.total ?? result.rows.length;
   const pageCount = Math.max(1, Math.min(MAX_PAGE, Math.ceil(total / PAGE_SIZE)));
   const page = Math.min(pageCount, pageNo);
   const pageRows = result.rows;
   const documents = report === 'error' ? undefined : report.find((r) => r.domain === domain.code);
+  // Figma: chỉ hai chip Nháp và Đã hủy kèm số trong ngoặc; số của bốn chip còn lại nằm ở các thẻ số phía trên.
   const counts: Record<DmsFilter, number | undefined> = {
-    'chinh-thuc': nOfficial,
-    'cho-duyet': nPending,
-    'thieu-scan': nMissing,
-    'du-scan': nComplete,
-    nhap: undefined,
-    'da-huy': undefined,
+    'chinh-thuc': undefined,
+    'cho-duyet': undefined,
+    'thieu-scan': undefined,
+    'du-scan': undefined,
+    nhap: nDraft,
+    'da-huy': nCancelled,
   };
+  const listLayout = listLayoutFor(domain.code);
   const href = (f: DmsFilter) => {
     const p = new URLSearchParams();
     if (f !== 'chinh-thuc') p.set('loc', f);
@@ -203,9 +213,10 @@ export default async function DmsDomainPage({
     const s = p.toString();
     return s ? `${base}?${s}` : base;
   };
+  const showScanSelect = !isDraftView && filter !== 'cho-duyet';
   const sttLabel = domain.code === 'vtden' ? 'Số đến' : 'STT';
   return (
-    <section aria-labelledby="t">
+    <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
       <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
       {vanThu ? (
         <TabNav
@@ -229,16 +240,17 @@ export default async function DmsDomainPage({
       />
       <TabNav
         label={`Bộ lọc hồ sơ ${domain.label}`}
-        compact
+        soft
         active={filter}
         tabs={FILTERS.map((k) => ({
           key: k,
           label: DMS_FILTER_LABEL[k],
           href: href(k),
           count: counts[k],
+          tone: k === 'nhap' || k === 'da-huy' ? ('warn' as const) : undefined,
         }))}
         action={
-          <span className="flex flex-wrap items-center gap-2">
+          <span className="dms-actionbar">
             {vanThu ? (
               <>
                 <Button asChild variant="secondary">
@@ -274,13 +286,8 @@ export default async function DmsDomainPage({
           </span>
         }
       />
-      <form
-        method="get"
-        action={base}
-        role="search"
-        className="mb-4 flex flex-wrap items-center gap-3"
-      >
-        {filter !== 'chinh-thuc' ? <input type="hidden" name="loc" value={filter} /> : null}
+      <form method="get" action={base} role="search" className="dms-filters">
+        {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
         <DmsCaseSuggest
           officeId={officeId}
           domain={domain.code}
@@ -289,8 +296,21 @@ export default async function DmsDomainPage({
           year={filterToParams(filter, year).year}
           defaultValue={q}
         />
+        <label>
+          <span className="sr-only">Năm</span>
+          <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
+            {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
+              .concat(year)
+              .filter((y, i, a) => a.indexOf(y) === i)
+              .sort((x, y) => y - x)
+              .map((y) => (
+                <option key={y} value={y}>
+                  Năm {y}
+                </option>
+              ))}
+          </select>
+        </label>
         {(() => {
-          const cls = 'min-h-11 rounded-[10px] border border-line-strong bg-surface px-3 text-sm';
           const options = (
             list: readonly { value: string; label: string; n: number }[],
             now?: string,
@@ -309,21 +329,36 @@ export default async function DmsDomainPage({
             <>
               <label>
                 <span className="sr-only">Loại tài liệu</span>
-                <select name="lt" defaultValue={sp.lt ?? ''} className={cls}>
+                <select
+                  name="lt"
+                  defaultValue={sp.lt ?? ''}
+                  className="dms-select"
+                  style={{ width: 112 }}
+                >
                   <option value="">Loại tài liệu</option>
                   {options(facets.kind, sp.lt)}
                 </select>
               </label>
               <label>
                 <span className="sr-only">Người tạo</span>
-                <select name="nt" defaultValue={sp.nt ?? ''} className={cls}>
+                <select
+                  name="nt"
+                  defaultValue={sp.nt ?? ''}
+                  className="dms-select"
+                  style={{ width: 98 }}
+                >
                   <option value="">Người tạo</option>
                   {options(facets.creator, sp.nt)}
                 </select>
               </label>
               <label>
                 <span className="sr-only">Đơn vị</span>
-                <select name="dv" defaultValue={sp.dv ?? ''} className={cls}>
+                <select
+                  name="dv"
+                  defaultValue={sp.dv ?? ''}
+                  className="dms-select"
+                  style={{ width: 78 }}
+                >
                   <option value="">Đơn vị</option>
                   {options(facets.branch, sp.dv)}
                 </select>
@@ -331,25 +366,22 @@ export default async function DmsDomainPage({
             </>
           );
         })()}
-        <label className="w-28">
-          <span className="sr-only">Năm</span>
-          <select
-            name="year"
-            defaultValue={year}
-            className="min-h-11 w-full rounded-[10px] border border-line-strong bg-surface px-3 text-sm"
-          >
-            {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
-              .concat(year)
-              .filter((y, i, a) => a.indexOf(y) === i)
-              .sort((x, y) => y - x)
-              .map((y) => (
-                <option key={y} value={y}>
-                  Năm {y}
-                </option>
-              ))}
-          </select>
-        </label>
-        <Button type="submit" variant="secondary">
+        {showScanSelect ? (
+          <label>
+            <span className="sr-only">Tình trạng scan</span>
+            <select
+              name="loc"
+              defaultValue={filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'}
+              className="dms-select"
+              style={{ width: 126 }}
+            >
+              <option value="chinh-thuc">Tình trạng scan</option>
+              <option value="thieu-scan">Thiếu scan</option>
+              <option value="du-scan">Đủ scan</option>
+            </select>
+          </label>
+        ) : null}
+        <Button type="submit" variant="secondary" className="dms-find">
           Tìm
         </Button>
         <DmsSavedFilters
@@ -365,69 +397,79 @@ export default async function DmsDomainPage({
             branch: sp.dv,
           })}
         />
-        <Link href="/dms/tim-kiem" className="text-sm">
+        <Link href="/dms/tim-kiem" className="dms-scan-link">
           Tìm trong nội dung scan
         </Link>
       </form>
-      <DmsCaseTable
-        rows={pageRows}
-        caption={`Danh sách hồ sơ ${domain.label}`}
-        basePath={base}
-        book={!isDraftView && spec ? { spec, byCase } : undefined}
-        sttLabel={sttLabel}
-        emptyText={`Chưa có hồ sơ nào trong năm ${year}. Bắt đầu bằng "${vanThu ? 'Thêm bản ghi' : 'Tạo hồ sơ'}".`}
-        emptyAction={
-          canDraft(permissions, domain.code) ? (
-            <NewDmsCaseButton
-              officeId={officeId}
-              domainCode={domain.code}
-              label={domain.label}
-              buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
-              redirectBase={base}
-            />
-          ) : undefined
-        }
-      />
-      {pageCount > 1 ? (
-        <nav aria-label="Phân trang" className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          {page > 1 ? (
-            <Link href={pageHref(page - 1)} rel="prev" className="px-3 py-1">
-              ‹ Trước
-            </Link>
+      <div className="dms-card">
+        {listLayout && !isDraftView && spec && pageRows.length > 0 ? (
+          <DmsDomainTable
+            rows={pageRows}
+            caption={`Danh sách hồ sơ ${domain.label}`}
+            basePath={base}
+            layout={listLayout}
+            spec={spec}
+            byCase={rowsByCase}
+            sttLabel={sttLabel}
+            tableKey={`DmsDomainTable-${domain.code}`}
+          />
+        ) : (
+          <DmsCaseTable
+            rows={pageRows}
+            caption={`Danh sách hồ sơ ${domain.label}`}
+            basePath={base}
+            book={!isDraftView && spec ? { spec, byCase } : undefined}
+            sttLabel={sttLabel}
+            emptyText={`Chưa có hồ sơ nào trong năm ${year}. Bắt đầu bằng "${vanThu ? 'Thêm bản ghi' : 'Tạo hồ sơ'}".`}
+            emptyAction={
+              canDraft(permissions, domain.code) ? (
+                <NewDmsCaseButton
+                  officeId={officeId}
+                  domainCode={domain.code}
+                  label={domain.label}
+                  buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
+                  redirectBase={base}
+                />
+              ) : undefined
+            }
+          />
+        )}
+        <div className="dms-foot">
+          <p>
+            Hiển thị {pageRows.length} / {formatTotal(total, result.totalCapped)} hồ sơ{' '}
+            {isDraftView
+              ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase()
+              : `chính thức năm ${year}`}
+            . Nháp và nháp đã hủy không có {sttLabel}, không vào xuất sổ, không tính thống kê chính
+            thức.
+          </p>
+          {pageCount > 1 ? (
+            <nav aria-label="Phân trang" className="dms-pager">
+              {page > 1 ? (
+                <Link href={pageHref(page - 1)} rel="prev" aria-label="Trang trước">
+                  ‹
+                </Link>
+              ) : null}
+              {pageWindow(page, pageCount).map((n, i) =>
+                n === '…' ? (
+                  <span key={`gap-${i}`} aria-hidden="true">
+                    …
+                  </span>
+                ) : (
+                  <Link key={n} href={pageHref(n)} aria-current={n === page ? 'page' : undefined}>
+                    {n}
+                  </Link>
+                ),
+              )}
+              {page < pageCount ? (
+                <Link href={pageHref(page + 1)} rel="next" aria-label="Trang sau">
+                  ›
+                </Link>
+              ) : null}
+            </nav>
           ) : null}
-          {pageWindow(page, pageCount).map((n, i) =>
-            n === '…' ? (
-              <span key={`gap-${i}`} aria-hidden="true">
-                …
-              </span>
-            ) : (
-              <Link
-                key={n}
-                href={pageHref(n)}
-                aria-current={n === page ? 'page' : undefined}
-                className={
-                  n === page
-                    ? 'rounded-full bg-accent px-3 py-1 font-semibold text-white'
-                    : 'px-3 py-1'
-                }
-              >
-                {n}
-              </Link>
-            ),
-          )}
-          {page < pageCount ? (
-            <Link href={pageHref(page + 1)} rel="next" className="px-3 py-1">
-              Sau ›
-            </Link>
-          ) : null}
-        </nav>
-      ) : null}
-      <p className="muted mt-3">
-        Hiển thị {pageRows.length} / {formatTotal(total, result.totalCapped)} hồ sơ{' '}
-        {isDraftView ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase() : `chính thức năm ${year}`}
-        . Nháp và nháp đã hủy không có {sttLabel}, không vào xuất sổ, không tính thống kê chính
-        thức.
-      </p>
+        </div>
+      </div>
     </section>
   );
 }

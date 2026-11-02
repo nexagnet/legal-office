@@ -73,7 +73,8 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/vi-bang',
-    summary: 'Đủ 7 cột Sổ S-02 cộng cột tài liệu và bản scan.',
+    summary:
+      'Đủ 7 cột Sổ S-02 (STT, người yêu cầu, nội dung, số/ngày vi bằng, nơi lập, THV, ghi chú) cộng cột tài liệu và bản scan.',
   },
   {
     slug: 'dms-tong-dat',
@@ -81,7 +82,7 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/tong-dat',
-    summary: 'Hồ sơ tống đạt và bản scan; xuất Sổ S-01.',
+    summary: 'Đủ cột Sổ S-01; mỗi giấy tờ cần tống đạt là một dòng sổ.',
   },
   {
     slug: 'dms-xac-minh',
@@ -89,7 +90,8 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/xac-minh',
-    summary: 'Hồ sơ xác minh điều kiện thi hành án và bản scan; xuất Sổ S-04.',
+    summary:
+      'Hồ sơ xác minh điều kiện thi hành án. Các cột còn lại của Sổ S-04 nằm trong chi tiết hồ sơ.',
   },
   {
     slug: 'dms-to-chuc-tha',
@@ -97,7 +99,7 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/to-chuc-tha',
-    summary: 'Hồ sơ tổ chức thi hành án và bản scan; xuất Sổ S-05.',
+    summary: 'Hồ sơ tổ chức thi hành án. Các cột còn lại của Sổ S-05 nằm trong chi tiết hồ sơ.',
   },
   {
     slug: 'dms-thv',
