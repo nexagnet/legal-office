@@ -463,15 +463,34 @@ export const DMS_DOMAIN_LABELS: Record<string, string> = {
   vtnb: 'Văn thư · Văn bản nội bộ',
 };
 
+export interface DmsReportFull {
+  readonly rows: DmsReportRow[];
+  /** Số việc còn dở theo miền (thẻ số của Tống đạt, Xác minh, Tổ chức); miền khác không có. */
+  readonly pending: Readonly<Record<string, number>>;
+}
+
+export async function loadDmsReportFull(
+  cookie: string | null,
+  officeId: string,
+  year: number,
+): Promise<DmsReportFull | 'error'> {
+  const body = await getJson<{
+    rows: DmsReportRow[];
+    pending?: { domain: string; pending: number }[];
+  }>(`/dms/report?officeId=${encodeURIComponent(officeId)}&year=${year}`, cookie);
+  if (body === 'error') return 'error';
+  return {
+    rows: body.rows,
+    pending: Object.fromEntries((body.pending ?? []).map((p) => [p.domain, p.pending])),
+  };
+}
+
 export async function loadDmsReport(
   cookie: string | null,
   officeId: string,
   year: number,
 ): Promise<DmsReportRow[] | 'error'> {
-  const body = await getJson<{ rows: DmsReportRow[] }>(
-    `/dms/report?officeId=${encodeURIComponent(officeId)}&year=${year}`,
-    cookie,
-  );
+  const body = await loadDmsReportFull(cookie, officeId, year);
   return body === 'error' ? 'error' : body.rows;
 }
 

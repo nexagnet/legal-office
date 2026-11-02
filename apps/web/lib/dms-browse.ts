@@ -92,7 +92,7 @@ export async function searchDmsCases(
 /** Chỉ cần số đếm của một chip (không tải dòng nào). */
 export async function countDmsCases(
   cookie: string | null,
-  p: Pick<DmsCaseSearchParams, 'officeId' | 'domain' | 'filter' | 'year'>,
+  p: Pick<DmsCaseSearchParams, 'officeId' | 'domain' | 'filter' | 'year' | 'creator'>,
 ): Promise<number | undefined> {
   const r = await searchDmsCases(cookie, { ...p, limit: 1, total: true });
   return r === 'error' || r.total === null ? undefined : r.total;
