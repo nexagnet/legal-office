@@ -27,10 +27,13 @@ import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { BOOK_CODES, VANTHU_CODES, bookOf, toCsv, type BookRowRaw } from './books';
+import { BOOK_PDF_MIME, buildBookPdf } from './book-pdf';
 import { domain, parse, respond, uuid } from './dms-http';
 
 const attributes = z.record(z.string(), z.unknown());
 const status = z.enum(['DRAFT', 'RECORDED', 'CANCELLED']);
+/** Trần số dòng của một bản PDF (một sổ cả năm ở 10-20 đơn/ngày còn xa mức này). */
+const MAX_PDF_ROWS = 50_000;
 
 /**
  * Hồ sơ DMS (4 nghiệp vụ). Quyền do hàm `dms_*` trong DB quyết định theo Nhóm quyền và ghi nhật ký; controller không
@@ -102,7 +105,10 @@ export class DmsCasesController {
     };
   }
 
-  /** Dòng sổ của một văn phòng/năm. `format=csv` trả tệp CSV; mặc định JSON. Chỉ thấy phần mình được quyền đọc. */
+  /**
+   * Dòng sổ của một văn phòng/năm. `format=csv` trả tệp CSV, `format=pdf` trả bản in đúng mẫu (toàn bộ dòng của năm,
+   * không phân trang); mặc định JSON. Chỉ thấy phần mình được quyền đọc.
+   */
   @Get('books/:book')
   async bookRows(
     @CurrentActor() a: AuthenticatedActor,
@@ -118,13 +124,26 @@ export class DmsCasesController {
         .object({
           officeId: uuid,
           year: z.coerce.number().int().min(2000).max(2100),
-          format: z.enum(['json', 'csv']).default('json'),
+          format: z.enum(['json', 'csv', 'pdf']).default('json'),
           limit: z.coerce.number().int().min(1).max(2000).default(500),
           offset: z.coerce.number().int().min(0).default(0),
         })
         .strict(),
       query,
     );
+    if (q.format === 'pdf') {
+      const [rows, officeName] = await Promise.all([
+        this.allBookRows(a, q.officeId, spec.code, q.year),
+        this.officeLegalName(a, q.officeId),
+      ]);
+      const pdf = await buildBookPdf({ spec, rows, year: q.year, officeName });
+      res.set({
+        'content-type': BOOK_PDF_MIME,
+        'content-disposition': `attachment; filename="${spec.form}-${q.year}.pdf"`,
+        'cache-control': 'private, no-store',
+      });
+      return new StreamableFile(pdf);
+    }
     const rows = await this.repo.rows<BookRowRaw>(a.tenantId, 'dms_book_rows', [
       a.tenantId,
       a.userId,
@@ -143,6 +162,43 @@ export class DmsCasesController {
       return new StreamableFile(Buffer.from(toCsv(spec, rows), 'utf8'));
     }
     return { book: spec, year: q.year, rows };
+  }
+
+  /** Mọi dòng sổ của năm, đọc từng lô để một sổ dài không bị cắt ở giới hạn của một lần gọi. */
+  private async allBookRows(a: AuthenticatedActor, officeId: string, code: string, year: number) {
+    const batch = 2000;
+    const out: BookRowRaw[] = [];
+    for (let offset = 0; offset < MAX_PDF_ROWS; offset += batch) {
+      const rows = await this.repo.rows<BookRowRaw>(a.tenantId, 'dms_book_rows', [
+        a.tenantId,
+        a.userId,
+        officeId,
+        code,
+        year,
+        batch,
+        offset,
+      ]);
+      out.push(...rows);
+      if (rows.length < batch) return out;
+    }
+    throw new HttpException(
+      { code: 'BOOK_TOO_LARGE', label: null },
+      HttpStatus.UNPROCESSABLE_ENTITY,
+    );
+  }
+
+  /** Tên pháp lý của văn phòng để in ở bìa; không đọc được thì để chấm chấm như mẫu giấy. */
+  private async officeLegalName(a: AuthenticatedActor, officeId: string): Promise<string | null> {
+    try {
+      const rows = await this.repo.rows<{ legal_name: string | null }>(
+        a.tenantId,
+        'of_search_office_settings',
+        [a.tenantId, a.userId, officeId],
+      );
+      return rows[0]?.legal_name ?? null;
+    } catch {
+      return null;
+    }
   }
 
   /** Báo cáo tổng hợp số liệu theo miền và năm (không phải mẫu N-09/N-10 chính thức). Chỉ phần người xem được quyền đọc. */
