@@ -158,7 +158,14 @@ export class DmsCasesController {
       q.officeId,
       q.year,
     ]);
-    return { year: q.year, rows };
+    // Thẻ số "việc còn dở" của Tống đạt, Xác minh, Tổ chức (Figma DMS v2): domain -> số còn dở.
+    const pending = await this.repo.rows(a.tenantId, 'dms_domain_pending_counts', [
+      a.tenantId,
+      a.userId,
+      q.officeId,
+      q.year,
+    ]);
+    return { year: q.year, rows, pending };
   }
 
   @Get('cases/:id')

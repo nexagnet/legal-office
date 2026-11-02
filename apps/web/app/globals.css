@@ -235,7 +235,7 @@ button:not([class]):disabled,
 @media (min-width: 900px) {
   .shell {
     display: grid;
-    grid-template-columns: 248px 1fr;
+    grid-template-columns: 256px 1fr;
   }
   .side,
   .side[data-open='false'] {

@@ -125,7 +125,7 @@ export function DataTable({
               onClick={() => setOpen((v) => !v)}
             >
               <Columns3 aria-hidden="true" />
-              Cột hiển thị
+              <span className="dt-label">Cột hiển thị</span>
               {prefs.hidden.length > 0 ? (
                 <span className="dt-count">
                   {labels.length - prefs.hidden.length}/{labels.length}
@@ -163,7 +163,7 @@ export function DataTable({
             onClick={() => update({ ...prefs, compact: !prefs.compact })}
           >
             <Rows3 aria-hidden="true" />
-            Hiển thị gọn
+            <span className="dt-label">Hiển thị gọn</span>
           </button>
         </div>
       ) : null}
