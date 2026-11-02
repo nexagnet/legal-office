@@ -2726,3 +2726,13 @@ fieldset.person-choice .person-choice-name {
     white-space: nowrap;
   }
 }
+
+/* Hàng cuối không bị chân thẻ bảng cắt phần tràn dọc (Xem/Tải xếp hai dòng ở cột đầu) */
+.dms-table-wrap {
+  padding-bottom: 14px;
+}
+@media (max-width: 1279px) {
+  .dms-table tbody tr:last-child > * {
+    padding-bottom: 14px;
+  }
+}
