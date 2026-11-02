@@ -2591,3 +2591,15 @@ fieldset.person-choice .person-choice-name {
   font-weight: 700;
   color: #b02a22 !important;
 }
+
+.dms-code {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dms-btn-lg {
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 14px;
+}
