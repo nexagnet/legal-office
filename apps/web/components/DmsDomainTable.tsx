@@ -7,6 +7,13 @@ import { bookGetter, EXPANDABLE_DOMAINS, sttRange, type ListColumn } from '../li
 import { DmsRowToggle } from './DmsRowToggle';
 import { DataTable } from './ui/data-table';
 
+const shortDate = new Intl.DateTimeFormat('vi-VN', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  timeZone: 'Asia/Ho_Chi_Minh',
+});
+
 const Clamp = ({ children, muted = false }: { children: string; muted?: boolean }) =>
   children ? (
     <span className={muted ? 'dms-clamp dms-sub' : 'dms-clamp'} title={children}>
@@ -58,7 +65,10 @@ export function DmsDomainTable({
   byCase,
   sttLabel,
   tableKey,
+  draft,
 }: {
+  /** Chế độ Nháp / Đã hủy (Figma 420:1420): chưa có STT, không có dòng sổ, thao tác riêng. */
+  readonly draft?: { readonly kind: 'nhap' | 'da-huy'; readonly userId: string | undefined };
   readonly rows: readonly DmsSearchCase[];
   readonly caption: string;
   readonly basePath: string;
@@ -92,8 +102,25 @@ export function DmsDomainTable({
           const getters = spec ? bookRows.map((br) => bookGetter(spec, br)) : [];
           const get = getters[0] ?? (() => '');
           const scan = scanState(r);
+          const mine = draft ? r.created_by === draft.userId : false;
           const expandable = EXPANDABLE_DOMAINS.has(r.domain) && bookRows.length > 1;
           const cells: ReactNode[] = layout.map((c) => {
+            if (c.special === 'stt' && draft)
+              return (
+                <th key={c.id} scope="row" className="dms-stt">
+                  <span className="dms-stt-in">
+                    <b>Chưa có {sttLabel}</b>
+                    <Link href={`${basePath}/${r.id}`} className="dms-code">
+                      {draft.kind === 'da-huy' ? 'Đã hủy' : 'Nháp'} ·{' '}
+                      {shortDate.format(new Date(r.created_at))}
+                      {r.creator_name ? ` · ${r.creator_name}` : ''}
+                    </Link>
+                    <span className="dms-draft-tag" data-kind={draft.kind}>
+                      {draft.kind === 'da-huy' ? 'Bản nháp đã hủy' : 'Bản nháp'}
+                    </span>
+                  </span>
+                </th>
+              );
             if (c.special === 'stt')
               return (
                 <th key={c.id} scope="row" className="dms-stt">
@@ -114,6 +141,50 @@ export function DmsDomainTable({
                     ) : null}
                   </span>
                 </th>
+              );
+            if (draft && c.special === 'number')
+              return (
+                <td key={c.id} className="dms-number">
+                  —
+                </td>
+              );
+            if (draft && c.special === 'scan')
+              return (
+                <td key={c.id}>
+                  <span className="dms-scan">
+                    <span className="dms-pill" data-tone="info">
+                      {r.document_count} tài liệu
+                    </span>
+                    <span className="dms-pill" data-tone="muted">
+                      Chưa ghi sổ
+                    </span>
+                  </span>
+                </td>
+              );
+            if (draft && c.special === 'actions')
+              return (
+                <td key={c.id}>
+                  <span className="dms-actions dms-actions-draft">
+                    {draft.kind === 'da-huy' ? (
+                      <Link href={`${basePath}/${r.id}`} className="dms-btn">
+                        Xem
+                      </Link>
+                    ) : mine ? (
+                      <>
+                        <Link href={`${basePath}/${r.id}`} className="dms-btn dms-btn-lg">
+                          Tiếp tục soạn
+                        </Link>
+                        <Link href={`${basePath}/${r.id}`} className="dms-danger-link">
+                          Hủy nháp
+                        </Link>
+                      </>
+                    ) : (
+                      <Link href={`${basePath}/${r.id}`} className="dms-pill" data-tone="info">
+                        Chỉ xem (được cấp)
+                      </Link>
+                    )}
+                  </span>
+                </td>
               );
             if (c.special === 'number')
               return (
@@ -157,6 +228,12 @@ export function DmsDomainTable({
                 </td>
               );
             const v = c.cell?.(get, getters) ?? { primary: '' };
+            if (draft)
+              return (
+                <td key={c.id}>
+                  <Clamp>{v.primary || '—'}</Clamp>
+                </td>
+              );
             return (
               <td key={c.id} data-zero={c.tick && v.primary === '0' ? 'true' : undefined}>
                 <Clamp>{v.primary}</Clamp>
@@ -165,7 +242,11 @@ export function DmsDomainTable({
             );
           });
           return (
-            <tbody key={r.id} data-open={expandable ? 'false' : undefined}>
+            <tbody
+              key={r.id}
+              data-open={expandable ? 'false' : undefined}
+              data-draft={draft ? draft.kind : undefined}
+            >
               <tr>{cells}</tr>
               {expandable ? (
                 <>
