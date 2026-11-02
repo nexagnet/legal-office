@@ -30,6 +30,15 @@ const text =
   (key: string) =>
   (get: Getter): ListCellText => ({ primary: get(key) });
 
+/** "Cty CP Hòa Phát, 12 Lê Duẩn, Hà Nội": tên ở dòng chính, phần còn lại (địa chỉ, số thẻ) ở dòng phụ xám (Figma). */
+const nameThenRest =
+  (key: string) =>
+  (get: Getter): ListCellText => {
+    const v = get(key);
+    const i = v.indexOf(', ');
+    return i > 0 ? { primary: v.slice(0, i), secondary: v.slice(i + 2) } : { primary: v };
+  };
+
 const distinct = (all: readonly Getter[], key: string): string[] => [
   ...new Set(all.map((g) => g(key)).filter(Boolean)),
 ];
@@ -105,7 +114,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'nguoi_yeu_cau',
       head: 'Người yêu cầu lập vi bằng (họ tên, địa chỉ)',
       width: 180,
-      cell: text('nguoi_yeu_cau'),
+      cell: nameThenRest('nguoi_yeu_cau'),
     },
     {
       id: 'noi_dung',
@@ -129,7 +138,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'thv',
       head: 'Thừa hành viên lập vi bằng (họ tên, số thẻ)',
       width: 130,
-      cell: text('thua_hanh_vien'),
+      cell: nameThenRest('thua_hanh_vien'),
     },
     SCAN,
     { id: 'ghi_chu', head: 'Ghi chú', width: 60, cell: text('ghi_chu') },
