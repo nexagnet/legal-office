@@ -57,6 +57,10 @@ export function DataTable({
   const [labels, setLabels] = useState<readonly string[]>([]);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [open, setOpen] = useState(false);
+  const [edge, setEdge] = useState<{ readonly left: boolean; readonly right: boolean }>({
+    left: false,
+    right: false,
+  });
 
   useEffect(() => {
     setPrefs(readPrefs(tableKey));
@@ -75,7 +79,21 @@ export function DataTable({
     read();
     const mo = new MutationObserver(read);
     mo.observe(wrap, { childList: true, subtree: true });
-    return () => mo.disconnect();
+    // Dấu hiệu còn nội dung cuộn ngang: bóng mờ ở mép phải/trái
+    const measure = () => {
+      const left = wrap.scrollLeft > 1;
+      const right = wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 1;
+      setEdge((p) => (p.left === left && p.right === right ? p : { left, right }));
+    };
+    measure();
+    wrap.addEventListener('scroll', measure, { passive: true });
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    ro?.observe(wrap);
+    return () => {
+      mo.disconnect();
+      ro?.disconnect();
+      wrap.removeEventListener('scroll', measure);
+    };
   }, []);
 
   const update = useCallback(
@@ -171,11 +189,17 @@ export function DataTable({
         </div>
       ) : null}
       <div
-        ref={wrapRef}
-        className={cn('table-wrap dt-scroll', className)}
-        onMouseOver={onMouseOver}
+        className="dt-frame"
+        data-edge-left={edge.left ? 'true' : undefined}
+        data-edge-right={edge.right ? 'true' : undefined}
       >
-        {children}
+        <div
+          ref={wrapRef}
+          className={cn('table-wrap dt-scroll', className)}
+          onMouseOver={onMouseOver}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
