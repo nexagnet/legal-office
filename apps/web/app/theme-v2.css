@@ -2683,3 +2683,42 @@ fieldset.person-choice .person-choice-name {
     padding: 12px 14px 0;
   }
 }
+
+/* Dấu hiệu còn cột cuộn ngang: bóng mờ ở mép phải (còn nội dung) và mép trái (đã cuộn) */
+.dt-frame {
+  position: relative;
+}
+.dt-frame::before,
+.dt-frame::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.dt-frame::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(15, 45, 85, 0.16), transparent);
+}
+.dt-frame::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(15, 45, 85, 0.16), transparent);
+}
+.dt-frame[data-edge-left='true']::before,
+.dt-frame[data-edge-right='true']::after {
+  opacity: 1;
+}
+/* Nút Xem · Tải ở cột đầu khi màn hẹp; desktop rộng dùng cột thao tác riêng */
+.dms-stt-actions {
+  display: none;
+}
+@media (max-width: 1279px) {
+  .dms-stt-actions {
+    display: inline-flex;
+    margin-top: 4px;
+  }
+}
