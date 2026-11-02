@@ -2554,3 +2554,40 @@ fieldset.person-choice .person-choice-name {
   font-weight: 700;
   color: var(--accent);
 }
+
+/* Danh sách Nháp / Đã hủy (Figma 420:1420): hàng vàng, chưa có STT, thao tác riêng. */
+.dms-table tbody[data-draft='nhap'] > tr > * {
+  background: #fbf1d8;
+}
+.dms-table tbody[data-draft='da-huy'] > tr > * {
+  background: #f1ece4;
+}
+.dms-draft-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b76a00;
+}
+.dms-draft-tag[data-kind='da-huy'] {
+  color: var(--faint);
+}
+.dms-pill[data-tone='muted'] {
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.dms-actions-draft {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.dms-btn-lg {
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 15px;
+  border-color: var(--accent);
+}
+.dms-danger-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b02a22 !important;
+}

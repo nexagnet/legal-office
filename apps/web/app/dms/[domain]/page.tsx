@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
 import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
+import { AdminBanner } from '../../../components/admin-banner';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { DmsDomainTable } from '../../../components/DmsDomainTable';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
@@ -227,6 +228,24 @@ export default async function DmsDomainPage({
     'da-huy': nCancelled,
   };
   const listLayout = vanThu ? (spec ? vanThuLayout(spec) : undefined) : listLayoutFor(domain.code);
+  const draftKind = filter === 'nhap' || filter === 'da-huy' ? filter : undefined;
+  const userId = session.userId;
+  // "Nháp của tôi" chỉ đếm được chắc chắn khi cả danh sách nháp nằm gọn trong một trang.
+  const draftsFitOnPage = nDraft !== undefined && pageRows.length >= nDraft;
+  const myDrafts =
+    draftKind === 'nhap' && draftsFitOnPage && userId
+      ? pageRows.filter((r) => r.created_by === userId).length
+      : undefined;
+  const draftKpis: Kpi[] = [
+    { label: 'Nháp đang hoạt động', value: nDraft ?? '—' },
+    { label: 'Nháp của tôi', value: myDrafts ?? '—', tone: 'ok' },
+    {
+      label: 'Được cấp quyền xem',
+      value: myDrafts !== undefined && nDraft !== undefined ? nDraft - myDrafts : '—',
+      tone: 'danger',
+    },
+    { label: 'Đã hủy', value: nCancelled ?? '—', tone: 'warn' },
+  ];
   const href = (f: DmsFilter) => {
     const p = new URLSearchParams();
     if (f !== 'chinh-thuc') p.set('loc', f);
@@ -255,6 +274,12 @@ export default async function DmsDomainPage({
   return (
     <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
       <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
+      {draftKind && !vanThu ? (
+        <AdminBanner
+          title={`${domain.label} · ${draftKind === 'nhap' ? 'Nháp' : 'Đã hủy'}`}
+          sub={`${draftKind === 'nhap' ? 'Nháp' : 'Nháp đã hủy'} chưa ghi sổ ${bookCode} và chưa có STT. Bạn chỉ thấy nháp của mình và nháp được cấp quyền xem (draft.view.granted).`}
+        />
+      ) : null}
       {vanThu ? (
         <div className="dms-vt-tabs">
           <TabNav
@@ -268,6 +293,8 @@ export default async function DmsDomainPage({
             }))}
           />
         </div>
+      ) : draftKind ? (
+        <KpiStrip label={`Tổng hợp nháp ${domain.label}`} items={draftKpis} />
       ) : (
         <KpiStrip
           label={`Tổng hợp ${domain.label} năm ${year}`}
@@ -446,7 +473,7 @@ export default async function DmsDomainPage({
         </Link>
       </form>
       <div className="dms-card">
-        {listLayout && !isDraftView && spec && pageRows.length > 0 ? (
+        {listLayout && (draftKind ? !vanThu : spec) && pageRows.length > 0 ? (
           <DmsDomainTable
             rows={pageRows}
             caption={`Danh sách hồ sơ ${domain.label}`}
@@ -455,7 +482,8 @@ export default async function DmsDomainPage({
             spec={spec}
             byCase={rowsByCase}
             sttLabel={sttLabel}
-            tableKey={`DmsDomainTable-${domain.code}`}
+            draft={draftKind ? { kind: draftKind, userId } : undefined}
+            tableKey={`DmsDomainTable-${domain.code}${draftKind ? '-nhap' : ''}`}
           />
         ) : (
           <DmsCaseTable

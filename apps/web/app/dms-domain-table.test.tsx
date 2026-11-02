@@ -78,6 +78,32 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     );
   });
 
+  it('Nháp: chưa có STT, không dòng sổ, "Tiếp tục soạn" + "Hủy nháp" cho nháp của mình, "Chỉ xem (được cấp)" cho nháp người khác', () => {
+    render(
+      <DmsDomainTable
+        rows={[
+          caseRow({ id: 'a', status: 'DRAFT', recorded_at: null, title: 'N1', created_by: 'u1' }),
+          caseRow({ id: 'b', status: 'DRAFT', recorded_at: null, title: 'N2', created_by: 'u2' }),
+        ]}
+        caption="c"
+        basePath="/dms/vi-bang"
+        layout={listLayoutFor('vibang')!}
+        spec={undefined}
+        byCase={new Map()}
+        sttLabel="STT"
+        tableKey="t"
+        draft={{ kind: 'nhap', userId: 'u1' }}
+      />,
+    );
+    expect(screen.getAllByText('Chưa có STT')).toHaveLength(2);
+    expect(screen.getAllByText('Bản nháp')).toHaveLength(2);
+    expect(screen.getAllByText('Chưa ghi sổ')).toHaveLength(2);
+    expect(screen.getAllByRole('link', { name: 'Tiếp tục soạn' })).toHaveLength(1);
+    expect(screen.getAllByRole('link', { name: 'Hủy nháp' })).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Chỉ xem (được cấp)' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Upload scan' })).toBeNull();
+  });
+
   it('thiếu scan: huy hiệu đỏ, số file nhỏ bên dưới và nút Upload scan thay cho Xem', () => {
     render(
       <DmsDomainTable
