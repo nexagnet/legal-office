@@ -400,6 +400,8 @@ export default async function DmsDomainPage({
             list: readonly { value: string; label: string; n: number }[],
             now?: string,
           ) => {
+            // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
+            list = list.filter((o) => o.value !== '');
             const rows =
               list.some((o) => o.value === now) || !now
                 ? list
