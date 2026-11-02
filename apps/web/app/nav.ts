@@ -177,7 +177,7 @@ export const NAV: readonly NavItem[] = [
     group: 'office',
     roles: ALL,
     href: '/dms/van-ban-den',
-    summary: 'Ba sổ văn bản đến, đi, nội bộ; Số đến và STT tự động, kèm bản scan.',
+    summary: 'Ba sổ đăng ký văn bản, số đến và STT tự động, kèm bản scan từng văn bản.',
   },
   {
     slug: 'dms-xuat-so',

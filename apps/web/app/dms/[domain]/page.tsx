@@ -35,7 +35,7 @@ import {
   TOTAL_CAP,
   viewToSavedParams,
 } from '../../../lib/dms-browse';
-import { listLayoutFor } from '../../../lib/dms-list-layout';
+import { listLayoutFor, vanThuLayout } from '../../../lib/dms-list-layout';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -191,6 +191,8 @@ export default async function DmsDomainPage({
     );
   }
   const isDraftView = filter === 'nhap' || filter === 'da-huy';
+  const chipSet: readonly DmsFilter[] =
+    vanThu || isDraftView ? ['chinh-thuc', 'nhap', 'da-huy'] : FILTERS;
   // Dòng sổ chỉ lấy cho các hồ sơ đang hiện trên trang này, không tải cả sổ cả năm.
   const bookData = isDraftView
     ? null
@@ -217,14 +219,14 @@ export default async function DmsDomainPage({
   const stillOpen = report === 'error' ? undefined : report.pending[domain.code];
   // Figma: chỉ hai chip Nháp và Đã hủy kèm số trong ngoặc; số của bốn chip còn lại nằm ở các thẻ số phía trên.
   const counts: Record<DmsFilter, number | undefined> = {
-    'chinh-thuc': undefined,
+    'chinh-thuc': chipSet === FILTERS ? undefined : nOfficial,
     'cho-duyet': undefined,
     'thieu-scan': undefined,
     'du-scan': undefined,
     nhap: nDraft,
     'da-huy': nCancelled,
   };
-  const listLayout = listLayoutFor(domain.code);
+  const listLayout = vanThu ? (spec ? vanThuLayout(spec) : undefined) : listLayoutFor(domain.code);
   const href = (f: DmsFilter) => {
     const p = new URLSearchParams();
     if (f !== 'chinh-thuc') p.set('loc', f);
@@ -254,37 +256,42 @@ export default async function DmsDomainPage({
     <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
       <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
       {vanThu ? (
-        <TabNav
-          label="Ba sổ Văn thư"
-          active={domain.slug}
-          tabs={VAN_THU_DOMAINS.map((d) => ({
-            key: d.slug,
-            label: d.label,
-            href: `/dms/${d.slug}`,
-          }))}
+        <div className="dms-vt-tabs">
+          <TabNav
+            label="Ba sổ Văn thư"
+            soft
+            active={domain.slug}
+            tabs={VAN_THU_DOMAINS.map((d) => ({
+              key: d.slug,
+              label: d.label,
+              href: `/dms/${d.slug}`,
+            }))}
+          />
+        </div>
+      ) : (
+        <KpiStrip
+          label={`Tổng hợp ${domain.label} năm ${year}`}
+          items={kpiItems(domain.code, {
+            year,
+            official: nOfficial,
+            documents: documents?.documents,
+            missingScan: nMissing,
+            pendingAmendment: nPending,
+            stillOpen,
+          })}
         />
-      ) : null}
-      <KpiStrip
-        label={`Tổng hợp ${domain.label} năm ${year}`}
-        items={kpiItems(domain.code, {
-          year,
-          official: nOfficial,
-          documents: documents?.documents,
-          missingScan: nMissing,
-          pendingAmendment: nPending,
-          stillOpen,
-        })}
-      />
+      )}
       <TabNav
         label={`Bộ lọc hồ sơ ${domain.label}`}
         soft
         active={filter}
-        tabs={FILTERS.map((k) => ({
+        tabs={chipSet.map((k) => ({
           key: k,
           label: DMS_FILTER_LABEL[k],
           href: href(k),
           count: counts[k],
-          tone: k === 'nhap' || k === 'da-huy' ? ('warn' as const) : undefined,
+          tone:
+            chipSet === FILTERS && (k === 'nhap' || k === 'da-huy') ? ('warn' as const) : undefined,
         }))}
         action={
           <span className="dms-actionbar">

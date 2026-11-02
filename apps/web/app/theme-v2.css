@@ -2537,3 +2537,20 @@ fieldset.person-choice .person-choice-name {
   font-size: 13px;
   color: var(--ok);
 }
+
+/* Văn thư (Figma 352:2009): ba sổ là chip mềm nhỏ ở trên cùng, không có thẻ số; ô Số đến/STT màu nhấn */
+.dms-vt-tabs .tabs-soft-row {
+  margin-bottom: 16px;
+}
+.dms-list[data-domain^='vt'] .tabs-soft-row {
+  margin-bottom: 40px;
+}
+.dms-list[data-domain^='vt'] .dms-table td,
+.dms-list[data-domain^='vt'] .dms-table th {
+  height: 65px;
+}
+.dms-table .dms-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}

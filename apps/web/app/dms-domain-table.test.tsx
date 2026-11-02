@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { DmsDomainTable } from '../components/DmsDomainTable';
 import type { DmsBookRow, DmsBookSpec } from '../lib/dms';
 import type { DmsSearchCase } from '../lib/dms-browse';
-import { listLayoutFor, servedRange, sttRange } from '../lib/dms-list-layout';
+import { listLayoutFor, servedRange, sttRange, vanThuLayout } from '../lib/dms-list-layout';
 
 afterEach(() => cleanup());
 
@@ -166,5 +166,36 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     expect(screen.getByRole('button', { name: /Mở 2 dòng Sổ S-01 của hồ sơ TĐ-1/ })).toBeTruthy();
     expect(screen.getByText(/Các dòng Sổ S-01 của hồ sơ TĐ-1/)).toBeTruthy();
     expect(screen.getAllByText('✓')).toHaveLength(1);
+  });
+
+  it('Văn thư: bố cục theo đúng thứ tự cột sổ + Scan + Xem · Tải, tổng 1144px, không có cột mã hồ sơ', () => {
+    const vt: DmsBookSpec = {
+      ...spec,
+      code: 'VT-DEN',
+      domain: 'vtden',
+      columns: [
+        { no: 1, heading: 'Ngày đến', key: 'ngay_den' },
+        { no: 2, heading: 'Số đến', key: 'stt' },
+        { no: 6, heading: 'Tên loại và trích yếu nội dung', key: 'title' },
+      ],
+    };
+    const l = vanThuLayout(vt);
+    expect(l.map((c) => c.id)).toEqual(['ngay_den', 'stt', 'title', 'scan', 'actions']);
+    expect(l.reduce((n, c) => n + c.width, 0)).toBe(1144);
+    render(
+      <DmsDomainTable
+        rows={[caseRow({ domain: 'vtden', scan_count: 2 })]}
+        caption="c"
+        basePath="/dms/van-ban-den"
+        layout={l}
+        spec={vt}
+        byCase={new Map([['c1', [{ ...bookRow, stt: 4, case_title: 'Giấy mời' }]]])}
+        sttLabel="Số đến"
+        tableKey="t"
+      />,
+    );
+    expect(screen.getByText('4')).toBeTruthy();
+    expect(screen.getByText('Giấy mời')).toBeTruthy();
+    expect(screen.getByText('2 scan')).toBeTruthy();
   });
 });

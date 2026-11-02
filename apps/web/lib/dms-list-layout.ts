@@ -17,7 +17,7 @@ export interface ListColumn {
   readonly head: string;
   readonly width: number;
   /** Cột đặc biệt do bảng tự vẽ. */
-  readonly special?: 'stt' | 'scan' | 'actions';
+  readonly special?: 'stt' | 'scan' | 'scanlite' | 'number' | 'actions';
   /** Một ô của hàng hồ sơ: `get` đọc dòng sổ đầu tiên, `all` là mọi dòng sổ của hồ sơ (Tống đạt: mỗi giấy tờ một dòng). */
   readonly cell?: (get: Getter, all: readonly Getter[]) => ListCellText;
   /** Khoá cột đánh dấu: hàng hồ sơ hiện số giấy tờ có dấu, dòng sổ con hiện ✓. */
@@ -248,6 +248,38 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
 
 export function listLayoutFor(domainCode: string): readonly ListColumn[] | undefined {
   return LAYOUTS[domainCode];
+}
+
+const VT_WIDTH: Readonly<Record<string, number>> = {
+  ngay_den: 95,
+  stt: 70,
+  co_quan_ban_hanh: 120,
+  so_ky_hieu: 110,
+  ngay_van_ban: 95,
+  title: 190,
+  don_vi_nguoi_nhan: 90,
+  ky_nhan: 60,
+  ghi_chu: 60,
+};
+
+/**
+ * Bố cục ba sổ Văn thư theo Figma "Văn thư · Văn bản đến/đi/nội bộ" (352:2009, 352:2163, 352:2293): đúng thứ tự cột của sổ,
+ * rồi cột Scan (huy hiệu số tệp) và cột Xem · Tải / Upload. Không có cột mã hồ sơ.
+ */
+export function vanThuLayout(spec: DmsBookSpec): readonly ListColumn[] {
+  const cols: ListColumn[] = spec.columns.map((c) => ({
+    id: c.key,
+    head: c.key === 'stt' ? c.heading : c.heading,
+    width: VT_WIDTH[c.key] ?? 100,
+    special: c.key === 'stt' ? ('number' as const) : undefined,
+    cell: text(c.key),
+  }));
+  const used = cols.reduce((n, c) => n + c.width, 0);
+  return [
+    ...cols,
+    { id: 'scan', head: 'Scan', width: 100, special: 'scanlite' },
+    { id: 'actions', head: '', width: Math.max(130, 1144 - used - 100), special: 'actions' },
+  ];
 }
 
 /** Hàm lấy giá trị một cột sổ theo khoá, từ dòng sổ đầu tiên của hồ sơ (rỗng nếu không có). */

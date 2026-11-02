@@ -115,6 +115,20 @@ export function DmsDomainTable({
                   </span>
                 </th>
               );
+            if (c.special === 'number')
+              return (
+                <td key={c.id} className="dms-number">
+                  {bookRows[0]?.stt ?? '—'}
+                </td>
+              );
+            if (c.special === 'scanlite')
+              return (
+                <td key={c.id}>
+                  <span className="dms-pill" data-tone={scan === 'ok' ? 'ok' : 'danger'}>
+                    {scan === 'ok' ? `${r.scan_count} scan` : 'Chưa có scan'}
+                  </span>
+                </td>
+              );
             if (c.special === 'scan')
               return (
                 <td key={c.id}>
