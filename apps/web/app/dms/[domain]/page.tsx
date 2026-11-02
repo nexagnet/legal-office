@@ -513,7 +513,9 @@ export default async function DmsDomainPage({
                 ? 'Chưa có nháp nào. Nháp của bạn và nháp được cấp quyền xem sẽ hiện ở đây.'
                 : draftKind === 'da-huy'
                   ? 'Chưa có nháp nào bị hủy.'
-                  : `Chưa có hồ sơ nào trong năm ${year}. Bắt đầu bằng "${vanThu ? 'Thêm bản ghi' : 'Tạo hồ sơ'}".`
+                  : canDraft(permissions, domain.code)
+                    ? `Chưa có hồ sơ nào trong năm ${year}. Bấm "${vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}" để bắt đầu.`
+                    : `Chưa có hồ sơ nào trong năm ${year}.`
             }
             emptyAction={
               draftKind !== 'da-huy' && canDraft(permissions, domain.code) ? (
