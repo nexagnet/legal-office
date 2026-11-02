@@ -39,6 +39,15 @@ const nameThenRest =
     return i > 0 ? { primary: v.slice(0, i), secondary: v.slice(i + 2) } : { primary: v };
   };
 
+/** "Số 42 ngày 24/10/2026": số ở dòng chính, ngày ở dòng phụ (Figma); không tách được thì giữ nguyên một dòng. */
+const numberThenDate =
+  (key: string) =>
+  (get: Getter): ListCellText => {
+    const v = get(key);
+    const m = /^(.*?)[,;]?\s+ngày\s+(.+)$/i.exec(v);
+    return m && m[1] ? { primary: m[1], secondary: m[2]! } : { primary: v };
+  };
+
 const distinct = (all: readonly Getter[], key: string): string[] => [
   ...new Set(all.map((g) => g(key)).filter(Boolean)),
 ];
@@ -126,7 +135,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'so_ngay',
       head: 'Số, ngày, tháng, năm của vi bằng',
       width: 120,
-      cell: text('so_ngay_vi_bang'),
+      cell: numberThenDate('so_ngay_vi_bang'),
     },
     {
       id: 'dia_chi',

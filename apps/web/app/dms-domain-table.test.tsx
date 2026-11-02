@@ -17,6 +17,7 @@ const spec: DmsBookSpec = {
     { no: 1, heading: 'STT', key: 'stt' },
     { no: 2, heading: 'NGƯỜI YÊU CẦU', key: 'nguoi_yeu_cau' },
     { no: 3, heading: 'GHI CHÚ', key: 'ghi_chu' },
+    { no: 4, heading: 'SỐ NGÀY', key: 'so_ngay_vi_bang' },
   ],
 };
 const bookRow: DmsBookRow = {
@@ -24,7 +25,10 @@ const bookRow: DmsBookRow = {
   case_id: 'c1',
   document_id: null,
   case_title: 'VB-1',
-  case_attributes: { nguoi_yeu_cau: 'Cty CP Hòa Phát, Hà Nội' },
+  case_attributes: {
+    nguoi_yeu_cau: 'Cty CP Hòa Phát, Hà Nội',
+    so_ngay_vi_bang: 'TEST-002/2026 ngày 24/10/2026',
+  },
   doc_kind: null,
   doc_attributes: null,
 };
@@ -73,6 +77,8 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     expect(screen.getByText('đủ scan')).toBeTruthy();
     expect(screen.getByText('Cty CP Hòa Phát')).toBeTruthy();
     expect(screen.getByText('Hà Nội')).toBeTruthy();
+    expect(screen.getByText('TEST-002/2026')).toBeTruthy();
+    expect(screen.getByText('24/10/2026')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Xem' }).getAttribute('href')).toBe('/dms/vi-bang/c1');
     expect(screen.getByRole('link', { name: 'Tải' }).getAttribute('href')).toBe(
       '/dms/vi-bang/c1?tab=scan',

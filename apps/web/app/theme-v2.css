@@ -2619,3 +2619,11 @@ fieldset.person-choice .person-choice-name {
   padding: 0 12px;
   font-size: 14px;
 }
+
+.dms-stt-in {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dms-table a.dms-code {
+  white-space: normal;
+  word-break: break-word;
+}
