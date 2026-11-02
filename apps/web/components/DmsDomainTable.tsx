@@ -104,7 +104,7 @@ export function DmsDomainTable({
   const total = layout.reduce((n, c) => n + c.width, 0);
   return (
     <DataTable tableKey={tableKey} className="dms-table-wrap">
-      <table className="dms-table" style={{ minWidth: total }}>
+      <table className="dms-table" style={{ '--dms-min': `${total}px` } as React.CSSProperties}>
         <caption className="sr-only">{caption}</caption>
         <colgroup>
           {layout.map((c) => (
