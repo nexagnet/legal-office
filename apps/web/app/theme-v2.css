@@ -2619,3 +2619,26 @@ fieldset.person-choice .person-choice-name {
   padding: 0 12px;
   font-size: 14px;
 }
+
+/* Văn thư (Figma 352:2009): hàng lọc chỉ có ô tìm + Năm */
+.dms-list[data-domain^='vt'] .dms-filters .dms-select:not([name='year']) {
+  display: none;
+}
+.dms-th-sub {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.dms-table thead th[scope='colgroup'] {
+  height: 24px;
+  padding: 6px 4px 0;
+  text-align: center;
+  border-bottom: 0;
+}
+.dms-table thead tr + tr th {
+  height: 22px;
+  padding: 0 4px 6px;
+  font-size: 9.5px;
+  text-align: center;
+}

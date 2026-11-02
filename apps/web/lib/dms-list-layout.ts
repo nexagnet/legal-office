@@ -22,6 +22,8 @@ export interface ListColumn {
   readonly cell?: (get: Getter, all: readonly Getter[]) => ListCellText;
   /** Khoá cột đánh dấu: hàng hồ sơ hiện số giấy tờ có dấu, dòng sổ con hiện ✓. */
   readonly tick?: string;
+  /** Nhãn gộp trên đầu một nhóm cột liên tiếp (Tống đạt: "Cơ quan giao văn bản tống đạt"). */
+  readonly group?: string;
 }
 
 export type Getter = (key: string) => string;
@@ -212,6 +214,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
     },
     {
       id: 'toa_an',
+      group: 'Cơ quan giao văn bản tống đạt',
       head: 'Tòa án',
       width: 70,
       tick: 'co_quan_toa_an',
@@ -219,6 +222,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
     },
     {
       id: 'thads',
+      group: 'Cơ quan giao văn bản tống đạt',
       head: 'Cơ quan THADS',
       width: 70,
       tick: 'co_quan_thads',
@@ -226,6 +230,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
     },
     {
       id: 'ksat',
+      group: 'Cơ quan giao văn bản tống đạt',
       head: 'Cơ quan kiểm sát',
       width: 70,
       tick: 'co_quan_kiem_sat',

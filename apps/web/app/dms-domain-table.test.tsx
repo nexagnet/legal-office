@@ -113,6 +113,26 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     expect(screen.queryByRole('link', { name: 'Upload scan' })).toBeNull();
   });
 
+  it('Tống đạt: hai hàng tiêu đề, ba cột cơ quan gộp dưới "Cơ quan giao văn bản tống đạt"', () => {
+    render(
+      <DmsDomainTable
+        rows={[caseRow({ domain: 'tongdat' })]}
+        caption="c"
+        basePath="/dms/tong-dat"
+        layout={listLayoutFor('tongdat')!}
+        spec={undefined}
+        byCase={new Map()}
+        sttLabel="STT"
+        tableKey="t"
+      />,
+    );
+    const group = screen.getByRole('columnheader', { name: 'Cơ quan giao văn bản tống đạt' });
+    expect(group.getAttribute('colspan')).toBe('3');
+    for (const name of ['Tòa án', 'Cơ quan THADS', 'Cơ quan kiểm sát'])
+      expect(screen.getByRole('columnheader', { name })).toBeTruthy();
+    expect(document.querySelectorAll('thead tr')).toHaveLength(2);
+  });
+
   it('thiếu scan: huy hiệu đỏ, số file nhỏ bên dưới và nút Upload scan thay cho Xem', () => {
     render(
       <DmsDomainTable
