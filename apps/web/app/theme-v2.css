@@ -2641,4 +2641,10 @@ fieldset.person-choice .person-choice-name {
   padding: 0 4px 6px;
   font-size: 9.5px;
   text-align: center;
+.dms-stt-in {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dms-table a.dms-code {
+  white-space: normal;
+  word-break: break-word;
 }
