@@ -99,7 +99,12 @@ export function DmsDomainTable({
         </thead>
         {rows.map((r) => {
           const bookRows = byCase.get(r.id) ?? [];
-          const getters = spec ? bookRows.map((br) => bookGetter(spec, br)) : [];
+          // Nháp chưa có dòng sổ: lấy thông tin người dùng đã nhập tạm trên hồ sơ (thuộc tính hồ sơ).
+          const attr = (key: string): string => {
+            const v = r.attributes[key];
+            return typeof v === 'string' ? v : typeof v === 'number' ? String(v) : '';
+          };
+          const getters = draft ? [attr] : spec ? bookRows.map((br) => bookGetter(spec, br)) : [];
           const get = getters[0] ?? (() => '');
           const scan = scanState(r);
           const mine = draft ? r.created_by === draft.userId : false;
@@ -232,6 +237,7 @@ export function DmsDomainTable({
               return (
                 <td key={c.id}>
                   <Clamp>{v.primary || '—'}</Clamp>
+                  <Clamp muted>{v.secondary || (v.primary ? '' : '—')}</Clamp>
                 </td>
               );
             return (

@@ -164,22 +164,41 @@ export default async function DmsDomainPage({
   };
   const chipCount = (f: DmsFilter) =>
     countDmsCases(cookie, { officeId, domain: domain.code, filter: f, year });
-  const [result, permissions, facets, report, nOfficial, nPending, nMissing, nDraft, nCancelled] =
-    await Promise.all([
-      searchDmsCases(cookie, {
-        ...search,
-        limit: PAGE_SIZE,
-        offset: (Math.min(pageNo, MAX_PAGE) - 1) * PAGE_SIZE,
-      }),
-      loadMyDmsPermissions(cookie, officeId),
-      loadDmsFacetCounts(cookie, search),
-      loadDmsReportFull(cookie, officeId, year),
-      chipCount('chinh-thuc'),
-      domain.code === 'vibang' ? chipCount('cho-duyet') : Promise.resolve(undefined),
-      chipCount('thieu-scan'),
-      chipCount('nhap'),
-      chipCount('da-huy'),
-    ]);
+  const [
+    result,
+    permissions,
+    facets,
+    report,
+    nOfficial,
+    nPending,
+    nMissing,
+    nDraft,
+    nCancelled,
+    nMyDrafts,
+  ] = await Promise.all([
+    searchDmsCases(cookie, {
+      ...search,
+      limit: PAGE_SIZE,
+      offset: (Math.min(pageNo, MAX_PAGE) - 1) * PAGE_SIZE,
+    }),
+    loadMyDmsPermissions(cookie, officeId),
+    loadDmsFacetCounts(cookie, search),
+    loadDmsReportFull(cookie, officeId, year),
+    chipCount('chinh-thuc'),
+    domain.code === 'vibang' ? chipCount('cho-duyet') : Promise.resolve(undefined),
+    chipCount('thieu-scan'),
+    chipCount('nhap'),
+    chipCount('da-huy'),
+    session.userId && filter === 'nhap'
+      ? countDmsCases(cookie, {
+          officeId,
+          domain: domain.code,
+          filter: 'nhap',
+          year,
+          creator: session.userId,
+        })
+      : Promise.resolve(undefined),
+  ]);
   if (result === 'error') {
     return (
       <section aria-labelledby="t">
@@ -230,12 +249,7 @@ export default async function DmsDomainPage({
   const listLayout = vanThu ? (spec ? vanThuLayout(spec) : undefined) : listLayoutFor(domain.code);
   const draftKind = filter === 'nhap' || filter === 'da-huy' ? filter : undefined;
   const userId = session.userId;
-  // "Nháp của tôi" chỉ đếm được chắc chắn khi cả danh sách nháp nằm gọn trong một trang.
-  const draftsFitOnPage = nDraft !== undefined && pageRows.length >= nDraft;
-  const myDrafts =
-    draftKind === 'nhap' && draftsFitOnPage && userId
-      ? pageRows.filter((r) => r.created_by === userId).length
-      : undefined;
+  const myDrafts = draftKind === 'nhap' ? nMyDrafts : undefined;
   const draftKpis: Kpi[] = [
     { label: 'Nháp đang hoạt động', value: nDraft ?? '—' },
     { label: 'Nháp của tôi', value: myDrafts ?? '—', tone: 'ok' },
