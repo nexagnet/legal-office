@@ -885,7 +885,12 @@
 /* ===== Tạo nhóm quyền (Figma P4/P5) ===== */
 .admin-main .wizard {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
+}
+.admin-main .wizard-card {
+  min-width: 0;
+  overflow-x: auto;
 }
 .admin-main .wizard-steps {
   display: flex;
