@@ -103,6 +103,22 @@ describe('session', () => {
 });
 
 describe('AppShell', () => {
+  it('Văn bản đi / nội bộ sáng mục Văn thư và dùng đầu trang Văn thư (Figma 352:2163)', () => {
+    for (const p of ['/dms/van-ban-di', '/dms/van-ban-noi-bo']) {
+      path.current = p;
+      render(
+        <AppShell items={ALL_ITEMS} tenantName={null}>
+          <p>nội dung</p>
+        </AppShell>,
+      );
+      expect(document.querySelector('.topbar-h')?.textContent).toBe('Văn thư');
+      expect(document.querySelector('nav a[aria-current="page"]')?.textContent).toContain(
+        'Văn thư',
+      );
+      cleanup();
+    }
+  });
+
   it('renders landmarks, a neutral logo slot and a toggleable menu with the current page', () => {
     render(
       <AppShell items={ALL_ITEMS} tenantName={null}>

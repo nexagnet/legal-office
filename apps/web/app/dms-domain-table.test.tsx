@@ -71,7 +71,7 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     expect(screen.getAllByRole('columnheader')).toHaveLength(9);
     expect(screen.getByText('STT 6')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'VB-2610-0042' })).toBeTruthy();
-    expect(screen.getByText('Chờ duyệt sửa đổi')).toBeTruthy();
+    expect(screen.getByText('Chờ duyệt')).toBeTruthy();
     expect(screen.getByText('4 tài liệu')).toBeTruthy();
     expect(screen.getByText('9 file')).toBeTruthy();
     expect(screen.getByText('đủ scan')).toBeTruthy();

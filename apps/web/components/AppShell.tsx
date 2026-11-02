@@ -300,7 +300,14 @@ const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
 ];
 
 /** Mục đang mở: khớp chính xác, hoặc trang con (`/vi-bang/123`) của một mục không phải Tổng quan. */
+/** Ba sổ Văn thư dùng chung một mục menu: Văn bản đi / nội bộ cũng sáng mục Văn thư (menu chỉ trỏ vào Văn bản đến). */
+const VAN_THU_PATH = /^\/dms\/van-ban-(di|noi-bo)(\/|$)/;
+
 function currentItem(items: readonly NavItem[], pathname: string): NavItem | undefined {
+  if (VAN_THU_PATH.test(pathname)) {
+    const vanThu = items.find((i) => i.slug === 'dms-van-thu');
+    if (vanThu) return vanThu;
+  }
   const hits = items.filter(
     (i) => pathname === hrefOf(i) || (i.slug !== '' && pathname.startsWith(`${hrefOf(i)}/`)),
   );

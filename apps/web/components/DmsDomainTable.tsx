@@ -188,7 +188,7 @@ export function DmsDomainTable({
                     </Link>
                     {r.pending_count > 0 ? (
                       <span className="dms-pill" data-tone="warn">
-                        Chờ duyệt sửa đổi
+                        Chờ duyệt
                       </span>
                     ) : null}
                     {expandable ? (
