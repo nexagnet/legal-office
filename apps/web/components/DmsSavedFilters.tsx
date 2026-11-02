@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { savedParamsToHref, type DmsSavedParams } from '../lib/dms-filter-params';
 import { messageFor } from '../lib/messages';
 import { Button } from './ui/button';
@@ -34,6 +34,7 @@ export function DmsSavedFilters({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const [name, setName] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -87,13 +88,18 @@ export function DmsSavedFilters({
     }
   }
 
-  async function save(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const name = String(new FormData(form).get('name') ?? '').trim();
-    if (!name) return;
-    if (await call('POST', '/api/dms/saved-filters', { officeId, domain, name, params: current })) {
-      form.reset();
+  async function save() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (
+      await call('POST', '/api/dms/saved-filters', {
+        officeId,
+        domain,
+        name: trimmed,
+        params: current,
+      })
+    ) {
+      setName('');
       await load();
     }
   }
@@ -151,15 +157,28 @@ export function DmsSavedFilters({
             ))}
           </ul>
         )}
-        <form onSubmit={(e) => void save(e)} className="flex gap-2 border-t border-line pt-3">
+        {/* Không dùng <form>: khối này nằm trong biểu mẫu tìm kiếm, mà biểu mẫu lồng nhau là HTML sai (Lưu sẽ gửi cả biểu mẫu tìm). */}
+        <div className="flex gap-2 border-t border-line pt-3">
           <label className="min-w-0 flex-1">
             <span className="sr-only">Tên bộ lọc</span>
-            <Input name="name" maxLength={80} required placeholder="Tên cho cách lọc hiện tại" />
+            <Input
+              name="filter-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={80}
+              placeholder="Tên cho cách lọc hiện tại"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  void save();
+                }
+              }}
+            />
           </label>
-          <Button type="submit" disabled={busy}>
+          <Button type="button" disabled={busy} onClick={() => void save()}>
             Lưu
           </Button>
-        </form>
+        </div>
       </div>
     </div>
   );
