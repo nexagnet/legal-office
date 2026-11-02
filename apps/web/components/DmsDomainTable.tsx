@@ -191,6 +191,32 @@ export function DmsDomainTable({
                         Chờ duyệt
                       </span>
                     ) : null}
+                    {layout.some((x) => x.special === 'actions') ? (
+                      <span className="dms-actions dms-stt-actions" aria-hidden="true">
+                        {scan === 'ok' ? (
+                          <>
+                            <Link href={`${basePath}/${r.id}`} className="dms-btn" tabIndex={-1}>
+                              Xem
+                            </Link>
+                            <Link
+                              href={`${basePath}/${r.id}?tab=scan`}
+                              className="dms-link"
+                              tabIndex={-1}
+                            >
+                              Tải
+                            </Link>
+                          </>
+                        ) : (
+                          <Link
+                            href={`${basePath}/${r.id}?tab=scan`}
+                            className="dms-btn"
+                            tabIndex={-1}
+                          >
+                            Upload scan
+                          </Link>
+                        )}
+                      </span>
+                    ) : null}
                     {expandable ? (
                       <DmsRowToggle count={bookRows.length} caseTitle={r.title} />
                     ) : null}

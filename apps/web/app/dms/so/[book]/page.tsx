@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
 import { DmsBookTable } from '../../../../components/DmsBookTable';
-import { PrintButton } from '../../../../components/PrintButton';
 import { Button } from '../../../../components/ui/button';
 import { loadDmsBookRows } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
@@ -64,7 +63,8 @@ export default async function DmsBookPage({
       </section>
     );
   }
-  const csv = `/api/dms/books/${code}?${new URLSearchParams({ officeId, year: String(year), format: 'csv' })}`;
+  const bookUrl = (format: 'csv' | 'pdf') =>
+    `/api/dms/books/${code}?${new URLSearchParams({ officeId, year: String(year), format })}`;
   const office = session.tenantName ?? 'Văn phòng thi hành án dân sự';
   const title = data.book.title;
   // Số trang ruột = số dòng chia cho số dòng mỗi trang in (khổ A4 ngang); cộng 2 bìa. Dựng cùng lúc với bản xem trước nên khớp số dòng đang xuất.
@@ -100,11 +100,15 @@ export default async function DmsBookPage({
         </form>
         <span className="flex flex-wrap items-center gap-2">
           <Button asChild variant="secondary">
-            <a className="no-underline" href={csv}>
+            <a className="no-underline" href={bookUrl('csv')}>
               Xuất Excel
             </a>
           </Button>
-          <PrintButton label="Xuất PDF để in" primary />
+          <Button asChild variant="primary">
+            <a className="no-underline" href={bookUrl('pdf')} download>
+              Xuất PDF để in
+            </a>
+          </Button>
         </span>
       </div>
       <div className="print-hide mb-4 grid gap-4 lg:grid-cols-2">
@@ -135,7 +139,8 @@ export default async function DmsBookPage({
         <DmsBookTable spec={data.book} rows={data.rows} />
       </div>
       <p className="print-hide mt-3 rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
-        Bản xuất theo đúng mẫu {data.book.form}: tiêu đề và đánh số cột như mẫu chính thức. STT
+        Bản PDF dựng riêng để in (A4 ngang, có bìa 1, bìa 2 và trang ruột) đúng mẫu {data.book.form}
+        : tiêu đề, thứ tự và đánh số cột như mẫu chính thức; bảng dưới đây chỉ để xem nhanh. STT
         trong sổ do hệ thống tự cấp theo sổ, văn phòng và năm; ô chưa có dữ liệu để trống.
       </p>
     </section>

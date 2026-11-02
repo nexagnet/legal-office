@@ -347,9 +347,13 @@ export default async function DmsDomainPage({
                   </a>
                 </Button>
                 <Button asChild variant="secondary">
-                  <Link className="no-underline" href={`/dms/so/${vanThu.bookSlug}`}>
+                  <a
+                    className="no-underline"
+                    href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=pdf`}
+                    download
+                  >
                     Xuất PDF để in
-                  </Link>
+                  </a>
                 </Button>
               </>
             ) : (

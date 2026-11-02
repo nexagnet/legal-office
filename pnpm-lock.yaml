@@ -37,6 +37,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: 3.1150.0
         version: 3.1150.0
+      '@expo-google-fonts/tinos':
+        specifier: 0.4.2
+        version: 0.4.2
       '@nestjs/common':
         specifier: 11.2.7
         version: 11.2.7(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -525,6 +528,9 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@expo-google-fonts/tinos@0.4.2':
+    resolution: {integrity: sha512-MQkfvUO1Aw7UP3jRtWLcjda+udanoL8ecrbkjbc3ZdhSI1iW/Uil4uD8O0eOiIxU2v/FeAT2XjGNiz5oYUlucg==}
 
   '@fast-csv/format@4.3.5':
     resolution: {integrity: sha512-8iRn6QF3I8Ak78lNAa+Gdl5MJJBM5vRHivFtMRUWINdevNo00K7OXxS2PshawLKTejVwieIlPmK5YlLu6w4u8A==}
@@ -4874,6 +4880,8 @@ snapshots:
       levn: 0.4.1
 
   '@exodus/bytes@1.16.0': {}
+
+  '@expo-google-fonts/tinos@0.4.2': {}
 
   '@fast-csv/format@4.3.5':
     dependencies:

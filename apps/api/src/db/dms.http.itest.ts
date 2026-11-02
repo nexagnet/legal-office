@@ -259,6 +259,17 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect(text).toContain('NGƯỜI YÊU CẦU LẬP VI BẰNG');
     expect(text).toContain('Nguyễn Văn G');
     expect(text).toContain("'=1+1");
+    const pdf = await fetch(`${base}/dms/books/S-02?officeId=${OFF}&year=${year}&format=pdf`, {
+      headers: { 'x-synthetic-user': U.a, 'x-synthetic-tenant': T },
+    });
+    expect(pdf.status).toBe(200);
+    expect(pdf.headers.get('content-type')).toContain('application/pdf');
+    expect(pdf.headers.get('content-disposition')).toContain('TP-THV-S-02');
+    expect(
+      Buffer.from(await pdf.arrayBuffer())
+        .subarray(0, 5)
+        .toString(),
+    ).toBe('%PDF-');
     expect(
       (await api('GET', `/dms/books/S-02?officeId=${OFF}&year=${year}`, U.b)).json.rows,
     ).toEqual([]);
