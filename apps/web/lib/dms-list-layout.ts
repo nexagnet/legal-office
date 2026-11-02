@@ -18,12 +18,72 @@ export interface ListColumn {
   readonly width: number;
   /** Cột đặc biệt do bảng tự vẽ. */
   readonly special?: 'stt' | 'scan' | 'actions';
-  readonly cell?: (get: (key: string) => string) => ListCellText;
+  /** Một ô của hàng hồ sơ: `get` đọc dòng sổ đầu tiên, `all` là mọi dòng sổ của hồ sơ (Tống đạt: mỗi giấy tờ một dòng). */
+  readonly cell?: (get: Getter, all: readonly Getter[]) => ListCellText;
+  /** Khoá cột đánh dấu: hàng hồ sơ hiện số giấy tờ có dấu, dòng sổ con hiện ✓. */
+  readonly tick?: string;
 }
+
+export type Getter = (key: string) => string;
 
 const text =
   (key: string) =>
-  (get: (k: string) => string): ListCellText => ({ primary: get(key) });
+  (get: Getter): ListCellText => ({ primary: get(key) });
+
+const distinct = (all: readonly Getter[], key: string): string[] => [
+  ...new Set(all.map((g) => g(key)).filter(Boolean)),
+];
+
+/** "Quyết định THA, giấy triệu tập +2": hai giá trị đầu, phần còn lại gộp thành +N. */
+const kinds =
+  (key: string) =>
+  (_get: Getter, all: readonly Getter[]): ListCellText => {
+    const v = distinct(all, key);
+    return { primary: v.slice(0, 2).join(', ') + (v.length > 2 ? ` +${v.length - 2}` : '') };
+  };
+
+/** Giá trị đầu tiên + "(+N)" cho N giấy tờ còn lại. */
+const firstPlus =
+  (key: string) =>
+  (get: Getter, all: readonly Getter[]): ListCellText => ({
+    primary: get(key) && all.length > 1 ? `${get(key)} (+${all.length - 1})` : get(key),
+  });
+
+/** Số giấy tờ có đánh dấu ở cột (Tòa án, Cơ quan THADS, Cơ quan kiểm sát). */
+const tickCount =
+  (key: string) =>
+  (_get: Getter, all: readonly Getter[]): ListCellText => ({
+    primary: String(all.filter((g) => g(key) !== '').length),
+  });
+
+const joined =
+  (key: string) =>
+  (_get: Getter, all: readonly Getter[]): ListCellText => ({
+    primary: distinct(all, key).join(', '),
+  });
+
+const DMY = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+/** "15–18/10/2026" khi cùng tháng năm; nếu có giấy tờ chưa tống đạt thì kèm "(N chưa tống đạt)". */
+export function servedRange(values: readonly string[]): string {
+  const done = values.filter(Boolean);
+  const open = values.length - done.length;
+  if (done.length === 0) return '';
+  const m = done.map((v) => DMY.exec(v));
+  let text: string;
+  if (m.every(Boolean)) {
+    const p = (m as RegExpExecArray[]).map((x) => ({ d: +x[1]!, m: x[2]!, y: x[3]! }));
+    const sameMonth = p.every((x) => x.m === p[0]!.m && x.y === p[0]!.y);
+    const days = p.map((x) => x.d);
+    const lo = Math.min(...days);
+    const hi = Math.max(...days);
+    text = sameMonth
+      ? lo === hi
+        ? `${lo}/${p[0]!.m}/${p[0]!.y}`
+        : `${lo}–${hi}/${p[0]!.m}/${p[0]!.y}`
+      : [...new Set(done)].join(', ');
+  } else text = [...new Set(done)].join(', ');
+  return open > 0 ? `${text} (${open} chưa tống đạt)` : text;
+}
 const withPrefix = (prefix: string, value: string): string =>
   value && !new RegExp(`^(${prefix}|hợp đồng|quyết định)`, 'i').test(value)
     ? `${prefix} ${value}`
@@ -134,25 +194,53 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
   ],
   tongdat: [
     { ...STT, width: 110 },
-    { id: 'loai', head: 'Loại văn bản', width: 100, cell: text('loai_van_ban') },
+    { id: 'loai', head: 'Loại văn bản', width: 100, cell: kinds('loai_van_ban') },
     {
       id: 'so_ngay',
       head: 'Số, ngày, tháng, năm văn bản cần tống đạt',
       width: 140,
-      cell: text('so_ngay_van_ban'),
+      cell: firstPlus('so_ngay_van_ban'),
     },
-    { id: 'toa_an', head: 'Tòa án', width: 70, cell: text('co_quan_toa_an') },
-    { id: 'thads', head: 'Cơ quan THADS', width: 70, cell: text('co_quan_thads') },
-    { id: 'ksat', head: 'Cơ quan kiểm sát', width: 70, cell: text('co_quan_kiem_sat') },
-    { id: 'ngay', head: 'Ngày tống đạt', width: 90, cell: text('ngay_tong_dat') },
-    { id: 'hinh_thuc', head: 'Hình thức tống đạt', width: 100, cell: text('hinh_thuc_tong_dat') },
+    {
+      id: 'toa_an',
+      head: 'Tòa án',
+      width: 70,
+      tick: 'co_quan_toa_an',
+      cell: tickCount('co_quan_toa_an'),
+    },
+    {
+      id: 'thads',
+      head: 'Cơ quan THADS',
+      width: 70,
+      tick: 'co_quan_thads',
+      cell: tickCount('co_quan_thads'),
+    },
+    {
+      id: 'ksat',
+      head: 'Cơ quan kiểm sát',
+      width: 70,
+      tick: 'co_quan_kiem_sat',
+      cell: tickCount('co_quan_kiem_sat'),
+    },
+    {
+      id: 'ngay',
+      head: 'Ngày tống đạt',
+      width: 90,
+      cell: (_g, all) => ({ primary: servedRange(all.map((g) => g('ngay_tong_dat'))) }),
+    },
+    {
+      id: 'hinh_thuc',
+      head: 'Hình thức tống đạt',
+      width: 100,
+      cell: joined('hinh_thuc_tong_dat'),
+    },
     {
       id: 'thv',
       head: 'THV thực hiện (họ tên, số thẻ)',
       width: 100,
       cell: text('thua_hanh_vien'),
     },
-    { id: 'ghi_chu', head: 'Ghi chú', width: 60, cell: text('ghi_chu') },
+    { id: 'ghi_chu', head: 'Ghi chú', width: 60, cell: joined('ghi_chu') },
     { ...SCAN, head: 'Tài liệu · Scan', width: 100 },
     ACTIONS,
   ],
@@ -172,4 +260,15 @@ export function bookGetter(
     const col = spec.columns.find((c) => c.key === key);
     return col ? bookCell(spec, col, row) : '';
   };
+}
+
+/** Nghiệp vụ mà mỗi hồ sơ gồm nhiều dòng sổ (S-01: mỗi giấy tờ một dòng) nên danh sách có hàng mở rộng. */
+export const EXPANDABLE_DOMAINS: ReadonlySet<string> = new Set(['tongdat']);
+
+/** Dải số thứ tự của hồ sơ: "10–13" hoặc "6"; "—" khi chưa có dòng sổ. */
+export function sttRange(stts: readonly number[]): string {
+  if (stts.length === 0) return '—';
+  const lo = Math.min(...stts);
+  const hi = Math.max(...stts);
+  return lo === hi ? String(lo) : `${lo}–${hi}`;
 }

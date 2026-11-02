@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { DmsDomainTable } from '../components/DmsDomainTable';
 import type { DmsBookRow, DmsBookSpec } from '../lib/dms';
 import type { DmsSearchCase } from '../lib/dms-browse';
-import { listLayoutFor } from '../lib/dms-list-layout';
+import { listLayoutFor, servedRange, sttRange } from '../lib/dms-list-layout';
 
 afterEach(() => cleanup());
 
@@ -102,7 +102,69 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     for (const d of ['vibang', 'tongdat', 'xacminh', 'tochuc'])
       expect(listLayoutFor(d)!.reduce((n, c) => n + c.width, 0)).toBe(1144);
     const get = (k: string) => ({ ben_phai_thi_hanh_an: 'A', ben_duoc_thi_hanh_an: 'B' })[k] ?? '';
-    const cell = listLayoutFor('tochuc')!.find((c) => c.id === 'ben')!.cell!(get);
+    const cell = listLayoutFor('tochuc')!.find((c) => c.id === 'ben')!.cell!(get, [get]);
     expect(cell).toEqual({ primary: 'Phải THA: A', secondary: 'Được THA: B' });
+  });
+
+  it('Tống đạt: dải STT, ngày tống đạt gộp "15–18/10/2026" và đếm giấy tờ chưa tống đạt', () => {
+    expect(sttRange([10, 11, 12, 13])).toBe('10–13');
+    expect(sttRange([6])).toBe('6');
+    expect(sttRange([])).toBe('—');
+    expect(servedRange(['15/10/2026', '16/10/2026', '18/10/2026'])).toBe('15–18/10/2026');
+    expect(servedRange(['15/10/2026', ''])).toBe('15/10/2026 (1 chưa tống đạt)');
+    expect(servedRange(['30/09/2026', '02/10/2026'])).toBe('30/09/2026, 02/10/2026');
+    expect(servedRange(['', ''])).toBe('');
+  });
+
+  it('Tống đạt: hồ sơ nhiều dòng sổ có nút mở rộng và dòng sổ con có ✓', () => {
+    const tdSpec: DmsBookSpec = {
+      ...spec,
+      code: 'S-01',
+      domain: 'tongdat',
+      source: 'document',
+      columns: [
+        { no: 1, heading: 'STT', key: 'stt' },
+        { no: 2, heading: 'LOẠI', key: 'loai_van_ban' },
+        { no: 4, heading: 'Tòa án', key: 'co_quan_toa_an', tick: true },
+        { no: 7, heading: 'NGÀY', key: 'ngay_tong_dat' },
+      ],
+    };
+    const mk = (stt: number, over: Record<string, string>): DmsBookRow => ({
+      ...bookRow,
+      stt,
+      document_id: `d${stt}`,
+      doc_attributes: over,
+    });
+    render(
+      <DmsDomainTable
+        rows={[caseRow({ domain: 'tongdat', title: 'TĐ-1' })]}
+        caption="c"
+        basePath="/dms/tong-dat"
+        layout={listLayoutFor('tongdat')!}
+        spec={tdSpec}
+        byCase={
+          new Map([
+            [
+              'c1',
+              [
+                mk(10, {
+                  co_quan_toa_an: 'x',
+                  ngay_tong_dat: '15/10/2026',
+                  loai_van_ban: 'Giấy báo',
+                }),
+                mk(11, { ngay_tong_dat: '16/10/2026', loai_van_ban: 'Giấy triệu tập' }),
+              ],
+            ],
+          ])
+        }
+        sttLabel="STT"
+        tableKey="t"
+      />,
+    );
+    expect(screen.getByText('STT 10–11')).toBeTruthy();
+    expect(screen.getByText('15–16/10/2026')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Mở 2 dòng Sổ S-01 của hồ sơ TĐ-1/ })).toBeTruthy();
+    expect(screen.getByText(/Các dòng Sổ S-01 của hồ sơ TĐ-1/)).toBeTruthy();
+    expect(screen.getAllByText('✓')).toHaveLength(1);
   });
 });

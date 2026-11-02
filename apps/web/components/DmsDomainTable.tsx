@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import type { DmsBookRow, DmsBookSpec } from '../lib/dms';
 import { scanState } from '../lib/dms';
 import type { DmsSearchCase } from '../lib/dms-browse';
-import { bookGetter, type ListColumn } from '../lib/dms-list-layout';
+import { bookGetter, EXPANDABLE_DOMAINS, sttRange, type ListColumn } from '../lib/dms-list-layout';
+import { DmsRowToggle } from './DmsRowToggle';
 import { DataTable } from './ui/data-table';
 
 const Clamp = ({ children, muted = false }: { children: string; muted?: boolean }) =>
@@ -86,17 +87,19 @@ export function DmsDomainTable({
             ))}
           </tr>
         </thead>
-        <tbody>
-          {rows.map((r) => {
-            const bookRows = byCase.get(r.id) ?? [];
-            const get = spec ? bookGetter(spec, bookRows[0]) : () => '';
-            const scan = scanState(r);
-            const cells: ReactNode[] = layout.map((c) => {
-              if (c.special === 'stt')
-                return (
-                  <th key={c.id} scope="row" className="dms-stt">
+        {rows.map((r) => {
+          const bookRows = byCase.get(r.id) ?? [];
+          const getters = spec ? bookRows.map((br) => bookGetter(spec, br)) : [];
+          const get = getters[0] ?? (() => '');
+          const scan = scanState(r);
+          const expandable = EXPANDABLE_DOMAINS.has(r.domain) && bookRows.length > 1;
+          const cells: ReactNode[] = layout.map((c) => {
+            if (c.special === 'stt')
+              return (
+                <th key={c.id} scope="row" className="dms-stt">
+                  <span className="dms-stt-in">
                     <b>
-                      {sttLabel} {bookRows[0]?.stt ?? '—'}
+                      {sttLabel} {sttRange(bookRows.map((br) => br.stt))}
                     </b>
                     <Link href={`${basePath}/${r.id}`} className="dms-code">
                       {r.title}
@@ -106,46 +109,88 @@ export function DmsDomainTable({
                         Chờ duyệt sửa đổi
                       </span>
                     ) : null}
-                  </th>
-                );
-              if (c.special === 'scan')
-                return (
-                  <td key={c.id}>
-                    <ScanCell row={r} />
-                  </td>
-                );
-              if (c.special === 'actions')
-                return (
-                  <td key={c.id}>
-                    <span className="dms-actions">
-                      {scan === 'ok' ? (
-                        <>
-                          <Link href={`${basePath}/${r.id}`} className="dms-btn">
-                            Xem
-                          </Link>
-                          <Link href={`${basePath}/${r.id}?tab=scan`} className="dms-link">
-                            Tải
-                          </Link>
-                        </>
-                      ) : (
-                        <Link href={`${basePath}/${r.id}?tab=scan`} className="dms-btn">
-                          Upload scan
-                        </Link>
-                      )}
-                    </span>
-                  </td>
-                );
-              const v = c.cell?.(get) ?? { primary: '' };
+                    {expandable ? (
+                      <DmsRowToggle count={bookRows.length} caseTitle={r.title} />
+                    ) : null}
+                  </span>
+                </th>
+              );
+            if (c.special === 'scan')
               return (
                 <td key={c.id}>
-                  <Clamp>{v.primary}</Clamp>
-                  <Clamp muted>{v.secondary ?? ''}</Clamp>
+                  <ScanCell row={r} />
                 </td>
               );
-            });
-            return <tr key={r.id}>{cells}</tr>;
-          })}
-        </tbody>
+            if (c.special === 'actions')
+              return (
+                <td key={c.id}>
+                  <span className="dms-actions">
+                    {scan === 'ok' ? (
+                      <>
+                        <Link href={`${basePath}/${r.id}`} className="dms-btn">
+                          Xem
+                        </Link>
+                        <Link href={`${basePath}/${r.id}?tab=scan`} className="dms-link">
+                          Tải
+                        </Link>
+                      </>
+                    ) : (
+                      <Link href={`${basePath}/${r.id}?tab=scan`} className="dms-btn">
+                        Upload scan
+                      </Link>
+                    )}
+                  </span>
+                </td>
+              );
+            const v = c.cell?.(get, getters) ?? { primary: '' };
+            return (
+              <td key={c.id} data-zero={c.tick && v.primary === '0' ? 'true' : undefined}>
+                <Clamp>{v.primary}</Clamp>
+                <Clamp muted>{v.secondary ?? ''}</Clamp>
+              </td>
+            );
+          });
+          return (
+            <tbody key={r.id} data-open={expandable ? 'false' : undefined}>
+              <tr>{cells}</tr>
+              {expandable ? (
+                <>
+                  <tr className="dms-sub-head">
+                    <td colSpan={layout.length}>
+                      Các dòng Sổ S-01 của hồ sơ {r.title} (mỗi giấy tờ một dòng sổ)
+                    </td>
+                  </tr>
+                  {bookRows.map((br, i) => {
+                    const g = getters[i]!;
+                    return (
+                      <tr key={`${br.stt}-${br.document_id ?? i}`} className="dms-sub">
+                        {layout.map((c) => {
+                          if (c.id === 'stt')
+                            return (
+                              <th key={c.id} scope="row">
+                                {sttLabel} {br.stt}
+                              </th>
+                            );
+                          if (c.special) return <td key={c.id} />;
+                          const text = c.tick
+                            ? g(c.tick)
+                              ? '✓'
+                              : ''
+                            : (c.cell?.(g, [g]).primary ?? '');
+                          return (
+                            <td key={c.id} className={c.tick ? 'dms-tick' : undefined}>
+                              <Clamp>{text}</Clamp>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </>
+              ) : null}
+            </tbody>
+          );
+        })}
       </table>
     </DataTable>
   );

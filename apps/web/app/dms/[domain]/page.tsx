@@ -5,7 +5,7 @@ import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { DmsDomainTable } from '../../../components/DmsDomainTable';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
-import { KpiStrip } from '../../../components/KpiStrip';
+import { KpiStrip, type Kpi } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
 import { Button } from '../../../components/ui/button';
 import { TabNav } from '../../../components/ui/tab-nav';
@@ -18,7 +18,7 @@ import {
   canDraft,
   domainBySlug,
   type DmsBookRow as BookRowT,
-  loadDmsReport,
+  loadDmsReportFull,
   loadMyDmsPermissions,
   tabForFilter,
   type DmsBookRow,
@@ -51,6 +51,39 @@ const FILTERS: readonly DmsFilter[] = [
   'nhap',
   'da-huy',
 ];
+
+/** Bốn thẻ số đầu danh sách theo Figma DMS v2 (mỗi nghiệp vụ một bộ, không bịa số: thiếu dữ liệu hiện "—"). */
+function kpiItems(
+  code: string,
+  v: {
+    year: number;
+    official: number | undefined;
+    documents: number | undefined;
+    missingScan: number | undefined;
+    pendingAmendment: number | undefined;
+    stillOpen: number | undefined;
+  },
+): Kpi[] {
+  const official: Kpi = { label: `Hồ sơ chính thức ${v.year}`, value: v.official ?? '—' };
+  const missing: Kpi = { label: 'Thiếu scan', value: v.missingScan ?? '—', tone: 'danger' };
+  const docs = (label: string): Kpi => ({ label, value: v.documents ?? '—' });
+  const open = (label: string): Kpi => ({ label, value: v.stillOpen ?? '—', tone: 'warn' });
+  switch (code) {
+    case 'tongdat':
+      return [official, docs('Giấy tờ cần tống đạt'), open('Chưa tống đạt'), missing];
+    case 'xacminh':
+      return [official, docs('Tài liệu hiện hành'), open('Chưa có kết quả'), missing];
+    case 'tochuc':
+      return [official, docs('Tài liệu hiện hành'), open('Chưa có biên bản N-08'), missing];
+    default:
+      return [
+        official,
+        docs('Tài liệu hiện hành'),
+        missing,
+        { label: 'Sửa đổi chờ duyệt', value: v.pendingAmendment ?? '—', tone: 'warn' },
+      ];
+  }
+}
 
 const yearOfVn = (d: Date): number =>
   Number(
@@ -139,9 +172,9 @@ export default async function DmsDomainPage({
       }),
       loadMyDmsPermissions(cookie, officeId),
       loadDmsFacetCounts(cookie, search),
-      loadDmsReport(cookie, officeId, year),
+      loadDmsReportFull(cookie, officeId, year),
       chipCount('chinh-thuc'),
-      chipCount('cho-duyet'),
+      domain.code === 'vibang' ? chipCount('cho-duyet') : Promise.resolve(undefined),
       chipCount('thieu-scan'),
       chipCount('nhap'),
       chipCount('da-huy'),
@@ -179,7 +212,9 @@ export default async function DmsDomainPage({
   const pageCount = Math.max(1, Math.min(MAX_PAGE, Math.ceil(total / PAGE_SIZE)));
   const page = Math.min(pageCount, pageNo);
   const pageRows = result.rows;
-  const documents = report === 'error' ? undefined : report.find((r) => r.domain === domain.code);
+  const documents =
+    report === 'error' ? undefined : report.rows.find((r) => r.domain === domain.code);
+  const stillOpen = report === 'error' ? undefined : report.pending[domain.code];
   // Figma: chỉ hai chip Nháp và Đã hủy kèm số trong ngoặc; số của bốn chip còn lại nằm ở các thẻ số phía trên.
   const counts: Record<DmsFilter, number | undefined> = {
     'chinh-thuc': undefined,
@@ -231,12 +266,14 @@ export default async function DmsDomainPage({
       ) : null}
       <KpiStrip
         label={`Tổng hợp ${domain.label} năm ${year}`}
-        items={[
-          { label: `Hồ sơ chính thức ${year}`, value: nOfficial ?? '—' },
-          { label: 'Tài liệu hiện hành', value: documents?.documents ?? '—' },
-          { label: 'Thiếu scan', value: nMissing ?? '—', tone: 'danger' },
-          { label: 'Sửa đổi chờ duyệt', value: nPending ?? '—', tone: 'warn' },
-        ]}
+        items={kpiItems(domain.code, {
+          year,
+          official: nOfficial,
+          documents: documents?.documents,
+          missingScan: nMissing,
+          pendingAmendment: nPending,
+          stillOpen,
+        })}
       />
       <TabNav
         label={`Bộ lọc hồ sơ ${domain.label}`}

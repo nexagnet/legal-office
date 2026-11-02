@@ -2174,7 +2174,6 @@ fieldset.person-choice .person-choice-name {
   align-items: center;
   gap: 8px;
   margin: 0 0 16px;
-  padding-right: 76px;
 }
 .dms-filters > div:first-of-type {
   flex: 0 1 360px;
@@ -2218,15 +2217,11 @@ fieldset.person-choice .person-choice-name {
 .dms-scan-link:hover {
   text-decoration: underline;
 }
-/* Công cụ bảng (Cột hiển thị / Hiển thị gọn) thu thành hai nút biểu tượng ở mép phải hàng tìm */
-.dms-list .dt {
-  position: relative;
-}
+/* Công cụ bảng (Cột hiển thị / Hiển thị gọn) thu thành hai nút biểu tượng ở góc phải trên thẻ bảng */
 .dms-list .dt-toolbar {
-  position: absolute;
-  top: -51px;
-  right: 0;
+  justify-content: flex-end;
   margin: 0;
+  padding: 8px 10px 0;
   gap: 6px;
   flex-wrap: nowrap;
 }
@@ -2331,10 +2326,12 @@ fieldset.person-choice .person-choice-name {
   color: var(--muted);
 }
 .dms-stt {
+  font-weight: 400;
+}
+.dms-stt-in {
   display: grid;
   gap: 2px;
   justify-items: start;
-  font-weight: 400;
 }
 .dms-stt b {
   font-size: 14px;
@@ -2450,16 +2447,6 @@ fieldset.person-choice .person-choice-name {
 }
 
 /* Danh sách DMS ở màn hẹp: thẻ số 2 cột, công cụ bảng nằm trong thẻ, không tranh minh hoạ chen chữ */
-@media (max-width: 1399px) {
-  .dms-filters {
-    padding-right: 0;
-  }
-  .dms-list .dt-toolbar {
-    position: static;
-    justify-content: flex-end;
-    padding: 8px 10px 0;
-  }
-}
 @media (max-width: 1199px) {
   .topbar::after {
     content: none !important;
@@ -2485,4 +2472,68 @@ fieldset.person-choice .person-choice-name {
     flex: 1 1 100%;
     max-width: none;
   }
+}
+
+/* Tống đạt: hồ sơ có nhiều dòng Sổ S-01 → nút mở rộng + các dòng con cùng cột (Figma 352:1415) */
+.dms-table tbody + tbody tr:first-child > * {
+  border-top: 0;
+}
+.dms-table tbody tr:last-child > * {
+  border-bottom: 1px solid var(--line);
+}
+.dms-table tbody:last-of-type tr:last-child > * {
+  border-bottom: 0;
+}
+.dms-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 22px;
+  padding: 0;
+  font: 600 11px/1 var(--font);
+  color: var(--accent);
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+.dms-toggle svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.15s;
+}
+.dms-toggle[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.dms-table td[data-zero='true'] {
+  color: var(--faint);
+}
+.dms-table tbody[data-open='false'] .dms-sub-head,
+.dms-table tbody[data-open='false'] .dms-sub {
+  display: none;
+}
+.dms-table .dms-sub-head > td,
+.dms-table .dms-sub > th,
+.dms-table .dms-sub > td {
+  height: auto;
+  padding: 5px 10px;
+  background: #eaf1fd !important;
+  border-bottom: 0;
+}
+.dms-table .dms-sub-head > td {
+  padding-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.dms-table .dms-sub > th {
+  padding-left: 14px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.dms-table .dms-sub > td {
+  font-size: 11px;
+}
+.dms-table .dms-sub .dms-tick {
+  font-size: 13px;
+  color: var(--ok);
 }

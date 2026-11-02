@@ -119,7 +119,7 @@ describe.skipIf(!ADMIN_URL)('DMS báo cáo tổng hợp (PostgreSQL)', () => {
           [tenant, g.rows[0].id, u],
         );
     };
-    const own = ['vibang', 'vtden'].flatMap((d) =>
+    const own = ['vibang', 'vtden', 'tongdat', 'xacminh', 'tochuc'].flatMap((d) =>
       ['read', 'draft', 'confirm', 'add_document', 'download'].map((a) => `${d}.${a}.own`),
     );
     await group(T, OFF, 'THV tạo', own, [U.a, U.b]);
@@ -166,6 +166,36 @@ describe.skipIf(!ADMIN_URL)('DMS báo cáo tổng hợp (PostgreSQL)', () => {
     });
     expect(row(rows, 'vtden')).toMatchObject({ recorded_cases: 1, documents: 0, last_stt: 1 });
     expect(row(rows, 'tongdat')).toMatchObject({ recorded_cases: 0, last_stt: null });
+  });
+
+  it('việc còn dở: Tống đạt chưa có ngày tống đạt, Xác minh chưa có kết quả, Tổ chức chưa có tài liệu N-08', async () => {
+    const pending = async (u = U.a, year = YEAR) =>
+      Object.fromEntries(
+        (
+          await call(T, 'SELECT * FROM dms_domain_pending_counts($1,$2,$3,$4)', [T, u, OFF, year])
+        ).map((r) => [r.domain as string, r.pending as number]),
+      );
+    const xm1 = await mkCase(U.a, 'xacminh', OFF, { ket_qua_xac_minh: 'Đã có kết quả' });
+    const xm2 = await mkCase(U.a, 'xacminh', OFF, { ket_qua_xac_minh: '  ' });
+    const tc1 = await mkCase(U.a, 'tochuc');
+    const tc2 = await mkCase(U.a, 'tochuc');
+    await op(T, 'dms_document_add', [T, U.a, tc1, 'Biên bản N-08', 'Chuyển giao', false, null]);
+    await op(T, 'dms_document_add', [T, U.a, tc2, 'Giấy ủy quyền', 'Ủy quyền', false, null]);
+    const td = await mkCase(U.a, 'tongdat');
+    await op(T, 'dms_document_add', [
+      T,
+      U.a,
+      td,
+      'Giấy báo',
+      'Đã tống đạt',
+      false,
+      JSON.stringify({ ngay_tong_dat: '15/10/2026' }),
+    ]);
+    await op(T, 'dms_document_add', [T, U.a, td, 'Giấy triệu tập', 'Chưa tống đạt', false, null]);
+    for (const c of [xm1, xm2, tc1, tc2, td]) await record(U.a, c);
+    expect(await pending()).toMatchObject({ tongdat: 1, xacminh: 1, tochuc: 1 });
+    expect(await pending(U.b)).toMatchObject({ tongdat: 0, xacminh: 0, tochuc: 0 });
+    expect(Object.keys(await pending(U.a, 1999))).toHaveLength(0);
   });
 
   it('người không có quyền đọc không thấy số liệu của hồ sơ người khác; năm lạ bị từ chối', async () => {
