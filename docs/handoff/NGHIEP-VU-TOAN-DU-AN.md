@@ -178,9 +178,9 @@ Danh mục, ĐVT, tồn đầu, nhập, xuất, tồn, người/bộ phận nh�
 Trạng thái chi tiết từng luồng: **Issue ghim "Bàn giao trạng thái 2026-11-02"** trong `nexagnet/legal-office`.
 
 1. **Hoàn thiện đang dở** (CD yêu cầu theo thứ tự này):
-   a. Danh sách 4 nghiệp vụ khớp Figma: PR #358 (đệm cuối bảng), ảnh dev xác nhận Tống đạt ở 1024, chụp trạng thái lỗi, mobile M2 357:799.
-   b. Xuất PDF sổ: PR #360 (xem trước PDF thật + hộp thoại in), kiểm 7 PDF trên dev.
-   c. Nạp dữ liệu giả 4 nghiệp vụ lên dev (PR #359, `tools/seed-demo`), đợi OCR, kiểm tìm nội dung scan và xuất S-01/02/04/05.
+   a. Danh sách 4 nghiệp vụ khớp Figma: #358 đã merge; còn ảnh dev xác nhận Tống đạt ở 1024, chụp trạng thái lỗi, mobile M2 357:799.
+   b. Xuất PDF sổ: #360 đã merge (khung xem trước là PDF thật; sửa nút in đã có nhưng **chưa xác nhận hộp thoại in hiện trên màn hình thật**); kiểm 7 PDF trên dev.
+   c. Dữ liệu giả: PR #359 nay chỉ còn script `tools/seed-demo`. Thread E2E trên máy chủ được giao: chạy seed trên dev, đợi OCR, kiểm tìm nội dung scan, xuất sổ, thử hộp thoại in, chụp ảnh 1024px.
    d. Figma-match còn lại: Tống đạt/Xác minh/Tổ chức màn tạo và chi tiết, trạng thái trống/lỗi; E2E cuối cùng zero lỗi.
 2. **Kiểm thử và tối ưu tìm kiếm/lọc dữ liệu lớn** (quy mô 200GB, CD để Claude tự quyết cách làm).
 3. **Tài liệu hướng dẫn sử dụng mới**: bám đúng quy tắc DMS đã chốt, ảnh chụp trên PC (Chrome) từ bản Northflank, **khoanh vùng + chú thích**. Bản PDF cũ là quy trình cũ, làm lại.
