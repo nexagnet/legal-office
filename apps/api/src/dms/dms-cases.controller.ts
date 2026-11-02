@@ -159,12 +159,10 @@ export class DmsCasesController {
       q.year,
     ]);
     // Thẻ số "việc còn dở" của Tống đạt, Xác minh, Tổ chức (Figma DMS v2): domain -> số còn dở.
-    const pending = await this.repo.rows(a.tenantId, 'dms_domain_pending_counts', [
-      a.tenantId,
-      a.userId,
-      q.officeId,
-      q.year,
-    ]);
+    // Thiếu hàm này (chưa chạy migration 0102) thì không được làm hỏng cả báo cáo.
+    const pending = await this.repo
+      .rows(a.tenantId, 'dms_domain_pending_counts', [a.tenantId, a.userId, q.officeId, q.year])
+      .catch(() => []);
     return { year: q.year, rows, pending };
   }
 
