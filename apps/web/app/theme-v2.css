@@ -2260,6 +2260,11 @@ fieldset.person-choice .person-choice-name {
   width: 100%;
   /* Cột đủ rộng để đọc: dưới ngưỡng này bảng cuộn ngang, cột đầu và cột thao tác vẫn cố định */
   min-width: calc(var(--dms-min, 1000px) * 1.15);
+}
+@media (min-width: 1440px) {
+  .dms-table {
+    min-width: 0;
+  }
   border-collapse: collapse;
   border-spacing: 0;
   font-size: 12px;
@@ -2661,4 +2666,20 @@ fieldset.person-choice .person-choice-name {
 .dms-table a.dms-code {
   white-space: normal;
   word-break: break-word;
+}
+
+/* Màn hẹp: bỏ cột thao tác cố định (không che tiêu đề cột kế bên); 390px chỉ giữ cột đầu */
+@media (max-width: 1024px) {
+  .dms-table-wrap tr > :last-child:not(:first-child),
+  .dms-table-wrap thead tr > :last-child:not(:first-child) {
+    position: static;
+    box-shadow: none;
+  }
+}
+@media (max-width: 768px) {
+  .dms-card-link {
+    position: static;
+    display: block;
+    padding: 12px 14px 0;
+  }
 }
