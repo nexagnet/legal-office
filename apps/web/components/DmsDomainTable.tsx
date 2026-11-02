@@ -7,6 +7,29 @@ import { bookGetter, EXPANDABLE_DOMAINS, sttRange, type ListColumn } from '../li
 import { DmsRowToggle } from './DmsRowToggle';
 import { DataTable } from './ui/data-table';
 
+const headOf = (c: ListColumn, sttLabel: string): ReactNode =>
+  c.special === 'stt' ? (
+    `${sttLabel} · Mã hồ sơ`
+  ) : c.special === 'number' ? (
+    <>
+      {c.head}
+      <small className="dms-th-sub">tự động</small>
+    </>
+  ) : (
+    c.head
+  );
+
+/** Gộp các cột liên tiếp cùng `group` thành một ô tiêu đề; cột lẻ giữ nguyên. */
+function groupCells(layout: readonly ListColumn[]) {
+  const out: { label: string | null; cols: ListColumn[] }[] = [];
+  for (const c of layout) {
+    const last = out[out.length - 1];
+    if (c.group && last && last.label === c.group) last.cols.push(c);
+    else out.push({ label: c.group ?? null, cols: [c] });
+  }
+  return out;
+}
+
 const shortDate = new Intl.DateTimeFormat('vi-VN', {
   day: '2-digit',
   month: '2-digit',
@@ -89,13 +112,40 @@ export function DmsDomainTable({
           ))}
         </colgroup>
         <thead>
-          <tr>
-            {layout.map((c) => (
-              <th key={c.id} scope="col">
-                {c.special === 'stt' ? `${sttLabel} · Mã hồ sơ` : c.head}
-              </th>
-            ))}
-          </tr>
+          {layout.some((c) => c.group) ? (
+            <>
+              <tr>
+                {groupCells(layout).map((g) =>
+                  g.cols.length === 1 && !g.label ? (
+                    <th key={g.cols[0]!.id} scope="col" rowSpan={2}>
+                      {headOf(g.cols[0]!, sttLabel)}
+                    </th>
+                  ) : (
+                    <th key={g.cols[0]!.id} scope="colgroup" colSpan={g.cols.length}>
+                      {g.label}
+                    </th>
+                  ),
+                )}
+              </tr>
+              <tr>
+                {layout
+                  .filter((c) => c.group)
+                  .map((c) => (
+                    <th key={c.id} scope="col">
+                      {c.head}
+                    </th>
+                  ))}
+              </tr>
+            </>
+          ) : (
+            <tr>
+              {layout.map((c) => (
+                <th key={c.id} scope="col">
+                  {headOf(c, sttLabel)}
+                </th>
+              ))}
+            </tr>
+          )}
         </thead>
         {rows.map((r) => {
           const bookRows = byCase.get(r.id) ?? [];
@@ -226,7 +276,7 @@ export function DmsDomainTable({
                       </>
                     ) : (
                       <Link href={`${basePath}/${r.id}?tab=scan`} className="dms-btn">
-                        Upload scan
+                        {layout.some((c) => c.special === 'scanlite') ? 'Upload' : 'Upload scan'}
                       </Link>
                     )}
                   </span>
