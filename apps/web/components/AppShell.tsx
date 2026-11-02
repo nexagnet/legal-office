@@ -66,6 +66,10 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Xác minh THA',
     sub: 'Hồ sơ xác minh điều kiện thi hành án. Các cột còn lại của Sổ S-04 nằm trong chi tiết hồ sơ.',
   },
+  '/dms/tim-kiem': {
+    title: 'Tìm trong nội dung scan',
+    sub: 'Tìm chữ trong bản scan đã nhận dạng của bốn nghiệp vụ, chỉ trong phạm vi quyền của bạn.',
+  },
   '/dms/to-chuc-tha': {
     title: 'Tổ chức THA',
     sub: 'Hồ sơ tổ chức thi hành án. Các cột còn lại của Sổ S-05 nằm trong chi tiết hồ sơ.',
