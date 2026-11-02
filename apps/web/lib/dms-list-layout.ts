@@ -73,7 +73,7 @@ const firstPlus =
 const tickCount =
   (key: string) =>
   (_get: Getter, all: readonly Getter[]): ListCellText => ({
-    primary: String(all.filter((g) => g(key) !== '').length),
+    primary: all.some((g) => g(key) !== '') ? String(all.filter((g) => g(key) !== '').length) : '—',
   });
 
 const joined =
@@ -213,19 +213,19 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
     ACTIONS,
   ],
   tongdat: [
-    { ...STT, width: 110 },
-    { id: 'loai', head: 'Loại văn bản', width: 100, cell: kinds('loai_van_ban') },
+    { ...STT, width: 100 },
+    { id: 'loai', head: 'Loại văn bản', width: 90, cell: kinds('loai_van_ban') },
     {
       id: 'so_ngay',
       head: 'Số, ngày, tháng, năm văn bản cần tống đạt',
-      width: 140,
+      width: 110,
       cell: firstPlus('so_ngay_van_ban'),
     },
     {
       id: 'toa_an',
       group: 'Cơ quan giao văn bản tống đạt',
       head: 'Tòa án',
-      width: 70,
+      width: 90,
       tick: 'co_quan_toa_an',
       cell: tickCount('co_quan_toa_an'),
     },
@@ -233,7 +233,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'thads',
       group: 'Cơ quan giao văn bản tống đạt',
       head: 'Cơ quan THADS',
-      width: 70,
+      width: 90,
       tick: 'co_quan_thads',
       cell: tickCount('co_quan_thads'),
     },
@@ -241,30 +241,30 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'ksat',
       group: 'Cơ quan giao văn bản tống đạt',
       head: 'Cơ quan kiểm sát',
-      width: 70,
+      width: 90,
       tick: 'co_quan_kiem_sat',
       cell: tickCount('co_quan_kiem_sat'),
     },
     {
       id: 'ngay',
       head: 'Ngày tống đạt',
-      width: 90,
+      width: 80,
       cell: (_g, all) => ({ primary: servedRange(all.map((g) => g('ngay_tong_dat'))) }),
     },
     {
       id: 'hinh_thuc',
       head: 'Hình thức tống đạt',
-      width: 100,
+      width: 90,
       cell: joined('hinh_thuc_tong_dat'),
     },
     {
       id: 'thv',
       head: 'THV thực hiện (họ tên, số thẻ)',
-      width: 100,
+      width: 90,
       cell: nameThenRest('thua_hanh_vien'),
     },
-    { id: 'ghi_chu', head: 'Ghi chú', width: 60, cell: joined('ghi_chu') },
-    { ...SCAN, head: 'Tài liệu · Scan', width: 100 },
+    { id: 'ghi_chu', head: 'Ghi chú', width: 90, cell: joined('ghi_chu') },
+    { ...SCAN, head: 'Tài liệu · Scan', width: 90 },
     ACTIONS,
   ],
 };
