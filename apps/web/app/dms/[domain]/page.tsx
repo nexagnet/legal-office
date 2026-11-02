@@ -484,11 +484,11 @@ export default async function DmsDomainPage({
             branch: sp.dv,
           })}
         />
-        <Link href="/dms/tim-kiem" className="dms-scan-link">
-          Tìm trong nội dung scan
-        </Link>
       </form>
       <div className="dms-card">
+        <Link href="/dms/tim-kiem" className="dms-scan-link dms-card-link">
+          Tìm trong nội dung scan
+        </Link>
         {listLayout && (draftKind ? !vanThu : spec) && pageRows.length > 0 ? (
           <DmsDomainTable
             rows={pageRows}

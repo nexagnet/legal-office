@@ -71,7 +71,8 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     expect(screen.getByText('4 tài liệu')).toBeTruthy();
     expect(screen.getByText('9 file')).toBeTruthy();
     expect(screen.getByText('đủ scan')).toBeTruthy();
-    expect(screen.getByText('Cty CP Hòa Phát, Hà Nội')).toBeTruthy();
+    expect(screen.getByText('Cty CP Hòa Phát')).toBeTruthy();
+    expect(screen.getByText('Hà Nội')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Xem' }).getAttribute('href')).toBe('/dms/vi-bang/c1');
     expect(screen.getByRole('link', { name: 'Tải' }).getAttribute('href')).toBe(
       '/dms/vi-bang/c1?tab=scan',
