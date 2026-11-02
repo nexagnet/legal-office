@@ -97,7 +97,10 @@ export function DataTable({
   const onMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
     const cell = (e.target as HTMLElement).closest('td, th');
     if (!cell || cell.hasAttribute('title')) return;
-    if (cell.scrollWidth > cell.clientWidth + 1) {
+    const clamped = Array.from(cell.querySelectorAll<HTMLElement>('.dms-clamp')).some(
+      (el) => el.scrollHeight > el.clientHeight + 1,
+    );
+    if (clamped || cell.scrollWidth > cell.clientWidth + 1) {
       cell.setAttribute('title', (cell.textContent ?? '').trim());
     }
   };

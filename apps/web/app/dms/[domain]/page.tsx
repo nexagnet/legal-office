@@ -395,95 +395,200 @@ export default async function DmsDomainPage({
               ))}
           </select>
         </label>
-        {(() => {
-          const options = (
-            list: readonly { value: string; label: string; n: number }[],
-            now?: string,
-          ) => {
-            // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
-            list = list.filter((o) => o.value !== '');
-            const rows =
-              list.some((o) => o.value === now) || !now
-                ? list
-                : [...list, { value: now, label: now, n: 0 }];
-            return rows.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label} ({o.n.toLocaleString('vi-VN')})
-              </option>
-            ));
-          };
-          return (
-            <>
+        {vanThu ? (
+          <>
+            <Button type="submit" variant="secondary" className="dms-find">
+              Tìm
+            </Button>
+            <details className="dms-adv">
+              <summary>Bộ lọc nâng cao</summary>
+              <div className="dms-adv-body">
+                {(() => {
+                  const options = (
+                    list: readonly { value: string; label: string; n: number }[],
+                    now?: string,
+                  ) => {
+                    // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
+                    list = list.filter((o) => o.value !== '');
+                    const rows =
+                      list.some((o) => o.value === now) || !now
+                        ? list
+                        : [...list, { value: now, label: now, n: 0 }];
+                    return rows.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label} ({o.n.toLocaleString('vi-VN')})
+                      </option>
+                    ));
+                  };
+                  return (
+                    <>
+                      <label>
+                        <span className="sr-only">Loại tài liệu</span>
+                        <select
+                          name="lt"
+                          defaultValue={sp.lt ?? ''}
+                          className="dms-select"
+                          style={{ width: 112 }}
+                        >
+                          <option value="">Loại tài liệu</option>
+                          {options(facets.kind, sp.lt)}
+                        </select>
+                      </label>
+                      <label>
+                        <span className="sr-only">Người tạo</span>
+                        <select
+                          name="nt"
+                          defaultValue={sp.nt ?? ''}
+                          className="dms-select"
+                          style={{ width: 98 }}
+                        >
+                          <option value="">Người tạo</option>
+                          {options(facets.creator, sp.nt)}
+                        </select>
+                      </label>
+                      <label>
+                        <span className="sr-only">Đơn vị</span>
+                        <select
+                          name="dv"
+                          defaultValue={sp.dv ?? ''}
+                          className="dms-select"
+                          style={{ width: 78 }}
+                        >
+                          <option value="">Đơn vị</option>
+                          {options(facets.branch, sp.dv)}
+                        </select>
+                      </label>
+                    </>
+                  );
+                })()}
+                {showScanSelect ? (
+                  <label>
+                    <span className="sr-only">Tình trạng scan</span>
+                    <select
+                      name="loc"
+                      defaultValue={
+                        filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'
+                      }
+                      className="dms-select"
+                      style={{ width: 126 }}
+                    >
+                      <option value="chinh-thuc">Tình trạng scan</option>
+                      <option value="thieu-scan">Thiếu scan</option>
+                      <option value="du-scan">Đủ scan</option>
+                    </select>
+                  </label>
+                ) : null}
+                <DmsSavedFilters
+                  officeId={officeId}
+                  domain={domain.code}
+                  basePath={base}
+                  current={viewToSavedParams({
+                    filter,
+                    year: sp.year ? year : undefined,
+                    q,
+                    creator: sp.nt,
+                    kind: sp.lt,
+                    branch: sp.dv,
+                  })}
+                />
+              </div>
+            </details>
+          </>
+        ) : (
+          <>
+            {(() => {
+              const options = (
+                list: readonly { value: string; label: string; n: number }[],
+                now?: string,
+              ) => {
+                // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
+                list = list.filter((o) => o.value !== '');
+                const rows =
+                  list.some((o) => o.value === now) || !now
+                    ? list
+                    : [...list, { value: now, label: now, n: 0 }];
+                return rows.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label} ({o.n.toLocaleString('vi-VN')})
+                  </option>
+                ));
+              };
+              return (
+                <>
+                  <label>
+                    <span className="sr-only">Loại tài liệu</span>
+                    <select
+                      name="lt"
+                      defaultValue={sp.lt ?? ''}
+                      className="dms-select"
+                      style={{ width: 112 }}
+                    >
+                      <option value="">Loại tài liệu</option>
+                      {options(facets.kind, sp.lt)}
+                    </select>
+                  </label>
+                  <label>
+                    <span className="sr-only">Người tạo</span>
+                    <select
+                      name="nt"
+                      defaultValue={sp.nt ?? ''}
+                      className="dms-select"
+                      style={{ width: 98 }}
+                    >
+                      <option value="">Người tạo</option>
+                      {options(facets.creator, sp.nt)}
+                    </select>
+                  </label>
+                  <label>
+                    <span className="sr-only">Đơn vị</span>
+                    <select
+                      name="dv"
+                      defaultValue={sp.dv ?? ''}
+                      className="dms-select"
+                      style={{ width: 78 }}
+                    >
+                      <option value="">Đơn vị</option>
+                      {options(facets.branch, sp.dv)}
+                    </select>
+                  </label>
+                </>
+              );
+            })()}
+            {showScanSelect ? (
               <label>
-                <span className="sr-only">Loại tài liệu</span>
+                <span className="sr-only">Tình trạng scan</span>
                 <select
-                  name="lt"
-                  defaultValue={sp.lt ?? ''}
+                  name="loc"
+                  defaultValue={
+                    filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'
+                  }
                   className="dms-select"
-                  style={{ width: 112 }}
+                  style={{ width: 126 }}
                 >
-                  <option value="">Loại tài liệu</option>
-                  {options(facets.kind, sp.lt)}
+                  <option value="chinh-thuc">Tình trạng scan</option>
+                  <option value="thieu-scan">Thiếu scan</option>
+                  <option value="du-scan">Đủ scan</option>
                 </select>
               </label>
-              <label>
-                <span className="sr-only">Người tạo</span>
-                <select
-                  name="nt"
-                  defaultValue={sp.nt ?? ''}
-                  className="dms-select"
-                  style={{ width: 98 }}
-                >
-                  <option value="">Người tạo</option>
-                  {options(facets.creator, sp.nt)}
-                </select>
-              </label>
-              <label>
-                <span className="sr-only">Đơn vị</span>
-                <select
-                  name="dv"
-                  defaultValue={sp.dv ?? ''}
-                  className="dms-select"
-                  style={{ width: 78 }}
-                >
-                  <option value="">Đơn vị</option>
-                  {options(facets.branch, sp.dv)}
-                </select>
-              </label>
-            </>
-          );
-        })()}
-        {showScanSelect ? (
-          <label>
-            <span className="sr-only">Tình trạng scan</span>
-            <select
-              name="loc"
-              defaultValue={filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'}
-              className="dms-select"
-              style={{ width: 126 }}
-            >
-              <option value="chinh-thuc">Tình trạng scan</option>
-              <option value="thieu-scan">Thiếu scan</option>
-              <option value="du-scan">Đủ scan</option>
-            </select>
-          </label>
-        ) : null}
-        <Button type="submit" variant="secondary" className="dms-find">
-          Tìm
-        </Button>
-        <DmsSavedFilters
-          officeId={officeId}
-          domain={domain.code}
-          basePath={base}
-          current={viewToSavedParams({
-            filter,
-            year: sp.year ? year : undefined,
-            q,
-            creator: sp.nt,
-            kind: sp.lt,
-            branch: sp.dv,
-          })}
-        />
+            ) : null}
+            <DmsSavedFilters
+              officeId={officeId}
+              domain={domain.code}
+              basePath={base}
+              current={viewToSavedParams({
+                filter,
+                year: sp.year ? year : undefined,
+                q,
+                creator: sp.nt,
+                kind: sp.lt,
+                branch: sp.dv,
+              })}
+            />
+            <Button type="submit" variant="secondary" className="dms-find">
+              Tìm
+            </Button>
+          </>
+        )}
       </form>
       <div className="dms-card">
         <Link href="/dms/tim-kiem" className="dms-scan-link dms-card-link">
@@ -532,12 +637,13 @@ export default async function DmsDomainPage({
         )}
         <div className="dms-foot">
           <p>
-            Hiển thị {pageRows.length} / {formatTotal(total, result.totalCapped)} hồ sơ{' '}
-            {isDraftView
-              ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase()
-              : `chính thức năm ${year}`}
-            . Nháp và nháp đã hủy không có {sttLabel}, không vào xuất sổ, không tính thống kê chính
-            thức.
+            {vanThu && !isDraftView
+              ? `Sổ năm ${year} · ${formatTotal(total, result.totalCapped)} bản ghi chính thức · Nháp và nháp đã hủy không có ${sttLabel}, không vào xuất sổ · bấm dòng để xem chi tiết (không có nút xóa)`
+              : `Hiển thị ${pageRows.length} / ${formatTotal(total, result.totalCapped)} hồ sơ ${
+                  isDraftView
+                    ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase()
+                    : `chính thức năm ${year}`
+                }. Nháp và nháp đã hủy không có ${sttLabel}, không vào xuất sổ, không tính thống kê chính thức.`}
           </p>
           {pageCount > 1 ? (
             <nav aria-label="Phân trang" className="dms-pager">

@@ -22,6 +22,8 @@ export interface ListColumn {
   readonly cell?: (get: Getter, all: readonly Getter[]) => ListCellText;
   /** Khoá cột đánh dấu: hàng hồ sơ hiện số giấy tờ có dấu, dòng sổ con hiện ✓. */
   readonly tick?: string;
+  /** Nhãn gộp trên đầu một nhóm cột liên tiếp (Tống đạt: "Cơ quan giao văn bản tống đạt"). */
+  readonly group?: string;
 }
 
 export type Getter = (key: string) => string;
@@ -37,6 +39,15 @@ const nameThenRest =
     const v = get(key);
     const i = v.indexOf(', ');
     return i > 0 ? { primary: v.slice(0, i), secondary: v.slice(i + 2) } : { primary: v };
+  };
+
+/** "Số 42 ngày 24/10/2026": số ở dòng chính, ngày ở dòng phụ (Figma); không tách được thì giữ nguyên một dòng. */
+const numberThenDate =
+  (key: string) =>
+  (get: Getter): ListCellText => {
+    const v = get(key);
+    const m = /^(.*?)[,;]?\s+ngày\s+(.+)$/i.exec(v);
+    return m && m[1] ? { primary: m[1], secondary: m[2]! } : { primary: v };
   };
 
 const distinct = (all: readonly Getter[], key: string): string[] => [
@@ -126,7 +137,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'so_ngay',
       head: 'Số, ngày, tháng, năm của vi bằng',
       width: 120,
-      cell: text('so_ngay_vi_bang'),
+      cell: numberThenDate('so_ngay_vi_bang'),
     },
     {
       id: 'dia_chi',
@@ -166,7 +177,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       }),
     },
     { id: 'ket_qua', head: 'Kết quả', width: 110, cell: text('ket_qua_xac_minh') },
-    { id: 'thv', head: 'Thừa hành viên', width: 110, cell: text('thua_hanh_vien') },
+    { id: 'thv', head: 'Thừa hành viên', width: 110, cell: nameThenRest('thua_hanh_vien') },
     { ...SCAN, head: 'Tài liệu · Scan' },
     ACTIONS,
   ],
@@ -197,7 +208,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       }),
     },
     { id: 'ket_qua', head: 'Kết quả', width: 100, cell: text('ket_qua_thi_hanh_an') },
-    { id: 'thv', head: 'Thừa hành viên', width: 110, cell: text('thua_hanh_vien') },
+    { id: 'thv', head: 'Thừa hành viên', width: 110, cell: nameThenRest('thua_hanh_vien') },
     { ...SCAN, head: 'Tài liệu · Scan' },
     ACTIONS,
   ],
@@ -212,6 +223,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
     },
     {
       id: 'toa_an',
+      group: 'Cơ quan giao văn bản tống đạt',
       head: 'Tòa án',
       width: 70,
       tick: 'co_quan_toa_an',
@@ -219,6 +231,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
     },
     {
       id: 'thads',
+      group: 'Cơ quan giao văn bản tống đạt',
       head: 'Cơ quan THADS',
       width: 70,
       tick: 'co_quan_thads',
@@ -226,6 +239,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
     },
     {
       id: 'ksat',
+      group: 'Cơ quan giao văn bản tống đạt',
       head: 'Cơ quan kiểm sát',
       width: 70,
       tick: 'co_quan_kiem_sat',
@@ -247,7 +261,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'thv',
       head: 'THV thực hiện (họ tên, số thẻ)',
       width: 100,
-      cell: text('thua_hanh_vien'),
+      cell: nameThenRest('thua_hanh_vien'),
     },
     { id: 'ghi_chu', head: 'Ghi chú', width: 60, cell: joined('ghi_chu') },
     { ...SCAN, head: 'Tài liệu · Scan', width: 100 },
