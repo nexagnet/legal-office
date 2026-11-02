@@ -8,6 +8,7 @@ import { DmsDomainTable } from '../../../components/DmsDomainTable';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
 import { KpiStrip, type Kpi } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
+import { PdfPrintButton } from '../../../components/PdfPrintButton';
 import { Button } from '../../../components/ui/button';
 import { TabNav } from '../../../components/ui/tab-nav';
 import {
@@ -346,15 +347,10 @@ export default async function DmsDomainPage({
                     Xuất Excel
                   </a>
                 </Button>
-                <Button asChild variant="secondary">
-                  <a
-                    className="no-underline"
-                    href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=pdf`}
-                    download
-                  >
-                    Xuất PDF để in
-                  </a>
-                </Button>
+                <PdfPrintButton
+                  variant="secondary"
+                  url={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=pdf`}
+                />
               </>
             ) : (
               <Button asChild variant="secondary">

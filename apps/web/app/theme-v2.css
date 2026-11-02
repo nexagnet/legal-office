@@ -2718,7 +2718,11 @@ fieldset.person-choice .person-choice-name {
 }
 @media (max-width: 1279px) {
   .dms-stt-actions {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
     margin-top: 4px;
+    white-space: nowrap;
   }
 }
