@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
-import { PrintPdfButton } from '../../../../components/PrintPdfButton';
 import { DmsBookTable } from '../../../../components/DmsBookTable';
 import { Button } from '../../../../components/ui/button';
 import { loadDmsBookRows } from '../../../../lib/dms';
@@ -105,7 +104,11 @@ export default async function DmsBookPage({
               Xuất Excel
             </a>
           </Button>
-          <PrintPdfButton href={bookUrl('pdf')} label="Xuất PDF để in" />
+          <Button asChild variant="primary">
+            <a className="no-underline" href={bookUrl('pdf')} download>
+              Xuất PDF để in
+            </a>
+          </Button>
         </span>
       </div>
       <div className="print-hide mb-4 grid gap-4 lg:grid-cols-2">
