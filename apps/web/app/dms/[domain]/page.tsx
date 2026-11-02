@@ -189,7 +189,7 @@ export default async function DmsDomainPage({
     chipCount('thieu-scan'),
     chipCount('nhap'),
     chipCount('da-huy'),
-    session.userId && filter === 'nhap'
+    session.userId && (filter === 'nhap' || filter === 'da-huy')
       ? countDmsCases(cookie, {
           officeId,
           domain: domain.code,
@@ -249,7 +249,7 @@ export default async function DmsDomainPage({
   const listLayout = vanThu ? (spec ? vanThuLayout(spec) : undefined) : listLayoutFor(domain.code);
   const draftKind = filter === 'nhap' || filter === 'da-huy' ? filter : undefined;
   const userId = session.userId;
-  const myDrafts = draftKind === 'nhap' ? nMyDrafts : undefined;
+  const myDrafts = draftKind ? nMyDrafts : undefined;
   const draftKpis: Kpi[] = [
     { label: 'Nháp đang hoạt động', value: nDraft ?? '—' },
     { label: 'Nháp của tôi', value: myDrafts ?? '—', tone: 'ok' },
@@ -508,9 +508,15 @@ export default async function DmsDomainPage({
             basePath={base}
             book={!isDraftView && spec ? { spec, byCase } : undefined}
             sttLabel={sttLabel}
-            emptyText={`Chưa có hồ sơ nào trong năm ${year}. Bắt đầu bằng "${vanThu ? 'Thêm bản ghi' : 'Tạo hồ sơ'}".`}
+            emptyText={
+              draftKind === 'nhap'
+                ? 'Chưa có nháp nào. Nháp của bạn và nháp được cấp quyền xem sẽ hiện ở đây.'
+                : draftKind === 'da-huy'
+                  ? 'Chưa có nháp nào bị hủy.'
+                  : `Chưa có hồ sơ nào trong năm ${year}. Bắt đầu bằng "${vanThu ? 'Thêm bản ghi' : 'Tạo hồ sơ'}".`
+            }
             emptyAction={
-              canDraft(permissions, domain.code) ? (
+              draftKind !== 'da-huy' && canDraft(permissions, domain.code) ? (
                 <NewDmsCaseButton
                   officeId={officeId}
                   domainCode={domain.code}
