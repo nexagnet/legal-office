@@ -82,7 +82,14 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     render(
       <DmsDomainTable
         rows={[
-          caseRow({ id: 'a', status: 'DRAFT', recorded_at: null, title: 'N1', created_by: 'u1' }),
+          caseRow({
+            id: 'a',
+            status: 'DRAFT',
+            recorded_at: null,
+            title: 'N1',
+            created_by: 'u1',
+            attributes: { nguoi_yeu_cau: 'Cty CP Hòa Phát' },
+          }),
           caseRow({ id: 'b', status: 'DRAFT', recorded_at: null, title: 'N2', created_by: 'u2' }),
         ]}
         caption="c"
@@ -96,6 +103,7 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
       />,
     );
     expect(screen.getAllByText('Chưa có STT')).toHaveLength(2);
+    expect(screen.getByText('Cty CP Hòa Phát')).toBeTruthy();
     expect(screen.getAllByText('Bản nháp')).toHaveLength(2);
     expect(screen.getAllByText('Chưa ghi sổ')).toHaveLength(2);
     expect(screen.getAllByRole('link', { name: 'Tiếp tục soạn' })).toHaveLength(1);
