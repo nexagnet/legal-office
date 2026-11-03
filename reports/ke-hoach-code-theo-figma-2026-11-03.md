@@ -133,6 +133,22 @@ Chưa đo (làm khi có tài khoản Admin hoặc dữ liệu): màn Admin (Phâ
 | Khối lượng lớn (200 GB) làm chậm tìm Trình/Duyệt và Lịch sử | Trung bình | Phân trang, chỉ mục theo 0098                                                                                                         |
 | Làm giao diện trước nghiệp vụ                               | Trung bình | Giai đoạn 3 trước Giai đoạn 4                                                                                                         |
 
+## 6b. Tiến độ thực hiện (cập nhật 03/11/2026)
+
+| Giai đoạn   | PR (đã merge vào main) | Nội dung                                                                                                                                                                                                                                              |
+| ----------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 – DB      | #365, #366, #367       | 0103 số hồ sơ + cờ đã trả; 0104 Trình / Duyệt; 0105 xóa mềm scan, Scan đã xóa 30 ngày, quyền `dms.scan.delete`                                                                                                                                        |
+| 2 – API     | #368, #369, #370       | 0106 `dms_case_extras`, Admin sửa hồ sơ ghi sổ; API Trình / Duyệt và xóa scan; job dọn kho `SCAN_PURGE_SCHEDULE=on`                                                                                                                                   |
+| 3 – Web lõi | #371–#376              | 0107 thẻ "Đã trả kết quả"; danh sách (số hồ sơ, SĐT, ô tích); chi tiết (Admin sửa, xóa scan); màn Trình / Duyệt; Scan đã xóa; cảnh báo cấp quyền xóa (N7); gỡ luồng yêu cầu sửa đổi (chỉ còn đọc); 0108 Lịch sử hoạt động; sửa lỗi G7 (Văn thư trống) |
+
+Migration mới nhất: **0108**. Chưa làm ở Giai đoạn 3 (chuyển sang Giai đoạn 4 hoặc quyết định riêng):
+
+- Trang tạo hồ sơ đầy đủ như Figma (G5): hiện vẫn là hộp thoại, đã thêm ô SĐT.
+- Độ rộng cột danh sách khớp từng pixel với Figma (thêm 2 cột làm bảng rộng 1334px thay vì 1144px), mobile 390px (G6), Xuất sổ có màn xem trước (G8).
+- OCR tìm trong nội dung scan của bản trình; chữ OCR thô của scan đã xóa vẫn còn trong `dms_ocr_results`.
+- Bật job dọn kho trên dev/prod là cấu hình môi trường riêng (`SCAN_PURGE_SCHEDULE`, `SCAN_PURGE_TENANT_IDS`, `FILE_STORE`).
+- Chưa chạy E2E 5 vai trên dev (Giai đoạn 5).
+
 ## 7. Khi nào nên compact
 
 - **Nên compact ngay sau khi bạn duyệt kế hoạch này và trước khi viết dòng code đầu tiên.** Phiên này đã rất dài (Figma, tách trang, khảo sát); báo cáo này đã giữ phần cần nhớ.
