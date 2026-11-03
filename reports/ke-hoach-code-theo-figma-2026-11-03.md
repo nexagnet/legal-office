@@ -135,19 +135,27 @@ Chưa đo (làm khi có tài khoản Admin hoặc dữ liệu): màn Admin (Phâ
 
 ## 6b. Tiến độ thực hiện (cập nhật 03/11/2026)
 
-| Giai đoạn   | PR (đã merge vào main) | Nội dung                                                                                                                                                                                                                                              |
-| ----------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 – DB      | #365, #366, #367       | 0103 số hồ sơ + cờ đã trả; 0104 Trình / Duyệt; 0105 xóa mềm scan, Scan đã xóa 30 ngày, quyền `dms.scan.delete`                                                                                                                                        |
-| 2 – API     | #368, #369, #370       | 0106 `dms_case_extras`, Admin sửa hồ sơ ghi sổ; API Trình / Duyệt và xóa scan; job dọn kho `SCAN_PURGE_SCHEDULE=on`                                                                                                                                   |
-| 3 – Web lõi | #371–#376              | 0107 thẻ "Đã trả kết quả"; danh sách (số hồ sơ, SĐT, ô tích); chi tiết (Admin sửa, xóa scan); màn Trình / Duyệt; Scan đã xóa; cảnh báo cấp quyền xóa (N7); gỡ luồng yêu cầu sửa đổi (chỉ còn đọc); 0108 Lịch sử hoạt động; sửa lỗi G7 (Văn thư trống) |
+| Giai đoạn     | PR (đã merge vào main)           | Nội dung                                                                                                                                                                                                                                              |
+| ------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 – DB        | #365, #366, #367                 | 0103 số hồ sơ + cờ đã trả; 0104 Trình / Duyệt; 0105 xóa mềm scan, Scan đã xóa 30 ngày, quyền `dms.scan.delete`                                                                                                                                        |
+| 2 – API       | #368, #369, #370                 | 0106 `dms_case_extras`, Admin sửa hồ sơ ghi sổ; API Trình / Duyệt và xóa scan; job dọn kho `SCAN_PURGE_SCHEDULE=on`                                                                                                                                   |
+| 3 – Web lõi   | #371–#376                        | 0107 thẻ "Đã trả kết quả"; danh sách (số hồ sơ, SĐT, ô tích); chi tiết (Admin sửa, xóa scan); màn Trình / Duyệt; Scan đã xóa; cảnh báo cấp quyền xóa (N7); gỡ luồng yêu cầu sửa đổi (chỉ còn đọc); 0108 Lịch sử hoạt động; sửa lỗi G7 (Văn thư trống) |
+| 5 – E2E dev   | #378                             | 67/67 kiểm tra đạt trên dev (báo cáo `kiem-thu-e2e-gd5-2026-11-03.md`)                                                                                                                                                                                |
+| 4 – Giao diện | (PR chỉnh giao diện, 03/11/2026) | Sửa tiêu đề và mục sáng ở thanh bên cho trang chỉ Admin; trang tạo hồ sơ riêng `/dms/<nghiệp vụ>/tao-moi` (G5); đầu danh sách gọn ở điện thoại (G6)                                                                                                   |
 
-Migration mới nhất: **0108**. Chưa làm ở Giai đoạn 3 (chuyển sang Giai đoạn 4 hoặc quyết định riêng):
+Migration mới nhất: **0108**.
 
-- Trang tạo hồ sơ đầy đủ như Figma (G5): hiện vẫn là hộp thoại, đã thêm ô SĐT.
-- Độ rộng cột danh sách khớp từng pixel với Figma (thêm 2 cột làm bảng rộng 1334px thay vì 1144px), mobile 390px (G6), Xuất sổ có màn xem trước (G8).
+**Quyết định ở Giai đoạn 4 (nghiệp vụ trước Figma):**
+
+- **Trang tạo hồ sơ (G5):** dựng đủ khối A (thông tin, SĐT, các cột sổ, ghi chú, chi nhánh), C (thông tin hệ thống chỉ đọc: số hồ sơ tự cấp, trạng thái Nháp, người tạo, ngày tạo), nút Hủy / Lưu nháp. **Khối B (tải tài liệu) không tải được ngay trên trang tạo**: tài liệu cần hồ sơ đã có, nên tải ở trang chi tiết ngay sau khi lưu nháp; trang tạo ghi rõ điều này. Ba sổ Văn thư giữ hộp thoại "Thêm bản ghi". Nút "Xác nhận lưu chính thức" cũng nằm ở trang chi tiết (đúng nghiệp vụ N8: số cấp lúc xác nhận).
+- **Độ rộng bảng (1334 so với 1144 px):** giữ nguyên. Hai cột thêm là SĐT khách hàng (N1) và Đã trả KQ (N2) là yêu cầu nghiệp vụ, Figma v2 vẽ trước khi có hai cột này; bảng đã có thanh cuộn ngang và cột đầu cố định.
+- **Mobile (G6):** thu gọn phần đầu (thẻ số và chip thành hàng vuốt ngang, nút Xuất sổ / Tạo hồ sơ một hàng), hồ sơ đầu tiên hiện ngay màn hình đầu ở 375 px. **Chưa đổi bảng thành thẻ bản ghi như Figma M1** (cần nhãn từng ô và quyết định cột nào hiện trên thẻ).
+- **Xuất sổ có màn xem trước (G8), Chờ xác nhận, Tìm kiếm, Biểu mẫu, Thông báo, Cấu hình, Hồ sơ lao động, Đăng nhập (G9, G10):** chưa làm; ưu tiên thấp, chức năng đã đúng, chỉ lệch hình thức.
+
+**Còn mở ngoài Giai đoạn 4:**
+
 - OCR tìm trong nội dung scan của bản trình; chữ OCR thô của scan đã xóa vẫn còn trong `dms_ocr_results`.
 - Bật job dọn kho trên dev/prod là cấu hình môi trường riêng (`SCAN_PURGE_SCHEDULE`, `SCAN_PURGE_TENANT_IDS`, `FILE_STORE`).
-- Chưa chạy E2E 5 vai trên dev (Giai đoạn 5).
 
 ## 7. Khi nào nên compact
 

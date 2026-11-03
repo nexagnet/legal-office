@@ -29,7 +29,7 @@ import {
   UserRound,
   type LucideIcon,
 } from 'lucide-react';
-import { hrefOf, type NavItem } from '../app/nav';
+import { hrefOf, NAV, OVERVIEW, type NavItem } from '../app/nav';
 import { NavPending } from './NavPending';
 import { Avatar } from './ui/avatar';
 import { ProfileMenu } from './ProfileMenu';
@@ -319,6 +319,19 @@ function currentItem(items: readonly NavItem[], pathname: string): NavItem | und
   return hits.sort((a, b) => hrefOf(b).length - hrefOf(a).length)[0];
 }
 
+/** Mục menu khớp đường dẫn nhưng vai hiện tại không có (và khớp sát hơn mục cha đang có), hoặc không có. */
+function hiddenFromRole(
+  items: readonly NavItem[],
+  pathname: string,
+  visible: NavItem | undefined,
+): NavItem | undefined {
+  const shown = new Set(items.map((i) => i.slug));
+  const all = [OVERVIEW, ...NAV].filter((n) => !n.hidden && !shown.has(n.slug));
+  const match = currentItem(all, pathname);
+  if (!match) return undefined;
+  return hrefOf(match).length > (visible ? hrefOf(visible).length : -1) ? match : undefined;
+}
+
 /**
  * Khung chung theo Figma "Full UX": thanh bên tối 248px (logo chờ, nhãn không gian làm việc, menu, thẻ người dùng)
  * và đầu trang trắng 92px (tên trang + mô tả). Dưới 900px thanh bên thu thành menu bật/tắt.
@@ -358,7 +371,11 @@ export function AppShell({
   };
   const pending = usePendingApprovals(badgeOfficeId, pathname);
   const badges = pending ? { ...initialBadges, 'hop-duyet': pending } : initialBadges;
-  const current = currentItem(items, pathname);
+  const visibleCurrent = currentItem(items, pathname);
+  // Người không có mục này trong menu (vd. `/dms/lich-su` với THV): tiêu đề theo đúng trang, không sáng nhầm mục cha.
+  const hiddenMatch = hiddenFromRole(items, pathname, visibleCurrent);
+  const current = hiddenMatch ? undefined : visibleCurrent;
+  const titled = hiddenMatch ?? current;
   if (AUTH_PATHS.has(pathname)) return <AuthStage>{children}</AuthStage>;
   const quick = QUICK_SLUGS.map((slug) => items.find((i) => i.slug === slug)).filter(
     (i): i is NavItem => i !== undefined,
@@ -507,14 +524,10 @@ export function AppShell({
                 </nav>
               ) : null}
               <p className="topbar-h" hidden={caseFrame}>
-                {banner?.title ??
-                  head?.title ??
-                  current?.label ??
-                  tenantName ??
-                  'Quản lý văn phòng'}
+                {banner?.title ?? head?.title ?? titled?.label ?? tenantName ?? 'Quản lý văn phòng'}
               </p>
-              {!caseFrame && (head || current) ? (
-                <p className="topbar-sub">{banner?.sub ?? head?.sub ?? current?.summary}</p>
+              {!caseFrame && (head || titled) ? (
+                <p className="topbar-sub">{banner?.sub ?? head?.sub ?? titled?.summary}</p>
               ) : null}
             </div>
           </header>

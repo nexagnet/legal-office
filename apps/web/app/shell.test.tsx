@@ -335,4 +335,31 @@ describe('menu DMS', () => {
     ).toBeNull();
     expect(container.querySelector('.shell')?.getAttribute('data-domain')).toBe('vi-bang');
   });
+
+  it('trang chỉ Admin mở bởi vai khác: tiêu đề đúng trang, không sáng nhầm "Hồ sơ của tôi"', () => {
+    path.current = '/dms/lich-su';
+    render(
+      <AppShell items={visibleNav(['THV'])} tenantName={null}>
+        <p>Chỉ Admin được xem mục này</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(
+      nav.getByRole('link', { name: 'Hồ sơ của tôi' }).getAttribute('aria-current'),
+    ).toBeNull();
+    expect(document.querySelector('.topbar-h')?.textContent).toBe('Lịch sử hoạt động');
+  });
+
+  it('Admin ở /dms/lich-su: mục Lịch sử hoạt động sáng', () => {
+    path.current = '/dms/lich-su';
+    render(
+      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(nav.getByRole('link', { name: 'Lịch sử hoạt động' }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+  });
 });
