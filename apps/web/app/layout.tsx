@@ -12,7 +12,8 @@ import './theme-v2.css';
 import './tailwind.css';
 import './admin-figma.css';
 import { ROLE_LABEL, visibleNav } from './nav';
-import { currentSession } from '../lib/server';
+import { loadPendingSubmissionCount } from '../lib/dms-submissions';
+import { currentSession, requestCookie } from '../lib/server';
 
 export const metadata = {
   title: 'Quản lý văn phòng',
@@ -30,6 +31,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       : undefined;
   const badgeOfficeId =
     officeId && items.some((i) => i.slug === 'hop-duyet') ? officeId : undefined;
+  // Huy hiệu "Trình / Duyệt" chỉ có nghĩa với Admin (người duyệt); lỗi tải thì coi như 0, không làm hỏng khung trang.
+  const pendingSubmissions =
+    officeId && session.status === 'authenticated' && session.roles.includes('ADMIN')
+      ? await loadPendingSubmissionCount(await requestCookie(), officeId)
+      : 0;
   return (
     <html lang="vi">
       <body>
@@ -44,6 +50,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           items={items}
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
           badgeOfficeId={badgeOfficeId}
+          badges={pendingSubmissions ? { 'dms-trinh-duyet': pendingSubmissions } : undefined}
           signedIn={session.status === 'authenticated'}
           userName={session.status === 'authenticated' ? (session.displayName ?? null) : null}
           userId={session.status === 'authenticated' ? (session.userId ?? null) : null}
