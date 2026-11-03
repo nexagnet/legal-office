@@ -83,7 +83,21 @@ export const SPECIAL_PERMISSIONS: Readonly<Record<string, string>> = {
   'dms.legacy.import': 'Nhập tài liệu cũ',
   'dms.legacy.read': 'Xem tài liệu cũ đã nhập',
   'dms.audit.export': 'Xuất bản sao nhật ký phân quyền',
+  'dms.scan.delete': 'Xóa file scan',
 };
+
+/**
+ * Quyền chỉ CẤP RIÊNG cho từng tài khoản, không đưa vào nhóm (DB từ chối): xóa file scan (N6, N7). Cấp phải kèm lý do và
+ * cảnh báo; Admin mặc nhiên có quyền này.
+ */
+const OVERRIDE_ONLY = new Set(['dms.scan.delete']);
+export const isOverrideOnly = (code: string): boolean => OVERRIDE_ONLY.has(code);
+
+/** Lời cảnh báo hiện khi cấp quyền xóa file scan cho một tài khoản (N7). */
+export const SCAN_DELETE_WARNING =
+  'Người được cấp quyền này xóa được file scan của hồ sơ và bản trình (không xóa được hồ sơ, STT hay dòng sổ). ' +
+  'File bị xóa vào mục "Scan đã xóa 30 ngày", chỉ Admin xem và tải được, không khôi phục, và bị xóa hẳn sau 30 ngày. ' +
+  'Chỉ cấp khi thật sự cần và ghi rõ lý do.';
 
 const DOMAIN_LABEL = new Map<string, string>(PERMISSION_DOMAINS);
 const ACTION_LABEL = new Map<string, string>(PERMISSION_ACTIONS);
@@ -198,7 +212,7 @@ export function allPermissionCodes(): string[] {
     ...PERMISSION_DOMAINS.flatMap(([d]) =>
       PERMISSION_ACTIONS.flatMap(([a]) => (['own', 'all'] as const).map((s) => `${d}.${a}.${s}`)),
     ),
-    ...Object.keys(SPECIAL_PERMISSIONS),
+    ...Object.keys(SPECIAL_PERMISSIONS).filter((c) => !OVERRIDE_ONLY.has(c)),
   ];
 }
 
@@ -214,7 +228,7 @@ export const isOverridable = (code: string): boolean => !GROUP_ONLY.has(code);
 
 /** Mọi mã quyền tick được trên cây quyền riêng. */
 export function overridableCodes(): string[] {
-  return allPermissionCodes().filter(isOverridable);
+  return [...allPermissionCodes().filter(isOverridable), ...OVERRIDE_ONLY];
 }
 
 export interface UserOverride {

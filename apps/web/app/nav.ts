@@ -118,6 +118,14 @@ export const NAV: readonly NavItem[] = [
     summary: 'Gửi tiêu đề, mô tả và bản scan để Admin duyệt. Bạn chỉ thấy bản trình của mình.',
   },
   {
+    slug: 'dms-scan-da-xoa',
+    label: 'Scan đã xóa',
+    group: 'work',
+    roles: ['ADMIN'],
+    href: '/dms/scan-da-xoa',
+    summary: 'File scan đã xóa trong 30 ngày: chỉ Admin xem và tải, không khôi phục.',
+  },
+  {
     slug: 'viec-cua-toi',
     hidden: true,
     label: 'Việc của tôi',
