@@ -1,6 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DmsAmendmentReview } from '../components/DmsAmendments';
 import { DmsDraftActions } from '../components/DmsCaseActions';
 
 vi.mock('next/navigation', () => ({
@@ -32,25 +31,5 @@ describe('hộp xác nhận trong trang (không dùng hộp thoại gốc của 
       ),
     );
     expect(confirm).not.toHaveBeenCalled();
-  });
-
-  it('từ chối sửa đổi: nút xác nhận khoá cho tới khi có lý do', async () => {
-    const prompt = vi.spyOn(window, 'prompt');
-    const fetchMock = okFetch();
-    render(<DmsAmendmentReview requestId="r1" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Từ chối' }));
-    await screen.findByRole('dialog');
-    const buttons = screen.getAllByRole('button', { name: 'Từ chối' });
-    const submit = buttons[buttons.length - 1] as HTMLButtonElement;
-    expect(submit.disabled).toBe(true);
-    fireEvent.change(screen.getByLabelText(/Lý do từ chối/), { target: { value: 'Thiếu scan' } });
-    expect(submit.disabled).toBe(false);
-    fireEvent.click(submit);
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(JSON.parse(String((fetchMock.mock.calls[0]![1] as RequestInit).body))).toEqual({
-      approve: false,
-      note: 'Thiếu scan',
-    });
-    expect(prompt).not.toHaveBeenCalled();
   });
 });

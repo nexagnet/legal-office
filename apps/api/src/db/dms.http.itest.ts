@@ -423,96 +423,46 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     ).toBe(404);
   });
 
-  it('sửa đổi hồ sơ đã ghi sổ qua HTTP: bắt buộc lý do và scan, chờ duyệt, Admin duyệt thì áp dụng', async () => {
-    // Cấu hình cửa sổ tự duyệt đã gỡ: không còn đường nào.
+  it('luồng yêu cầu sửa đổi cũ chỉ còn đọc: gửi và duyệt qua HTTP đã gỡ, đường đọc vẫn dùng được (N4)', async () => {
+    // Cấu hình cửa sổ tự duyệt đã gỡ từ trước: không còn đường nào.
     expect((await api('GET', `/dms/amendment-window?officeId=${OFF}`, U.a)).status).toBe(404);
     const c = (
       await api('POST', '/dms/cases', U.a, {
         officeId: OFF,
         domain: 'vibang',
-        title: 'Vi bằng sửa đổi',
+        title: 'Vi bằng không còn yêu cầu sửa đổi',
         attributes: { ghi_chu: 'gốc' },
       })
     ).json.label as string;
     expect((await api('POST', `/dms/cases/${c}/record`, U.a)).status).toBe(200);
     const changes = encodeURIComponent(JSON.stringify({ attributes: { ghi_chu: 'đã sửa' } }));
-    const path = (reason: string) =>
-      `/dms/cases/${c}/amendments?reason=${encodeURIComponent(reason)}&changes=${changes}`;
-    expect(
-      (await upload(path('Văn bản sửa đổi 01'), U.a, Buffer.from('không phải pdf'))).status,
-    ).toBe(422);
-    const sent = await upload(path('Văn bản sửa đổi 01'), U.a, PDF);
-    expect(sent.status).toBe(200);
-    expect(sent.json.code).toBe('AMENDMENT_PENDING');
-    const amendId = sent.json.label as string;
-    expect((await api('GET', `/dms/cases/${c}`, U.a)).json.attributes.ghi_chu).toBe('gốc');
-
-    expect((await api('GET', `/dms/amendments?officeId=${OFF}`, U.a)).json.rows).toHaveLength(1);
-    expect((await api('GET', `/dms/amendments?officeId=${OFF}`, U.b)).json.rows).toHaveLength(0);
-    expect(
-      (await api('GET', `/dms/amendments?officeId=${OFF}&status=PENDING`, U.approver1)).json.rows,
-    ).toHaveLength(1);
-    expect(
-      (await api('POST', `/dms/amendments/${amendId}/review`, U.a, { approve: true })).status,
-    ).toBe(403);
-    expect(
-      (await api('POST', `/dms/amendments/${amendId}/review`, U.approver1, { approve: true }))
-        .status,
-    ).toBe(200);
-    expect((await api('GET', `/dms/cases/${c}`, U.a)).json.attributes.ghi_chu).toBe('đã sửa');
-    const ev = await fetch(`${base}/dms/amendments/${amendId}/evidence`, {
-      headers: { 'x-synthetic-user': U.approver2, 'x-synthetic-tenant': T },
-    });
-    expect(ev.status).toBe(200);
-    expect(Buffer.from(await ev.arrayBuffer())).toEqual(PDF);
+    // Không còn tuyến gửi yêu cầu sửa đổi và duyệt: cả hai đều 404, hồ sơ không đổi.
     expect(
       (
-        await fetch(`${base}/dms/amendments/${amendId}/evidence`, {
-          headers: { 'x-synthetic-user': U.b, 'x-synthetic-tenant': T },
+        await upload(
+          `/dms/cases/${c}/amendments?reason=${encodeURIComponent('Văn bản 01')}&changes=${changes}`,
+          U.a,
+          PDF,
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (await api('POST', `/dms/amendments/${id()}/review`, U.approver1, { approve: true })).status,
+    ).toBe(404);
+    expect((await api('GET', `/dms/cases/${c}`, U.a)).json.attributes.ghi_chu).toBe('gốc');
+    // Đọc dữ liệu cũ vẫn dùng được và vẫn theo phạm vi quyền.
+    const list = await api('GET', `/dms/amendments?officeId=${OFF}`, U.approver1);
+    expect(list.status).toBe(200);
+    expect(list.json.rows).toEqual([]);
+    expect(
+      (
+        await fetch(`${base}/dms/amendments/${id()}/evidence`, {
+          headers: { 'x-synthetic-user': U.approver1, 'x-synthetic-tenant': T },
         })
       ).status,
     ).toBe(404);
   });
 
-  it('thêm phiên bản tệp mới qua HTTP: tải bước đệm, gửi kèm scan sửa đổi, Admin duyệt, v2 tải về', async () => {
-    const c = (
-      await api('POST', '/dms/cases', U.a, { officeId: OFF, domain: 'vibang', title: 'Có tệp' })
-    ).json.label as string;
-    const docId = (
-      await api('POST', `/dms/cases/${c}/documents`, U.a, {
-        kind: 'Vi bằng',
-        title: 'Bản chính',
-        isOfficial: true,
-      })
-    ).json.label as string;
-    const fileId = (await upload(`/dms/documents/${docId}/files?label=scan&isScan=true`, U.a, PDF))
-      .json.label as string;
-    expect((await api('POST', `/dms/cases/${c}/record`, U.a)).status).toBe(200);
-    const NEWPDF = Buffer.from('%PDF-1.4\n% phiên bản 2\n');
-    const staged = await upload('/dms/uploads', U.a, NEWPDF);
-    expect(staged.status).toBe(200);
-    const stagedId = staged.json.label as string;
-    const q = `fileId=${fileId}&documentId=${docId}&stagedId=${stagedId}&reason=${encodeURIComponent('Quét lại rõ hơn')}`;
-    // Người khác không dùng được tệp bước đệm của mình.
-    expect((await upload(`/dms/cases/${c}/amendments?${q}`, U.b, PDF)).status).toBe(404);
-    const sent = await upload(`/dms/cases/${c}/amendments?${q}`, U.a, PDF);
-    expect(sent.json.code).toBe('AMENDMENT_PENDING');
-    // Dùng lại bước đệm sau khi gửi thì bị chặn.
-    expect((await upload(`/dms/cases/${c}/amendments?${q}`, U.a, PDF)).status).toBe(409);
-    expect(
-      (
-        await api('POST', `/dms/amendments/${sent.json.label}/review`, U.approver1, {
-          approve: true,
-        })
-      ).status,
-    ).toBe(200);
-    const files = await api('GET', `/dms/documents/${docId}/files`, U.a);
-    expect(files.json.rows.map((r: Row) => r.version)).toEqual([1, 2]);
-    const dl = await fetch(`${base}/dms/files/${fileId}/download`, {
-      headers: { 'x-synthetic-user': U.a, 'x-synthetic-tenant': T },
-    });
-    expect(Buffer.from(await dl.arrayBuffer())).toEqual(NEWPDF);
-  });
   // Chạy cuối: thêm chi nhánh vào văn phòng làm thay đổi cách tạo hồ sơ của mọi test phía sau.
   it('phạm vi chi nhánh qua HTTP: cấp, chọn khi tạo, thu hồi; người không có quyền duyệt bị chặn', async () => {
     const branchA = id();

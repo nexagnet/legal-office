@@ -1,12 +1,7 @@
 import Link from 'next/link';
 import { KpiStrip } from './KpiStrip';
-import {
-  DMS_DOMAINS,
-  loadDmsAmendments,
-  loadDmsCases,
-  loadDmsReport,
-  type DmsCaseRow,
-} from '../lib/dms';
+import { DMS_DOMAINS, loadDmsCases, loadDmsReport, type DmsCaseRow } from '../lib/dms';
+import { loadPendingSubmissionCount } from '../lib/dms-submissions';
 
 const BAR: Record<string, string> = {
   vibang: 'bg-[#1f4fa3]',
@@ -34,9 +29,9 @@ export async function DmsOverview({
       new Date(),
     ),
   );
-  const [report, pending, ...lists] = await Promise.all([
+  const [report, pendingSubmissions, ...lists] = await Promise.all([
     loadDmsReport(cookie, officeId, year),
-    loadDmsAmendments(cookie, officeId, { status: 'PENDING' }),
+    loadPendingSubmissionCount(cookie, officeId),
     ...DMS_DOMAINS.map((d) => loadDmsCases(cookie, officeId, d.code, 'chinh-thuc')),
   ]);
   const rows = (report === 'error' ? [] : report).filter((r) =>
@@ -62,11 +57,8 @@ export async function DmsOverview({
           { label: `Hồ sơ năm ${year}`, value: total },
           { label: 'Tài liệu hiện hành', value: docs, tone: 'ok' },
           { label: 'Hồ sơ thiếu scan', value: missing.length, tone: 'danger' },
-          {
-            label: 'Yêu cầu sửa đổi chờ duyệt',
-            value: pending === 'error' ? 0 : pending.length,
-            tone: 'warn',
-          },
+          // Chỉ Admin thấy số thật; người khác luôn là 0 (bản trình chờ duyệt do Admin xử lý).
+          { label: 'Bản trình chờ duyệt', value: pendingSubmissions, tone: 'warn' },
         ]}
       />
       <div className="grid gap-4 lg:grid-cols-2">
