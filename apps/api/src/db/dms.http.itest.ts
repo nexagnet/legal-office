@@ -663,4 +663,104 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     const mine = await api('GET', `/dms/me/permissions?officeId=${OFF}`, exporter);
     expect(mine.json.permissions).toContain('dms.audit.export');
   });
+
+  it('GĐ 2a: số hồ sơ + SĐT + ô đã trả trong danh sách/chi tiết/tìm kiếm; SĐT sai bị chặn; chỉ Admin sửa sau ghi sổ', async () => {
+    const adm = id();
+    await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$3)`, [
+      adm,
+      T,
+      adm,
+    ]);
+    await owner.query(
+      `INSERT INTO memberships (tenant_id, user_id, office_id, role) VALUES ($1,$2,$3,'ADMIN')`,
+      [T, adm, OFF],
+    );
+    const bad = await api('POST', '/dms/cases', U.a, {
+      officeId: OFF,
+      domain: 'vibang',
+      title: 'SĐT sai',
+      attributes: { so_dien_thoai: 'abc' },
+    });
+    expect(bad.status).toBe(400);
+
+    const c = await api('POST', '/dms/cases', U.a, {
+      officeId: OFF,
+      domain: 'vibang',
+      title: 'Có SĐT',
+      attributes: { so_dien_thoai: '0912 345 678', nguoi_yeu_cau: 'A' },
+    });
+    expect(c.status).toBe(201);
+    const caseId = c.json.label as string;
+    // Chưa ghi sổ: chưa có số hồ sơ, không tích được "đã trả".
+    expect(
+      (await api('POST', `/dms/cases/${caseId}/returned`, U.a, { returned: true })).status,
+    ).toBe(409);
+    expect((await api('GET', `/dms/cases/${caseId}`, U.a)).json.case_number).toBeNull();
+    await api('POST', `/dms/cases/${caseId}/documents`, U.a, {
+      kind: 'N-04',
+      title: 'Vi bằng',
+      isOfficial: true,
+    });
+    expect((await api('POST', `/dms/cases/${caseId}/record`, U.a)).status).toBe(200);
+
+    const one = await api('GET', `/dms/cases/${caseId}`, U.a);
+    expect(one.json.case_number).toMatch(/^\d{3,}\/\d{4}\/VB-TPL$/);
+    expect(one.json.phone).toBe('0912 345 678');
+    expect(one.json.returned).toBe(false);
+
+    expect(
+      (await api('POST', `/dms/cases/${caseId}/returned`, U.a, { returned: true })).status,
+    ).toBe(200);
+    expect(
+      (await api('POST', `/dms/cases/${caseId}/returned`, U.a, { returned: 'có' })).status,
+    ).toBe(400);
+    const list = await api('GET', `/dms/cases?officeId=${OFF}&domain=vibang&status=RECORDED`, U.a);
+    const row = (list.json.rows as Json[]).find((r) => r.id === caseId);
+    expect(row).toMatchObject({ returned: true, phone: '0912 345 678' });
+    expect(row?.case_number).toBe(one.json.case_number);
+    const found = await api('GET', `/dms/case-search?officeId=${OFF}&domain=vibang`, U.a);
+    const hit = (found.json.rows as Json[]).find((r) => r.id === caseId);
+    expect(hit).toMatchObject({ returned: true, case_number: one.json.case_number });
+
+    // Sau ghi sổ: nhân viên không sửa được; Admin sửa được nhưng phải có lý do và SĐT đúng dạng.
+    const asStaff = await api('POST', `/dms/cases/${caseId}/admin-edit`, U.a, {
+      attributes: { nguoi_yeu_cau: 'B' },
+      reason: 'thử',
+    });
+    expect(asStaff.status).toBe(403);
+    expect(asStaff.json.code).toBe('ADMIN_ONLY');
+    expect(
+      (await api('POST', `/dms/cases/${caseId}/admin-edit`, adm, { attributes: { x: 1 } })).status,
+    ).toBe(400);
+    expect(
+      (
+        await api('POST', `/dms/cases/${caseId}/admin-edit`, adm, {
+          attributes: { so_dien_thoai: '12' },
+          reason: 'sai',
+        })
+      ).status,
+    ).toBe(400);
+    const ok = await api('POST', `/dms/cases/${caseId}/admin-edit`, adm, {
+      title: 'Có SĐT (đã sửa)',
+      attributes: { so_dien_thoai: '0987654321' },
+      reason: 'Khách đổi số',
+    });
+    expect(ok.status).toBe(200);
+    expect(ok.json.code).toBe('CASE_EDITED');
+    const after = await api('GET', `/dms/cases/${caseId}`, U.a);
+    expect(after.json).toMatchObject({ title: 'Có SĐT (đã sửa)', phone: '0987654321' });
+    expect(after.json.case_number).toBe(one.json.case_number);
+    const versions = await api('GET', `/dms/cases/${caseId}/revisions`, U.a);
+    expect((versions.json.rows as Json[]).map((r) => r.rev)).toEqual([0, 1]);
+    // Xóa SĐT bằng null.
+    expect(
+      (
+        await api('POST', `/dms/cases/${caseId}/admin-edit`, adm, {
+          attributes: { so_dien_thoai: null },
+          reason: 'Xóa số',
+        })
+      ).status,
+    ).toBe(200);
+    expect((await api('GET', `/dms/cases/${caseId}`, U.a)).json.phone).toBeNull();
+  });
 });
