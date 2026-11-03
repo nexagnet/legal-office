@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { KpiStrip } from './KpiStrip';
-import { DMS_DOMAINS, loadDmsCases, loadDmsReport, type DmsCaseRow } from '../lib/dms';
+import { Button } from './ui/button';
+import { DMS_DOMAINS, loadDmsCases, loadDmsReportFull, type DmsCaseRow } from '../lib/dms';
 import { loadPendingSubmissionCount } from '../lib/dms-submissions';
 
 const BAR: Record<string, string> = {
@@ -29,14 +30,17 @@ export async function DmsOverview({
       new Date(),
     ),
   );
-  const [report, pendingSubmissions, ...lists] = await Promise.all([
-    loadDmsReport(cookie, officeId, year),
+  const [full, pendingSubmissions, ...lists] = await Promise.all([
+    loadDmsReportFull(cookie, officeId, year),
     loadPendingSubmissionCount(cookie, officeId),
     ...DMS_DOMAINS.map((d) => loadDmsCases(cookie, officeId, d.code, 'chinh-thuc')),
   ]);
-  const rows = (report === 'error' ? [] : report).filter((r) =>
+  const rows = (full === 'error' ? [] : full.rows).filter((r) =>
     DMS_DOMAINS.some((d) => d.code === r.domain),
   );
+  // Ô "Đã trả kết quả" chỉ để theo dõi (N2): không đổi trạng thái hồ sơ.
+  const returnedTotal =
+    full === 'error' ? 0 : DMS_DOMAINS.reduce((n, d) => n + (full.returned[d.code] ?? 0), 0);
   const total = rows.reduce((n, r) => n + r.recorded_cases, 0);
   const docs = rows.reduce((n, r) => n + r.documents, 0);
   const missing: { row: DmsCaseRow; slug: string }[] = [];
@@ -57,8 +61,7 @@ export async function DmsOverview({
           { label: `Hồ sơ năm ${year}`, value: total },
           { label: 'Tài liệu hiện hành', value: docs, tone: 'ok' },
           { label: 'Hồ sơ thiếu scan', value: missing.length, tone: 'danger' },
-          // Chỉ Admin thấy số thật; người khác luôn là 0 (bản trình chờ duyệt do Admin xử lý).
-          { label: 'Bản trình chờ duyệt', value: pendingSubmissions, tone: 'warn' },
+          { label: 'Đã trả kết quả', value: returnedTotal, tone: 'warn' },
         ]}
       />
       <div className="grid gap-4 lg:grid-cols-2">
@@ -105,6 +108,27 @@ export async function DmsOverview({
           )}
         </section>
       </div>
+      {/* Chỉ Admin có số khác 0 (bản trình chờ duyệt do Admin xử lý). */}
+      {pendingSubmissions > 0 ? (
+        <section
+          aria-labelledby="pending-sub"
+          className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface p-5 shadow-sm"
+        >
+          <div>
+            <h2 id="pending-sub" className="mb-1">
+              Bản trình chờ duyệt (Admin)
+            </h2>
+            <p className="muted m-0 text-sm">
+              {pendingSubmissions.toLocaleString('vi-VN')} bản trình đang chờ bạn duyệt.
+            </p>
+          </div>
+          <Button asChild>
+            <Link className="no-underline" href="/dms/trinh-duyet">
+              Mở hàng chờ
+            </Link>
+          </Button>
+        </section>
+      ) : null}
     </section>
   );
 }
