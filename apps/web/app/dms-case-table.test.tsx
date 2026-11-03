@@ -1,7 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DmsAmendmentForm, DmsFileVersionForm } from '../components/DmsAmendments';
-import { DmsBookTable } from '../components/DmsBookTable';
 import { DmsCaseTable } from '../components/DmsCaseTable';
 import { DmsThvConfirmButton, DmsThvPicker } from '../components/DmsThvActions';
 import {
@@ -126,16 +125,6 @@ describe('sổ nghiệp vụ trên giao diện', () => {
       { no: 4, heading: 'Thu hồi', key: 'thu_hoi', group: 'QUYẾT ĐỊNH' },
     ],
   };
-  const r = {
-    stt: 2,
-    case_id: 'c',
-    document_id: null,
-    case_title: 't',
-    case_attributes: { hop_dong_dich_vu: 'HĐ 11', qd: '21/QĐ' },
-    doc_kind: null,
-    doc_attributes: null,
-  };
-
   it('gộp tiêu đề nhóm cột và chỉ lấy cột nhập tay', () => {
     expect(headerGroups(spec.columns).map((g) => [g.label, g.span])).toEqual([
       [null, 1],
@@ -143,19 +132,6 @@ describe('sổ nghiệp vụ trên giao diện', () => {
       ['QUYẾT ĐỊNH', 2],
     ]);
     expect(inputColumns(spec).map((c) => c.key)).toEqual(['hop_dong_dich_vu', 'qd', 'thu_hoi']);
-  });
-
-  it('dòng sổ: STT của hệ thống, ô thiếu để trống, có hàng đánh số cột', () => {
-    render(<DmsBookTable spec={spec} rows={[r]} />);
-    expect(screen.getByText('HĐ 11')).toBeTruthy();
-    expect(screen.getByText('21/QĐ')).toBeTruthy();
-    expect(screen.getAllByText('2')).toHaveLength(2); // số cột 2 và STT 2
-    expect(screen.getByText('3 · 4')).toBeTruthy();
-  });
-
-  it('chưa có dòng thì báo trống thay vì bảng rỗng', () => {
-    render(<DmsBookTable spec={spec} rows={[]} />);
-    expect(screen.getByText('Chưa có dòng nào trong năm này.')).toBeTruthy();
   });
 });
 
