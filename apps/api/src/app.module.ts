@@ -16,6 +16,7 @@ import {
 import { resolveTenantMailer } from './reminders/resolve-mailer';
 import { SessionResolver } from './auth/session.resolver';
 import { AssetsController } from './assets/assets.controller';
+import { DmsActivityController } from './dms/dms-activity.controller';
 import { DmsAmendmentsController } from './dms/dms-amendments.controller';
 import { DmsCasesController } from './dms/dms-cases.controller';
 import { DmsScansController } from './dms/dms-scans.controller';
@@ -81,6 +82,7 @@ export class AppModule {
         MailSettingsController,
         FormsController,
         DmsAmendmentsController,
+        DmsActivityController,
         DmsCasesController,
         DmsSubmissionsController,
         DmsScansController,

@@ -302,6 +302,10 @@ describe('menu DMS', () => {
     expect(hrefs['dms-scan-da-xoa']).toBe('/dms/scan-da-xoa');
     expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-scan-da-xoa');
     expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-scan-da-xoa');
+    // Lịch sử hoạt động: cũng chỉ Admin.
+    expect(hrefs['dms-lich-su']).toBe('/dms/lich-su');
+    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-lich-su');
+    expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-lich-su');
     expect(hrefs['dms-thv']).toBe('/dms/thv');
     expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
     expect(hrefs['vi-bang']).toBe('/vi-bang');
