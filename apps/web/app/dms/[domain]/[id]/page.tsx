@@ -11,7 +11,16 @@ import {
   DmsDraftActions,
   UploadDmsFile,
 } from '../../../../components/DmsCaseActions';
+import { AdminBanner } from '../../../../components/admin-banner';
 import { Button } from '../../../../components/ui/button';
+import {
+  FileGroupCard,
+  FileRow,
+  InfoCard,
+  InfoGrid,
+  NoticeBar,
+  PdfPane,
+} from '../../../../components/ui/case-detail';
 import { TabNav } from '../../../../components/ui/tab-nav';
 import {
   BOOK_OF_DOMAIN,
@@ -108,8 +117,8 @@ const sizeLabel = (n: number | string) => `${Math.max(1, Math.round(Number(n) / 
 const TABS = [
   { key: 'chung', label: 'Thông tin chung' },
   { key: 'tai-lieu', label: 'Tài liệu' },
-  { key: 'scan', label: 'Scan' },
-  { key: 'phien-ban', label: 'Phiên bản' },
+  { key: 'scan', label: 'Tệp đính kèm' },
+  { key: 'phien-ban', label: 'Phiên bản cũ' },
   { key: 'so', label: 'Sổ liên quan' },
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
@@ -178,6 +187,9 @@ export default async function DmsCasePage({
   const docsWithoutScan = docs.filter((_, i) => !filesByDoc[i]!.some((f) => f.is_scan)).length;
   const preview =
     allFiles.find((f) => f.id === sp.file) ?? allFiles.find((f) => f.is_scan) ?? allFiles[0];
+  const previewDoc = preview
+    ? docs[filesByDoc.findIndex((l) => l.some((f) => f.id === preview.id))]
+    : undefined;
 
   // STT của hồ sơ trong sổ (chỉ hồ sơ đã ghi sổ): lấy từ dữ liệu sổ của năm ghi sổ.
   const bookCode = BOOK_OF_DOMAIN[domain.code];
@@ -225,53 +237,89 @@ export default async function DmsCasePage({
       : '';
   return (
     <section aria-labelledby="t">
-      <p>
-        <Link href={`/dms/${domain.slug}${backQuery}`}>← {domain.label}</Link>
-      </p>
-      <h1 id="t">{c.case_number ?? c.title}</h1>
-      <p className="muted">
-        Chi tiết hồ sơ{c.case_number ? ` · ${c.title}` : ''}
-        {hasPhone && c.phone ? ` · Khách hàng · SĐT ${c.phone}` : ''}
-      </p>
-      <p>
+      <AdminBanner
+        crumb={[
+          [domain.label, `/dms/${domain.slug}${backQuery}`],
+          [c.case_number ?? c.title, undefined],
+        ]}
+        title={`${c.case_number ?? c.title} · Chi tiết hồ sơ`}
+        sub={hasPhone && c.phone ? `${c.title} · SĐT ${c.phone}` : c.title}
+      />
+      <h1 id="t" className="sr-only">
+        {c.case_number ?? c.title} · Chi tiết hồ sơ
+      </h1>
+      <p className="mb-3 flex flex-wrap items-center gap-2">
         <span
           className="chip"
           data-tone={isDraft ? 'warn' : c.status === 'CANCELLED' ? 'danger' : 'ok'}
         >
           {STATUS[c.status]}
-        </span>{' '}
+        </span>
         <span className="chip" data-tone="info">
           {c.document_count} tài liệu
-        </span>{' '}
+        </span>
         <span className="chip" data-tone={c.scan_count > 0 ? 'ok' : 'danger'}>
           {c.scan_count} scan
         </span>
+        {docsWithoutScan > 0 && docs.length > 0 ? (
+          <span className="chip" data-tone="warn">
+            {docsWithoutScan} tài liệu chưa có bản scan
+          </span>
+        ) : null}
       </p>
-      {docs.length > 0 ? (
-        <p className="rounded-xl bg-accent-soft px-4 py-2 text-sm font-medium text-accent">
-          {docs.length} tài liệu · {scanFileCount} tệp scan
-          {docsWithoutScan > 0
-            ? ` · ${docsWithoutScan} tài liệu chưa có bản scan`
-            : ' · mọi tài liệu đã có bản scan'}
-        </p>
+      {c.status === 'RECORDED' ? (
+        <NoticeBar
+          action={
+            isAdmin ? (
+              <Link href={`/dms/lich-su?q=${encodeURIComponent(c.case_number ?? c.title)}`}>
+                Xem lịch sử
+              </Link>
+            ) : undefined
+          }
+        >
+          Hồ sơ đã ghi sổ. Chỉ Admin được sửa nội dung (có lý do, lưu thành phiên bản mới); hồ sơ và
+          STT không bị xóa; nhân viên chỉ tải thêm scan. Mọi thao tác đều ghi lịch sử hoạt động.
+        </NoticeBar>
+      ) : null}
+      {c.status === 'CANCELLED' ? (
+        <NoticeBar tone="info">Bản nháp đã hủy. Lý do: {c.cancel_reason ?? '—'}.</NoticeBar>
       ) : null}
       <TabNav
+        soft
         label={`Chi tiết hồ sơ ${c.title}`}
         active={tab}
-        tabs={TABS.map((t) => ({
-          key: t.key,
-          label: t.label,
-          href: t.key === 'chung' ? base : `${base}?tab=${t.key}`,
-          count:
-            t.key === 'tai-lieu'
-              ? docs.length
-              : t.key === 'scan'
-                ? scanFileCount
-                : t.key === 'phien-ban'
-                  ? fileCount
-                  : undefined,
-        }))}
+        tabs={[
+          ...TABS.map((t) => ({
+            key: t.key,
+            label: t.label,
+            href: t.key === 'chung' ? base : `${base}?tab=${t.key}`,
+            count:
+              t.key === 'tai-lieu'
+                ? docs.length
+                : t.key === 'scan'
+                  ? scanFileCount
+                  : t.key === 'phien-ban'
+                    ? fileCount
+                    : undefined,
+          })),
+          // Lịch sử hoạt động chỉ Admin xem (N4); mở nhật ký đã lọc theo hồ sơ này.
+          ...(isAdmin && !isDraft
+            ? [
+                {
+                  key: 'lich-su',
+                  label: 'Lịch sử hoạt động',
+                  href: `/dms/lich-su?q=${encodeURIComponent(c.case_number ?? c.title)}`,
+                },
+              ]
+            : []),
+        ]}
       />
+      {tab === 'tai-lieu' || tab === 'scan' || tab === 'phien-ban' ? (
+        <p className="mb-4 text-xs text-muted">
+          Tài liệu = nhóm theo loại ({docs.length}) · Tệp đính kèm = số file ({fileCount}) · Phiên
+          bản cũ = bản thay thế đã lưu, không tính vào tài liệu hiện hành.
+        </p>
+      ) : null}
 
       {tab === 'chung' && isDraft ? (
         <div className="grid gap-4">
@@ -398,31 +446,22 @@ export default async function DmsCasePage({
 
       {tab === 'chung' && !isDraft ? (
         <>
-          <dl className="mb-4">
-            <dt>Ngày tạo</dt>
-            <dd>{fmt.format(new Date(c.created_at))}</dd>
-            <dt>Ghi sổ</dt>
-            <dd>{c.recorded_at ? fmt.format(new Date(c.recorded_at)) : '—'}</dd>
-            {c.status === 'CANCELLED' ? (
-              <>
-                <dt>Lý do hủy nháp</dt>
-                <dd>{c.cancel_reason}</dd>
-              </>
-            ) : null}
-          </dl>
-          {isDraft ? (
-            <DmsDraftActions
-              caseId={c.id}
-              canRecord={canConfirm(permissions, domain.code)}
-              canCancel={canDraft(permissions, domain.code)}
+          <InfoCard title="Thông tin chung" id="info-chung">
+            <InfoGrid
+              items={[
+                ['Số hồ sơ', c.case_number ?? '—'],
+                ['Tên hồ sơ', c.title],
+                ...(hasPhone ? ([['SĐT khách hàng', c.phone ?? '—']] as const) : []),
+                ['Trạng thái', STATUS[c.status] ?? c.status],
+                ['Ngày tạo', fmt.format(new Date(c.created_at))],
+                ['Ghi sổ', c.recorded_at ? fmt.format(new Date(c.recorded_at)) : '—'],
+                ...(c.status === 'CANCELLED'
+                  ? ([['Lý do hủy nháp', c.cancel_reason ?? '—']] as const)
+                  : []),
+              ]}
             />
-          ) : (
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-              <p className="muted m-0">
-                Hồ sơ đã lưu chính thức không xóa được. Chỉ Admin sửa nội dung (có lý do, lưu thành
-                phiên bản mới); nhân viên chỉ tải thêm scan.
-              </p>
-              {canAdminEdit && (hasPhone || (book && book.source === 'case')) ? (
+            {canAdminEdit && (hasPhone || (book && book.source === 'case')) ? (
+              <div className="mt-4 flex justify-end">
                 <DmsAdminEdit
                   target="case"
                   id={c.id}
@@ -431,35 +470,17 @@ export default async function DmsCasePage({
                   currentTitle={c.title}
                   withPhone={hasPhone}
                 />
-              ) : null}
-            </div>
-          )}
-          {isDraft && canDraft(permissions, domain.code) && !isVanThu(domain.code) ? (
-            <DmsThvPicker
-              caseId={c.id}
-              options={thvOptions}
-              currentId={c.thv_user_id}
-              confirmed={c.thv_confirmed}
-            />
-          ) : null}
-          {isDraft && book && book.source === 'case' && canDraft(permissions, domain.code) ? (
-            <DmsAttributesForm
-              url={`/api/dms/cases/${c.id}/draft`}
-              columns={inputColumns(book)}
-              current={c.attributes}
-              fixed={{ title: c.title }}
-              legend={`Nội dung vào sổ ${book.code}`}
-            />
-          ) : null}
+              </div>
+            ) : null}
+          </InfoCard>
           {!isDraft && book && book.source === 'case' ? (
-            <dl className="mb-4" aria-label={`Nội dung sổ ${book.code}`}>
-              {inputColumns(book).map((col) => (
-                <div key={col.key}>
-                  <dt>{col.heading}</dt>
-                  <dd>{String(c.attributes[col.key] ?? '') || '—'}</dd>
-                </div>
-              ))}
-            </dl>
+            <InfoCard title={`Nội dung sổ ${book.code}`} id="info-so">
+              <InfoGrid
+                items={inputColumns(book).map(
+                  (col) => [col.heading, String(c.attributes[col.key] ?? '')] as const,
+                )}
+              />
+            </InfoCard>
           ) : null}
         </>
       ) : null}
@@ -476,49 +497,48 @@ export default async function DmsCasePage({
               </div>
             ) : (
               docs.map((d, i) => (
-                <article key={d.id} className="mb-4" aria-label={d.title}>
-                  <h3>
-                    {d.title}{' '}
-                    <span className="muted">
-                      ({d.kind}
-                      {d.is_official ? ' · chính thức' : ''})
-                    </span>
-                  </h3>
+                <FileGroupCard
+                  key={d.id}
+                  title={d.title}
+                  hint={`(${d.kind}${d.is_official ? ' · chính thức' : ''})`}
+                >
                   {filesByDoc[i]!.length === 0 ? (
-                    <p className="muted">Chưa có tệp.</p>
+                    <p className="m-0 text-sm text-muted">Chưa có tệp.</p>
                   ) : (
-                    <ul>
-                      {filesByDoc[i]!.map((f) => (
-                        <li key={f.id} className="mb-1 flex flex-wrap items-center gap-2">
-                          <span className="min-w-0 flex-1">
-                            {f.label} · v{f.version} · {sizeLabel(f.size_bytes)}
-                          </span>
-                          <span
-                            className={
-                              f.is_scan
-                                ? 'rounded-full bg-[#d9f1e2] px-2.5 py-0.5 text-xs font-semibold text-[#1b6b3a]'
-                                : 'rounded-full bg-[#eef1f6] px-2.5 py-0.5 text-xs font-semibold text-muted'
-                            }
-                          >
-                            {f.is_scan ? 'Bản scan' : 'Bổ sung'}
-                          </span>
-                          <Button asChild variant="secondary">
-                            <Link
-                              className="no-underline"
-                              href={`${base}?tab=tai-lieu&file=${f.id}`}
-                            >
-                              Xem
-                            </Link>
-                          </Button>
-                          <a href={`/api/dms/files/${f.id}/download`} download>
-                            Tải
-                          </a>
-                          {canDeleteScan && f.is_scan ? (
-                            <DeleteScanButton kind="document" fileId={f.id} label={f.label} />
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
+                    filesByDoc[i]!.map((f) => (
+                      <FileRow
+                        key={f.id}
+                        name={f.label}
+                        meta={`${sizeLabel(f.size_bytes)} · v${f.version}`}
+                        chip={f.is_scan ? 'Bản scan' : 'Bổ sung'}
+                        chipTone={f.is_scan ? 'main' : 'plain'}
+                        current={preview?.id === f.id}
+                        actions={
+                          <>
+                            <Button asChild variant="secondary">
+                              <Link
+                                className="no-underline"
+                                href={`${base}?tab=tai-lieu&file=${f.id}`}
+                              >
+                                Xem
+                              </Link>
+                            </Button>
+                            <Button asChild variant="ghost">
+                              <a
+                                className="no-underline"
+                                href={`/api/dms/files/${f.id}/download`}
+                                download
+                              >
+                                Tải
+                              </a>
+                            </Button>
+                            {canDeleteScan && f.is_scan ? (
+                              <DeleteScanButton kind="document" fileId={f.id} label={f.label} />
+                            ) : null}
+                          </>
+                        }
+                      />
+                    ))
                   )}
                   {canAdminEdit && book && book.source === 'document' ? (
                     <DmsAdminEdit
@@ -542,40 +562,48 @@ export default async function DmsCasePage({
                     />
                   ) : null}
                   {c.status !== 'CANCELLED' ? <UploadDmsFile documentId={d.id} /> : null}
-                </article>
+                </FileGroupCard>
               ))
             )}
           </div>
           <aside aria-label="Xem trước tệp">
             {preview ? (
-              <>
-                <iframe
-                  title={`Xem trước ${preview.label}`}
-                  src={`/api/dms/files/${preview.id}/download?inline=1`}
-                  className="h-[560px] w-full rounded-2xl border border-line bg-surface"
-                />
-                <p className="muted mt-2">Xem trước · {preview.label}</p>
-                <p className="mt-2 flex flex-wrap items-center gap-2">
-                  <Button asChild>
-                    <a href={`/api/dms/files/${preview.id}/download`} download>
-                      Tải bản scan chính
-                    </a>
-                  </Button>
-                  <Button asChild variant="secondary">
-                    <a
-                      href={`/api/dms/files/${preview.id}/download?inline=1`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      In
-                    </a>
-                  </Button>
-                </p>
-                <p className="muted">
-                  Không có nút xóa hồ sơ hay tài liệu và không ghi đè tệp; chỉ file scan xóa được,
-                  với người có quyền xóa scan.
-                </p>
-              </>
+              <PdfPane
+                title={`Xem trước ${preview.label}`}
+                src={`/api/dms/files/${preview.id}/download?inline=1`}
+                caption={`Xem trước · ${preview.label}`}
+                note="Nhân viên chỉ tải thêm scan, không xóa hoặc thay file đã lưu. Cần sửa hồ sơ hoặc xóa scan: trao đổi trực tiếp với Admin."
+                actions={
+                  <>
+                    <Button asChild>
+                      <a
+                        className="no-underline"
+                        href={`/api/dms/files/${preview.id}/download`}
+                        download
+                      >
+                        Tải bản scan chính
+                      </a>
+                    </Button>
+                    <Button asChild variant="secondary">
+                      <a
+                        className="no-underline"
+                        href={`/api/dms/files/${preview.id}/download?inline=1`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        In
+                      </a>
+                    </Button>
+                    {c.status !== 'CANCELLED' && previewDoc ? (
+                      <Button asChild variant="secondary">
+                        <a className="no-underline" href={`#tai-len-${previewDoc.id}`}>
+                          Tải thêm scan
+                        </a>
+                      </Button>
+                    ) : null}
+                  </>
+                }
+              />
             ) : (
               <div className="state" role="status">
                 <h3>Chọn một tệp để xem trước</h3>
