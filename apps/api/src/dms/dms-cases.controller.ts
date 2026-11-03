@@ -28,17 +28,24 @@ import type { RawBody } from '../storage/upload';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { BOOK_CODES, VANTHU_CODES, bookOf, toCsv, type BookRowRaw } from './books';
 import { BOOK_PDF_MIME, buildBookPdf } from './book-pdf';
+import { mergeCaseExtras } from './dms-extras';
 import { domain, parse, respond, uuid } from './dms-http';
+import { attributePhoneCheck } from './dms-phone';
 
 const attributes = z.record(z.string(), z.unknown());
+/** Thuộc tính của hồ sơ: như `attributes` nhưng `so_dien_thoai` (nếu có) phải đúng dạng số điện thoại. */
+const caseAttributes = attributes.superRefine(attributePhoneCheck());
+/** Khi Admin sửa: null nghĩa là xóa khóa đó, nên cho phép null ở `so_dien_thoai`. */
+const editAttributes = attributes.superRefine(attributePhoneCheck(true));
 const status = z.enum(['DRAFT', 'RECORDED', 'CANCELLED']);
 /** Trần số dòng của một bản PDF (một sổ cả năm ở 10-20 đơn/ngày còn xa mức này). */
 const MAX_PDF_ROWS = 50_000;
 
 /**
  * Hồ sơ DMS (4 nghiệp vụ). Quyền do hàm `dms_*` trong DB quyết định theo Nhóm quyền và ghi nhật ký; controller không
- * tự phán quyền. Cố ý KHÔNG có DELETE, và PUT chỉ có trên bản nháp: hồ sơ/tài liệu đã ghi sổ không có đường sửa trực tiếp
- * (đổi sau khi ghi sổ phải qua yêu cầu sửa đổi có duyệt, Phase 4). Tệp luôn là tệp MỚI, không ghi đè.
+ * tự phán quyền. Cố ý KHÔNG có DELETE hồ sơ/tài liệu, và PUT chỉ có trên bản nháp. Sau khi ghi sổ chỉ ADMIN sửa được nội
+ * dung (POST .../admin-edit, bắt buộc lý do, thêm một phiên bản mới chứ không ghi đè bản gốc); nhân viên chỉ tải thêm scan
+ * và tích "đã trả kết quả". Tệp luôn là tệp MỚI, không ghi đè.
  */
 @Controller('dms')
 @UseGuards(ActorGuard)
@@ -67,7 +74,7 @@ export class DmsCasesController {
       query,
     );
     return this.repo
-      .rows(a.tenantId, 'dms_list_cases', [
+      .rows<{ id: string }>(a.tenantId, 'dms_list_cases', [
         a.tenantId,
         a.userId,
         q.officeId,
@@ -76,6 +83,7 @@ export class DmsCasesController {
         q.limit,
         q.offset,
       ])
+      .then((rows) => mergeCaseExtras(this.repo, a, rows))
       .then((rows) => ({ rows }));
   }
 
@@ -224,10 +232,14 @@ export class DmsCasesController {
 
   @Get('cases/:id')
   async one(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
-    const rows = await this.repo.rows(a.tenantId, 'dms_get_case', [a.tenantId, a.userId, id]);
+    const rows = await this.repo.rows<{ id: string }>(a.tenantId, 'dms_get_case', [
+      a.tenantId,
+      a.userId,
+      id,
+    ]);
     if (!rows[0])
       throw new HttpException({ code: 'CASE_NOT_FOUND', label: null }, HttpStatus.NOT_FOUND);
-    return rows[0];
+    return (await mergeCaseExtras(this.repo, a, rows))[0];
   }
 
   @Post('cases')
@@ -238,7 +250,7 @@ export class DmsCasesController {
           officeId: uuid,
           domain,
           title: z.string().min(1).max(500),
-          attributes: attributes.default({}),
+          attributes: caseAttributes.default({}),
           /** Chi nhánh của hồ sơ. Bỏ trống: có đúng một chi nhánh được cấp thì tự chọn; nhiều thì DB đòi chọn (BRANCH_REQUIRED). */
           branchId: uuid.optional(),
         })
@@ -261,10 +273,71 @@ export class DmsCasesController {
     @Body() body: unknown,
   ) {
     const b = parse(
-      z.object({ title: z.string().min(1).max(500), attributes: attributes.default({}) }).strict(),
+      z
+        .object({ title: z.string().min(1).max(500), attributes: caseAttributes.default({}) })
+        .strict(),
       body,
     );
     return this.run(a, 'dms_case_update_draft', [id, b.title, JSON.stringify(b.attributes)]);
+  }
+
+  /**
+   * Tích / bỏ tích "Đã trả kết quả" (N2): chỉ là dấu hiệu nhìn, không đổi trạng thái hồ sơ, không chặn bước nào.
+   * Chỉ hồ sơ đã ghi sổ; cần quyền thêm tài liệu. Mỗi lần đổi giá trị đều có nhật ký.
+   */
+  @Post('cases/:id/returned')
+  @HttpCode(HttpStatus.OK)
+  setReturned(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ returned: z.boolean() }).strict(), body);
+    return this.run(a, 'dms_case_set_returned', [id, b.returned]);
+  }
+
+  /**
+   * Admin sửa hồ sơ đã ghi sổ (N5). Thuộc tính gửi lên được gộp vào giá trị hiện hành (null = xóa khóa); bắt buộc lý do.
+   * Thêm một phiên bản mới, bản gốc giữ nguyên. Người khác Admin nhận 403 ADMIN_ONLY.
+   */
+  @Post('cases/:id/admin-edit')
+  @HttpCode(HttpStatus.OK)
+  adminEdit(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z
+        .object({
+          title: z.string().min(1).max(500).optional(),
+          attributes: editAttributes.optional(),
+          reason: z.string().trim().min(1).max(1000),
+        })
+        .strict(),
+      body,
+    );
+    return this.run(a, 'dms_case_admin_edit', [
+      id,
+      b.title ?? null,
+      b.attributes ? JSON.stringify(b.attributes) : null,
+      b.reason,
+    ]);
+  }
+
+  /** Admin sửa thuộc tính của một tài liệu đã ghi sổ. Cùng luật với `cases/:id/admin-edit`. */
+  @Post('documents/:id/admin-edit')
+  @HttpCode(HttpStatus.OK)
+  adminEditDocument(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ attributes: editAttributes, reason: z.string().trim().min(1).max(1000) }).strict(),
+      body,
+    );
+    return this.run(a, 'dms_document_admin_edit', [id, JSON.stringify(b.attributes), b.reason]);
   }
 
   /** "Xác nhận lưu chính thức": từ đây hồ sơ và tài liệu của nó bất biến. */

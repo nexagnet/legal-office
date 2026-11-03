@@ -16,6 +16,7 @@ import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { bookOf, type BookRowRaw } from './books';
+import { mergeCaseExtras } from './dms-extras';
 import { domain, parse, respond, uuid } from './dms-http';
 
 /** Bộ lọc chung của danh sách hồ sơ và facet. Mọi trường đều tuỳ chọn; quyền xem do DB quyết định, không do tham số. */
@@ -111,10 +112,11 @@ export class DmsBrowseController {
       : rows[0]?.total_capped == null
         ? null
         : Number(rows[0].total_capped);
+    const visible = rows.map((r) =>
+      Object.fromEntries(Object.entries(r).filter(([k]) => k !== 'total_capped')),
+    ) as Array<{ id: string }>;
     return {
-      rows: rows.map((r) =>
-        Object.fromEntries(Object.entries(r).filter(([k]) => k !== 'total_capped')),
-      ),
+      rows: await mergeCaseExtras(this.repo, a, visible),
       nextCursor: rows.length === q.limit ? (rows[rows.length - 1]?.cursor ?? null) : null,
       total,
       totalCapped: total !== null && total > 10_000,
