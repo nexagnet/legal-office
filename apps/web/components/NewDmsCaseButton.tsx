@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { NewDmsCaseForm } from './NewDmsCaseForm';
 import { Button } from './ui/button';
@@ -20,6 +21,16 @@ export function NewDmsCaseButton({
   readonly redirectBase: string;
 }) {
   const [open, setOpen] = useState(false);
+  // Bốn nghiệp vụ chính có trang tạo riêng theo Figma; ba sổ Văn thư (mã vt…) giữ hộp thoại gọn.
+  if (!domainCode.startsWith('vt')) {
+    return (
+      <Button asChild>
+        <Link className="no-underline" href={`${redirectBase}/tao-moi`}>
+          {buttonLabel}
+        </Link>
+      </Button>
+    );
+  }
   return (
     <>
       <Button onClick={() => setOpen(true)}>{buttonLabel}</Button>

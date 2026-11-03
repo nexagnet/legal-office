@@ -2478,6 +2478,73 @@ fieldset.person-choice .person-choice-name {
   }
 }
 
+/*
+ * Điện thoại (≤599px, Figma M1): phần đầu danh sách gọn để thấy hồ sơ đầu tiên ngay màn hình đầu.
+ * Thẻ số và chip lọc thành một hàng vuốt ngang; nút Xuất sổ / Tạo hồ sơ chiếm hàng riêng, đủ lớn để bấm.
+ */
+@media (max-width: 599px) {
+  .dms-list .kpi-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  .dms-list .kpi-strip::-webkit-scrollbar {
+    display: none;
+  }
+  .dms-list .kpi {
+    flex: 0 0 132px;
+    min-height: 0;
+    padding: 8px 12px 6px 16px;
+    scroll-snap-align: start;
+  }
+  .dms-list .kpi::before {
+    height: 100%;
+    width: 4px;
+  }
+  .dms-list .kpi dt {
+    font-size: 12px;
+    line-height: 15px;
+  }
+  .dms-list .kpi dd {
+    margin: 0;
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .tabs-soft-row {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .tabs-soft {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-soft::-webkit-scrollbar {
+    display: none;
+  }
+  .tabs-soft-row .dms-actionbar {
+    flex: 1 1 100%;
+    gap: 8px;
+  }
+  .tabs-soft-row .dms-actionbar > a,
+  .tabs-soft-row .dms-actionbar > button {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 0 12px !important;
+    font-size: 14px !important;
+  }
+  .dms-list .dms-filters {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+}
+
 /* Tống đạt: hồ sơ có nhiều dòng Sổ S-01 → nút mở rộng + các dòng con cùng cột (Figma 352:1415) */
 .dms-table tbody + tbody tr:first-child > * {
   border-top: 0;
