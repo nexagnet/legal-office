@@ -1,25 +1,44 @@
-# Tiến độ làm hướng dẫn sử dụng (PDF theo vai)
+# Hướng dẫn sử dụng: nguồn, cách dựng lại, tình trạng
 
-Cập nhật: 2026-10-28. Bản deploy: https://http--lo-web--8929jqrrnzyy.code.run
+Cập nhật: 2026-11-04. Chụp từ `https://dev.nexagnet.com` (bản chạy `3ee9471`), dữ liệu giả.
 
-## Đã xong
-- 6 PDF theo vai trong `docs/user-guide/pdf/`: Admin, Trưởng văn phòng, Thừa hành viên, Thư ký, Văn thư, Kế toán. Mỗi PDF có phần chung (đăng nhập, giao diện) và từng bước bằng ảnh, vòng đỏ đánh số chỗ bấm.
-- Mọi ảnh chụp từ bản Northflank (không chụp môi trường nào khác), nguồn ảnh và `*.json` mô tả bước ở `docs/user-guide/roles/`.
-- Dữ liệu DEMO đã chạy thật qua đúng vai: Vi bằng (tiếp nhận, giao THV, xác nhận MISA, cấp số, ký, đóng dấu, bản scan cuối, trả kết quả), Tống đạt (lần vắng mặt, đã tống đạt kèm bằng chứng), Xác minh (nguồn, kết quả lượt, đề xuất và quyết định kết luận), THA (đương sự, nghĩa vụ, kết quả một phần), vật tư (3 mặt hàng, nhập, xuất).
+## Có gì
 
-## Tài khoản thử (môi trường thử)
-- 5 đề xuất thành viên (Trưởng VP, THV, Thư ký, Văn thư, Kế toán, `@example.invalid`) được duyệt bằng seed trực tiếp vào DB thử: chủ dự án cho phép vì chưa có Trưởng VP khác Admin để duyệt. Ghi chú duyệt có chữ DEMO và nêu bỏ qua quy tắc hai người. Chỉ dùng cho môi trường thử.
-- Mật khẩu thử ngẫu nhiên lưu ngoài repo: `C:\Users\phung\Documents\legal-office-test-accounts-thu.txt`. Admin thử: `C:\Users\phung\Documents\legal-office-admin-thu.txt`. Đăng nhập bằng mật khẩu qua `/api/auth/login` (cần tenantId).
+- `roles/*.json`: nguồn duy nhất (phần, bước, chú thích, các dòng khoanh vùng). `roles/<vai>/NN.png`: ảnh có vòng đỏ đánh số.
+- `pdf/huong-dan-<vai>.pdf`: 6 PDF theo vai (Admin, Trưởng văn phòng, Thừa hành viên, Thư ký, Văn thư, Kế toán), mỗi PDF = phần chung + phần của vai. `pdf/huong-dan-day-du.pdf`: gộp tất cả.
+- `huong-dan-su-dung.md`: bản chữ để đọc trong repo, sinh từ cùng JSON. Không sửa tay.
+
+Phạm vi: toàn bộ giao diện DMS đang hiện trên thanh bên (Vi bằng, Tống đạt, Xác minh THA, Tổ chức THA, Văn thư, Trình / Duyệt, Chờ tôi xác nhận, Xuất sổ, Biểu mẫu, Báo cáo, Scan đã xóa, Lịch sử hoạt động, Quản trị). Các màn văn phòng cũ không còn trên thanh bên (Hộp duyệt, Hợp đồng, Sổ sách, Công văn) không có trong hướng dẫn này.
+
+## Tài khoản và dữ liệu
+
+- Tài khoản thử đọc từ hai tệp ngoài repo: `C:\Users\phung\Documents\legal-office-test-accounts-thu.txt` (mỗi dòng `email,mật khẩu,VAI`) và `legal-office-admin-thu.txt` (dòng 1 email, dòng 2 mật khẩu). Không in, không chép vào repo.
+- Mã tenant: tạo `scripts/user-guide/tenant.txt` (không commit) từ `TENANT_ID` của dev.
+- Các script ghi dữ liệu giả có tiền tố `[guide]` lên dev (tạo nháp, lưu chính thức, gửi và duyệt bản trình, sửa, xóa scan). Hồ sơ đã lưu chính thức không bao giờ bị xóa nên mỗi lần chạy để lại thêm dữ liệu `[guide]` trên dev.
+- Mọi ảnh chụp đều che email thật (thay bằng `@example.invalid`) và tên tài khoản Admin thật.
 
 ## Dựng lại
-- Công cụ trong `scripts/user-guide/` (Playwright, cần `npm i playwright-core` và Chromium; `lib.mjs` đọc tài khoản từ hai tệp trên, tenant từ `tenant.txt`).
-- Mỗi `role-*.mjs` đăng nhập một vai, vẽ lớp phủ khoanh vùng và chụp; `build-pdf.mjs` ghép PDF. Đặt `APPEND=1` để nối thêm vào JSON cũ.
-- Các script ghi dữ liệu thật vào DB thử nên chạy lại cần dữ liệu DEMO mới.
 
-## Còn lại
-- Soát PDF với chủ dự án; phần Tống đạt cập nhật sau khi giao diện mới deploy.
+```bash
+cd scripts/user-guide
+npm i --no-save playwright-core        # chỉ cần cho thư mục này
+APPEND=1 node role-dms-vibang.mjs       # Thừa hành viên: tạo nháp, scan, hủy, lưu chính thức, đã trả
+APPEND=1 node role-dms-nghiepvu.mjs     # Tống đạt / Xác minh / Tổ chức THA, Chờ tôi xác nhận
+APPEND=1 node role-dms-admin.mjs        # Admin: Tổng quan, Trình/Duyệt, sửa, xóa scan, lịch sử
+APPEND=1 node role-dms-quantri.mjs      # Admin: các màn Quản trị
+APPEND=1 node role-dms-vanthu.mjs       # Văn thư
+APPEND=1 node role-dms-khac.mjs         # Trưởng văn phòng, Thư ký, Kế toán
+node role-dms-chung.mjs                 # Phần chung (ghi đè chung.json)
+node prune.mjs --write                  # bỏ phần cũ, xóa ảnh không dùng, kiểm nội dung
+GUIDE_SHA=<mã bản chạy> node build-pdf.mjs
+node build-md.mjs
+```
 
-## Cập nhật 2026-10-28 (sau PR #227, #228)
-- lo-web và lo-api đã deploy đúng commit 0393a35; đã chạy thử runtime: Tống đạt (3 lựa chọn kết quả, lần thử, đã tống đạt kèm bằng chứng), Xác minh (nguồn, kết quả lượt, đề xuất và quyết định kết luận), THA (nghĩa vụ, kết quả một phần), ngăn kéo Ký/đóng dấu/scan, bộ lọc Việc của tôi đều hoạt động.
-- Đã chụp lại các màn đổi giao diện và cập nhật PDF của THV, Văn thư, Trưởng VP.
-- Còn lại: API Tống đạt chưa trả lịch sử các lần, địa chỉ và tên văn bản; PDF đã ghi chú, cập nhật sau khi có PR đó.
+Một khoanh vùng không tìm thấy phần tử thì script dừng và báo lỗi (trừ khi đánh dấu `optional`). `prune.mjs` báo lỗi nếu còn thiếu ảnh, còn chữ "yêu cầu sửa đổi", email thật hoặc URL cũ.
+
+## Chưa làm / hạn chế
+
+- Tống đạt, Xác minh, Tổ chức THA mới có danh sách và biểu mẫu tạo hồ sơ; các tab chi tiết giống Vi bằng nhưng chưa chụp riêng.
+- Phần Trưởng văn phòng, Thư ký, Kế toán ngắn vì trên DMS các vai này có ít chức năng và tài khoản thử chưa được cấp chi nhánh để thấy hồ sơ.
+- Khung xem PDF hiện nền đen do trình xem PDF của trình duyệt.
+- Các ảnh chụp ở 1440 px; riêng phần "Dùng trên điện thoại" chụp ở 390 px.

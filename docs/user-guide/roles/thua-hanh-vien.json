@@ -3,451 +3,774 @@
  "title": "Hướng dẫn dành cho Thừa hành viên",
  "sections": [
   {
-   "title": "Việc của tôi: hồ sơ đang giao cho bạn",
-   "intro": "Thừa hành viên (THV) xem được mọi hồ sơ Vi bằng nhưng chỉ làm bước pháp lý trên hồ sơ được giao. Trang Việc của tôi gom hồ sơ được giao ở cả bốn nghiệp vụ, hạn gần nhất lên trước.",
+   "title": "DMS · Vi bằng: tạo hồ sơ nháp",
+   "intro": "Hồ sơ Vi bằng mới luôn bắt đầu là bản NHÁP: chưa có số hồ sơ, chưa vào sổ S-02 và chưa tính vào thống kê. Bạn có thể sửa, thêm tài liệu hoặc hủy nháp thoải mái cho đến khi lưu chính thức.",
    "rules": [
-    "Không làm bước pháp lý trên hồ sơ không được giao cho mình."
+    "Bản nháp chưa có số hồ sơ. Số hồ sơ (dạng 034/2026/VB-TPL) chỉ được cấp khi lưu chính thức.",
+    "Tên hồ sơ là ô bắt buộc duy nhất. SĐT khách hàng nên nhập để liên hệ nhưng không in ra sổ.",
+    "Các ô Cột 2 đến Cột 7 chính là các cột của Sổ S-02. Điền đúng chính tả vì đây là nội dung sẽ ghi vào sổ."
+   ],
+   "problems": [
+    [
+     "Bấm Lưu nháp báo SĐT không hợp lệ",
+     "SĐT phải là số điện thoại Việt Nam (10 số, bắt đầu bằng 0, có thể có dấu cách). Nhập lại cho đúng rồi lưu."
+    ],
+    [
+     "Bấm Lưu nháp báo thiếu tên hồ sơ",
+     "Điền ô Tên hồ sơ (ví dụ: Vi bằng ghi nhận thỏa thuận mua bán nhà của ông Nguyễn Văn An)."
+    ],
+    [
+     "Không thấy bản nháp vừa tạo ở tab Chính thức",
+     "Bản nháp nằm ở tab Nháp. Chỉ hồ sơ đã lưu chính thức mới hiện ở tab Chính thức."
+    ]
    ],
    "steps": [
     {
-     "title": "Trang Việc của tôi",
-     "note": "Ba thẻ trên cùng cho biết số việc quá hạn, đang xử lý và tổng số việc. Các nút lọc theo nghiệp vụ nằm ngay dưới.",
-     "img": "thua-hanh-vien/27.png",
+     "title": "Bấm \"+ Tạo hồ sơ\"",
+     "note": "Nút nằm ở góc trên bên phải danh sách Vi bằng. Chỉ vai được cấp quyền tạo hồ sơ mới thấy nút này.",
+     "detail": [],
+     "img": "thua-hanh-vien/69.png",
      "marks": [
       {
        "n": 1,
-       "text": "Bấm nút lọc để chỉ xem một nghiệp vụ (Tống đạt, Tổ chức thi hành án, Xác minh, Vi bằng)"
+       "text": "Bấm \"+ Tạo hồ sơ\" để mở biểu mẫu tạo mới"
+      }
+     ]
+    },
+    {
+     "title": "Điền thông tin Vi bằng (phần đầu)",
+     "note": "Biểu mẫu chia 3 phần: A là thông tin phục vụ Sổ S-02, B là tài liệu đính kèm, C là thông tin hệ thống tự điền.",
+     "detail": [
+      "Tên hồ sơ (bắt buộc): tên gọi để tìm lại hồ sơ, ví dụ \"Vi bằng ghi nhận thỏa thuận mua bán nhà của ông Nguyễn Văn An\".",
+      "SĐT khách hàng: số điện thoại liên hệ của người yêu cầu. Chỉ dùng để liên hệ, không in ra sổ.",
+      "Cột 2 (Người yêu cầu lập vi bằng): ghi rõ họ tên và địa chỉ.",
+      "Cột 3 (Nội dung yêu cầu lập vi bằng): mô tả ngắn việc cần ghi nhận."
+     ],
+     "img": "thua-hanh-vien/70.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tên hồ sơ (bắt buộc)"
       },
       {
        "n": 2,
-       "text": "Bấm vào tên hồ sơ để mở màn xử lý"
-      }
-     ]
-    },
-    {
-     "title": "Lọc theo một nghiệp vụ",
-     "note": "Sau khi chọn Tống đạt, danh sách chỉ còn các văn bản tống đạt được giao cho bạn; bấm Tất cả để quay lại.",
-     "img": "thua-hanh-vien/28.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Bấm Tất cả để bỏ lọc"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "title": "Vi bằng: xác nhận đã ký",
-   "intro": "Sau khi Văn thư cấp số, Thừa hành viên phụ trách ký thật trên văn bản giấy, rồi bấm xác nhận trên phần mềm. Phần mềm chỉ ghi nhận hành vi đã xảy ra; chữ ký pháp lý là chữ ký trên giấy.",
-   "rules": [
-    "Chỉ THV được giao phụ trách hồ sơ mới xác nhận ký.",
-    "Văn thư chỉ đóng dấu được sau khi THV xác nhận đã ký."
-   ],
-   "steps": [
-    {
-     "title": "Mở Thêm thao tác, chọn Ký và đóng dấu",
-     "note": "Hồ sơ đã có số và đang chờ ký.",
-     "img": "thua-hanh-vien/37.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Chọn Ký và đóng dấu"
-      }
-     ]
-    },
-    {
-     "title": "Bấm Xác nhận đã ký",
-     "note": "Ngăn kéo hiện ba bước dạng thẻ: bước 1 của THV, bước 2 và 3 của Văn thư (mờ cho tới khi tới bước).",
-     "img": "thua-hanh-vien/38.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Bấm Xác nhận đã ký (sau khi đã ký thật trên giấy)"
-      }
-     ]
-    },
-    {
-     "title": "Đã xác nhận ký",
-     "note": "Bước 1 chuyển sang Đã xong; bước kế tiếp là Văn thư đóng dấu.",
-     "img": "thua-hanh-vien/39.png",
-     "marks": []
-    }
-   ]
-  },
-  {
-   "title": "Vi bằng: liên hệ khách và trả kết quả",
-   "intro": "Trả kết quả là bước cuối của Vi bằng. Để được ghi \"Đã trả\" phải đủ năm điều kiện: thanh toán còn hợp lệ, THV đã ký, Văn thư đã đóng dấu, đã có bản scan cuối và việc bàn giao thực tế đã xảy ra. Liên hệ khách không đồng nghĩa với đã trả.",
-   "rules": [
-    "Ghi từng lần liên hệ (nhắc nhận, báo kết quả) và kết quả liên hệ.",
-    "Cập nhật cơ sở dữ liệu hoặc gửi Sở Tư pháp là việc riêng, không chặn việc trả khách."
-   ],
-   "steps": [
-    {
-     "title": "Ghi lần liên hệ khách",
-     "note": "Chọn loại liên hệ và kết quả liên hệ rồi lưu. Nhật ký liên hệ ghi ngày, người và kết quả.",
-     "img": "thua-hanh-vien/14.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Chọn loại liên hệ"
-      },
-      {
-       "n": 2,
-       "text": "Chọn kết quả liên hệ"
+       "text": "SĐT khách hàng (10 số, bắt đầu bằng 0)"
       },
       {
        "n": 3,
-       "text": "Bấm Lưu kết quả liên hệ"
-      }
-     ]
-    },
-    {
-     "title": "Ghi người nhận và ngày bàn giao",
-     "note": "Khi khách đến nhận bản gốc: nhập người nhận kết quả và ngày bàn giao thực tế.",
-     "img": "thua-hanh-vien/15.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Nhập người nhận kết quả"
-      },
-      {
-       "n": 2,
-       "text": "Chọn ngày bàn giao"
-      },
-      {
-       "n": 3,
-       "text": "Bấm Lưu người nhận"
+       "text": "Cột 2: người yêu cầu lập vi bằng (họ tên, địa chỉ)"
       },
       {
        "n": 4,
-       "text": "Cuối cùng bấm Xác nhận đã trả kết quả"
+       "text": "Cột 3: nội dung yêu cầu lập vi bằng"
       }
      ]
     },
     {
-     "title": "Hồ sơ đã trả kết quả",
-     "note": "Hệ thống chỉ cho trả khi đủ điều kiện; thiếu một điều kiện sẽ báo lý do bằng chữ đỏ ngay dưới nút.",
-     "img": "thua-hanh-vien/16.png",
-     "marks": []
-    }
-   ]
-  },
-  {
-   "title": "Tống đạt: ghi từng lần đi giao văn bản",
-   "intro": "Tống đạt là giao văn bản cho đúng người, đúng nơi, đúng hạn. Mỗi lần đi giao đều phải ghi lại. Không gặp người nhận KHÔNG phải là tống đạt thành công; chỉ khi có bằng chứng đã giao mới kết thúc việc. Lưu ý: màn chi tiết hiện chưa hiện lịch sử từng lần, địa chỉ và tên văn bản; phần này sẽ bổ sung ở bản sau.",
-   "rules": [
-    "Chưa được giao làm thì không ghi được lần tống đạt.",
-    "\"Không thể tống đạt được\" chỉ chọn được sau ít nhất một lần đã thử.",
-    "Hồ sơ chỉ kết thúc khi có bằng chứng hoặc kết luận hợp lệ."
-   ],
-   "steps": [
-    {
-     "title": "Danh sách văn bản tống đạt",
-     "note": "Cột \"Việc tiếp theo\" cho biết việc cần làm; văn bản đã xong hiện \"Hoàn tất · xem bằng chứng\".",
-     "img": "thua-hanh-vien/29.png",
+     "title": "Nhập sai SĐT: hệ thống chặn và báo lỗi",
+     "note": "SĐT \"123\" không phải số điện thoại hợp lệ nên hồ sơ chưa được lưu. Sửa lại cho đúng rồi bấm Lưu nháp lần nữa.",
+     "detail": [],
+     "img": "thua-hanh-vien/71.png",
      "marks": [
       {
        "n": 1,
-       "text": "Bấm Ghi nhận kết quả để vào trang chi tiết"
-      }
-     ]
-    },
-    {
-     "title": "Trang chi tiết: quy trình 3 bước",
-     "note": "Bước 1 do Admin hoặc Trưởng VP giao người xử lý (đã xong); bước 2 là việc của bạn; bước 3 mở khi có bằng chứng hoặc kết luận.",
-     "img": "thua-hanh-vien/30.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Bấm Ghi nhận kết quả lần tống đạt sau mỗi lần đi giao"
+       "text": "Ô SĐT báo lỗi: nhập lại 10 số, bắt đầu bằng 0"
       },
       {
        "n": 2,
-       "text": "Thông tin văn bản: số yêu cầu, người nhận, hạn, số lần đã thử"
+       "text": "Thông báo lỗi hiện phía dưới biểu mẫu"
       }
      ]
     },
     {
-     "title": "Chọn một trong ba kết quả",
-     "note": "Ba lựa chọn: đã đưa được văn bản (kết thúc việc, cần bằng chứng); chưa gặp được người nhận (việc vẫn mở, chọn lý do); không thể tống đạt được (chỉ chọn được sau ít nhất một lần đã thử).",
-     "img": "thua-hanh-vien/31.png",
+     "title": "Điền thông tin Vi bằng (phần cuối) rồi Lưu nháp",
+     "note": "Điền tiếp các cột còn lại của Sổ S-02 rồi bấm Lưu nháp. Có thể để trống ô chưa biết và bổ sung sau khi còn là nháp.",
+     "detail": [
+      "Cột 4 (Số, ngày, tháng, năm của vi bằng): có thể để trống khi còn là nháp.",
+      "Cột 5 (Địa chỉ nơi lập vi bằng): ghi theo xã/phường/đặc khu, tỉnh/thành phố.",
+      "Cột 6 (Thừa hành viên lập vi bằng): ghi rõ họ tên và số thẻ.",
+      "Cột 7 (Ghi chú): thông tin thêm nếu có."
+     ],
+     "img": "thua-hanh-vien/72.png",
      "marks": [
       {
        "n": 1,
-       "text": "Đã đưa được văn bản: kết thúc việc"
+       "text": "Cột 5: địa chỉ nơi lập vi bằng"
       },
       {
        "n": 2,
-       "text": "Chưa gặp được người nhận: việc vẫn mở"
+       "text": "Cột 6: thừa hành viên lập vi bằng (họ tên, số thẻ)"
       },
       {
        "n": 3,
-       "text": "Không thể tống đạt được: sau ít nhất một lần thử"
-      }
-     ]
-    },
-    {
-     "title": "Chưa gặp được: chọn lý do rồi lưu lần thử",
-     "note": "Chọn lý do chưa gặp được (từ chối, vắng mặt, không có người nhận, sai địa chỉ, lý do khác). Giờ ghi nhận do hệ thống tự lấy.",
-     "img": "thua-hanh-vien/32.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Chọn lý do chưa gặp được"
-      },
-      {
-       "n": 2,
-       "text": "Bấm Lưu lần thử"
-      }
-     ]
-    },
-    {
-     "title": "Đã ghi lần thử",
-     "note": "Số lần đã thử tăng; việc vẫn mở. Sau ít nhất một lần thử, lựa chọn \"Không thể tống đạt được\" được mở.",
-     "img": "thua-hanh-vien/33.png",
-     "marks": []
-    },
-    {
-     "title": "Kết luận không thể tống đạt được",
-     "note": "Chỉ chọn được sau ít nhất một lần đã thử. Nêu lý do rồi xác nhận; kết luận này kết thúc việc.",
-     "img": "thua-hanh-vien/34.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Chọn Không thể tống đạt được và chọn lý do"
-      }
-     ]
-    },
-    {
-     "title": "Đã đưa được văn bản: tải bằng chứng",
-     "note": "Tải biên bản hoặc ảnh bằng chứng (PDF, JPEG, PNG, tối đa 25 MB). Sau khi xác nhận, việc chuyển sang Đã tống đạt và không sửa được.",
-     "img": "thua-hanh-vien/35.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Chọn tệp bằng chứng"
-      },
-      {
-       "n": 2,
-       "text": "Bấm Xác nhận đã tống đạt"
-      }
-     ]
-    },
-    {
-     "title": "Văn bản đã được tống đạt",
-     "note": "Bước 3 hoàn tất; số lần và bằng chứng được lưu.",
-     "img": "thua-hanh-vien/36.png",
-     "marks": []
-    }
-   ]
-  },
-  {
-   "title": "Xác minh điều kiện thi hành án",
-   "intro": "Một hồ sơ xác minh có nhiều lượt, mỗi lượt xác minh một bên hoặc một nguồn. Kết quả của một lượt chưa phải là kết luận chung. Phải có nguồn (có tệp) thì mới ghi được kết quả lượt; mọi lượt có kết quả mới đề xuất được kết luận cho Trưởng văn phòng quyết định.",
-   "rules": [
-    "Thiếu nguồn thì không ghi được kết quả lượt.",
-    "Thông tin tài sản, nhân thân rất nhạy cảm: chọn đúng mức bảo mật."
-   ],
-   "steps": [
-    {
-     "title": "Quy trình 3 bước và các lượt xác minh",
-     "note": "Đầu trang là quy trình 3 bước (giao THV, xác minh các bên, kết luận) kèm số lượt đã có kết quả. Bên dưới là bảng các lượt.",
-     "img": "thua-hanh-vien/40.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Thêm lượt xác minh mới"
-      },
-      {
-       "n": 2,
-       "text": "Bấm Ghi kết quả của lượt"
-      }
-     ]
-    },
-    {
-     "title": "Ghi nguồn kèm tệp",
-     "note": "Nhập loại nguồn, mức bảo mật, mục đích và tải tệp. Nguồn nhạy cảm chọn Mật hoặc Có dữ liệu cá nhân.",
-     "img": "thua-hanh-vien/41.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Nhập loại nguồn"
-      },
-      {
-       "n": 2,
-       "text": "Chọn mức bảo mật"
-      },
-      {
-       "n": 3,
-       "text": "Nhập mục đích sử dụng"
+       "text": "Cột 7: ghi chú"
       },
       {
        "n": 4,
-       "text": "Chọn tệp nguồn"
+       "text": "Bấm Lưu nháp"
+      }
+     ]
+    },
+    {
+     "title": "Bản nháp vừa tạo",
+     "note": "Hệ thống chuyển sang trang chi tiết của bản nháp. Từ đây bạn lưu thêm, thêm tài liệu, hủy nháp hoặc lưu chính thức.",
+     "detail": [
+      "Lưu hoặc Lưu nháp: lưu lại các ô vừa sửa, vẫn là bản nháp.",
+      "+ Thêm tài liệu: mở tab Tài liệu để thêm văn bản và tải bản scan.",
+      "Hủy nháp: bỏ bản nháp (phải nêu lý do), xem phần \"Hủy bản nháp\".",
+      "Xác nhận lưu chính thức: cấp số hồ sơ, vào sổ, từ đó không sửa trực tiếp được nữa."
+     ],
+     "img": "thua-hanh-vien/73.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lưu thay đổi (vẫn là bản nháp)"
+      },
+      {
+       "n": 2,
+       "text": "Thêm tài liệu cho hồ sơ"
+      },
+      {
+       "n": 3,
+       "text": "Hủy bản nháp (cần nêu lý do)"
+      },
+      {
+       "n": 4,
+       "text": "Lưu chính thức: cấp số và vào sổ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Vi bằng: tài liệu và bản scan",
+   "intro": "Mỗi hồ sơ gồm một hoặc nhiều tài liệu (biên bản, vi bằng, giấy tờ kèm theo); mỗi tài liệu có các tệp đính kèm, thường là bản scan đã ký và đóng dấu.",
+   "rules": [
+    "Bản scan phải là tệp PDF hoặc ảnh. Nên scan rõ nét, đủ trang, đúng chiều.",
+    "Tệp tải lên được nhận dạng chữ (OCR) tự động sau 1 đến 2 phút để phục vụ tìm theo nội dung.",
+    "Sau khi lưu chính thức, không xóa hay sửa tài liệu đã có; chỉ được tải THÊM scan."
+   ],
+   "problems": [
+    [
+     "Bấm Tải lên mà không có gì xảy ra",
+     "Chưa chọn tệp. Bấm \"Chọn tệp\" và chọn tệp PDF hoặc ảnh trước khi bấm Tải lên."
+    ],
+    [
+     "Xem trước báo \"Chọn một tệp để xem trước\"",
+     "Hồ sơ chưa có tệp nào. Tải bản scan lên, rồi bấm Xem ở dòng tệp."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Tab Tài liệu: thêm một tài liệu",
+     "note": "Tài liệu là một văn bản thuộc hồ sơ. Điền Loại tài liệu và Tên tài liệu rồi bấm \"+ Thêm tài liệu\".",
+     "detail": [
+      "Loại tài liệu: mã hoặc loại văn bản, ví dụ N-04.",
+      "Tên tài liệu: tên gọi dễ nhận biết, ví dụ \"Vi bằng ghi nhận thỏa thuận mua bán nhà\".",
+      "Văn bản chính thức: tích nếu đây là văn bản chính thức của hồ sơ (thường là bản vi bằng đã ký)."
+     ],
+     "img": "thua-hanh-vien/74.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Loại tài liệu (ví dụ N-04)"
+      },
+      {
+       "n": 2,
+       "text": "Tên tài liệu"
+      },
+      {
+       "n": 3,
+       "text": "Tích nếu là văn bản chính thức"
+      },
+      {
+       "n": 4,
+       "text": "Bấm để thêm tài liệu"
+      }
+     ]
+    },
+    {
+     "title": "Chọn tệp scan và tải lên",
+     "note": "Sau khi thêm tài liệu, mục tải tệp hiện ra. Chọn tệp, đặt tên tệp (không bắt buộc), giữ ô \"Bản scan\" được tích rồi bấm Tải lên.",
+     "detail": [
+      "Chọn tệp: chọn tệp PDF hoặc ảnh trên máy.",
+      "Tên tệp (tùy chọn): đặt tên dễ nhớ, ví dụ \"Bản scan vi bằng đã ký\".",
+      "Bản scan: tích nếu đây là bản scan văn bản giấy đã ký, đóng dấu."
+     ],
+     "img": "thua-hanh-vien/75.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn tệp scan trên máy"
+      },
+      {
+       "n": 2,
+       "text": "Tên tệp (không bắt buộc)"
+      },
+      {
+       "n": 3,
+       "text": "Tích nếu là bản scan"
+      },
+      {
+       "n": 4,
+       "text": "Bấm Tải lên"
+      }
+     ]
+    },
+    {
+     "title": "Tệp đã tải lên",
+     "note": "Tệp hiện trong danh sách tài liệu. Bấm Xem để xem trước ngay bên cạnh. Chữ trong tệp sẽ được nhận dạng sau 1 đến 2 phút để tìm theo nội dung.",
+     "detail": [],
+     "img": "thua-hanh-vien/76.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm Xem để xem trước tệp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Vi bằng: hủy bản nháp",
+   "intro": "Khi mở nhầm hoặc không còn cần bản nháp, bạn hủy nháp. Bản nháp chưa có số và chưa vào sổ nên hủy không làm lệch số.",
+   "rules": [
+    "Chỉ hủy được BẢN NHÁP. Hồ sơ đã lưu chính thức không hủy hay xóa.",
+    "Lý do hủy bắt buộc. Bản nháp hủy chuyển sang tab Đã hủy, vẫn tra cứu được."
+   ],
+   "problems": [
+    [
+     "Nút Xác nhận hủy bị mờ",
+     "Chưa nhập Lý do hủy nháp. Nhập lý do rồi bấm lại."
+    ],
+    [
+     "Bấm nhầm Hủy nháp",
+     "Bấm \"Giữ bản nháp\" để đóng hộp thoại, không có gì thay đổi."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Hộp thoại Hủy bản nháp",
+     "note": "Nhập lý do rồi bấm Xác nhận hủy. Muốn giữ lại bản nháp thì bấm Giữ bản nháp.",
+     "detail": [],
+     "img": "thua-hanh-vien/77.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lý do hủy nháp (bắt buộc)"
+      },
+      {
+       "n": 2,
+       "text": "Giữ bản nháp: đóng hộp thoại, không hủy"
+      },
+      {
+       "n": 3,
+       "text": "Xác nhận hủy: bản nháp chuyển sang Đã hủy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Vi bằng: lưu chính thức (ghi sổ)",
+   "intro": "Khi nội dung đã đúng, bạn \"Xác nhận lưu chính thức\". Hệ thống cấp số hồ sơ, đưa hồ sơ vào sổ S-02 và khóa nội dung.",
+   "rules": [
+    "Sau khi lưu chính thức, hồ sơ và tài liệu KHÔNG sửa trực tiếp, KHÔNG xóa. Chỉ Admin sửa được nội dung (có lý do, lưu thành phiên bản mới); nhân viên chỉ tải thêm scan.",
+    "Kiểm tra kỹ từng cột trước khi xác nhận vì đây là nội dung sổ."
+   ],
+   "problems": [
+    [
+     "Cần sửa hồ sơ đã lưu chính thức",
+     "Nhờ Admin sửa (nêu rõ chỗ cần sửa và lý do). Bạn không sửa trực tiếp được."
+    ],
+    [
+     "Muốn thêm bản scan sau khi lưu chính thức",
+     "Vẫn làm được: mở tab Tài liệu, dùng mục Tải thêm scan."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Hộp thoại xác nhận lưu chính thức",
+     "note": "Đọc kỹ lưu ý: sau bước này hồ sơ không sửa trực tiếp được. Bấm Lưu chính thức để cấp số, hoặc Quay lại để kiểm tra thêm.",
+     "detail": [],
+     "img": "thua-hanh-vien/78.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Quay lại để kiểm tra thêm"
+      },
+      {
+       "n": 2,
+       "text": "Lưu chính thức: cấp số hồ sơ và vào sổ"
+      }
+     ]
+    },
+    {
+     "title": "Hồ sơ sau khi lưu chính thức",
+     "note": "Tiêu đề hiện số hồ sơ vừa cấp. Dải thông báo nhắc rằng chỉ Admin sửa được nội dung. Thông tin chung và Nội dung sổ S-02 hiển thị dạng chỉ đọc.",
+     "detail": [
+      "Các tab: Thông tin chung, Tài liệu, Tệp đính kèm, Phiên bản cũ (các bản trước khi Admin sửa), Sổ liên quan.",
+      "Bạn không thấy nút sửa vì chỉ Admin sửa được hồ sơ đã ghi sổ."
+     ],
+     "img": "thua-hanh-vien/79.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tab Tài liệu: xem và tải thêm scan"
+      },
+      {
+       "n": 2,
+       "text": "Tab Phiên bản cũ: các bản trước khi Admin sửa"
+      },
+      {
+       "n": 3,
+       "text": "Tab Sổ liên quan"
+      }
+     ]
+    },
+    {
+     "title": "Tab Tài liệu của hồ sơ đã ghi sổ",
+     "note": "Xem bản scan ngay trong trang. Các nút phía trên khung xem cho phép tải bản scan chính, in, hoặc tải thêm scan.",
+     "detail": [],
+     "img": "thua-hanh-vien/80.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Khung xem trước bản scan"
+      },
+      {
+       "n": 2,
+       "text": "Tải bản scan chính về máy"
+      },
+      {
+       "n": 3,
+       "text": "In bản scan"
+      },
+      {
+       "n": 4,
+       "text": "Tải thêm một tệp scan nữa (cuộn xuống mục tải tệp)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Vi bằng: đánh dấu Đã trả kết quả",
+   "intro": "Khi đã trả kết quả (vi bằng) cho khách, bạn tích ô \"Đã trả kết quả\" trên dòng hồ sơ. Ô này chỉ để theo dõi, không đổi trạng thái hồ sơ.",
+   "rules": [
+    "Chỉ tích được với hồ sơ đã lưu chính thức (đã có số). Bản nháp chưa tích được.",
+    "Số hồ sơ đã tích hiện ở thẻ \"Đã trả kết quả\" trên danh sách và trên Tổng quan."
+   ],
+   "problems": [
+    [
+     "Không tích được ô Đã trả kết quả",
+     "Hồ sơ còn là bản nháp, hoặc bạn không có quyền ghi trên hồ sơ này."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Tìm dòng hồ sơ và tích Đã trả kết quả",
+     "note": "Tích vào ô trên dòng hồ sơ. Hệ thống lưu ngay và thẻ \"Đã trả kết quả\" phía trên tăng thêm 1.",
+     "detail": [],
+     "img": "thua-hanh-vien/81.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tích khi đã trả kết quả cho khách"
+      }
+     ]
+    },
+    {
+     "title": "Đã tích: thẻ Đã trả kết quả tăng",
+     "note": "Ô đã được tích và được lưu ngay. Thẻ \"Đã trả kết quả\" phía trên đếm lại số hồ sơ đã tích (cập nhật khi tải lại trang). Bỏ tích nếu tích nhầm.",
+     "detail": [],
+     "img": "thua-hanh-vien/82.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Ô đã tích"
+      },
+      {
+       "n": 2,
+       "text": "Thẻ đếm số hồ sơ đã trả kết quả"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Trình / Duyệt: gửi bản trình",
+   "intro": "Khi cần Admin xem xét một việc kèm bản scan (ví dụ đề nghị cấp bản sao, bổ sung giấy ủy quyền), bạn gửi một bản trình.",
+   "rules": [
+    "Bản trình không phải hồ sơ nghiệp vụ và không tạo số hồ sơ.",
+    "Bạn chỉ thấy bản trình của mình. Admin duyệt hoặc từ chối; nếu từ chối sẽ có ghi chú lý do."
+   ],
+   "problems": [
+    [
+     "Bấm Gửi bản trình báo thiếu thông tin",
+     "Điền Tiêu đề và chọn ít nhất một bản scan (PDF, JPEG hoặc PNG)."
+    ],
+    [
+     "Bản trình bị từ chối",
+     "Mở bản trình xem ghi chú của Admin, chỉnh lại rồi gửi bản trình mới."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Trình / Duyệt: danh sách bản trình của tôi",
+     "note": "Bạn chỉ thấy bản trình do mình gửi. Bấm \"+ Trình mới\" để gửi bản trình mới.",
+     "detail": [],
+     "img": "thua-hanh-vien/66.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm \"+ Trình mới\" để gửi bản trình"
+      },
+      {
+       "n": 2,
+       "text": "Lọc theo trạng thái: Chờ duyệt, Đã duyệt, Từ chối"
+      }
+     ]
+    },
+    {
+     "title": "Hộp thoại Trình mới",
+     "note": "Điền tiêu đề, mô tả và chọn bản scan (PDF, JPEG hoặc PNG) rồi bấm Gửi bản trình. Không cần chọn loại hay từ khóa.",
+     "detail": [
+      "Tiêu đề: tóm tắt đề nghị trong một dòng.",
+      "Mô tả: nêu rõ việc cần Admin xem xét.",
+      "Bản scan: có thể chọn nhiều tệp."
+     ],
+     "img": "thua-hanh-vien/67.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tiêu đề bản trình"
+      },
+      {
+       "n": 2,
+       "text": "Mô tả đề nghị"
+      },
+      {
+       "n": 3,
+       "text": "Chọn bản scan đính kèm"
+      },
+      {
+       "n": 4,
+       "text": "Gửi bản trình lên Admin"
+      }
+     ]
+    },
+    {
+     "title": "Bản trình vừa gửi ở trạng thái Chờ duyệt",
+     "note": "Bản trình hiện trong danh sách với trạng thái Chờ duyệt. Khi Admin duyệt hoặc từ chối, trạng thái đổi theo và bạn nhận thông báo.",
+     "detail": [],
+     "img": "thua-hanh-vien/68.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bản trình vừa gửi: đang chờ duyệt"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Tống đạt: tạo hồ sơ",
+   "intro": "Mỗi hồ sơ Tống đạt ghi việc tống đạt văn bản: văn bản nào, tống đạt cho ai, kết quả ra sao. Sổ S-01 được dựng từ các hồ sơ chính thức. Cách làm giống nghiệp vụ Vi bằng: tạo bản nháp, thêm tài liệu và bản scan, rồi lưu chính thức; chỉ khác các ô của sổ S-01.",
+   "rules": [
+    "Bản nháp chưa có số hồ sơ và chưa vào sổ S-01. Sau khi lưu chính thức không sửa trực tiếp, không xóa (chỉ Admin sửa có lý do).",
+    "Các ô mang tên \"Cột n\" chính là cột của sổ; điền đúng chính tả vì đây là nội dung sẽ ghi vào sổ."
+   ],
+   "problems": [
+    [
+     "Không thấy nút \"+ Tạo hồ sơ\" ở Tống đạt",
+     "Tài khoản chưa được cấp quyền tạo hồ sơ nghiệp vụ này. Nhờ Admin kiểm tra phân quyền."
+    ],
+    [
+     "Bấm Lưu nháp báo thiếu thông tin",
+     "Điền ô bắt buộc (có ghi chú bắt buộc), kiểm tra SĐT đúng 10 số bắt đầu bằng 0."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Tống đạt: danh sách và nút tạo hồ sơ",
+     "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
+     "detail": [],
+     "img": "thua-hanh-vien/91.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tạo hồ sơ mới (bản nháp)"
+      },
+      {
+       "n": 2,
+       "text": "Xem trước và xuất sổ S-01"
+      }
+     ]
+    },
+    {
+     "title": "Tống đạt: các ô của biểu mẫu tạo hồ sơ",
+     "note": "Điền các ô rồi bấm Lưu nháp ở cuối biểu mẫu. Có thể để trống ô chưa biết và bổ sung khi còn là bản nháp.",
+     "detail": [
+      "Tên hồ sơ (bắt buộc)",
+      "SĐT khách hàng Không in ra sổ.",
+      "Ghi chú"
+     ],
+     "img": "thua-hanh-vien/92.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tên hồ sơ (bắt buộc)"
+      },
+      {
+       "n": 2,
+       "text": "SĐT khách hàng Không in ra sổ."
+      },
+      {
+       "n": 3,
+       "text": "Ghi chú"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Xác minh điều kiện thi hành án: tạo hồ sơ",
+   "intro": "Mỗi hồ sơ ghi việc xác minh điều kiện thi hành án theo yêu cầu: người yêu cầu, người phải thi hành, nội dung xác minh và kết quả. Sổ S-04 được dựng từ các hồ sơ chính thức. Cách làm giống nghiệp vụ Vi bằng: tạo bản nháp, thêm tài liệu và bản scan, rồi lưu chính thức; chỉ khác các ô của sổ S-04.",
+   "rules": [
+    "Bản nháp chưa có số hồ sơ và chưa vào sổ S-04. Sau khi lưu chính thức không sửa trực tiếp, không xóa (chỉ Admin sửa có lý do).",
+    "Các ô mang tên \"Cột n\" chính là cột của sổ; điền đúng chính tả vì đây là nội dung sẽ ghi vào sổ."
+   ],
+   "problems": [
+    [
+     "Không thấy nút \"+ Tạo hồ sơ\" ở Xác minh điều kiện thi hành án",
+     "Tài khoản chưa được cấp quyền tạo hồ sơ nghiệp vụ này. Nhờ Admin kiểm tra phân quyền."
+    ],
+    [
+     "Bấm Lưu nháp báo thiếu thông tin",
+     "Điền ô bắt buộc (có ghi chú bắt buộc), kiểm tra SĐT đúng 10 số bắt đầu bằng 0."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Xác minh điều kiện thi hành án: danh sách và nút tạo hồ sơ",
+     "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
+     "detail": [],
+     "img": "thua-hanh-vien/93.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tạo hồ sơ mới (bản nháp)"
+      },
+      {
+       "n": 2,
+       "text": "Xem trước và xuất sổ S-04"
+      }
+     ]
+    },
+    {
+     "title": "Xác minh điều kiện thi hành án: các ô của biểu mẫu tạo hồ sơ",
+     "note": "Điền các ô rồi bấm Lưu nháp ở cuối biểu mẫu. Có thể để trống ô chưa biết và bổ sung khi còn là bản nháp.",
+     "detail": [
+      "Tên hồ sơ (bắt buộc)",
+      "SĐT khách hàng Không in ra sổ.",
+      "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)",
+      "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN (số, ngày, tháng, năm)",
+      "Cột 4: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN",
+      "Cột 5: QUYẾT ĐỊNH XÁC MINH (số, ngày)",
+      "Cột 6: NGƯỜI YÊU CẦU THI HÀNH ÁN",
+      "Cột 7: NGƯỜI PHẢI THI HÀNH ÁN",
+      "Cột 8: NỘI DUNG XÁC MINH",
+      "Cột 9: KẾT QUẢ XÁC MINH"
+     ],
+     "img": "thua-hanh-vien/94.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tên hồ sơ (bắt buộc)"
+      },
+      {
+       "n": 2,
+       "text": "SĐT khách hàng Không in ra sổ."
+      },
+      {
+       "n": 3,
+       "text": "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)"
+      },
+      {
+       "n": 4,
+       "text": "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN (số, ngày, tháng, năm)"
       },
       {
        "n": 5,
-       "text": "Bấm Ghi nguồn kèm tệp"
-      }
-     ]
-    },
-    {
-     "title": "Ghi kết quả của lượt",
-     "note": "Sau khi có nguồn, nhập kết quả của lượt rồi ghi. Kết quả lượt không đồng nghĩa với kết luận cuối.",
-     "img": "thua-hanh-vien/42.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Nhập kết quả của lượt"
+       "text": "Cột 4: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN"
       },
       {
-       "n": 2,
-       "text": "Bấm Ghi kết quả lượt"
+       "n": 6,
+       "text": "Cột 5: QUYẾT ĐỊNH XÁC MINH (số, ngày)"
+      },
+      {
+       "n": 7,
+       "text": "Cột 6: NGƯỜI YÊU CẦU THI HÀNH ÁN"
+      },
+      {
+       "n": 8,
+       "text": "Cột 7: NGƯỜI PHẢI THI HÀNH ÁN"
+      },
+      {
+       "n": 9,
+       "text": "Cột 8: NỘI DUNG XÁC MINH"
+      },
+      {
+       "n": 10,
+       "text": "Cột 9: KẾT QUẢ XÁC MINH"
       }
      ]
     }
    ]
   },
   {
-   "title": "Xác minh: đề xuất kết luận",
-   "intro": "Khi mọi lượt xác minh đã có kết quả, THV đề xuất kết luận gửi Trưởng văn phòng. Duyệt kết luận trong phần mềm khác với ký quyết định pháp lý.",
+   "title": "DMS · Tổ chức thi hành án: tạo hồ sơ",
+   "intro": "Mỗi hồ sơ ghi việc tổ chức thi hành một bản án, quyết định: đương sự, nội dung, kết quả. Sổ S-05 được dựng từ các hồ sơ chính thức. Cách làm giống nghiệp vụ Vi bằng: tạo bản nháp, thêm tài liệu và bản scan, rồi lưu chính thức; chỉ khác các ô của sổ S-05.",
    "rules": [
-    "Chưa có kết quả ở mọi lượt thì không gửi được đề xuất.",
-    "Thiếu căn cứ thì không tự kết luận xong."
+    "Bản nháp chưa có số hồ sơ và chưa vào sổ S-05. Sau khi lưu chính thức không sửa trực tiếp, không xóa (chỉ Admin sửa có lý do).",
+    "Các ô mang tên \"Cột n\" chính là cột của sổ; điền đúng chính tả vì đây là nội dung sẽ ghi vào sổ."
+   ],
+   "problems": [
+    [
+     "Không thấy nút \"+ Tạo hồ sơ\" ở Tổ chức thi hành án",
+     "Tài khoản chưa được cấp quyền tạo hồ sơ nghiệp vụ này. Nhờ Admin kiểm tra phân quyền."
+    ],
+    [
+     "Bấm Lưu nháp báo thiếu thông tin",
+     "Điền ô bắt buộc (có ghi chú bắt buộc), kiểm tra SĐT đúng 10 số bắt đầu bằng 0."
+    ]
    ],
    "steps": [
     {
-     "title": "Chọn Đề xuất kết luận",
-     "note": "Menu Thêm thao tác của hồ sơ xác minh gồm: Thêm lượt, Đề xuất kết luận, Quyết định kết luận (Trưởng VP), Phân công, Ngày ký hợp đồng.",
-     "img": "thua-hanh-vien/43.png",
+     "title": "Tổ chức thi hành án: danh sách và nút tạo hồ sơ",
+     "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
+     "detail": [],
+     "img": "thua-hanh-vien/95.png",
      "marks": [
       {
        "n": 1,
-       "text": "Chọn Đề xuất kết luận"
+       "text": "Tạo hồ sơ mới (bản nháp)"
+      },
+      {
+       "n": 2,
+       "text": "Xem trước và xuất sổ S-05"
       }
      ]
     },
     {
-     "title": "Nhập nội dung đề xuất kết luận",
-     "note": "Ghi ngắn gọn kết luận dựa trên các lượt đã có kết quả.",
-     "img": "thua-hanh-vien/44.png",
+     "title": "Tổ chức thi hành án: các ô của biểu mẫu tạo hồ sơ",
+     "note": "Điền các ô rồi bấm Lưu nháp ở cuối biểu mẫu. Có thể để trống ô chưa biết và bổ sung khi còn là bản nháp.",
+     "detail": [
+      "Tên hồ sơ (bắt buộc)",
+      "SĐT khách hàng Không in ra sổ.",
+      "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)",
+      "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Số, ngày, tháng, năm",
+      "Cột 4: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Sửa đổi, bổ sung",
+      "Cột 5: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Thu hồi",
+      "Cột 6: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN",
+      "Cột 7: BÊN PHẢI THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)",
+      "Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)",
+      "Cột 9: CÁC KHOẢN PHẢI THI HÀNH ÁN (theo hợp đồng)"
+     ],
+     "img": "thua-hanh-vien/96.png",
      "marks": [
       {
        "n": 1,
-       "text": "Nhập nội dung kết luận đề xuất"
+       "text": "Tên hồ sơ (bắt buộc)"
       },
       {
        "n": 2,
-       "text": "Bấm gửi đề xuất"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "title": "Tổ chức thi hành án",
-   "intro": "Hồ sơ THA ghi nhận đương sự, nghĩa vụ và kết quả từng phần ở mức nghiệp vụ pháp lý. Không ghi sổ thu chi và không thay MISA. Hoàn thành một nghĩa vụ chưa làm xong cả vụ.",
-   "rules": [
-    "Còn nghĩa vụ chưa hoàn tất thì chưa hoàn tất hồ sơ được.",
-    "Không nhập số tiền thanh toán."
-   ],
-   "steps": [
-    {
-     "title": "Trang chi tiết hồ sơ THA: quy trình 3 bước",
-     "note": "Quy trình gồm giao THV, thực hiện các nghĩa vụ (kèm số nghĩa vụ đã hoàn tất) và hoàn tất hoặc chấm dứt hồ sơ. Mọi thao tác nằm sau nút Cập nhật hồ sơ.",
-     "img": "thua-hanh-vien/45.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Bấm Cập nhật hồ sơ để thêm đương sự, nghĩa vụ, ghi kết quả"
-      },
-      {
-       "n": 2,
-       "text": "Thông tin hồ sơ: mã, hợp đồng, quyết định, trạng thái"
-      }
-     ]
-    },
-    {
-     "title": "Ghi kết quả một phần kèm chứng cứ",
-     "note": "Trong ngăn kéo: chọn nghĩa vụ, loại kết quả (một phần hoặc hoàn tất nghĩa vụ), nội dung và tệp chứng cứ. Kết quả được lưu bất biến.",
-     "img": "thua-hanh-vien/46.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Chọn nghĩa vụ"
-      },
-      {
-       "n": 2,
-       "text": "Chọn Kết quả một phần hoặc Hoàn tất nghĩa vụ"
+       "text": "SĐT khách hàng Không in ra sổ."
       },
       {
        "n": 3,
-       "text": "Nhập nội dung kết quả"
+       "text": "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)"
       },
       {
        "n": 4,
-       "text": "Bấm Ghi kết quả kèm chứng cứ"
+       "text": "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Số, ngày, tháng, năm"
+      },
+      {
+       "n": 5,
+       "text": "Cột 4: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Sửa đổi, bổ sung"
+      },
+      {
+       "n": 6,
+       "text": "Cột 5: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Thu hồi"
+      },
+      {
+       "n": 7,
+       "text": "Cột 6: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN"
+      },
+      {
+       "n": 8,
+       "text": "Cột 7: BÊN PHẢI THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)"
+      },
+      {
+       "n": 9,
+       "text": "Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)"
+      },
+      {
+       "n": 10,
+       "text": "Cột 9: CÁC KHOẢN PHẢI THI HÀNH ÁN (theo hợp đồng)"
       }
      ]
-    },
-    {
-     "title": "Nghĩa vụ đã ghi nhận một phần",
-     "note": "Trạng thái nghĩa vụ chuyển sang Thực hiện một phần; hồ sơ chỉ hoàn tất khi mọi nghĩa vụ xong.",
-     "img": "thua-hanh-vien/47.png",
-     "marks": []
     }
    ]
   },
   {
-   "title": "Các tab của hồ sơ Vi bằng",
-   "intro": "Trang hồ sơ có banner (mã, trạng thái, Thêm thao tác), thanh tiến độ và các tab: Tiến độ, Thông tin, Tài liệu, Pháp lý, Lịch sử, Đề nghị thay đổi. Chỉ nội dung tab đang chọn hiện ra.",
+   "title": "DMS · Thừa hành viên: Chờ tôi xác nhận",
+   "intro": "Mục này liệt kê các bản nháp người khác soạn và ghi tên bạn. Bạn xem lại nội dung rồi xác nhận lưu chính thức hoặc báo lại người soạn.",
    "rules": [
-    "Trong 48 giờ đầu sửa trực tiếp ở tab Thông tin; sau đó gửi đề nghị thay đổi cho Admin.",
-    "Hồ sơ đã có giá trị pháp lý không xoá, không sửa âm thầm."
+    "Kiểm tra kỹ từng cột trước khi xác nhận vì sau đó hồ sơ không sửa trực tiếp được."
+   ],
+   "problems": [
+    [
+     "Danh sách \"Chờ tôi xác nhận\" trống",
+     "Chưa có bản nháp nào ghi tên bạn. Báo người soạn chọn đúng bạn ở ô \"Thừa hành viên được ghi tên\"."
+    ]
    ],
    "steps": [
     {
-     "title": "Tab Thông tin",
-     "note": "Thông tin hồ sơ và người phụ trách.",
-     "img": "thua-hanh-vien/48.png",
+     "title": "Chờ tôi xác nhận",
+     "note": "Mỗi dòng là một bản nháp đang chờ bạn. Bấm \"Xem và xác nhận\" để mở.",
+     "detail": [
+      "Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc."
+     ],
+     "img": "thua-hanh-vien/97.png",
      "marks": [
       {
        "n": 1,
-       "text": "Bấm tab Thông tin"
+       "text": "Mở bản nháp để xem và xác nhận"
       }
      ]
     },
     {
-     "title": "Tab Tài liệu",
-     "note": "Kho chứng cứ và bản scan có phiên bản và mã kiểm tra.",
-     "img": "thua-hanh-vien/49.png",
+     "title": "Xem và xác nhận nội dung bản nháp",
+     "note": "Hệ thống hiện lại toàn bộ nội dung hồ sơ và các tài liệu. Đọc kỹ; nếu đúng thì bấm \"Tôi xác nhận nội dung này\". Nếu người nhập liệu sửa lại sau khi bạn xác nhận, bạn phải xác nhận lại.",
+     "detail": [
+      "Nội dung hồ sơ: các ô người soạn đã điền (hiển thị chỉ đọc).",
+      "Tài liệu: các tài liệu đã đính kèm vào bản nháp."
+     ],
+     "img": "thua-hanh-vien/98.png",
      "marks": [
       {
        "n": 1,
-       "text": "Bấm tab Tài liệu"
-      }
-     ]
-    },
-    {
-     "title": "Tab Pháp lý",
-     "note": "Người yêu cầu, địa điểm, sự kiện chứng kiến, người tham gia: dữ liệu cho văn bản N-04.",
-     "img": "thua-hanh-vien/50.png",
-     "marks": [
+       "text": "Quay lại danh sách Chờ tôi xác nhận"
+      },
       {
-       "n": 1,
-       "text": "Bấm tab Pháp lý"
-      }
-     ]
-    },
-    {
-     "title": "Tab Lịch sử",
-     "note": "Nhật ký ai làm gì, lúc nào; chỉ ghi thêm, không sửa.",
-     "img": "thua-hanh-vien/51.png",
-     "marks": [
+       "n": 2,
+       "text": "Nội dung hồ sơ cần kiểm tra"
+      },
       {
-       "n": 1,
-       "text": "Bấm tab Lịch sử"
+       "n": 3,
+       "text": "Xác nhận nội dung (sau đó hồ sơ đủ điều kiện lưu chính thức)"
       }
      ]
     }
