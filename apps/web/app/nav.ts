@@ -126,6 +126,14 @@ export const NAV: readonly NavItem[] = [
     summary: 'File scan đã xóa trong 30 ngày: chỉ Admin xem và tải, không khôi phục.',
   },
   {
+    slug: 'dms-lich-su',
+    label: 'Lịch sử hoạt động',
+    group: 'work',
+    roles: ['ADMIN'],
+    href: '/dms/lich-su',
+    summary: 'Ai làm gì, lúc nào, trên hồ sơ, tài liệu, file hay bản trình nào. Chỉ Admin xem.',
+  },
+  {
     slug: 'viec-cua-toi',
     hidden: true,
     label: 'Việc của tôi',

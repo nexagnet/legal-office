@@ -336,4 +336,53 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt và xóa scan qua HTTP (Postgr
       case_id: caseId,
     });
   });
+
+  it('Lịch sử hoạt động: chỉ Admin đọc, lọc theo nhóm, tìm theo tiêu đề, phân trang, có người làm và đối tượng', async () => {
+    const all = await api('GET', `/dms/activity?officeId=${OFF}&limit=200`, U.admin);
+    expect(all.status).toBe(200);
+    const rows = all.json.rows as Json[];
+    const actions = new Set(rows.map((r) => r.action));
+    expect(actions).toContain('dms.submission.create');
+    expect(actions).toContain('dms.submission.decide');
+    expect(actions).toContain('dms.scan.delete');
+    expect(all.json.total).toBe(rows.length);
+    // Mỗi dòng có người làm; hồ sơ có số hồ sơ, bản trình có tiêu đề.
+    expect(rows.every((r) => typeof r.actor_label === 'string')).toBe(true);
+    expect(rows.find((r) => r.action === 'dms.case.record')?.case_number).toMatch(/VB-TPL$/);
+    expect(
+      rows.find((r) => r.action === 'dms.submission.create' && r.submission_title === 'Cần duyệt'),
+    ).toBeTruthy();
+    // Mới nhất trước.
+    const times = rows.map((r) => Date.parse(r.at as string));
+    expect([...times].sort((a, b) => b - a)).toEqual(times);
+
+    // Người không phải Admin chỉ nhận danh sách rỗng.
+    const asMember = await api('GET', `/dms/activity?officeId=${OFF}`, U.m1);
+    expect(asMember.status).toBe(200);
+    expect(asMember.json).toEqual({ rows: [], total: 0 });
+
+    // Lọc theo nhóm và tìm theo tiêu đề bản trình.
+    const subs = (await api('GET', `/dms/activity?officeId=${OFF}&group=submission`, U.admin)).json
+      .rows as Json[];
+    expect(subs.length).toBeGreaterThan(0);
+    expect(subs.every((r) => String(r.action).startsWith('dms.submission.'))).toBe(true);
+    const found = (
+      await api(
+        'GET',
+        `/dms/activity?officeId=${OFF}&q=${encodeURIComponent('Cần duyệt')}`,
+        U.admin,
+      )
+    ).json.rows as Json[];
+    expect(found.length).toBeGreaterThan(0);
+    expect(found.every((r) => r.submission_title === 'Cần duyệt')).toBe(true);
+
+    // Phân trang: trang 1 một dòng nhưng tổng vẫn là tổng.
+    const p1 = await api('GET', `/dms/activity?officeId=${OFF}&limit=1`, U.admin);
+    expect(p1.json.rows).toHaveLength(1);
+    expect(p1.json.total).toBe(rows.length);
+    // Tham số lạ bị chặn.
+    expect((await api('GET', `/dms/activity?officeId=${OFF}&group=khac`, U.admin)).status).toBe(
+      400,
+    );
+  });
 });
