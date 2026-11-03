@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AdminBanner } from '../../../../components/admin-banner';
 import { BookPdfViewer } from '../../../../components/BookPdfViewer';
 import { Button } from '../../../../components/ui/button';
 import { currentSession } from '../../../../lib/server';
@@ -51,7 +52,15 @@ export default async function DmsBookPage({
   const years = [year - 2, year - 1, year, year + 1].filter((y) => y >= 2000);
   return (
     <section aria-labelledby="t">
-      <h1 id="t">
+      <AdminBanner
+        crumb={[
+          ['Xuất sổ nghiệp vụ', '/dms/so'],
+          [`Sổ ${code}`, undefined],
+        ]}
+        title={`Xuất sổ ${code} · Preview`}
+        sub="Xem trước sổ theo đúng mẫu để xuất in."
+      />
+      <h1 id="t" className="sr-only">
         Xuất sổ {code} · {year}
       </h1>
       <div className="print-hide mb-4 flex flex-wrap items-center justify-between gap-3">

@@ -2543,6 +2543,60 @@ fieldset.person-choice .person-choice-name {
     gap: 6px;
     margin-bottom: 12px;
   }
+
+  /* Bảng hồ sơ thành thẻ bản ghi (Figma M1): mỗi dòng một thẻ, mỗi ô là "nhãn cột : giá trị" */
+  .dms-table-wrap {
+    max-height: none;
+    overflow: visible;
+    background: transparent;
+  }
+  .dms-table[data-labels],
+  .dms-table[data-labels] tbody {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .dms-table[data-labels] colgroup,
+  .dms-table[data-labels] thead {
+    display: none;
+  }
+  .dms-table[data-labels] tbody tr:not(.dms-sub-head):not(.dms-sub) {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 45, 85, 0.12);
+  }
+  .dms-table[data-labels] tbody tr > td,
+  .dms-table[data-labels] tbody tr > th {
+    position: static;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    height: auto;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    text-align: right;
+    background: transparent !important;
+  }
+  .dms-table[data-labels] tbody tr > td[data-label]::before,
+  .dms-table[data-labels] tbody tr > th[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 42%;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    color: var(--muted);
+  }
+  /* Ô trống không chiếm chỗ trong thẻ */
+  .dms-table[data-labels] tbody tr > td:empty {
+    display: none;
+  }
 }
 
 /* Tống đạt: hồ sơ có nhiều dòng Sổ S-01 → nút mở rộng + các dòng con cùng cột (Figma 352:1415) */
