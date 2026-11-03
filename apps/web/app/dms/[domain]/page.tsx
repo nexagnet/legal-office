@@ -269,6 +269,7 @@ export default async function DmsDomainPage({
     return s ? `${base}?${s}` : base;
   };
   const showScanSelect = !isDraftView && filter !== 'cho-duyet';
+  const showsTable = !!listLayout && !!(draftKind ? !vanThu : spec) && pageRows.length > 0;
   const sttLabel = domain.code === 'vtden' ? 'Số đến' : 'STT';
   return (
     <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
@@ -575,10 +576,14 @@ export default async function DmsDomainPage({
         )}
       </form>
       <div className="dms-card">
-        <Link href="/dms/tim-kiem" className="dms-scan-link dms-card-link">
+        {/* Liên kết nằm đè lên ô trống của đầu bảng; khi không vẽ bảng (trạng thái trống) phải xếp theo dòng, kẻo đè thông báo. */}
+        <Link
+          href="/dms/tim-kiem"
+          className={`dms-scan-link dms-card-link${showsTable ? '' : ' dms-card-link--flow'}`}
+        >
           Tìm trong nội dung scan
         </Link>
-        {listLayout && (draftKind ? !vanThu : spec) && pageRows.length > 0 ? (
+        {showsTable && listLayout ? (
           <DmsDomainTable
             rows={pageRows}
             caption={`Danh sách hồ sơ ${domain.label}`}

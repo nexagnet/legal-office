@@ -2618,6 +2618,12 @@ fieldset.person-choice .person-choice-name {
   left: 14px;
   z-index: 2;
 }
+/* Không có bảng (trạng thái trống): liên kết xếp theo dòng, không đè lên thông báo. */
+.dms-card-link--flow {
+  position: static;
+  display: block;
+  padding: 12px 14px 0;
+}
 .dms-btn-lg {
   min-height: 38px;
   padding: 0 12px;

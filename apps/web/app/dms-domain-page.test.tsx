@@ -39,7 +39,7 @@ const caseRow = (n: number) => ({
 });
 
 /** Giả lập API: ghi lại mọi URL gọi để kiểm tra trang dùng đúng endpoint lọc ở DB. */
-function stubApi(total: number, capped = false) {
+function stubApi(total: number, capped = false, empty = false) {
   const urls: string[] = [];
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input);
@@ -47,7 +47,7 @@ function stubApi(total: number, capped = false) {
     const json = (b: unknown) => ({ ok: true, json: async () => b }) as Response;
     if (url.includes('/dms/case-search'))
       return json({
-        rows: /limit=1&/.test(url) ? [] : [caseRow(1), caseRow(2)],
+        rows: empty || /limit=1&/.test(url) ? [] : [caseRow(1), caseRow(2)],
         total,
         totalCapped: capped,
       });
@@ -101,5 +101,30 @@ describe('trang danh sách hồ sơ DMS dùng lọc và phân trang ở cơ sở
     );
     expect(screen.getByText(/10\.000\+ hồ sơ/)).toBeTruthy();
     expect(document.querySelectorAll('nav[aria-label="Phân trang"] a').length).toBeLessThan(12);
+  });
+
+  it('G7: có bảng thì liên kết tìm scan nằm đè ô trống đầu bảng; trống thì xếp theo dòng, không đè thông báo', async () => {
+    stubApi(2);
+    const first = render(
+      await DmsDomainPage({
+        params: Promise.resolve({ domain: 'van-ban-den' }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const withRows = screen.getByRole('link', { name: 'Tìm trong nội dung scan' });
+    expect(withRows.className).toContain('dms-card-link');
+    expect(withRows.className).not.toContain('dms-card-link--flow');
+    first.unmount();
+
+    stubApi(0, false, true);
+    render(
+      await DmsDomainPage({
+        params: Promise.resolve({ domain: 'van-ban-den' }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(screen.getByRole('link', { name: 'Tìm trong nội dung scan' }).className).toContain(
+      'dms-card-link--flow',
+    );
   });
 });
