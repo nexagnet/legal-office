@@ -18,8 +18,8 @@ Những việc không phải code, chặn việc dùng dữ liệu thật.
   - Khách trả lời: 
 - [ ] **A2** (P0) Tên pháp lý chính thức, địa chỉ trụ sở, điện thoại và số giấy đăng ký hoạt động của văn phòng là gì? Xin ảnh giấy đăng ký.
   - Vì sao hỏi: Các thông tin này in lên biểu mẫu và sổ chính thức.
-  - Giả định hiện tại: Đang dùng tên tạm "Văn phòng Thi hành án dân sự Doanh nghiệp tư nhân Hai Bà Trưng" (lấy từ báo giá). Địa chỉ, điện thoại, số giấy đăng ký chưa có.
-  - Khách trả lời: 
+  - Giả định hiện tại: Đang dùng tên tạm "Văn phòng Thi hành án dân sự Doanh nghiệp tư nhân Hai Bà Trưng" (lấy từ báo giá). Số giấy đăng ký chưa có.
+  - Khách trả lời: Chưa. Từ web của khách (thihanhandansuhaibatrung.com, kiểm 03/11/2026): tên đổi chính thức từ 01/10/2026 thành "Văn phòng Thi hành án dân sự Doanh nghiệp tư nhân Hai Bà Trưng" (khớp tên đang dùng); địa chỉ Số 4 – A11 Đầm Trấu, phường Bạch Đằng, quận Hai Bà Trưng, Hà Nội; điện thoại 0965.126.126, 0965.128.128; email thuaphatlaihaibatrung@yahoo.com.vn; quyết định thành lập QĐ 1122/QĐ-UBND ngày 24/2/2014. Còn thiếu số giấy đăng ký hoạt động hiện hành, mã số thuế, tài khoản ngân hàng, người đại diện: cần khách xác nhận và gửi ảnh giấy.
 - [ ] **A3** (P0) Số cuối của từng sổ giấy đang dùng là bao nhiêu (số vi bằng, công văn đi, các sổ S-01, S-02, S-04, S-05)? Năm nay đã dùng đến số mấy?
   - Vì sao hỏi: Hệ thống phải nối tiếp số, không được cấp trùng. Thiếu số cuối thì không cấp số thật.
   - Giả định hiện tại: Admin nhập số cuối một lần, chỉ được tăng. Chưa có số thật.
