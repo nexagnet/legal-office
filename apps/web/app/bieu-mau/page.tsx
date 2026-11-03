@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { NewFormUpload } from '../../components/NewFormUpload';
+import { Button } from '../../components/ui/button';
+import { DataTable } from '../../components/ui/data-table';
 import { matchesQuery } from '../../lib/search';
 import { API_URL, currentSession, requestCookie } from '../../lib/server';
 
@@ -108,22 +110,46 @@ export default async function FormsPage({
           <p>Không có biểu mẫu nào khớp từ khoá tìm kiếm.</p>
         </div>
       ) : (
-        <ul className="template-grid" aria-label="Biểu mẫu Thông tư 06">
-          {shown.map((f) => (
-            <li key={f.code} className="template-card">
-              <span className="tag">Phụ lục {f.code}</span>
-              <h2>{f.title}</h2>
-              <p className="muted">
-                Phiên bản {f.version} · đăng ký {day.format(new Date(f.registeredAt))}
-              </p>
-              <a
-                href={`/api/office/tt06-forms/${encodeURIComponent(f.code)}/file?officeId=${encodeURIComponent(officeId ?? '')}`}
-              >
-                Tải phụ lục {f.code}
-              </a>
-            </li>
-          ))}
-        </ul>
+        <>
+          <DataTable tableKey="bieu-mau-tt06">
+            <table>
+              <caption className="sr-only">Biểu mẫu Thông tư 06</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Mã mẫu</th>
+                  <th scope="col">Tên văn bản</th>
+                  <th scope="col">Phiên bản</th>
+                  <th scope="col">Ngày đăng ký</th>
+                  <th scope="col">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map((f) => (
+                  <tr key={f.code}>
+                    <th scope="row">{f.code}</th>
+                    <td>{f.title}</td>
+                    <td>{f.version}</td>
+                    <td>{day.format(new Date(f.registeredAt))}</td>
+                    <td>
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Button asChild variant="secondary">
+                          <a
+                            className="no-underline"
+                            aria-label={`Tải phụ lục ${f.code}`}
+                            href={`/api/office/tt06-forms/${encodeURIComponent(f.code)}/file?officeId=${encodeURIComponent(officeId ?? '')}`}
+                          >
+                            Tải về
+                          </a>
+                        </Button>
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </DataTable>
+          <p className="muted mt-3 text-xs">Hiển thị {shown.length} biểu mẫu.</p>
+        </>
       )}
       {officeId && canRegister ? (
         <div id="dang-ky">
