@@ -368,9 +368,10 @@ describe.skipIf(!ADMIN_URL)('DMS đổi quyền có duyệt (PostgreSQL)', () =>
     expect(again.rows[0]).toMatchObject({ ok: false, code: 'ADMIN_ALREADY_EXISTS' });
   });
 
-  it('bản nháp đã hủy không khôi phục được: không có hàm khôi phục nào', async () => {
+  it('bản nháp đã hủy không khôi phục được: không có hàm khôi phục nào; xóa chỉ có cho FILE SCAN (0105)', async () => {
     const fns = await owner.query(
-      `SELECT proname FROM pg_proc WHERE proname LIKE 'dms%' AND (proname ILIKE '%restore%' OR proname ILIKE '%reopen%' OR proname ILIKE '%undelete%' OR proname ILIKE '%delete%')`,
+      `SELECT proname FROM pg_proc WHERE proname LIKE 'dms%' AND (proname ILIKE '%restore%' OR proname ILIKE '%reopen%' OR proname ILIKE '%undelete%' OR proname ILIKE '%delete%')
+         AND proname NOT IN ('dms_scan_delete', 'dms_scan_after_delete', 'dms_deleted_scans_list', 'dms_deleted_scan_download')`,
     );
     expect(fns.rows).toEqual([]);
   });
