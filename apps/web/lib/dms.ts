@@ -184,6 +184,11 @@ export interface DmsCaseDetail extends DmsCaseRow {
   readonly thv_user_id: string | null;
   /** null = chưa ghi tên THV; true/false = THV đã xác nhận đúng nội dung hiện tại hay chưa. */
   readonly thv_confirmed: boolean | null;
+  /** Số hồ sơ tự cấp lúc ghi sổ; nháp và hồ sơ cũ chưa có thì null. */
+  readonly case_number: string | null;
+  readonly returned: boolean;
+  /** SĐT khách hàng (thuộc tính hiện hành), null nếu chưa nhập. */
+  readonly phone: string | null;
 }
 
 export interface DmsDocumentRow {
