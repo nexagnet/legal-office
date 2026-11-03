@@ -2,7 +2,8 @@ import { DataTable } from '../../../../components/ui/data-table';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
-import { DmsAmendmentForm, DmsFileVersionForm } from '../../../../components/DmsAmendments';
+import { DeleteScanButton } from '../../../../components/DeleteScanButton';
+import { DmsAdminEdit } from '../../../../components/DmsAdminEdit';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
 import { DmsThvPicker } from '../../../../components/DmsThvActions';
 import {
@@ -13,14 +14,10 @@ import {
 import { Button } from '../../../../components/ui/button';
 import { TabNav } from '../../../../components/ui/tab-nav';
 import {
-  AMENDMENT_STATUS_LABEL,
   BOOK_OF_DOMAIN,
-  amendmentSummary,
-  loadDmsAmendments,
   canAddDocument,
   canConfirm,
   canDraft,
-  canRequestAmendment,
   domainBySlug,
   isVanThu,
   inputColumns,
@@ -113,7 +110,6 @@ const TABS = [
   { key: 'tai-lieu', label: 'Tài liệu' },
   { key: 'scan', label: 'Scan' },
   { key: 'phien-ban', label: 'Phiên bản' },
-  { key: 'sua-doi', label: 'Yêu cầu sửa đổi' },
   { key: 'so', label: 'Sổ liên quan' },
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
@@ -167,17 +163,15 @@ export default async function DmsCasePage({
     loadDmsBooks(cookie, true),
     isDraft ? loadThvOptions(cookie) : Promise.resolve([]),
   ]);
-  const amendments =
-    c.status === 'RECORDED' ? await loadDmsAmendments(cookie, c.office_id, { caseId: id }) : [];
-  const canAmend =
-    c.status === 'RECORDED' &&
-    (canRequestAmendment(permissions, domain.code) ||
-      permissions.includes('dms.permission.approve'));
+  // Sau khi ghi sổ chỉ Admin sửa nội dung (N5); nhân viên chỉ tải thêm scan. Máy chủ vẫn kiểm lại (ADMIN_ONLY).
+  const isAdmin = permissions.includes('dms.permission.approve');
+  const canAdminEdit = c.status === 'RECORDED' && isAdmin;
+  // Xóa scan (N6) là quyền riêng, không phải quyền của vai trò: chỉ hiện nút với người được cấp.
+  const canDeleteScan = c.status !== 'CANCELLED' && permissions.includes('dms.scan.delete');
+  const hasPhone = !isVanThu(domain.code);
   const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
   const docs = documents === 'error' ? [] : documents;
   const filesByDoc = await Promise.all(docs.map((d) => loadDmsFiles(cookie, d.id)));
-  const pendingCount =
-    amendments === 'error' ? 0 : amendments.filter((a) => a.status === 'PENDING').length;
   const fileCount = filesByDoc.reduce((n, f) => n + f.length, 0);
   const allFiles = filesByDoc.flat();
   const scanFileCount = allFiles.filter((f) => f.is_scan).length;
@@ -234,7 +228,11 @@ export default async function DmsCasePage({
       <p>
         <Link href={`/dms/${domain.slug}${backQuery}`}>← {domain.label}</Link>
       </p>
-      <h1 id="t">{c.title}</h1>
+      <h1 id="t">{c.case_number ?? c.title}</h1>
+      <p className="muted">
+        Chi tiết hồ sơ{c.case_number ? ` · ${c.title}` : ''}
+        {hasPhone && c.phone ? ` · Khách hàng · SĐT ${c.phone}` : ''}
+      </p>
       <p>
         <span
           className="chip"
@@ -249,14 +247,6 @@ export default async function DmsCasePage({
           {c.scan_count} scan
         </span>
       </p>
-      {pendingCount > 0 ? (
-        <div className="state" role="status" data-tone="warn">
-          <p>
-            Hồ sơ có {pendingCount} yêu cầu sửa đổi chờ Admin duyệt. Thông tin hiện hành giữ nguyên
-            cho tới khi được duyệt. <Link href={`${base}?tab=sua-doi`}>Xem yêu cầu</Link>
-          </p>
-        </div>
-      ) : null}
       {docs.length > 0 ? (
         <p className="rounded-xl bg-accent-soft px-4 py-2 text-sm font-medium text-accent">
           {docs.length} tài liệu · {scanFileCount} tệp scan
@@ -279,9 +269,7 @@ export default async function DmsCasePage({
                 ? scanFileCount
                 : t.key === 'phien-ban'
                   ? fileCount
-                  : t.key === 'sua-doi' && amendments !== 'error'
-                    ? amendments.length
-                    : undefined,
+                  : undefined,
         }))}
       />
 
@@ -328,8 +316,8 @@ export default async function DmsCasePage({
                 ))
               : null}
             <p className="muted mt-2 text-xs">
-              Trước khi lưu còn sửa được; sau khi xác nhận lưu chính thức, mọi thay đổi phải thông
-              qua yêu cầu sửa đổi.
+              Trước khi lưu còn sửa được; sau khi xác nhận lưu chính thức, chỉ Admin sửa được nội
+              dung (có lý do, lưu thành phiên bản mới); nhân viên chỉ tải thêm scan.
             </p>
           </section>
           <section aria-labelledby="sec-b" className="rounded-2xl bg-surface p-5 shadow-sm">
@@ -429,10 +417,22 @@ export default async function DmsCasePage({
               canCancel={canDraft(permissions, domain.code)}
             />
           ) : (
-            <p className="muted mb-4">
-              Hồ sơ đã lưu chính thức không sửa trực tiếp, không xoá. Thay đổi phải qua yêu cầu sửa
-              đổi có duyệt.
-            </p>
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <p className="muted m-0">
+                Hồ sơ đã lưu chính thức không xóa được. Chỉ Admin sửa nội dung (có lý do, lưu thành
+                phiên bản mới); nhân viên chỉ tải thêm scan.
+              </p>
+              {canAdminEdit && (hasPhone || (book && book.source === 'case')) ? (
+                <DmsAdminEdit
+                  target="case"
+                  id={c.id}
+                  columns={book && book.source === 'case' ? inputColumns(book) : []}
+                  current={c.attributes}
+                  currentTitle={c.title}
+                  withPhone={hasPhone}
+                />
+              ) : null}
+            </div>
           )}
           {isDraft && canDraft(permissions, domain.code) && !isVanThu(domain.code) ? (
             <DmsThvPicker
@@ -513,10 +513,22 @@ export default async function DmsCasePage({
                           <a href={`/api/dms/files/${f.id}/download`} download>
                             Tải
                           </a>
+                          {canDeleteScan && f.is_scan ? (
+                            <DeleteScanButton kind="document" fileId={f.id} label={f.label} />
+                          ) : null}
                         </li>
                       ))}
                     </ul>
                   )}
+                  {canAdminEdit && book && book.source === 'document' ? (
+                    <DmsAdminEdit
+                      target="document"
+                      id={d.id}
+                      columns={inputColumns(book)}
+                      current={d.attributes}
+                      buttonLabel="Sửa tài liệu (Admin)"
+                    />
+                  ) : null}
                   {isDraft &&
                   book &&
                   book.source === 'document' &&
@@ -558,13 +570,11 @@ export default async function DmsCasePage({
                       In
                     </a>
                   </Button>
-                  {c.status === 'RECORDED' ? (
-                    <Button asChild variant="secondary">
-                      <Link href={`${base}?tab=sua-doi`}>Tạo yêu cầu sửa đổi</Link>
-                    </Button>
-                  ) : null}
                 </p>
-                <p className="muted">Không có nút xóa hồ sơ, xóa tài liệu hay ghi đè tệp.</p>
+                <p className="muted">
+                  Không có nút xóa hồ sơ hay tài liệu và không ghi đè tệp; chỉ file scan xóa được,
+                  với người có quyền xóa scan.
+                </p>
               </>
             ) : (
               <div className="state" role="status">
@@ -580,8 +590,8 @@ export default async function DmsCasePage({
           <h2 id="rev-title">Phiên bản dữ liệu</h2>
           {revisions.length <= 1 ? (
             <p className="muted">
-              Hồ sơ chưa có bản sửa đổi nào. Bản gốc giữ nguyên; mỗi sửa đổi được duyệt sẽ thêm một
-              phiên bản và bản cũ vẫn được giữ.
+              Hồ sơ chưa có bản sửa nào. Bản gốc giữ nguyên; mỗi lần Admin sửa sẽ thêm một phiên bản
+              và bản cũ vẫn được giữ.
             </p>
           ) : (
             revisions.slice(1).map((r, i) => {
@@ -671,6 +681,7 @@ export default async function DmsCasePage({
                     <th scope="col">Phiên bản</th>
                     <th scope="col">Dung lượng</th>
                     <th scope="col">Tải</th>
+                    {canDeleteScan && tab === 'scan' ? <th scope="col">Xóa</th> : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -687,6 +698,13 @@ export default async function DmsCasePage({
                             Tải
                           </a>
                         </td>
+                        {canDeleteScan && tab === 'scan' ? (
+                          <td>
+                            {f.is_scan ? (
+                              <DeleteScanButton kind="document" fileId={f.id} label={f.label} />
+                            ) : null}
+                          </td>
+                        ) : null}
                       </tr>
                     )),
                   )}
@@ -694,66 +712,6 @@ export default async function DmsCasePage({
               </table>
             </DataTable>
           )}
-        </>
-      ) : null}
-
-      {tab === 'sua-doi' ? (
-        <>
-          {canAmend && book && book.source === 'case' ? (
-            <DmsAmendmentForm
-              caseId={c.id}
-              columns={inputColumns(book)}
-              current={c.attributes}
-              currentTitle={c.title}
-              allowN11={domain.code === 'vibang'}
-            />
-          ) : null}
-          {canAmend
-            ? docs.map((d, i) => (
-                <div key={d.id}>
-                  {[...new Set(filesByDoc[i]!.map((f) => f.id))].map((fid) => (
-                    <DmsFileVersionForm key={fid} caseId={c.id} documentId={d.id} fileId={fid} />
-                  ))}
-                  {book && book.source === 'document' ? (
-                    <DmsAmendmentForm
-                      caseId={c.id}
-                      documentId={d.id}
-                      columns={inputColumns(book)}
-                      current={d.attributes}
-                      allowN11={false}
-                    />
-                  ) : null}
-                </div>
-              ))
-            : null}
-          {c.status !== 'RECORDED' ? (
-            <p className="muted">Chỉ hồ sơ đã lưu chính thức mới có yêu cầu sửa đổi.</p>
-          ) : null}
-          {amendments !== 'error' && amendments.length > 0 ? (
-            <>
-              <h2>Lịch sử sửa đổi</h2>
-              <ul>
-                {amendments.map((a) => (
-                  <li key={a.id}>
-                    {fmt.format(new Date(a.requested_at))} ·{' '}
-                    <span
-                      className="chip"
-                      data-tone={
-                        a.status === 'APPROVED' ? 'ok' : a.status === 'PENDING' ? 'warn' : 'danger'
-                      }
-                    >
-                      {AMENDMENT_STATUS_LABEL[a.status]}
-                    </span>{' '}
-                    {a.n11 ? '(N-11) ' : ''}
-                    {amendmentSummary(a)} — {a.reason}{' '}
-                    <a href={`/api/dms/amendments/${a.id}/evidence`}>Văn bản sửa đổi</a>
-                    {a.auto_via === 'WINDOW' ? ' · tự duyệt (quy tắc cũ đã bỏ)' : ''}
-                    {a.review_note ? ` · ${a.review_note}` : ''}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
         </>
       ) : null}
 
