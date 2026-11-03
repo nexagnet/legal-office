@@ -2581,8 +2581,17 @@ fieldset.person-choice .person-choice-name {
     padding: 0;
     border: 0;
     box-shadow: none;
+    min-width: 0;
+    overflow: visible;
     text-align: right;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
     background: transparent !important;
+  }
+  /* Bảng đã thành thẻ thì nút chọn cột / gọn không còn tác dụng */
+  .dt:has(.dms-table[data-labels]) .dt-toolbar {
+    display: none;
   }
   .dms-table[data-labels] tbody tr > td[data-label]::before,
   .dms-table[data-labels] tbody tr > th[data-label]::before {
