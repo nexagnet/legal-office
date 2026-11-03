@@ -7,6 +7,7 @@ import {
   PERMISSION_DOMAINS,
   PERMISSION_SOURCE_LABEL,
   SCOPE_LABEL,
+  SCAN_DELETE_WARNING,
   SPECIAL_PERMISSIONS,
   isOverridable,
   permissionLabel,
@@ -216,6 +217,15 @@ export function PermissionTree({
                 onToggle={toggle}
               />
               <span className="pl-9 text-sm text-muted">{SPECIAL_PERMISSIONS[code]}</span>
+              {code === 'dms.scan.delete' && value.has(code) && !baseline.has(code) ? (
+                <p
+                  role="status"
+                  className="mt-1 ml-9 rounded-lg bg-brass-soft px-3 py-2 text-sm"
+                  data-testid="scan-delete-warning"
+                >
+                  <strong>Cảnh báo: bạn đang cấp quyền xóa file scan.</strong> {SCAN_DELETE_WARNING}
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>

@@ -298,6 +298,10 @@ describe('menu DMS', () => {
     expect(hrefs['dms-xuat-so']).toBe('/dms/so');
     expect(hrefs['dms-trinh-duyet']).toBe('/dms/trinh-duyet');
     expect(hrefs['dms-sua-doi']).toBeUndefined();
+    // Scan đã xóa 30 ngày: chỉ Admin thấy mục này.
+    expect(hrefs['dms-scan-da-xoa']).toBe('/dms/scan-da-xoa');
+    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-scan-da-xoa');
+    expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-scan-da-xoa');
     expect(hrefs['dms-thv']).toBe('/dms/thv');
     expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
     expect(hrefs['vi-bang']).toBe('/vi-bang');

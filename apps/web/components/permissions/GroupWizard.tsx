@@ -12,6 +12,7 @@ import {
   groupVersion,
   isGroupActive,
   isOverridable,
+  isOverrideOnly,
   isSensitivePermission,
   permissionLabel,
   permissionMessage,
@@ -35,7 +36,10 @@ const TABS: readonly (readonly [string, string, readonly string[]])[] = [
 
 /** Quyền quản trị phân quyền chỉ theo nhóm mẫu của hệ thống: không chép, không chọn trong nhóm tùy chỉnh. */
 const RESERVED = Object.keys(SPECIAL_PERMISSIONS).filter((c) => !isOverridable(c));
-const ADMIN_CODES = Object.keys(SPECIAL_PERMISSIONS).filter(isOverridable);
+// Quyền chỉ cấp riêng cho từng tài khoản (xóa file scan) không đưa vào nhóm: DB từ chối.
+const ADMIN_CODES = Object.keys(SPECIAL_PERMISSIONS).filter(
+  (c) => isOverridable(c) && !isOverrideOnly(c),
+);
 
 const domainName = (d: string) => PERMISSION_DOMAINS.find(([k]) => k === d)?.[1] ?? d;
 const toggled = (set: ReadonlySet<string>, code: string, on: boolean): Set<string> => {
