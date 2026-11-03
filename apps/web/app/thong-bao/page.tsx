@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AdminBanner } from '../../components/admin-banner';
 import { NotificationList } from '../../components/NotificationList';
 import { TabNav } from '../../components/ui/tab-nav';
 import {
@@ -35,11 +36,13 @@ export default async function NotificationsPage({
   const all = officeId ? await loadNotifications(await requestCookie(), officeId) : [];
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Thông báo</h1>
-      <p className="muted">
-        Nhắc hạn trong ứng dụng, sinh từ các hạn bạn được xem. Nhắc không đồng nghĩa chuyển trạng
-        thái hồ sơ hay phê duyệt.
-      </p>
+      <AdminBanner
+        title="Thông báo"
+        sub="Nhắc hạn trong ứng dụng, sinh từ các hạn bạn được xem. Nhắc không đồng nghĩa chuyển trạng thái hồ sơ hay phê duyệt."
+      />
+      <h1 id="t" className="sr-only">
+        Thông báo
+      </h1>
       {all === 'error' || !officeId ? (
         <div className="state" role="alert">
           <h2>Không tải được thông báo</h2>
@@ -48,6 +51,7 @@ export default async function NotificationsPage({
       ) : (
         <>
           <TabNav
+            soft
             label="Lọc thông báo"
             active={tab}
             tabs={NOTIFICATION_TABS.map((t) => ({
