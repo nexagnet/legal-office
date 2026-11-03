@@ -270,7 +270,7 @@ const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
   'dms-xac-minh': Search,
   'dms-to-chuc-tha': Gavel,
   'dms-thv': CircleCheckBig,
-  'dms-sua-doi': FileText,
+  'dms-trinh-duyet': FileText,
   'dms-van-thu': Mail,
   'dms-xuat-so': BookOpen,
   'dms-bao-cao': ChartColumn,

@@ -28,7 +28,7 @@ export default function DmsHome() {
           <Link href="/dms/bao-cao">Báo cáo tổng hợp</Link>
         </li>
         <li>
-          <Link href="/dms/sua-doi">Yêu cầu sửa đổi</Link>
+          <Link href="/dms/trinh-duyet">Trình / Duyệt</Link>
         </li>
         <li>
           <Link href="/dms/so">Xuất sổ nghiệp vụ</Link>

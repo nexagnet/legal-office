@@ -296,7 +296,8 @@ describe('menu DMS', () => {
     const hrefs = Object.fromEntries(items.map((n) => [n.slug, hrefOf(n)]));
     expect(hrefs['dms-van-thu']).toBe('/dms/van-ban-den');
     expect(hrefs['dms-xuat-so']).toBe('/dms/so');
-    expect(hrefs['dms-sua-doi']).toBe('/dms/sua-doi');
+    expect(hrefs['dms-trinh-duyet']).toBe('/dms/trinh-duyet');
+    expect(hrefs['dms-sua-doi']).toBeUndefined();
     expect(hrefs['dms-thv']).toBe('/dms/thv');
     expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
     expect(hrefs['vi-bang']).toBe('/vi-bang');

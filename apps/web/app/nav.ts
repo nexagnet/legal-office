@@ -110,12 +110,12 @@ export const NAV: readonly NavItem[] = [
     summary: 'Bản nháp ghi tên bạn, chờ thừa hành viên xác nhận trước khi lưu chính thức.',
   },
   {
-    slug: 'dms-sua-doi',
-    label: 'Yêu cầu sửa đổi',
+    slug: 'dms-trinh-duyet',
+    label: 'Trình / Duyệt',
     group: 'work',
     roles: ALL,
-    href: '/dms/sua-doi',
-    summary: 'Sửa hồ sơ đã lưu chính thức: cần lý do, bản scan văn bản sửa đổi và Admin duyệt.',
+    href: '/dms/trinh-duyet',
+    summary: 'Gửi tiêu đề, mô tả và bản scan để Admin duyệt. Bạn chỉ thấy bản trình của mình.',
   },
   {
     slug: 'viec-cua-toi',
