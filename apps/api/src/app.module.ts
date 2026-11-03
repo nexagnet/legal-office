@@ -18,6 +18,8 @@ import { SessionResolver } from './auth/session.resolver';
 import { AssetsController } from './assets/assets.controller';
 import { DmsAmendmentsController } from './dms/dms-amendments.controller';
 import { DmsCasesController } from './dms/dms-cases.controller';
+import { DmsScansController } from './dms/dms-scans.controller';
+import { DmsSubmissionsController } from './dms/dms-submissions.controller';
 import { DmsLegacyController } from './dms/dms-legacy.controller';
 import { DmsBrowseController } from './dms/dms-browse.controller';
 import { DmsSearchController } from './dms/dms-search.controller';
@@ -80,6 +82,8 @@ export class AppModule {
         FormsController,
         DmsAmendmentsController,
         DmsCasesController,
+        DmsSubmissionsController,
+        DmsScansController,
         DmsLegacyController,
         DmsBrowseController,
         DmsSearchController,

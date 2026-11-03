@@ -152,32 +152,7 @@ export class DmsAmendmentsController {
     );
   }
 
-  /** Tải lên bước đệm một tệp sẽ trở thành phiên bản mới của một tệp (chỉ dùng được trong yêu cầu sửa đổi của chính người tải). */
-  @Post('uploads')
-  @HttpCode(HttpStatus.OK)
-  stage(
-    @CurrentActor() a: AuthenticatedActor,
-    @Headers('content-type') contentType: string | undefined,
-    @Headers('content-length') contentLength: string | undefined,
-    @Req() req: RawBody,
-  ) {
-    return recordWithUpload(
-      this.store,
-      { contentType, contentLength, body: req },
-      (f) => `t/${a.tenantId}/dms/staged/${randomUUID()}.${f.extension}`,
-      (key, f) =>
-        this.repo
-          .call(a.tenantId, 'dms_stage_upload', [
-            a.tenantId,
-            a.userId,
-            key,
-            f.sha256,
-            f.mime,
-            f.bytes.length,
-          ])
-          .then(respond),
-    );
-  }
+  // `POST /dms/uploads` (tải lên bước đệm) nay nằm ở DmsSubmissionsController: Trình / Duyệt dùng chung với yêu cầu sửa đổi cũ.
 
   @Get('amendments')
   list(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
