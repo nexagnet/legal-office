@@ -2562,6 +2562,8 @@ fieldset.person-choice .person-choice-name {
   }
   .dms-table[data-labels] tbody tr:not(.dms-sub-head):not(.dms-sub) {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 100%;
     gap: 6px;
     margin: 0 0 10px;
     padding: 12px 14px;
