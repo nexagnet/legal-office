@@ -2,7 +2,7 @@
 // Nạp DỮ LIỆU GIẢ cho 4 nghiệp vụ (Vi bằng, Tống đạt, Xác minh THA, Tổ chức THA) qua API hợp lệ.
 // Chạy lại được (idempotent theo tiêu đề hồ sơ). Mọi hồ sơ mang thuộc tính seed_demo = "seed-demo" để nhận diện/dọn sau.
 // Xem README.md. Không xoá, không ghi đè bản ghi đã lưu.
-import { AMEND_TEXT, DOMAINS, SEED_TAG } from './gen.mjs';
+import { DOMAINS, SEED_TAG } from './gen.mjs';
 import { buildScan } from './scan.mjs';
 
 const env = process.env;
@@ -117,7 +117,12 @@ async function seedCase(c, ctx, spec, idx) {
         officeId,
         domain,
         title: spec.title,
-        attributes: { ...spec.attrs, seed_demo: SEED_TAG },
+        // SĐT khách hàng (N1): số GIẢ theo mẫu 0900 000 xxx, không phải số thật; không vào sổ.
+        attributes: {
+          ...spec.attrs,
+          so_dien_thoai: `0900 000 ${String(idx).padStart(3, '0')}`,
+          seed_demo: SEED_TAG,
+        },
         ...(branchId ? { branchId } : {}),
       },
     });
@@ -156,41 +161,64 @@ async function seedCase(c, ctx, spec, idx) {
     await c.ok('POST', `/dms/cases/${caseId}/cancel-draft`, {
       json: { reason: 'Nhập nhầm hồ sơ, hủy bản nháp (dữ liệu giả)' },
     });
-  else if (spec.status === 'RECORDED') await c.ok('POST', `/dms/cases/${caseId}/record`);
+  else if (spec.status === 'RECORDED') {
+    await c.ok('POST', `/dms/cases/${caseId}/record`);
+    // Ô "Đã trả kết quả" (N2): tích cho khoảng một phần tư hồ sơ chính thức để danh sách có cả hai trạng thái.
+    if (idx % 4 === 0)
+      await c.ok('POST', `/dms/cases/${caseId}/returned`, { json: { returned: true } });
+  }
   stats.created++;
   return caseId;
 }
 
-async function proposeAmendments(proposer, ctx, items) {
-  for (const { caseId, spec } of items) {
-    const { rows } = await proposer.ok(
+/**
+ * Trình / Duyệt (N4): tạo vài bản trình GIẢ ở đủ ba trạng thái (chờ duyệt, đã duyệt, bị từ chối). Mỗi bản kèm một bản scan PDF
+ * giả. Nhận biết theo tiêu đề nên chạy lại không nhân đôi. Người gửi là `submitter` (không phải Admin nếu có SEED_PROPOSER_*).
+ */
+async function seedSubmissions(submitter, admin, officeId) {
+  const plan = [
+    { title: '[seed-demo] Bổ sung giấy ủy quyền', decide: null },
+    { title: '[seed-demo] Đề nghị cấp bản sao vi bằng', decide: null },
+    {
+      title: '[seed-demo] Giấy xác nhận địa chỉ nhận văn bản',
+      decide: { approve: true, note: 'Đủ giấy tờ' },
+    },
+    {
+      title: '[seed-demo] Biên nhận thiếu chữ ký',
+      decide: { approve: false, note: 'Thiếu chữ ký của bên nhận, gửi lại bản đủ.' },
+    },
+  ];
+  const have = new Set();
+  for (const status of ['PENDING', 'APPROVED', 'REJECTED']) {
+    const { rows } = await admin.ok(
       'GET',
-      `/dms/amendments?${new URLSearchParams({ officeId: ctx.officeId, caseId, limit: '5' })}`,
+      `/dms/submissions?${new URLSearchParams({ officeId, status, q: '[seed-demo]', limit: '100' })}`,
     );
-    if (rows.length) continue;
-    const changes = JSON.stringify({ attributes: AMEND_TEXT[ctx.domain](spec) });
+    for (const r of rows) have.add(r.title);
+  }
+  let made = 0;
+  for (const p of plan) {
+    if (have.has(p.title)) continue;
     const bytes = await buildScan({
-      title: 'Văn bản sửa đổi, bổ sung',
+      title: p.title.replace('[seed-demo] ', ''),
       footer: FOOTER,
       vector: false,
-      lines: [
-        `Về hồ sơ: ${spec.title}`,
-        `Nội dung sửa đổi: ${Object.values(AMEND_TEXT[ctx.domain](spec))[0]}`,
-        'Đề nghị Admin xem xét và phê duyệt.',
-      ],
+      lines: ['Nội dung bản trình giả để thử nghiệm Trình / Duyệt.', 'Không phải hồ sơ thật.'],
     });
-    const q = new URLSearchParams({
-      reason: 'Sửa theo văn bản sửa đổi thực tế (dữ liệu giả)',
-      changes,
+    const up = await submitter.ok('POST', '/dms/uploads', { bytes, type: 'application/pdf' });
+    const created = await submitter.ok('POST', '/dms/submissions', {
+      json: {
+        officeId,
+        title: p.title,
+        description: 'Bản trình giả (seed-demo) để thử nghiệm.',
+        files: [{ stagedId: up.label, label: 'ban-scan-1.pdf' }],
+      },
     });
-    const r = await proposer.call('POST', `/dms/cases/${caseId}/amendments?${q}`, {
-      bytes,
-      type: 'application/pdf',
-    });
-    if (r.status >= 300)
-      console.warn(`  ! không tạo được yêu cầu sửa đổi (${r.status}) ${JSON.stringify(r.body)}`);
-    else ctx.stats.amend++;
+    if (p.decide)
+      await admin.ok('POST', `/dms/submissions/${created.label}/decide`, { json: p.decide });
+    made++;
   }
+  return made;
 }
 
 async function main() {
@@ -211,25 +239,21 @@ async function main() {
     );
   if (!proposer)
     console.warn(
-      '  ! không có SEED_PROPOSER_*: bỏ qua hồ sơ "Chờ duyệt sửa đổi" (Admin tự sửa thì có hiệu lực ngay).',
+      '  ! không có SEED_PROPOSER_*: bản Trình / Duyệt giả sẽ do chính tài khoản nạp gửi.',
     );
   for (const domain of ONLY) {
     const def = DOMAINS[domain];
     if (!def) throw new Error(`Nghiệp vụ lạ: ${domain}`);
-    const stats = { created: 0, skipped: 0, files: 0, amend: 0 };
+    const stats = { created: 0, skipped: 0, files: 0 };
     const existing = await listExisting(admin, officeId, domain);
     const ctx = { officeId, branches, domain, existing, stats };
-    const amendItems = [];
-    for (let i = 0; i < PER_DOMAIN; i++) {
-      const spec = def.gen(i, PER_DOMAIN);
-      const caseId = await seedCase(admin, ctx, spec, i);
-      if (spec.pendingAmend) amendItems.push({ caseId, spec });
-    }
-    if (proposer) await proposeAmendments(proposer, ctx, amendItems);
+    for (let i = 0; i < PER_DOMAIN; i++) await seedCase(admin, ctx, def.gen(i, PER_DOMAIN), i);
     console.log(
-      `${def.label}: tạo ${stats.created}, đã có ${stats.skipped}, tệp scan ${stats.files}, yêu cầu sửa đổi ${stats.amend}`,
+      `${def.label}: tạo ${stats.created}, đã có ${stats.skipped}, tệp scan ${stats.files}`,
     );
   }
+  const made = await seedSubmissions(proposer ?? admin, admin, officeId);
+  console.log(`Trình / Duyệt: tạo ${made} bản trình giả.`);
 }
 
 main().catch((e) => {
