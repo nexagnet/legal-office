@@ -17,6 +17,7 @@ import {
   DMS_FILTER_LABEL,
   DMS_TAB_LABEL,
   activeDmsFilter,
+  canAddDocument,
   canDraft,
   domainBySlug,
   type DmsBookRow as BookRowT,
@@ -45,14 +46,8 @@ export const dynamic = 'force-dynamic';
 const PAGE_SIZE = 10;
 /** API đếm tối đa 10.001 hồ sơ: không có trang nào sau mốc đó (thu hẹp bộ lọc để thấy tiếp). */
 const MAX_PAGE = Math.ceil((TOTAL_CAP + 1) / PAGE_SIZE);
-const FILTERS: readonly DmsFilter[] = [
-  'chinh-thuc',
-  'cho-duyet',
-  'thieu-scan',
-  'du-scan',
-  'nhap',
-  'da-huy',
-];
+// Chip "Chờ duyệt sửa đổi" đã bỏ (N4): sửa đổi nay do Admin sửa trực tiếp, người khác dùng Trình / Duyệt.
+const FILTERS: readonly DmsFilter[] = ['chinh-thuc', 'thieu-scan', 'du-scan', 'nhap', 'da-huy'];
 
 /** Bốn thẻ số đầu danh sách theo Figma DMS v2 (mỗi nghiệp vụ một bộ, không bịa số: thiếu dữ liệu hiện "—"). */
 function kpiItems(
@@ -62,7 +57,7 @@ function kpiItems(
     official: number | undefined;
     documents: number | undefined;
     missingScan: number | undefined;
-    pendingAmendment: number | undefined;
+    returned: number | undefined;
     stillOpen: number | undefined;
   },
 ): Kpi[] {
@@ -82,7 +77,7 @@ function kpiItems(
         official,
         docs('Tài liệu hiện hành'),
         missing,
-        { label: 'Sửa đổi chờ duyệt', value: v.pendingAmendment ?? '—', tone: 'warn' },
+        { label: 'Đã trả kết quả', value: v.returned ?? '—', tone: 'ok' },
       ];
   }
 }
@@ -165,41 +160,30 @@ export default async function DmsDomainPage({
   };
   const chipCount = (f: DmsFilter) =>
     countDmsCases(cookie, { officeId, domain: domain.code, filter: f, year });
-  const [
-    result,
-    permissions,
-    facets,
-    report,
-    nOfficial,
-    nPending,
-    nMissing,
-    nDraft,
-    nCancelled,
-    nMyDrafts,
-  ] = await Promise.all([
-    searchDmsCases(cookie, {
-      ...search,
-      limit: PAGE_SIZE,
-      offset: (Math.min(pageNo, MAX_PAGE) - 1) * PAGE_SIZE,
-    }),
-    loadMyDmsPermissions(cookie, officeId),
-    loadDmsFacetCounts(cookie, search),
-    loadDmsReportFull(cookie, officeId, year),
-    chipCount('chinh-thuc'),
-    domain.code === 'vibang' ? chipCount('cho-duyet') : Promise.resolve(undefined),
-    chipCount('thieu-scan'),
-    chipCount('nhap'),
-    chipCount('da-huy'),
-    session.userId && (filter === 'nhap' || filter === 'da-huy')
-      ? countDmsCases(cookie, {
-          officeId,
-          domain: domain.code,
-          filter: 'nhap',
-          year,
-          creator: session.userId,
-        })
-      : Promise.resolve(undefined),
-  ]);
+  const [result, permissions, facets, report, nOfficial, nMissing, nDraft, nCancelled, nMyDrafts] =
+    await Promise.all([
+      searchDmsCases(cookie, {
+        ...search,
+        limit: PAGE_SIZE,
+        offset: (Math.min(pageNo, MAX_PAGE) - 1) * PAGE_SIZE,
+      }),
+      loadMyDmsPermissions(cookie, officeId),
+      loadDmsFacetCounts(cookie, search),
+      loadDmsReportFull(cookie, officeId, year),
+      chipCount('chinh-thuc'),
+      chipCount('thieu-scan'),
+      chipCount('nhap'),
+      chipCount('da-huy'),
+      session.userId && (filter === 'nhap' || filter === 'da-huy')
+        ? countDmsCases(cookie, {
+            officeId,
+            domain: domain.code,
+            filter: 'nhap',
+            year,
+            creator: session.userId,
+          })
+        : Promise.resolve(undefined),
+    ]);
   if (result === 'error') {
     return (
       <section aria-labelledby="t">
@@ -318,7 +302,7 @@ export default async function DmsDomainPage({
             official: nOfficial,
             documents: documents?.documents,
             missingScan: nMissing,
-            pendingAmendment: nPending,
+            returned: report === 'error' ? undefined : report.returned[domain.code],
             stillOpen,
           })}
         />
@@ -604,6 +588,7 @@ export default async function DmsDomainPage({
             byCase={rowsByCase}
             sttLabel={sttLabel}
             draft={draftKind ? { kind: draftKind, userId } : undefined}
+            canMarkReturned={canAddDocument(permissions, domain.code)}
             tableKey={`DmsDomainTable-${domain.code}${draftKind ? '-nhap' : ''}`}
           />
         ) : (

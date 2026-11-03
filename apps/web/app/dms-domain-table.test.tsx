@@ -48,17 +48,28 @@ const caseRow = (over: Partial<DmsSearchCase>): DmsSearchCase => ({
   doc_kinds: [],
   pending_count: 0,
   attributes: {},
+  case_number: null,
+  returned: false,
+  phone: null,
   ...over,
 });
 
 describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
-  it('Vi bằng: đủ 9 cột Figma, STT + mã hồ sơ, huy hiệu tài liệu/file/đủ scan, nút Xem · Tải', () => {
+  it('Vi bằng: 9 cột Figma + SĐT + Đã trả KQ, số hồ sơ, huy hiệu tài liệu/file/đủ scan, nút Xem · Tải', () => {
     const layout = listLayoutFor('vibang')!;
-    expect(layout).toHaveLength(9);
-    expect(layout.reduce((n, c) => n + c.width, 0)).toBe(1144);
+    expect(layout).toHaveLength(11);
+    // 1144px của Figma + cột SĐT khách hàng (110) + Đã trả KQ (80).
+    expect(layout.reduce((n, c) => n + c.width, 0)).toBe(1144 + 190);
     render(
       <DmsDomainTable
-        rows={[caseRow({ pending_count: 1 })]}
+        rows={[
+          caseRow({
+            pending_count: 1,
+            case_number: '030/2026/VB-TPL',
+            phone: '0912 345 678',
+            returned: true,
+          }),
+        ]}
         caption="c"
         basePath="/dms/vi-bang"
         layout={layout}
@@ -68,10 +79,17 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
         tableKey="t"
       />,
     );
-    expect(screen.getAllByRole('columnheader')).toHaveLength(9);
+    expect(screen.getAllByRole('columnheader')).toHaveLength(11);
     expect(screen.getByText('STT 6')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'VB-2610-0042' })).toBeTruthy();
-    expect(screen.getByText('Chờ duyệt')).toBeTruthy();
+    expect(screen.getByRole('link', { name: '030/2026/VB-TPL' })).toBeTruthy();
+    expect(screen.getByText('VB-2610-0042')).toBeTruthy();
+    // Chip "Chờ duyệt sửa đổi" đã bỏ (N4).
+    expect(screen.queryByText('Chờ duyệt')).toBeNull();
+    expect(screen.getByText('0912 345 678')).toBeTruthy();
+    const tick = screen.getByRole('checkbox', { name: 'Đã trả kết quả hồ sơ 030/2026/VB-TPL' });
+    expect((tick as HTMLInputElement).checked).toBe(true);
+    // Không có quyền thêm tài liệu thì chỉ xem.
+    expect((tick as HTMLInputElement).disabled).toBe(true);
     expect(screen.getByText('4 tài liệu')).toBeTruthy();
     expect(screen.getByText('9 file')).toBeTruthy();
     expect(screen.getByText('đủ scan')).toBeTruthy();
@@ -95,7 +113,7 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
             recorded_at: null,
             title: 'N1',
             created_by: 'u1',
-            attributes: { nguoi_yeu_cau: 'Cty CP Hòa Phát' },
+            attributes: { nguoi_yeu_cau: 'Cty CP Hòa Phát', so_dien_thoai: '0988 111 222' },
           }),
           caseRow({ id: 'b', status: 'DRAFT', recorded_at: null, title: 'N2', created_by: 'u2' }),
         ]}
@@ -111,6 +129,8 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     );
     expect(screen.getAllByText('Chưa có STT')).toHaveLength(2);
     expect(screen.getByText('Cty CP Hòa Phát')).toBeTruthy();
+    expect(screen.getByText('0988 111 222')).toBeTruthy();
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
     expect(screen.getAllByText('Bản nháp')).toHaveLength(2);
     expect(screen.getAllByText('Chưa ghi sổ')).toHaveLength(2);
     expect(screen.getAllByRole('link', { name: 'Tiếp tục soạn' })).toHaveLength(1);
@@ -159,9 +179,9 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     expect(within(row).queryByRole('link', { name: 'Tải' })).toBeNull();
   });
 
-  it('bốn nghiệp vụ đều có bố cục tổng 1144px; Xác minh/Tổ chức gộp hai thông tin vào một ô', () => {
+  it('bốn nghiệp vụ đều có bố cục tổng 1144px + 190px (SĐT, Đã trả KQ); Xác minh/Tổ chức gộp hai thông tin vào một ô', () => {
     for (const d of ['vibang', 'tongdat', 'xacminh', 'tochuc'])
-      expect(listLayoutFor(d)!.reduce((n, c) => n + c.width, 0)).toBe(1144);
+      expect(listLayoutFor(d)!.reduce((n, c) => n + c.width, 0)).toBe(1144 + 190);
     const get = (k: string) => ({ ben_phai_thi_hanh_an: 'A', ben_duoc_thi_hanh_an: 'B' })[k] ?? '';
     const cell = listLayoutFor('tochuc')!.find((c) => c.id === 'ben')!.cell!(get, [get]);
     expect(cell).toEqual({ primary: 'Phải THA: A', secondary: 'Được THA: B' });

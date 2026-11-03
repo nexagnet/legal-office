@@ -227,7 +227,11 @@ export class DmsCasesController {
     const pending = await this.repo
       .rows(a.tenantId, 'dms_domain_pending_counts', [a.tenantId, a.userId, q.officeId, q.year])
       .catch(() => []);
-    return { year: q.year, rows, pending };
+    // Thẻ số "Đã trả kết quả" (N2): domain -> số hồ sơ đã tích. Cùng cách xử lý như `pending`.
+    const returned = await this.repo
+      .rows(a.tenantId, 'dms_domain_returned_counts', [a.tenantId, a.userId, q.officeId, q.year])
+      .catch(() => []);
+    return { year: q.year, rows, pending, returned };
   }
 
   @Get('cases/:id')

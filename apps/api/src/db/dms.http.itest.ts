@@ -714,6 +714,15 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect(
       (await api('POST', `/dms/cases/${caseId}/returned`, U.a, { returned: 'có' })).status,
     ).toBe(400);
+    // Thẻ số "Đã trả kết quả" của báo cáo đếm hồ sơ vừa tích.
+    const report = await api(
+      'GET',
+      `/dms/report?officeId=${OFF}&year=${new Date().getFullYear()}`,
+      U.a,
+    );
+    expect(
+      (report.json.returned as Json[]).find((r) => r.domain === 'vibang')?.returned,
+    ).toBeGreaterThanOrEqual(1);
     const list = await api('GET', `/dms/cases?officeId=${OFF}&domain=vibang&status=RECORDED`, U.a);
     const row = (list.json.rows as Json[]).find((r) => r.id === caseId);
     expect(row).toMatchObject({ returned: true, phone: '0912 345 678' });
