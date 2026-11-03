@@ -1,13 +1,10 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DmsAmendmentForm, DmsFileVersionForm } from '../components/DmsAmendments';
 import { DmsCaseTable } from '../components/DmsCaseTable';
 import { DmsThvConfirmButton, DmsThvPicker } from '../components/DmsThvActions';
 import {
-  AMENDMENT_STATUS_LABEL,
   DMS_DOMAIN_LABELS,
   activeDmsTab,
-  amendmentSummary,
   canAddDocument,
   canConfirm,
   canDraft,
@@ -177,45 +174,9 @@ describe('Văn thư', () => {
   });
 });
 
-describe('sửa đổi sau khi lưu', () => {
-  it('tóm tắt nội dung sửa và nhãn trạng thái', () => {
-    expect(
-      amendmentSummary({
-        kind: 'CASE_FIELDS',
-        proposed: { title: 'Mới', attributes: { ghi_chu: 'x' } },
-      }),
-    ).toBe('Tiêu đề → Mới; ghi_chu → x');
-    expect(AMENDMENT_STATUS_LABEL.PENDING).toBe('Chờ Admin duyệt');
-  });
-  it('form yêu cầu bắt buộc bản scan và lý do; N-11 chỉ khi được phép', () => {
-    render(
-      <DmsAmendmentForm
-        caseId="c1"
-        columns={[{ no: 3, heading: 'Ghi chú', key: 'ghi_chu' }]}
-        current={{ ghi_chu: 'gốc' }}
-        currentTitle="Hồ sơ"
-        allowN11
-      />,
-    );
-    expect((screen.getByLabelText(/Bản scan văn bản sửa đổi/) as HTMLInputElement).required).toBe(
-      true,
-    );
-    expect((screen.getByLabelText(/Lý do sửa đổi/) as HTMLTextAreaElement).required).toBe(true);
-    expect(screen.queryByLabelText(/N-11/)).not.toBeNull();
-  });
-});
-
 describe('báo cáo tổng hợp', () => {
   it('đủ nhãn cho bảy miền', () => {
     expect(Object.keys(DMS_DOMAIN_LABELS)).toHaveLength(7);
     expect(DMS_DOMAIN_LABELS.vtden).toContain('Văn bản đến');
-  });
-});
-
-describe('phiên bản tệp mới', () => {
-  it('form cần cả tệp mới, bản scan sửa đổi và lý do', () => {
-    render(<DmsFileVersionForm caseId="c" documentId="d" fileId="f" />);
-    for (const re of [/Tệp phiên bản mới/, /Bản scan văn bản sửa đổi/, /Lý do/])
-      expect((screen.getByLabelText(re) as HTMLInputElement).required).toBe(true);
   });
 });

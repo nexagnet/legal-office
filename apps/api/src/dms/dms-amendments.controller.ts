@@ -1,19 +1,13 @@
-import { randomUUID } from 'node:crypto';
 import {
-  Body,
   Controller,
   Get,
-  Headers,
-  HttpCode,
   HttpException,
   HttpStatus,
   Inject,
   Optional,
   Param,
   ParseUUIDPipe,
-  Post,
   Query,
-  Req,
   Res,
   StreamableFile,
   UseGuards,
@@ -21,24 +15,14 @@ import {
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
-import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
-import type { RawBody } from '../storage/upload';
 import { VibangRepo } from '../vibang/vibang.repo';
-import { parse, respond, uuid } from './dms-http';
-
-const changes = z
-  .object({
-    title: z.string().min(1).max(500).optional(),
-    attributes: z.record(z.string(), z.unknown()).optional(),
-  })
-  .strict();
+import { parse, uuid } from './dms-http';
 
 /**
- * Yêu cầu sửa đổi hồ sơ ĐÃ ghi sổ. Bắt buộc lý do và bản scan văn bản sửa đổi (thân yêu cầu là tệp). Admin: có hiệu lực ngay;
- * người khác: luôn chờ Admin duyệt (không tự duyệt theo thời gian). Quyền do hàm `dms_*` quyết định.
- * Lát này mở HTTP cho sửa tiêu đề/thuộc tính hồ sơ và thuộc tính tài liệu; thêm phiên bản tệp mới đã có ở DB, HTTP làm sau
- * (cần tải lên hai tệp trong một yêu cầu).
+ * Yêu cầu sửa đổi CŨ: chỉ ĐỌC. Luồng gửi và duyệt đã gỡ (N4): người khác Admin dùng Trình / Duyệt, còn Admin sửa trực tiếp
+ * hồ sơ đã ghi sổ (POST /dms/cases/:id/admin-edit). Dữ liệu các yêu cầu đã gửi trước đó vẫn đọc được, kèm bản scan văn bản
+ * sửa đổi, và các phiên bản hồ sơ do chúng tạo vẫn nằm trong tab Phiên bản. Quyền do hàm `dms_*` quyết định.
  */
 @Controller('dms')
 @UseGuards(ActorGuard)
@@ -47,112 +31,6 @@ export class DmsAmendmentsController {
     @Inject(VibangRepo) private readonly repo: VibangRepo,
     @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
   ) {}
-
-  @Post('cases/:id/amendments')
-  @HttpCode(HttpStatus.OK)
-  propose(
-    @CurrentActor() a: AuthenticatedActor,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Query() query: unknown,
-    @Headers('content-type') contentType: string | undefined,
-    @Headers('content-length') contentLength: string | undefined,
-    @Req() req: RawBody,
-  ) {
-    const q = parse(
-      z
-        .object({
-          documentId: uuid.optional(),
-          reason: z.string().min(1).max(2000),
-          n11: z.enum(['true', 'false']).default('false'),
-          changes: z.string().min(2).max(20000).optional(),
-          /** Thêm phiên bản tệp mới: tệp mới đã tải lên bước đệm (POST /dms/uploads). */
-          fileId: uuid.optional(),
-          stagedId: uuid.optional(),
-        })
-        .strict(),
-      query,
-    );
-    if (q.fileId || q.stagedId)
-      return this.proposeVersion(a, id, q, { contentType, contentLength, req });
-    if (!q.changes)
-      throw new HttpException(
-        { code: 'INVALID_INPUT', label: null },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    let parsedChanges: z.infer<typeof changes>;
-    try {
-      parsedChanges = parse(changes, JSON.parse(q.changes));
-    } catch (e) {
-      if (e instanceof HttpException) throw e;
-      throw new HttpException(
-        { code: 'INVALID_INPUT', label: null },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
-    const kind = q.documentId ? 'DOCUMENT_FIELDS' : 'CASE_FIELDS';
-    const proposed =
-      kind === 'DOCUMENT_FIELDS' ? { attributes: parsedChanges.attributes ?? {} } : parsedChanges;
-    return recordWithUpload(
-      this.store,
-      { contentType, contentLength, body: req },
-      (f) => `t/${a.tenantId}/dms/amendments/${randomUUID()}.${f.extension}`,
-      (key, f) =>
-        this.repo
-          .call(a.tenantId, 'dms_amendment_propose', [
-            a.tenantId,
-            a.userId,
-            id,
-            q.documentId ?? null,
-            null,
-            kind,
-            JSON.stringify(proposed),
-            q.reason,
-            q.n11 === 'true',
-            key,
-            f.sha256,
-            f.mime,
-            f.bytes.length,
-          ])
-          .then(respond),
-    );
-  }
-
-  private proposeVersion(
-    a: AuthenticatedActor,
-    caseId: string,
-    q: { documentId?: string; fileId?: string; stagedId?: string; reason: string },
-    up: { contentType: string | undefined; contentLength: string | undefined; req: RawBody },
-  ) {
-    if (!q.documentId || !q.fileId || !q.stagedId)
-      throw new HttpException(
-        { code: 'INVALID_INPUT', label: null },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    const { documentId, fileId, stagedId } = q;
-    return recordWithUpload(
-      this.store,
-      { contentType: up.contentType, contentLength: up.contentLength, body: up.req },
-      (f) => `t/${a.tenantId}/dms/amendments/${randomUUID()}.${f.extension}`,
-      (key, f) =>
-        this.repo
-          .call(a.tenantId, 'dms_amendment_propose_version', [
-            a.tenantId,
-            a.userId,
-            caseId,
-            documentId,
-            fileId,
-            stagedId,
-            q.reason,
-            key,
-            f.sha256,
-            f.mime,
-            f.bytes.length,
-          ])
-          .then(respond),
-    );
-  }
-
-  // `POST /dms/uploads` (tải lên bước đệm) nay nằm ở DmsSubmissionsController: Trình / Duyệt dùng chung với yêu cầu sửa đổi cũ.
 
   @Get('amendments')
   list(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
@@ -179,28 +57,6 @@ export class DmsAmendmentsController {
         q.offset,
       ])
       .then((rows) => ({ rows }));
-  }
-
-  @Post('amendments/:id/review')
-  @HttpCode(HttpStatus.OK)
-  review(
-    @CurrentActor() a: AuthenticatedActor,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: unknown,
-  ) {
-    const b = parse(
-      z.object({ approve: z.boolean(), note: z.string().max(2000).optional() }).strict(),
-      body,
-    );
-    return this.repo
-      .call(a.tenantId, 'dms_amendment_review', [
-        a.tenantId,
-        a.userId,
-        id,
-        b.approve,
-        b.note ?? null,
-      ])
-      .then(respond);
   }
 
   /** Tải bản scan văn bản sửa đổi (Admin hoặc người gửi). */
