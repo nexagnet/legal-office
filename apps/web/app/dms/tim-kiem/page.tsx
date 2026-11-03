@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { AdminBanner } from '../../../components/admin-banner';
 import { Button } from '../../../components/ui/button';
+import { DataTable } from '../../../components/ui/data-table';
 import { Input } from '../../../components/ui/field';
 import {
   DMS_DOMAINS,
@@ -90,7 +92,13 @@ export default async function DmsSearchPage({
   };
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Tìm trong nội dung scan</h1>
+      <AdminBanner
+        title="Tìm trong nội dung scan"
+        sub="Tìm toàn văn trong chữ nhận dạng (OCR) từ bản scan. Kết quả chỉ trỏ về hồ sơ gốc, không sửa gì."
+      />
+      <h1 id="t" className="sr-only">
+        Tìm trong nội dung scan
+      </h1>
       <form method="get" role="search" className="mb-4 flex flex-wrap items-center gap-3">
         <label className="min-w-72 flex-1">
           <span className="sr-only">Từ khóa</span>
@@ -163,27 +171,56 @@ export default async function DmsSearchPage({
         </div>
       ) : (
         <>
-          <ul className="grid gap-3">
-            {result.rows.map((r) => {
-              const d = slugOf(r.domain);
-              return (
-                <li key={r.file_id} className="rounded-2xl border border-line bg-surface p-4">
-                  <p className="font-semibold">
-                    {d ? (
-                      <Link href={`/dms/${d.slug}/${r.case_id}?tab=tai-lieu`}>{r.case_title}</Link>
-                    ) : (
-                      r.case_title
-                    )}{' '}
-                    <span className="muted">· {d?.label ?? r.domain}</span>
-                  </p>
-                  <p className="muted">
-                    {r.document_title} · {r.file_label}
-                  </p>
-                  <p>{r.snippet}</p>
-                </li>
-              );
-            })}
-          </ul>
+          <DataTable tableKey="dms-tim-kiem">
+            <table>
+              <caption className="sr-only">Kết quả tìm trong nội dung scan</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Hồ sơ</th>
+                  <th scope="col">Nghiệp vụ</th>
+                  <th scope="col">Đoạn trích trong bản scan</th>
+                  <th scope="col">Tài liệu · tệp</th>
+                  <th scope="col">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.rows.map((r) => {
+                  const d = slugOf(r.domain);
+                  return (
+                    <tr key={r.file_id}>
+                      <th scope="row">
+                        {d ? (
+                          <Link href={`/dms/${d.slug}/${r.case_id}?tab=tai-lieu`}>
+                            {r.case_title}
+                          </Link>
+                        ) : (
+                          r.case_title
+                        )}
+                      </th>
+                      <td>{d?.label ?? r.domain}</td>
+                      <td className="min-w-64 whitespace-normal!">{r.snippet}</td>
+                      <td>
+                        {r.document_title}
+                        <span className="muted block text-xs">{r.file_label}</span>
+                      </td>
+                      <td>
+                        {d ? (
+                          <Button asChild variant="secondary">
+                            <Link
+                              className="no-underline"
+                              href={`/dms/${d.slug}/${r.case_id}?tab=tai-lieu`}
+                            >
+                              Mở hồ sơ
+                            </Link>
+                          </Button>
+                        ) : null}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </DataTable>
           {page > 1 || (result.hasMore && (page - 1) * OCR_PAGE_SIZE < MAX_OFFSET) ? (
             <nav aria-label="Phân trang" className="mt-3 flex flex-wrap items-center gap-3 text-sm">
               {page > 1 ? (
