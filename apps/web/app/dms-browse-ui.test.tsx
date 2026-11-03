@@ -197,7 +197,8 @@ describe('trang tìm trong nội dung scan', () => {
     expect(search).toContain('year=2026');
     expect(search).toContain('creator=u1');
     expect(search).toContain('offset=20');
-    expect(screen.getAllByRole('listitem')).toHaveLength(20); // dòng thứ 21 chỉ để biết còn trang sau
+    // 20 hàng dữ liệu + 1 hàng tiêu đề; dòng thứ 21 chỉ để biết còn trang sau
+    expect(screen.getAllByRole('row')).toHaveLength(21);
     expect(screen.getByRole('link', { name: 'Sau ›' }).getAttribute('href')).toContain('p=3');
     expect(screen.getByRole('option', { name: 'Lan (3)' })).toBeTruthy();
   });
