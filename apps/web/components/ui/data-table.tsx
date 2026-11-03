@@ -69,7 +69,27 @@ export function DataTable({
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
+    // Điện thoại: bảng dạng thẻ cần nhãn cột trên từng ô (bảng nào khai `data-labels` thì được gán).
+    const label = () => {
+      for (const table of wrap.querySelectorAll<HTMLElement>('table[data-labels]')) {
+        let names: unknown;
+        try {
+          names = JSON.parse(table.dataset.labels ?? '[]');
+        } catch {
+          continue;
+        }
+        if (!Array.isArray(names)) continue;
+        for (const row of table.querySelectorAll('tbody > tr:not(.dms-sub-head):not(.dms-sub)')) {
+          Array.from(row.children).forEach((cell, i) => {
+            const name = typeof names[i] === 'string' ? names[i] : '';
+            if (name && cell.getAttribute('data-label') !== name)
+              cell.setAttribute('data-label', name);
+          });
+        }
+      }
+    };
     const read = () => {
+      label();
       const cells = wrap.querySelectorAll('thead tr:first-child > th');
       const next = Array.from(cells, (c) => (c.textContent ?? '').trim());
       setLabels((prev) =>

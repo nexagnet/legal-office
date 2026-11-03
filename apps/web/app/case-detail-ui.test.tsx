@@ -10,6 +10,7 @@ import {
   NoticeBar,
   PdfPane,
 } from '../components/ui/case-detail';
+import { DataTable } from '../components/ui/data-table';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -66,6 +67,36 @@ describe('thành phần chi tiết hồ sơ (Figma A2)', () => {
     expect(screen.getByText('Bản scan')).not.toBeNull();
     expect(screen.getByTitle('Xem trước scan-2.pdf').getAttribute('src')).toBe('/f.pdf');
     expect(screen.getByRole('button', { name: 'In' })).not.toBeNull();
+  });
+});
+
+describe('bảng thành thẻ bản ghi trên điện thoại (Figma M1)', () => {
+  it('gán nhãn cột cho từng ô của hàng hồ sơ, bỏ qua dòng con', () => {
+    render(
+      <DataTable tableKey="t">
+        <table data-labels={JSON.stringify(['STT', 'Người yêu cầu'])}>
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Người yêu cầu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>30</th>
+              <td>Cty B</td>
+            </tr>
+            <tr className="dms-sub">
+              <td>x</td>
+              <td>y</td>
+            </tr>
+          </tbody>
+        </table>
+      </DataTable>,
+    );
+    expect(screen.getByText('Cty B').getAttribute('data-label')).toBe('Người yêu cầu');
+    expect(screen.getByText('30').getAttribute('data-label')).toBe('STT');
+    expect(screen.getByText('x').getAttribute('data-label')).toBeNull();
   });
 });
 

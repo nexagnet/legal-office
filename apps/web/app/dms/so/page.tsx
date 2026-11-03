@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from '../../../components/ui/button';
 import { DMS_DOMAINS } from '../../../lib/dms';
 
 export const dynamic = 'force-dynamic';
@@ -18,13 +19,28 @@ export default function DmsBooksIndex() {
         Xem trước sổ theo đúng mẫu để xuất in. STT do hệ thống cấp theo sổ, văn phòng và năm khi hồ
         sơ được xác nhận lưu chính thức.
       </p>
-      <ul>
+      <ul
+        className="m-0 mt-4 grid list-none gap-4 p-0 sm:grid-cols-2"
+        aria-label="Các sổ nghiệp vụ"
+      >
         {BOOKS.map(([slug, code, title, domainSlug]) => (
-          <li key={slug}>
-            <Link href={`/dms/so/${slug}`}>
-              {code} · {title}
-            </Link>{' '}
-            <span className="muted">({DMS_DOMAINS.find((d) => d.slug === domainSlug)?.label})</span>
+          <li key={slug} className="flex flex-col gap-3 rounded-2xl bg-surface p-5 shadow-sm">
+            <div>
+              <span className="chip" data-tone="info">
+                Sổ {code}
+              </span>
+              <h2 className="mt-2 mb-1 font-serif text-lg font-bold">{title}</h2>
+              <p className="muted m-0 text-sm">
+                Nghiệp vụ {DMS_DOMAINS.find((d) => d.slug === domainSlug)?.label}
+              </p>
+            </div>
+            <div>
+              <Button asChild variant="secondary">
+                <Link className="no-underline" href={`/dms/so/${slug}`}>
+                  Xem trước và xuất {code}
+                </Link>
+              </Button>
+            </div>
           </li>
         ))}
       </ul>

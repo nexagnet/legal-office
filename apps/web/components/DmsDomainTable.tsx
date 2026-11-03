@@ -108,7 +108,13 @@ export function DmsDomainTable({
   const total = layout.reduce((n, c) => n + c.width, 0);
   return (
     <DataTable tableKey={tableKey} className="dms-table-wrap">
-      <table className="dms-table" style={{ '--dms-min': `${total}px` } as React.CSSProperties}>
+      <table
+        className="dms-table"
+        data-labels={JSON.stringify(
+          layout.map((c) => (c.special === 'stt' ? `${sttLabel} · Mã hồ sơ` : c.head)),
+        )}
+        style={{ '--dms-min': `${total}px` } as React.CSSProperties}
+      >
         <caption className="sr-only">{caption}</caption>
         <colgroup>
           {layout.map((c) => (
