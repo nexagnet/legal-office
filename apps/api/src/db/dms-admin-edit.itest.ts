@@ -235,6 +235,37 @@ describe.skipIf(!ADMIN_URL)('DMS Admin sửa hồ sơ đã ghi sổ và hàm đ�
     expect((await extras(U.thv, [c]))[0].returned).toBe(true);
   });
 
+  it('dms_domain_returned_counts: chỉ đếm hồ sơ đã ghi sổ có ô tích, đúng miền, năm, phạm vi xem và tenant', async () => {
+    const counts = async (actor: string, tenant = T, office = OFF, year = YEAR) =>
+      Object.fromEntries(
+        (
+          await call(tenant, 'SELECT * FROM dms_domain_returned_counts($1,$2,$3,$4)', [
+            tenant,
+            actor,
+            office,
+            year,
+          ])
+        ).map((r) => [r.domain as string, r.returned as number]),
+      );
+    const before = (await counts(U.thv)).vibang ?? 0;
+    const a = await recorded({});
+    const b = await recorded({});
+    await mkCase({}); // nháp: không tính
+    await op(T, 'dms_case_set_returned', [T, U.thv, a.c, true]);
+    await op(T, 'dms_case_set_returned', [T, U.thv, b.c, true]);
+    expect((await counts(U.thv)).vibang).toBe(before + 2);
+    // Bỏ tích thì giảm; miền khác không lẫn vào.
+    await op(T, 'dms_case_set_returned', [T, U.thv, b.c, false]);
+    expect((await counts(U.thv)).vibang).toBe(before + 1);
+    expect((await counts(U.thv)).tongdat).toBeUndefined();
+    // Người chỉ đọc (read.all) thấy cùng số; năm khác và tenant khác thì không.
+    expect((await counts(U.reader)).vibang).toBe(before + 1);
+    expect((await counts(U.thv, T, OFF, YEAR - 1)).vibang).toBeUndefined();
+    expect(await counts(U.foreign, T2, OFF2)).toEqual({});
+    // Năm sai thì từ chối bằng rỗng, không lỗi.
+    expect(await counts(U.thv, T, OFF, 1999)).toEqual({});
+  });
+
   it('dms_case_extras: không lộ hồ sơ ngoài phạm vi hiển thị hoặc của tenant khác', async () => {
     const draftByThv = await mkCase({ so_dien_thoai: '0900000001' });
     // Người chỉ đọc không thấy bản nháp của người khác.

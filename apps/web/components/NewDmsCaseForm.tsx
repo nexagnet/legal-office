@@ -48,12 +48,23 @@ export function NewDmsCaseForm({
           officeId,
           domain: domainCode,
           title: String(f.get('title') ?? '').trim(),
-          attributes: { note: String(f.get('note') ?? '').trim() },
+          attributes: {
+            note: String(f.get('note') ?? '').trim(),
+            // SĐT khách hàng (N1): chỉ gửi khi có nhập; không vào sổ.
+            ...(String(f.get('phone') ?? '').trim()
+              ? { so_dien_thoai: String(f.get('phone')).trim() }
+              : {}),
+          },
           ...(f.get('branch') ? { branchId: String(f.get('branch')) } : {}),
         }),
       });
       const json = (await res.json().catch(() => ({}))) as { code?: string; label?: string };
-      if (!res.ok) return setError(messageFor(json.code));
+      if (!res.ok)
+        return setError(
+          res.status === 400 && !json.code
+            ? 'Thông tin chưa hợp lệ, kiểm tra lại số điện thoại.'
+            : messageFor(json.code),
+        );
       form.reset();
       if (redirectBase && json.label) router.push(`${redirectBase}/${json.label}`);
       else router.refresh();
@@ -74,6 +85,20 @@ export function NewDmsCaseForm({
         {domainCode.startsWith('vt') ? 'Tên loại và trích yếu nội dung' : 'Tên hồ sơ'}
         <input name="title" required maxLength={500} className="min-w-72" />
       </label>
+      {domainCode.startsWith('vt') ? null : (
+        <label className="flex flex-col gap-1 text-sm">
+          SĐT khách hàng
+          <input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            maxLength={20}
+            pattern="\+?[0-9 .()\-]{8,20}"
+            title="Số điện thoại 8-15 chữ số, có thể có dấu cách, chấm, gạch, ngoặc hoặc +84"
+            className="min-w-48"
+          />
+        </label>
+      )}
       <label className="flex flex-col gap-1 text-sm">
         Ghi chú
         <input name="note" maxLength={1000} className="min-w-72" />

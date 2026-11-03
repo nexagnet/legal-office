@@ -17,7 +17,7 @@ export interface ListColumn {
   readonly head: string;
   readonly width: number;
   /** Cột đặc biệt do bảng tự vẽ. */
-  readonly special?: 'stt' | 'scan' | 'scanlite' | 'number' | 'actions';
+  readonly special?: 'stt' | 'scan' | 'scanlite' | 'number' | 'actions' | 'phone' | 'returned';
   /** Một ô của hàng hồ sơ: `get` đọc dòng sổ đầu tiên, `all` là mọi dòng sổ của hồ sơ (Tống đạt: mỗi giấy tờ một dòng). */
   readonly cell?: (get: Getter, all: readonly Getter[]) => ListCellText;
   /** Khoá cột đánh dấu: hàng hồ sơ hiện số giấy tờ có dấu, dòng sổ con hiện ✓. */
@@ -269,8 +269,26 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
   ],
 };
 
+/** Cột SĐT khách hàng (N1): hiện ở cả 4 nghiệp vụ, không nằm trong sổ nên không có ở `LAYOUTS` theo cột sổ. */
+const PHONE: ListColumn = { id: 'phone', head: 'SĐT khách hàng', width: 110, special: 'phone' };
+/** Cột ô tích "Đã trả kết quả" (N2): chỉ là dấu hiệu nhìn. */
+const RETURNED: ListColumn = { id: 'returned', head: 'Đã trả KQ', width: 80, special: 'returned' };
+
+/**
+ * Bố cục danh sách một nghiệp vụ: các cột sổ cốt lõi của Figma, thêm SĐT khách hàng ngay sau cột STT · Mã hồ sơ và
+ * ô "Đã trả KQ" ngay trước cột Tài liệu · Scan.
+ */
 export function listLayoutFor(domainCode: string): readonly ListColumn[] | undefined {
-  return LAYOUTS[domainCode];
+  const base = LAYOUTS[domainCode];
+  if (!base) return undefined;
+  const scanAt = base.findIndex((c) => c.special === 'scan');
+  return [
+    base[0]!,
+    PHONE,
+    ...base.slice(1, scanAt < 0 ? base.length : scanAt),
+    RETURNED,
+    ...(scanAt < 0 ? [] : base.slice(scanAt)),
+  ];
 }
 
 const VT_WIDTH: Readonly<Record<string, number>> = {

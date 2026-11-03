@@ -5,6 +5,7 @@ import { scanState } from '../lib/dms';
 import type { DmsSearchCase } from '../lib/dms-browse';
 import { bookGetter, EXPANDABLE_DOMAINS, sttRange, type ListColumn } from '../lib/dms-list-layout';
 import { DmsRowToggle } from './DmsRowToggle';
+import { ReturnedToggle } from './ReturnedToggle';
 import { DataTable } from './ui/data-table';
 
 const headOf = (c: ListColumn, sttLabel: string): ReactNode =>
@@ -89,7 +90,10 @@ export function DmsDomainTable({
   sttLabel,
   tableKey,
   draft,
+  canMarkReturned = false,
 }: {
+  /** Có quyền tích "Đã trả kết quả" (thêm tài liệu) ở miền này; máy chủ vẫn kiểm lại. */
+  readonly canMarkReturned?: boolean;
   /** Chế độ Nháp / Đã hủy (Figma 420:1420): chưa có STT, không có dòng sổ, thao tác riêng. */
   readonly draft?: { readonly kind: 'nhap' | 'da-huy'; readonly userId: string | undefined };
   readonly rows: readonly DmsSearchCase[];
@@ -184,13 +188,9 @@ export function DmsDomainTable({
                       {sttLabel} {sttRange(bookRows.map((br) => br.stt))}
                     </b>
                     <Link href={`${basePath}/${r.id}`} className="dms-code">
-                      {r.title}
+                      {r.case_number ?? r.title}
                     </Link>
-                    {r.pending_count > 0 ? (
-                      <span className="dms-pill" data-tone="warn">
-                        Chờ duyệt
-                      </span>
-                    ) : null}
+                    {r.case_number ? <Clamp muted>{r.title}</Clamp> : null}
                     {layout.some((x) => x.special === 'actions') ? (
                       <span className="dms-actions dms-stt-actions" aria-hidden="true">
                         {scan === 'ok' ? (
@@ -222,6 +222,30 @@ export function DmsDomainTable({
                     ) : null}
                   </span>
                 </th>
+              );
+            if (c.special === 'phone') {
+              // Hồ sơ chính thức: SĐT do máy chủ gộp từ giá trị hiện hành; nháp: lấy thuộc tính đang soạn.
+              const phone = r.phone ?? (draft ? attr('so_dien_thoai') : '');
+              return (
+                <td key={c.id}>
+                  {phone ? <Clamp>{phone}</Clamp> : <span aria-hidden="true">—</span>}
+                </td>
+              );
+            }
+            if (c.special === 'returned')
+              return (
+                <td key={c.id} className="dms-tick">
+                  {draft ? (
+                    <span aria-hidden="true">—</span>
+                  ) : (
+                    <ReturnedToggle
+                      caseId={r.id}
+                      initial={r.returned}
+                      editable={canMarkReturned && r.status === 'RECORDED'}
+                      caseLabel={r.case_number ?? r.title}
+                    />
+                  )}
+                </td>
               );
             if (draft && c.special === 'number')
               return (

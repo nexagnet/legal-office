@@ -467,6 +467,8 @@ export interface DmsReportFull {
   readonly rows: DmsReportRow[];
   /** Số việc còn dở theo miền (thẻ số của Tống đạt, Xác minh, Tổ chức); miền khác không có. */
   readonly pending: Readonly<Record<string, number>>;
+  /** Số hồ sơ đã tích "Đã trả kết quả" theo miền (thẻ số thứ tư của Vi bằng). */
+  readonly returned: Readonly<Record<string, number>>;
 }
 
 export async function loadDmsReportFull(
@@ -477,11 +479,13 @@ export async function loadDmsReportFull(
   const body = await getJson<{
     rows: DmsReportRow[];
     pending?: { domain: string; pending: number }[];
+    returned?: { domain: string; returned: number }[];
   }>(`/dms/report?officeId=${encodeURIComponent(officeId)}&year=${year}`, cookie);
   if (body === 'error') return 'error';
   return {
     rows: body.rows,
     pending: Object.fromEntries((body.pending ?? []).map((p) => [p.domain, p.pending])),
+    returned: Object.fromEntries((body.returned ?? []).map((p) => [p.domain, p.returned])),
   };
 }
 
