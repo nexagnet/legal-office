@@ -9,14 +9,14 @@ export const dynamic = 'force-dynamic';
 export default async function CreateGroupPage() {
   const ctx = await loadPermissionContext();
   if (!ctx) return null;
-  if (!ctx.canPropose || ctx.groups === 'error') {
+  if (!ctx.canApprove || ctx.groups === 'error') {
     return (
       <StateCard
         mark="403"
         tone="danger"
         alert
         title="Không đủ quyền"
-        description="Tạo nhóm quyền cần quyền đề xuất hoặc duyệt thay đổi quyền."
+        description="Chỉ Admin tạo được nhóm quyền."
       />
     );
   }

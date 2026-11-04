@@ -154,13 +154,17 @@ describe.skipIf(!ADMIN_URL)('DMS quyền riêng theo tài khoản (PostgreSQL)',
     await admin.end();
   });
 
-  it('chỉ người có quyền duyệt phân quyền đặt được; cần lý do', async () => {
+  it('chỉ người có quyền duyệt phân quyền đặt được; lý do không bắt buộc', async () => {
     expect(await apply(U.proposer, U.a, [])).toMatchObject({ ok: false, code: 'ADMIN_ONLY' });
     expect(await apply(U.a, U.b, [])).toMatchObject({ ok: false, code: 'ADMIN_ONLY' });
-    expect(await apply(U.admin, U.a, [], '  ')).toMatchObject({
-      ok: false,
-      code: 'REASON_REQUIRED',
-    });
+    // Lý do trống không còn bị từ chối (chủ dự án chốt 04/11/2026); ở đây chỉ kiểm không phải REASON_REQUIRED.
+    const blank = await apply(
+      U.admin,
+      U.a,
+      ['vtden.read.all', 'vtden.draft.all', 'vtden.confirm.all'],
+      '  ',
+    );
+    expect(blank).toMatchObject({ ok: false, code: 'NO_CHANGE' });
   });
 
   it('không đặt cho chính mình, cho vai ADMIN, cho người ngoài văn phòng; mã quyền phải thuộc danh mục cấp riêng được', async () => {

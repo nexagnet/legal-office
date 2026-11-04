@@ -314,8 +314,8 @@ describe.skipIf(!ADMIN_URL)('DMS xóa mềm file scan (PostgreSQL)', () => {
         [T, g.rows[0].id],
       ),
     ).rejects.toThrow();
-    // Cấp riêng phải có lý do (luật cũ của quyền riêng giữ nguyên).
-    expect((await apply([...base, 'dms.scan.delete'], '  ')).code).toBe('REASON_REQUIRED');
+    // Cấp riêng không còn bắt buộc lý do (chủ dự án chốt 04/11/2026): lý do trống được thay bằng câu mặc định.
+    expect((await apply([...base, 'dms.scan.delete'], '  ')).code).toBe('OVERRIDES_APPLIED');
   });
 
   it('Scan đã xóa: chỉ Admin văn phòng xem và tải trong 30 ngày; có lý do, hạn, số ngày còn lại; không có khôi phục', async () => {

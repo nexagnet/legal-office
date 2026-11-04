@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { AdminBanner } from '../../../../../components/admin-banner';
 import { notFound } from 'next/navigation';
+import { DeleteGroupButton } from '../../../../../components/permissions/DeleteGroupButton';
 import { GroupStatusButton } from '../../../../../components/permissions/GroupStatusButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
@@ -15,6 +16,7 @@ import {
   groupPermissionSections,
   groupVersion,
   isGroupActive,
+  isSystemGroup,
   isTemplateGroup,
   isSensitivePermission,
   makeNameBook,
@@ -74,7 +76,7 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
           [group.name],
         ]}
         title={group.name}
-        sub={`${isTemplateGroup(group) ? 'Nhóm mẫu của hệ thống' : 'Nhóm tùy chỉnh'}. Phiên bản hiện hành v${version}${
+        sub={`${isSystemGroup(group) ? 'Nhóm Admin hệ thống' : isTemplateGroup(group) ? 'Nhóm mẫu của hệ thống' : 'Nhóm tùy chỉnh'}. Phiên bản hiện hành v${version}${
           pendingPerm > 0 ? `; có một đề xuất v${version + 1} đang chờ duyệt và chưa áp dụng` : ''
         }.`}
       />
@@ -83,8 +85,12 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
           {group.name}
         </h2>
         <div className="flex flex-wrap gap-2">
-          <Pill tone={isTemplateGroup(group) ? 'info' : 'brass'}>
-            {isTemplateGroup(group) ? 'Nhóm mẫu' : 'Tùy chỉnh'}
+          <Pill tone={isSystemGroup(group) ? 'warn' : isTemplateGroup(group) ? 'info' : 'brass'}>
+            {isSystemGroup(group)
+              ? 'Nhóm hệ thống'
+              : isTemplateGroup(group)
+                ? 'Nhóm mẫu'
+                : 'Tùy chỉnh'}
           </Pill>
           {active ? <Pill tone="ok">Đang dùng</Pill> : <Pill tone="mute">Ngừng dùng</Pill>}
           <Pill tone="info">v{version} · hiện hành</Pill>
@@ -125,10 +131,13 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
           {isTemplateGroup(group)
             ? ' Nhóm mẫu được bảo vệ: không đổi quyền trực tiếp, hãy sao chép thành nhóm tùy chỉnh.'
             : ''}
+          {isSystemGroup(group)
+            ? ' Nhóm Admin là nhóm hệ thống: không xóa, không đổi quyền, và thành viên của nhóm không chỉnh được quyền riêng.'
+            : ''}
           {active ? '' : ' Nhóm đã ngừng dùng nên không cấp quyền hiệu lực cho ai.'}
         </p>
         <div className="flex flex-wrap gap-2.5">
-          {active && !isTemplateGroup(group) ? (
+          {active && !isTemplateGroup(group) && !isSystemGroup(group) ? (
             <>
               <Link
                 className="primary btn-link"
@@ -152,8 +161,11 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
               Thêm thành viên
             </Link>
           ) : null}
-          {ctx.canApprove && !isTemplateGroup(group) ? (
-            <GroupStatusButton groupId={group.id} retire={active} />
+          {ctx.canApprove && !isTemplateGroup(group) && !isSystemGroup(group) ? (
+            <>
+              <GroupStatusButton groupId={group.id} retire={active} />
+              <DeleteGroupButton groupId={group.id} name={group.name} />
+            </>
           ) : null}
         </div>
       </section>

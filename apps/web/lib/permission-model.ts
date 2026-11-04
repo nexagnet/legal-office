@@ -12,7 +12,7 @@ export interface DmsGroup {
   readonly permissions: readonly string[];
   readonly member_ids: readonly string[];
   /** Từ migration 0088; thiếu khi nói chuyện với API cũ thì coi như nhóm tùy chỉnh đang dùng, phiên bản 1. */
-  readonly kind?: 'TEMPLATE' | 'CUSTOM';
+  readonly kind?: 'TEMPLATE' | 'CUSTOM' | 'SYSTEM';
   readonly description?: string | null;
   readonly status?: 'ACTIVE' | 'RETIRED';
   readonly version?: number;
@@ -26,6 +26,8 @@ export interface DmsGroup {
 
 export const isGroupActive = (g: DmsGroup): boolean => (g.status ?? 'ACTIVE') === 'ACTIVE';
 export const isTemplateGroup = (g: DmsGroup): boolean => g.kind === 'TEMPLATE';
+/** Nhóm Admin hệ thống: không xóa, không đổi quyền, thành viên không chỉnh quyền riêng được. */
+export const isSystemGroup = (g: DmsGroup): boolean => g.kind === 'SYSTEM';
 export const groupVersion = (g: DmsGroup): number => g.version ?? 1;
 
 export type RequestKind = 'GRANT' | 'REVOKE' | 'ADD_MEMBER' | 'REMOVE_MEMBER';
@@ -505,6 +507,11 @@ const PERMISSION_MESSAGES: Readonly<Record<string, string>> = {
   MEMBER_REACTIVATED: 'Đã mở khóa tài khoản.',
   TEMPLATE_PROTECTED:
     'Nhóm mẫu được bảo vệ, không sửa trực tiếp. Hãy sao chép thành nhóm tùy chỉnh.',
+  ADMIN_GROUP_PROTECTED: 'Nhóm Admin là nhóm hệ thống, không xóa và không đổi được.',
+  GROUP_HAS_MEMBERS: 'Nhóm còn thành viên. Hãy chuyển họ sang nhóm khác trước khi xóa.',
+  GROUP_HAS_HISTORY:
+    'Nhóm đã có lịch sử thay đổi nên không xóa được. Hãy chọn "Ngừng dùng nhóm" để giữ lịch sử.',
+  ADMIN_TARGET: 'Tài khoản Admin hoặc thuộc nhóm Admin không có quyền riêng để chỉnh.',
 };
 
 export function permissionMessage(code: string | undefined): string {

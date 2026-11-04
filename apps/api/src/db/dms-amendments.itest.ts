@@ -134,7 +134,7 @@ describe.skipIf(!ADMIN_URL)('DMS sửa đổi có duyệt (PostgreSQL)', () => {
     await group(
       T,
       OFF,
-      'Admin',
+      'Admin duyệt',
       [...all, 'dms.permission.approve', 'dms.amendment.approve'],
       [U.admin, U.admin2],
     );
