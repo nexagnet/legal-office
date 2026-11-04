@@ -7,6 +7,12 @@ import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
 
+/** Thuộc tính không thuộc cột nào của sổ nên không có tiêu đề cột: gắn nhãn tiếng Việt thay cho tên khóa kỹ thuật. */
+const EXTRA_LABELS: Record<string, string> = {
+  note: 'Ghi chú',
+  so_dien_thoai: 'SĐT khách hàng',
+};
+
 const entries = (a: Record<string, unknown>) =>
   Object.entries(a).filter(([, v]) => v !== null && v !== undefined && String(v).trim() !== '');
 
@@ -48,7 +54,7 @@ export default async function DmsThvReviewPage({ params }: { params: Promise<{ i
           .filter((b) => b.domain === r.domain)
           .flatMap((b) => b.columns.map((c) => [c.key, c.heading])),
   );
-  const labelOf = (k: string) => headings.get(k) ?? (k === 'note' ? 'Ghi chú' : k);
+  const labelOf = (k: string) => headings.get(k) ?? EXTRA_LABELS[k] ?? k;
   return (
     <section aria-labelledby="t">
       <p>

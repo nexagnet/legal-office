@@ -7,6 +7,9 @@ import { messageFor } from '../lib/messages';
 import { Button } from './ui/button';
 import { Input } from './ui/field';
 
+/** Bề rộng hộp (Tailwind w-80 = 20rem). */
+const PANEL_WIDTH = 320;
+
 interface Saved {
   readonly id: string;
   readonly name: string;
@@ -35,6 +38,15 @@ export function DmsSavedFilters({
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const [name, setName] = useState('');
+  // Nút nằm sát mép phải (thanh bộ lọc trên màn rộng) thì hộp mở lệch trái sẽ tràn ra ngoài màn hình: canh theo mép phải của nút.
+  const [alignEnd, setAlignEnd] = useState(false);
+
+  useEffect(() => {
+    if (!open || !box.current) return;
+    const r = box.current.getBoundingClientRect();
+    const width = Math.min(PANEL_WIDTH, window.innerWidth - 32);
+    setAlignEnd(r.left + width > window.innerWidth - 8 && r.right - width >= 8);
+  }, [open]);
 
   const load = useCallback(async () => {
     try {
@@ -122,7 +134,7 @@ export function DmsSavedFilters({
       <div
         id={panelId}
         hidden={!open}
-        className="absolute left-0 z-20 mt-1 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-line-strong bg-surface p-3 shadow-lg"
+        className={`absolute ${alignEnd ? 'right-0' : 'left-0'} z-20 mt-1 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-line-strong bg-surface p-3 shadow-lg`}
       >
         {error ? (
           <p role="alert" className="mb-2 text-sm text-danger">
