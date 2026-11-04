@@ -8,7 +8,9 @@ const tk = await asRole(b, 'THU_KY');
 const gt = new Guide('thua-hanh-vien', 'Hướng dẫn dành cho Thừa hành viên');
 const gk = new Guide('thu-ky', 'Hướng dẫn dành cho Thư ký');
 const go = async (page, p) => { await page.goto(BASE + p, { waitUntil: 'networkidle' }); await page.waitForTimeout(900); };
-const stamp = new Date().toISOString().slice(5, 16).replace('T', ' ');
+const REAL = process.env.GUIDE_REAL === '1'; // dữ liệu minh họa gửi khách: tiêu đề thật, không tiền tố [guide], không mốc giờ
+const TAG = REAL ? '' : '[guide] ';
+const stamp = REAL ? '' : new Date().toISOString().slice(5, 16).replace('T', ' ');
 /** Đánh dấu từng ô nhập đang hiện trong vùng main; trả cả marks lẫn dòng giải thích (nhãn, bắt buộc hay không). */
 const fields = async (page, max = 10) => {
   const els = await page.locator('main input:not([type=hidden]):not([type=checkbox]):not([type=file]),main select,main textarea').all();
@@ -60,10 +62,11 @@ ga.section('DMS · Admin: soạn nháp và chọn Thừa hành viên ghi tên', 
   'Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác.',
 ], [['Thừa hành viên không thấy hồ sơ trong "Chờ tôi xác nhận"', 'Chưa chọn đúng thừa hành viên ở ô "Thừa hành viên được ghi tên" hoặc chưa bấm Lưu.']]);
 await go(tk.page, '/dms/vi-bang/tao-moi');
-await tk.page.locator('[name=title]').fill(`[guide] Hồ sơ chờ Thừa hành viên xác nhận ${stamp}`);
+await tk.page.locator('[name=title]').fill(`${TAG}Vi bằng ghi nhận hiện trạng nhà số 18 phố Hàng Cót${REAL ? '' : ' ' + stamp}`);
 await tk.page.locator('[name=phone]').fill('0900 000 456');
 await tk.page.locator('[name=nguoi_yeu_cau]').fill('Trần Thị Bình, 25 phố Bạch Mai, Hai Bà Trưng, Hà Nội');
 await tk.page.locator('[name=noi_dung_yeu_cau]').fill('Ghi nhận hiện trạng nhà ở trước khi bàn giao');
+await tk.page.locator('select[name=branch]').selectOption({ index: 1 }).catch(() => {});
 await tk.page.getByRole('button', { name: 'Lưu nháp' }).click(); await tk.page.waitForURL(/\/dms\/vi-bang\/[0-9a-f-]{36}/, { timeout: 15000 }); await tk.page.waitForTimeout(1500);
 await gk.shot(tk.page, { title: 'Bản nháp do Thư ký soạn', note: 'Thư ký có Lưu, Lưu nháp và Hủy nháp; không có "Xác nhận lưu chính thức". Ô thừa hành viên chỉ có "Không ghi tên" vì bạn không có quyền chọn.',
   marks: [
@@ -73,13 +76,13 @@ await gk.shot(tk.page, { title: 'Bản nháp do Thư ký soạn', note: 'Thư k�
   ] });
 // Admin chọn THV cho bản nháp
 await go(ad.page, '/dms/vi-bang/tao-moi');
-await ad.page.locator('[name=title]').fill(`[guide] Hồ sơ chờ Thừa hành viên xác nhận ${stamp}`);
+await ad.page.locator('[name=title]').fill(`${TAG}Vi bằng ghi nhận hiện trạng nhà số 18 phố Hàng Cót${REAL ? '' : ' ' + stamp}`);
 await ad.page.locator('[name=phone]').fill('0900 000 456');
 await ad.page.locator('[name=nguoi_yeu_cau]').fill('Trần Thị Bình, 25 phố Bạch Mai, Hai Bà Trưng, Hà Nội');
 await ad.page.locator('[name=noi_dung_yeu_cau]').fill('Ghi nhận hiện trạng nhà ở trước khi bàn giao');
 await ad.page.locator('select[name=branch]').selectOption({ index: 1 }).catch(() => {});
 await ad.page.getByRole('button', { name: 'Lưu nháp' }).click(); await ad.page.waitForURL(/\/dms\/vi-bang\/[0-9a-f-]{36}/, { timeout: 15000 }); await ad.page.waitForTimeout(1500);
-const optionLabel = await ad.page.locator('[name=thv] option', { hasText: 'DEMO Thừa hành viên' }).first().innerText();
+const optionLabel = await ad.page.locator('[name=thv] option', { hasText: REAL ? 'Phạm Quốc Bảo' : 'DEMO Thừa hành viên' }).first().innerText();
 await ad.page.locator('[name=thv]').selectOption({ label: optionLabel.trim() });
 await ga.shot(ad.page, { title: 'Chọn thừa hành viên được ghi tên', note: 'Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Chờ tôi xác nhận" của thừa hành viên đó.',
   marks: [{ loc: ad.page.locator('[name=thv]'), text: 'Thừa hành viên được ghi tên' }, { loc: ad.page.getByRole('button', { name: 'Lưu', exact: true }), text: 'Lưu để giao cho thừa hành viên' }] });

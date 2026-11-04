@@ -11,8 +11,10 @@ const g = new Guide('thua-hanh-vien', 'Hướng dẫn dành cho Thừa hành vi�
 if (!process.env.APPEND) console.log('Gợi ý: đặt APPEND=1 để giữ các phần cũ của vai này');
 const go = async (p) => { await page.goto(BASE + p, { waitUntil: 'networkidle' }); await page.waitForTimeout(900); };
 const f = (n, v) => page.locator(`[name=${n}]`).fill(v);
-const stamp = new Date().toISOString().slice(5, 16).replace('T', ' ');
-const TITLE = `[guide] Vi bằng thỏa thuận mua bán nhà ${stamp}`;
+const REAL = process.env.GUIDE_REAL === '1'; // dữ liệu minh họa gửi khách: tiêu đề thật, không tiền tố [guide], không mốc giờ
+const TAG = REAL ? '' : '[guide] ';
+const stamp = REAL ? '' : new Date().toISOString().slice(5, 16).replace('T', ' ');
+const TITLE = `${TAG}Vi bằng thỏa thuận mua bán nhà${REAL ? '' : ' ' + stamp}`;
 
 g.section('DMS · Vi bằng: tạo hồ sơ nháp', 'Hồ sơ Vi bằng mới luôn bắt đầu là bản NHÁP: chưa có số hồ sơ, chưa vào sổ S-02 và chưa tính vào thống kê. Bạn có thể sửa, thêm tài liệu hoặc hủy nháp thoải mái cho đến khi lưu chính thức.', [
   'Bản nháp chưa có số hồ sơ. Số hồ sơ (dạng 034/2026/VB-TPL) chỉ được cấp khi lưu chính thức.',
@@ -47,8 +49,8 @@ await g.shot(page, { title: 'Nhập sai SĐT: hệ thống chặn và báo lỗi
   ] });
 await f('phone', '0900 000 123');
 await f('dia_chi_noi_lap', 'Số 4 – A11 Đầm Trấu, phường Bạch Đằng, quận Hai Bà Trưng, Hà Nội');
-await f('thua_hanh_vien', 'DEMO Thừa hành viên');
-await f('ghi_chu', 'Hồ sơ mẫu dùng cho tài liệu hướng dẫn');
+await f('thua_hanh_vien', REAL ? 'Phạm Quốc Bảo, thẻ số 128' : 'DEMO Thừa hành viên');
+await f('ghi_chu', 'Có kèm ảnh chụp hiện trạng');
 await g.shot(page, { title: 'Điền thông tin Vi bằng (phần cuối) rồi Lưu nháp', note: 'Điền tiếp các cột còn lại của Sổ S-02 rồi bấm Lưu nháp. Có thể để trống ô chưa biết và bổ sung sau khi còn là nháp.',
   detail: ['Cột 4 (Số, ngày, tháng, năm của vi bằng): có thể để trống khi còn là nháp.', 'Cột 5 (Địa chỉ nơi lập vi bằng): ghi theo xã/phường/đặc khu, tỉnh/thành phố.', 'Cột 6 (Thừa hành viên lập vi bằng): ghi rõ họ tên và số thẻ.', 'Cột 7 (Ghi chú): thông tin thêm nếu có.'],
   marks: [
@@ -57,6 +59,7 @@ await g.shot(page, { title: 'Điền thông tin Vi bằng (phần cuối) rồi 
     { loc: page.locator('[name=ghi_chu]'), text: 'Cột 7: ghi chú' },
     { loc: page.getByRole('button', { name: 'Lưu nháp' }), text: 'Bấm Lưu nháp' },
   ] });
+await page.locator('select[name=branch]').selectOption({ index: 1 }).catch(() => {}); // văn phòng nhiều chi nhánh: chọn chi nhánh trước khi lưu
 await page.getByRole('button', { name: 'Lưu nháp' }).click(); await page.waitForURL(/\/dms\/vi-bang\/[0-9a-f-]{36}/, { timeout: 60000 }); await page.waitForTimeout(1200);
 const draftUrl = page.url();
 await g.shot(page, { title: 'Bản nháp vừa tạo', note: 'Hệ thống chuyển sang trang chi tiết của bản nháp. Từ đây bạn lưu thêm, thêm tài liệu, hủy nháp hoặc lưu chính thức.',

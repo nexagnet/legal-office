@@ -176,3 +176,26 @@ export class ImportApi {
     });
   }
 }
+
+/** Đăng nhập bằng email/CCCD + mật khẩu, trả cookie phiên (hoặc null nếu sai thông tin hay tài khoản chưa đổi mật khẩu lần đầu). */
+export async function loginForCookie(
+  baseUrl: string,
+  tenantId: string,
+  login: string,
+  password: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<string | null> {
+  const res = await fetchFn(`${baseUrl}/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ tenantId, email: login, password }),
+  });
+  if (!res.ok) return null;
+  const body = (await res.json().catch(() => ({}))) as { mustChangePassword?: boolean };
+  if (body.mustChangePassword) return null;
+  const cookie = res.headers
+    .getSetCookie()
+    .map((c) => c.split(';')[0] ?? '')
+    .find((c) => c.startsWith('lo_session='));
+  return cookie ?? null;
+}

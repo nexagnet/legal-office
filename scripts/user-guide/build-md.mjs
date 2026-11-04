@@ -22,7 +22,7 @@ const section = (s, num) => {
   }
 };
 lines.push('# Legal Office: hướng dẫn sử dụng', '',
-  `Bản dựng ${new Date().toLocaleDateString('vi-VN')}. Ảnh chụp từ bản chạy thử với dữ liệu giả (tiền tố [guide], DEMO). Vòng đỏ có số là chỗ cần bấm hoặc nhập, làm theo thứ tự số.`,
+  `Bản dựng ${new Date().toLocaleDateString('vi-VN')}. Ảnh chụp từ văn phòng minh họa; mọi tên người, số liệu và hồ sơ trong ảnh đều là hư cấu. Vòng đỏ có số là chỗ cần bấm hoặc nhập, làm theo thứ tự số.`,
   'Tệp này và các PDF trong `pdf/` đều sinh từ `roles/*.json` bằng `scripts/user-guide/build-md.mjs` và `build-pdf.mjs`. Không sửa tay; sửa nguồn rồi dựng lại.', '',
   '## Ba nguyên tắc của phần mềm', '',
   '- **Phần mềm ghi nhận, nhắc và chặn bước sai; người có thẩm quyền mới ký và ban hành.** "Duyệt" trong phần mềm không phải chữ ký pháp lý.',

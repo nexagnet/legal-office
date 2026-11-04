@@ -1,6 +1,6 @@
 # Hướng dẫn sử dụng: nguồn, cách dựng lại, tình trạng
 
-Cập nhật: 2026-11-04 (dựng lại toàn bộ sau các thay đổi P0 đến P7). Chụp từ bản chạy cục bộ của `main` (sau #402) với DB thử và dữ liệu giả; không có dữ liệu khách thật.
+Cập nhật: 2026-11-04 (dựng lại từ văn phòng minh họa tạo bằng bootstrap-tenant, dữ liệu nạp bằng SEED_PROFILE=guide; mọi tên và hồ sơ là hư cấu, không nhãn "dữ liệu giả" hay [guide]). Dựng lại: đặt GUIDE_REAL=1 khi chạy các kịch bản role-dms-*.mjs.
 
 ## Có gì
 
@@ -15,8 +15,8 @@ Phạm vi: toàn bộ giao diện DMS đang hiện trên thanh bên (Hồ sơ do
 - Tài khoản thử đọc từ hai tệp ngoài repo: `C:\Users\phung\Documents\legal-office-test-accounts-thu.txt` (mỗi dòng `email,mật khẩu,VAI`) và `legal-office-admin-thu.txt` (dòng 1 email, dòng 2 mật khẩu). Không in, không chép vào repo.
 - Mã tenant: tạo `scripts/user-guide/tenant.txt` (không commit) từ `TENANT_ID` của dev, hoặc đặt biến `GUIDE_TENANT`.
 - Chạy cục bộ: đặt `GUIDE_BASE=http://localhost:3000`, `GUIDE_TENANT`, `GUIDE_ACC` và `GUIDE_ADMIN` (tệp tài khoản thử cùng định dạng như trên). Tài khoản thử cần đủ vai Admin, Trưởng văn phòng, Thư ký, THV, Văn thư, Kế toán, mỗi vai thuộc đúng một nhóm quyền (sao chép từ nhóm mẫu) và chỉ một chi nhánh, để biểu mẫu tạo hồ sơ không hiện ô chọn chi nhánh. Tên THV phải là `DEMO Thừa hành viên`.
-- Môi trường thật là tenant mới, không chạy `tools/seed-demo`; không đưa các PDF này kèm dữ liệu mẫu cho khách thật.
-- Các script ghi dữ liệu giả có tiền tố `[guide]` lên dev (tạo nháp, lưu chính thức, gửi và duyệt bản trình, sửa, xóa scan). Hồ sơ đã lưu chính thức không bao giờ bị xóa nên mỗi lần chạy để lại thêm dữ liệu `[guide]` trên dev.
+- Môi trường thật là tenant mới (tạo bằng `bootstrap-tenant.cli`, không chạy `tools/seed-demo`). Bộ PDF này chụp từ văn phòng minh họa riêng, dữ liệu hư cấu, nên đưa khách xem được.
+- Các script ghi dữ liệu minh họa (tạo nháp, lưu chính thức, gửi và duyệt bản trình, sửa, xóa scan). Hồ sơ đã lưu chính thức không bao giờ bị xóa nên chạy trên DB sạch rồi bỏ DB đó, đừng chạy trên dev/production dùng thật.
 - Mọi ảnh chụp đều che email thật (thay bằng `@example.invalid`) và tên tài khoản Admin thật.
 
 ## Dựng lại

@@ -5,7 +5,9 @@ const b = await browser();
 const { page } = await asRole(b, 'VAN_THU');
 const g = new Guide('van-thu', 'Hướng dẫn dành cho Văn thư');
 const go = async (p) => { await page.goto(BASE + p, { waitUntil: 'networkidle' }); await page.waitForTimeout(900); };
-const stamp = new Date().toISOString().slice(5, 16).replace('T', ' ');
+const REAL = process.env.GUIDE_REAL === '1'; // dữ liệu minh họa gửi khách: tiêu đề thật, không tiền tố [guide], không mốc giờ
+const TAG = REAL ? '' : '[guide] ';
+const stamp = REAL ? '' : new Date().toISOString().slice(5, 16).replace('T', ' ');
 
 g.section('DMS · Văn thư: sổ Văn bản đến, đi và nội bộ', 'Văn thư giữ ba sổ: Văn bản đến, Văn bản đi và Văn bản nội bộ. Mỗi văn bản là một hồ sơ có số thứ tự (STT) riêng theo năm, kèm bản scan.', [
   'Hồ sơ mới là bản nháp: chưa có STT, chưa vào sổ cho tới khi xác nhận lưu chính thức.',
@@ -27,8 +29,8 @@ await g.shot(page, { title: 'Sổ Văn bản đến', note: 'Ba nút chuyển gi
     { loc: page.getByRole('button', { name: '+ Thêm bản ghi' }).or(page.getByRole('link', { name: '+ Thêm bản ghi' })).first(), text: 'Thêm một văn bản mới vào sổ' },
   ] });
 await page.getByRole('button', { name: '+ Thêm bản ghi' }).or(page.getByRole('link', { name: '+ Thêm bản ghi' })).first().click(); await page.waitForTimeout(800);
-await page.locator('[role=dialog] [name=title]').fill(`[guide] Công văn số 12/UBND về việc phối hợp xác minh ${stamp}`);
-await page.locator('[role=dialog] [name=note]').fill('Văn bản mẫu dùng cho tài liệu hướng dẫn.');
+await page.locator('[role=dialog] [name=title]').fill(`${TAG}Công văn số 12/UBND về việc phối hợp xác minh${REAL ? '' : ' ' + stamp}`);
+await page.locator('[role=dialog] [name=note]').fill('Văn bản gửi kèm hồ sơ xác minh.');
 await g.shot(page, { title: 'Tạo bản nháp văn bản mới', note: 'Điền tên loại và trích yếu nội dung, ghi chú nếu cần rồi bấm "+ Tạo nháp". Hệ thống mở trang chi tiết của bản nháp.',
   detail: ['Tên loại và trích yếu nội dung (bắt buộc): ghi loại văn bản và nội dung chính, ví dụ "Công văn số 12/UBND về việc phối hợp xác minh".', 'Ghi chú: thông tin thêm nếu có.'],
   marks: [
@@ -36,6 +38,7 @@ await g.shot(page, { title: 'Tạo bản nháp văn bản mới', note: 'Điền
     { loc: page.locator('[role=dialog] [name=note]'), text: 'Ghi chú (không bắt buộc)' },
     { loc: page.getByRole('button', { name: '+ Tạo nháp' }), text: 'Tạo bản nháp' },
   ] });
+await page.locator('[role=dialog] select').first().selectOption({ index: 1 }).catch(() => {});
 await page.getByRole('button', { name: '+ Tạo nháp' }).click(); await page.waitForURL(/\/dms\/van-ban-den\/[0-9a-f-]{36}/, { timeout: 15000 }); await page.waitForTimeout(1500);
 await g.shot(page, { title: 'Bản nháp văn bản: thêm tài liệu rồi lưu chính thức', note: 'Cũng như hồ sơ nghiệp vụ, bản nháp cho phép sửa, thêm tài liệu và tải bản scan. Khi đã đúng, bấm Xác nhận lưu chính thức để cấp STT và vào sổ.',
   marks: [

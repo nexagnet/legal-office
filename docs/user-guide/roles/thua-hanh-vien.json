@@ -29,7 +29,7 @@
      "title": "Bấm \"+ Tạo hồ sơ\"",
      "note": "Nút nằm ở góc trên bên phải danh sách Vi bằng. Chỉ vai được cấp quyền tạo hồ sơ mới thấy nút này.",
      "detail": [],
-     "img": "thua-hanh-vien/01.png",
+     "img": "thua-hanh-vien/26.png",
      "marks": [
       {
        "n": 1,
@@ -46,7 +46,7 @@
       "Cột 2 (Người yêu cầu lập vi bằng): ghi rõ họ tên và địa chỉ.",
       "Cột 3 (Nội dung yêu cầu lập vi bằng): mô tả ngắn việc cần ghi nhận."
      ],
-     "img": "thua-hanh-vien/02.png",
+     "img": "thua-hanh-vien/27.png",
      "marks": [
       {
        "n": 1,
@@ -70,7 +70,7 @@
      "title": "Nhập sai SĐT: hệ thống chặn và báo lỗi",
      "note": "SĐT \"123\" không phải số điện thoại hợp lệ nên hồ sơ chưa được lưu. Sửa lại cho đúng rồi bấm Lưu nháp lần nữa.",
      "detail": [],
-     "img": "thua-hanh-vien/03.png",
+     "img": "thua-hanh-vien/28.png",
      "marks": [
       {
        "n": 1,
@@ -91,7 +91,7 @@
       "Cột 6 (Thừa hành viên lập vi bằng): ghi rõ họ tên và số thẻ.",
       "Cột 7 (Ghi chú): thông tin thêm nếu có."
      ],
-     "img": "thua-hanh-vien/04.png",
+     "img": "thua-hanh-vien/29.png",
      "marks": [
       {
        "n": 1,
@@ -120,7 +120,7 @@
       "Hủy nháp: bỏ bản nháp (phải nêu lý do), xem phần \"Hủy bản nháp\".",
       "Xác nhận lưu chính thức: cấp số hồ sơ, vào sổ, từ đó không sửa trực tiếp được nữa."
      ],
-     "img": "thua-hanh-vien/05.png",
+     "img": "thua-hanh-vien/30.png",
      "marks": [
       {
        "n": 1,
@@ -169,7 +169,7 @@
       "Tên tài liệu: tên gọi dễ nhận biết, ví dụ \"Vi bằng ghi nhận thỏa thuận mua bán nhà\".",
       "Văn bản chính thức: tích nếu đây là văn bản chính thức của hồ sơ (thường là bản vi bằng đã ký)."
      ],
-     "img": "thua-hanh-vien/06.png",
+     "img": "thua-hanh-vien/31.png",
      "marks": [
       {
        "n": 1,
@@ -197,7 +197,7 @@
       "Tên tệp (tùy chọn): đặt tên dễ nhớ, ví dụ \"Bản scan vi bằng đã ký\".",
       "Bản scan: tích nếu đây là bản scan văn bản giấy đã ký, đóng dấu."
      ],
-     "img": "thua-hanh-vien/07.png",
+     "img": "thua-hanh-vien/32.png",
      "marks": [
       {
        "n": 1,
@@ -221,7 +221,7 @@
      "title": "Tệp đã tải lên",
      "note": "Tệp hiện trong danh sách tài liệu. Bấm Xem để xem trước ngay bên cạnh. Chữ trong tệp sẽ được nhận dạng sau 1 đến 2 phút để tìm theo nội dung.",
      "detail": [],
-     "img": "thua-hanh-vien/08.png",
+     "img": "thua-hanh-vien/33.png",
      "marks": [
       {
        "n": 1,
@@ -253,7 +253,7 @@
      "title": "Hộp thoại Hủy bản nháp",
      "note": "Nhập lý do rồi bấm Xác nhận hủy. Muốn giữ lại bản nháp thì bấm Giữ bản nháp.",
      "detail": [],
-     "img": "thua-hanh-vien/09.png",
+     "img": "thua-hanh-vien/34.png",
      "marks": [
       {
        "n": 1,
@@ -293,7 +293,7 @@
      "title": "Hộp thoại xác nhận lưu chính thức",
      "note": "Đọc kỹ lưu ý: sau bước này hồ sơ không sửa trực tiếp được. Bấm Lưu chính thức để cấp số, hoặc Quay lại để kiểm tra thêm.",
      "detail": [],
-     "img": "thua-hanh-vien/10.png",
+     "img": "thua-hanh-vien/35.png",
      "marks": [
       {
        "n": 1,
@@ -312,7 +312,7 @@
       "Các tab: Thông tin chung, Tài liệu, Tệp đính kèm, Phiên bản cũ (các bản trước khi Admin sửa), Sổ liên quan.",
       "Bạn không thấy nút sửa vì chỉ Admin sửa được hồ sơ đã ghi sổ."
      ],
-     "img": "thua-hanh-vien/11.png",
+     "img": "thua-hanh-vien/36.png",
      "marks": [
       {
        "n": 1,
@@ -332,7 +332,7 @@
      "title": "Tab Tài liệu của hồ sơ đã ghi sổ",
      "note": "Xem bản scan ngay trong trang. Các nút phía trên khung xem cho phép tải bản scan chính, in, hoặc tải thêm scan.",
      "detail": [],
-     "img": "thua-hanh-vien/12.png",
+     "img": "thua-hanh-vien/37.png",
      "marks": [
       {
        "n": 1,
@@ -372,7 +372,7 @@
      "title": "Tìm dòng hồ sơ và tích Đã trả kết quả",
      "note": "Tích vào ô trên dòng hồ sơ. Hệ thống lưu ngay và thẻ \"Đã trả kết quả\" phía trên tăng thêm 1.",
      "detail": [],
-     "img": "thua-hanh-vien/13.png",
+     "img": "thua-hanh-vien/38.png",
      "marks": [
       {
        "n": 1,
@@ -384,7 +384,7 @@
      "title": "Đã tích: thẻ Đã trả kết quả tăng",
      "note": "Ô đã được tích và được lưu ngay. Thẻ \"Đã trả kết quả\" phía trên đếm lại số hồ sơ đã tích (cập nhật khi tải lại trang). Bỏ tích nếu tích nhầm.",
      "detail": [],
-     "img": "thua-hanh-vien/14.png",
+     "img": "thua-hanh-vien/39.png",
      "marks": [
       {
        "n": 1,
@@ -420,7 +420,7 @@
      "title": "Trình / Duyệt: danh sách bản trình của tôi",
      "note": "Bạn chỉ thấy bản trình do mình gửi. Bấm \"+ Trình mới\" để gửi bản trình mới.",
      "detail": [],
-     "img": "thua-hanh-vien/15.png",
+     "img": "thua-hanh-vien/48.png",
      "marks": [
       {
        "n": 1,
@@ -440,7 +440,7 @@
       "Mô tả: nêu rõ việc cần Admin xem xét.",
       "Bản scan: có thể chọn nhiều tệp."
      ],
-     "img": "thua-hanh-vien/16.png",
+     "img": "thua-hanh-vien/49.png",
      "marks": [
       {
        "n": 1,
@@ -464,7 +464,7 @@
      "title": "Bản trình vừa gửi ở trạng thái Chờ duyệt",
      "note": "Bản trình hiện trong danh sách với trạng thái Chờ duyệt. Khi Admin duyệt hoặc từ chối, trạng thái đổi theo và bạn nhận thông báo.",
      "detail": [],
-     "img": "thua-hanh-vien/17.png",
+     "img": "thua-hanh-vien/50.png",
      "marks": [
       {
        "n": 1,
@@ -496,7 +496,7 @@
      "title": "Tống đạt: danh sách và nút tạo hồ sơ",
      "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
      "detail": [],
-     "img": "thua-hanh-vien/18.png",
+     "img": "thua-hanh-vien/40.png",
      "marks": [
       {
        "n": 1,
@@ -514,9 +514,10 @@
      "detail": [
       "Tên hồ sơ (bắt buộc)",
       "SĐT khách hàng Không in ra sổ.",
+      "Chi nhánh Chọn chi nhánh Chi nhánh 2 Trụ sở chính (bắt buộc)",
       "Ghi chú"
      ],
-     "img": "thua-hanh-vien/19.png",
+     "img": "thua-hanh-vien/41.png",
      "marks": [
       {
        "n": 1,
@@ -528,6 +529,10 @@
       },
       {
        "n": 3,
+       "text": "Chi nhánh Chọn chi nhánh Chi nhánh 2 Trụ sở chính (bắt buộc)"
+      },
+      {
+       "n": 4,
        "text": "Ghi chú"
       }
      ]
@@ -556,7 +561,7 @@
      "title": "Xác minh điều kiện thi hành án: danh sách và nút tạo hồ sơ",
      "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
      "detail": [],
-     "img": "thua-hanh-vien/20.png",
+     "img": "thua-hanh-vien/42.png",
      "marks": [
       {
        "n": 1,
@@ -574,16 +579,16 @@
      "detail": [
       "Tên hồ sơ (bắt buộc)",
       "SĐT khách hàng Không in ra sổ.",
+      "Chi nhánh Chọn chi nhánh Chi nhánh 2 Trụ sở chính (bắt buộc)",
       "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)",
       "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN (số, ngày, tháng, năm)",
       "Cột 4: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN",
       "Cột 5: QUYẾT ĐỊNH XÁC MINH (số, ngày)",
       "Cột 6: NGƯỜI YÊU CẦU THI HÀNH ÁN",
       "Cột 7: NGƯỜI PHẢI THI HÀNH ÁN",
-      "Cột 8: NỘI DUNG XÁC MINH",
-      "Cột 9: KẾT QUẢ XÁC MINH"
+      "Cột 8: NỘI DUNG XÁC MINH"
      ],
-     "img": "thua-hanh-vien/21.png",
+     "img": "thua-hanh-vien/43.png",
      "marks": [
       {
        "n": 1,
@@ -595,35 +600,35 @@
       },
       {
        "n": 3,
-       "text": "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)"
+       "text": "Chi nhánh Chọn chi nhánh Chi nhánh 2 Trụ sở chính (bắt buộc)"
       },
       {
        "n": 4,
-       "text": "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN (số, ngày, tháng, năm)"
+       "text": "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)"
       },
       {
        "n": 5,
-       "text": "Cột 4: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN"
+       "text": "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN (số, ngày, tháng, năm)"
       },
       {
        "n": 6,
-       "text": "Cột 5: QUYẾT ĐỊNH XÁC MINH (số, ngày)"
+       "text": "Cột 4: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN"
       },
       {
        "n": 7,
-       "text": "Cột 6: NGƯỜI YÊU CẦU THI HÀNH ÁN"
+       "text": "Cột 5: QUYẾT ĐỊNH XÁC MINH (số, ngày)"
       },
       {
        "n": 8,
-       "text": "Cột 7: NGƯỜI PHẢI THI HÀNH ÁN"
+       "text": "Cột 6: NGƯỜI YÊU CẦU THI HÀNH ÁN"
       },
       {
        "n": 9,
-       "text": "Cột 8: NỘI DUNG XÁC MINH"
+       "text": "Cột 7: NGƯỜI PHẢI THI HÀNH ÁN"
       },
       {
        "n": 10,
-       "text": "Cột 9: KẾT QUẢ XÁC MINH"
+       "text": "Cột 8: NỘI DUNG XÁC MINH"
       }
      ]
     }
@@ -651,7 +656,7 @@
      "title": "Tổ chức thi hành án: danh sách và nút tạo hồ sơ",
      "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
      "detail": [],
-     "img": "thua-hanh-vien/22.png",
+     "img": "thua-hanh-vien/44.png",
      "marks": [
       {
        "n": 1,
@@ -669,16 +674,16 @@
      "detail": [
       "Tên hồ sơ (bắt buộc)",
       "SĐT khách hàng Không in ra sổ.",
+      "Chi nhánh Chọn chi nhánh Chi nhánh 2 Trụ sở chính (bắt buộc)",
       "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)",
       "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Số, ngày, tháng, năm",
       "Cột 4: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Sửa đổi, bổ sung",
       "Cột 5: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Thu hồi",
       "Cột 6: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN",
       "Cột 7: BÊN PHẢI THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)",
-      "Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)",
-      "Cột 9: CÁC KHOẢN PHẢI THI HÀNH ÁN (theo hợp đồng)"
+      "Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)"
      ],
-     "img": "thua-hanh-vien/23.png",
+     "img": "thua-hanh-vien/45.png",
      "marks": [
       {
        "n": 1,
@@ -690,35 +695,35 @@
       },
       {
        "n": 3,
-       "text": "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)"
+       "text": "Chi nhánh Chọn chi nhánh Chi nhánh 2 Trụ sở chính (bắt buộc)"
       },
       {
        "n": 4,
-       "text": "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Số, ngày, tháng, năm"
+       "text": "Cột 2: HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)"
       },
       {
        "n": 5,
-       "text": "Cột 4: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Sửa đổi, bổ sung"
+       "text": "Cột 3: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Số, ngày, tháng, năm"
       },
       {
        "n": 6,
-       "text": "Cột 5: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Thu hồi"
+       "text": "Cột 4: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Sửa đổi, bổ sung"
       },
       {
        "n": 7,
-       "text": "Cột 6: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN"
+       "text": "Cột 5: QUYẾT ĐỊNH VỀ THI HÀNH ÁN · Thu hồi"
       },
       {
        "n": 8,
-       "text": "Cột 7: BÊN PHẢI THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)"
+       "text": "Cột 6: BẢN ÁN, QUYẾT ĐỊNH CỦA TÒA ÁN"
       },
       {
        "n": 9,
-       "text": "Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)"
+       "text": "Cột 7: BÊN PHẢI THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)"
       },
       {
        "n": 10,
-       "text": "Cột 9: CÁC KHOẢN PHẢI THI HÀNH ÁN (theo hợp đồng)"
+       "text": "Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)"
       }
      ]
     }
@@ -743,7 +748,7 @@
      "detail": [
       "Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc."
      ],
-     "img": "thua-hanh-vien/24.png",
+     "img": "thua-hanh-vien/46.png",
      "marks": [
       {
        "n": 1,
@@ -758,7 +763,7 @@
       "Nội dung hồ sơ: các ô người soạn đã điền (hiển thị chỉ đọc).",
       "Tài liệu: các tài liệu đã đính kèm vào bản nháp."
      ],
-     "img": "thua-hanh-vien/25.png",
+     "img": "thua-hanh-vien/47.png",
      "marks": [
       {
        "n": 1,

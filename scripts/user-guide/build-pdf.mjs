@@ -24,7 +24,7 @@ h3{font-size:12pt;margin:12pt 0 4pt;color:#14284b;page-break-after:avoid}.part{f
 const principles = `<div class="warn"><b>Ba nguyên tắc của phần mềm.</b> (1) Phần mềm ghi nhận, nhắc và chặn bước sai; người có thẩm quyền mới ký và ban hành, "duyệt" trong phần mềm không phải chữ ký pháp lý. (2) Không làm kế toán: MISA là sổ kế toán duy nhất, phần mềm không lưu số tiền. (3) Không xóa, không sửa âm thầm hồ sơ đã có giá trị pháp lý.</div>`;
 const stamp = () => `Phiên bản ${new Date().toLocaleDateString('vi-VN')}${process.env.GUIDE_SHA ? ` · bản chạy ${process.env.GUIDE_SHA}` : ''}`;
 const cover = (title) => `<div class="cover"><div class="sub">Legal Office · Hệ thống quản lý hồ sơ Văn phòng thi hành án dân sự</div><h1>${esc(title)}</h1>
-<p class="sub">Hướng dẫn từng bước bằng hình ảnh. Mọi ảnh chụp từ bản chạy thử với dữ liệu giả (tiền tố [guide], DEMO), không có dữ liệu khách thật.<br>Quy ước: vòng đỏ có số là chỗ cần bấm hoặc nhập, làm theo thứ tự số. Khung "Cần nhớ" là quy tắc nghiệp vụ; bảng "Lỗi thường gặp" cuối mỗi phần giúp tự xử lý.</p>
+<p class="sub">Hướng dẫn từng bước bằng hình ảnh. Mọi ảnh chụp từ văn phòng minh họa; tên người, số liệu và hồ sơ trong ảnh đều là hư cấu, không có dữ liệu khách thật.<br>Quy ước: vòng đỏ có số là chỗ cần bấm hoặc nhập, làm theo thứ tự số. Khung "Cần nhớ" là quy tắc nghiệp vụ; bảng "Lỗi thường gặp" cuối mỗi phần giúp tự xử lý.</p>
 ${principles}<p class="foot">${esc(stamp())}</p></div>`;
 const sectionHtml = (s, base, num) => `<h2>${num}. ${esc(nice(s.title))}</h2><p>${esc(s.intro)}</p>
 ${s.rules?.length ? `<div class="warn"><b>Cần nhớ:</b><ul class="rules">${s.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ul></div>` : ''}

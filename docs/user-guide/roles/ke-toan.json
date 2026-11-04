@@ -20,7 +20,7 @@
      "title": "Tổng quan của Kế toán",
      "note": "Thanh bên chỉ có hai mục: Tổng quan và Vật tư văn phòng.",
      "detail": [],
-     "img": "ke-toan/01.png",
+     "img": "ke-toan/03.png",
      "marks": [
       {
        "n": 1,
@@ -32,7 +32,7 @@
      "title": "Vật tư: tồn kho, nhập và xuất",
      "note": "Thẻ Tồn kho cho thấy số lượng hiện có. \"Nhập / xuất\" để ghi nhập hoặc xuất kho; \"Đặt ngưỡng\" để hệ thống báo Sắp hết.",
      "detail": [],
-     "img": "ke-toan/02.png",
+     "img": "ke-toan/04.png",
      "marks": [
       {
        "n": 1,

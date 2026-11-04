@@ -33,7 +33,7 @@
       "Xuất PDF để in: bản in sổ năm đang chọn. Xuất Excel: tải dữ liệu sổ dạng bảng tính.",
       "Ô tìm và các bộ lọc dùng như danh sách hồ sơ nghiệp vụ."
      ],
-     "img": "van-thu/01.png",
+     "img": "van-thu/11.png",
      "marks": [
       {
        "n": 1,
@@ -64,7 +64,7 @@
       "Tên loại và trích yếu nội dung (bắt buộc): ghi loại văn bản và nội dung chính, ví dụ \"Công văn số 12/UBND về việc phối hợp xác minh\".",
       "Ghi chú: thông tin thêm nếu có."
      ],
-     "img": "van-thu/02.png",
+     "img": "van-thu/12.png",
      "marks": [
       {
        "n": 1,
@@ -84,7 +84,7 @@
      "title": "Bản nháp văn bản: thêm tài liệu rồi lưu chính thức",
      "note": "Cũng như hồ sơ nghiệp vụ, bản nháp cho phép sửa, thêm tài liệu và tải bản scan. Khi đã đúng, bấm Xác nhận lưu chính thức để cấp STT và vào sổ.",
      "detail": [],
-     "img": "van-thu/03.png",
+     "img": "van-thu/13.png",
      "marks": [
       {
        "n": 1,
@@ -104,7 +104,7 @@
      "title": "Sổ Văn bản đi và Văn bản nội bộ",
      "note": "Hai sổ này dùng đúng cách như Văn bản đến: chuyển bằng nút phía trên, mỗi sổ có STT riêng.",
      "detail": [],
-     "img": "van-thu/04.png",
+     "img": "van-thu/14.png",
      "marks": [
       {
        "n": 1,
@@ -126,7 +126,7 @@
      "title": "Trình / Duyệt của Văn thư",
      "note": "Bấm \"+ Trình mới\" để gửi bản trình, xem trạng thái ở danh sách bên dưới. Chi tiết từng ô xem phần Trình / Duyệt trong hướng dẫn dành cho Thừa hành viên.",
      "detail": [],
-     "img": "van-thu/05.png",
+     "img": "van-thu/15.png",
      "marks": [
       {
        "n": 1,

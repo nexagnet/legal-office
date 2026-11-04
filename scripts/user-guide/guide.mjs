@@ -18,6 +18,8 @@ const overlay = (marks) => {
 };
 /** Che mọi email không phải @example.invalid (kể cả trong ô nhập) trước khi chụp. */
 const mask = () => {
+  document.querySelectorAll('nextjs-portal').forEach((e) => e.remove()); // biểu tượng của chế độ dev Next.js không được lọt vào ảnh
+
   const re = /[A-Za-z0-9._%+-]+@(?!example\.invalid)[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let n;

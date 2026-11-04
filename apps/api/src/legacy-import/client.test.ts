@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ApiError, ImportApi, normalizeCookie } from './client';
+import { ApiError, ImportApi, loginForCookie, normalizeCookie } from './client';
 import { toLongPath } from './scan';
 
 const json = (status: number, body: unknown) =>
@@ -82,5 +82,38 @@ describe('đường dẫn dài trên Windows', () => {
     expect(toLongPath('\\\\may\\chia-se\\Kho', 'win32')).toBe('\\\\?\\UNC\\may\\chia-se\\Kho');
     expect(toLongPath('\\\\?\\D:\\Kho', 'win32')).toBe('\\\\?\\D:\\Kho');
     expect(toLongPath('/home/x', 'linux')).toBe('/home/x');
+  });
+});
+
+describe('loginForCookie', () => {
+  const reply = (status: number, body: unknown, cookies: string[] = []) =>
+    (async () =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: cookies.map((c) => ['set-cookie', c] as [string, string]),
+      })) as unknown as typeof fetch;
+
+  it('lấy cookie lo_session khi đăng nhập đúng', async () => {
+    const c = await loginForCookie(
+      'http://x/api',
+      't',
+      'a@b.c',
+      'pw',
+      reply(200, { mustChangePassword: false }, ['lo_session=t.abc; Path=/; HttpOnly']),
+    );
+    expect(c).toBe('lo_session=t.abc');
+  });
+
+  it('trả null khi sai mật khẩu hoặc còn buộc đổi mật khẩu', async () => {
+    expect(await loginForCookie('http://x', 't', 'a', 'b', reply(401, {}))).toBeNull();
+    expect(
+      await loginForCookie(
+        'http://x',
+        't',
+        'a',
+        'b',
+        reply(200, { mustChangePassword: true }, ['lo_session=t.abc']),
+      ),
+    ).toBeNull();
   });
 });
