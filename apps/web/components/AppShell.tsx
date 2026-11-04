@@ -86,8 +86,8 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   },
   '/': { title: 'Tổng quan', sub: 'Tình hình hồ sơ, tài liệu, bản scan và yêu cầu chờ duyệt.' },
   '/quan-tri/nhan-su': {
-    title: 'Nhân sự',
-    sub: 'Danh bạ thành viên văn phòng. Tên, email, địa điểm làm việc là dữ liệu nhân sự; quyền truy cập ứng dụng nằm ở mục Phân quyền.',
+    title: 'Tài khoản',
+    sub: 'Tài khoản của thành viên văn phòng: tên, email, số CCCD, mật khẩu. Quyền truy cập nằm ở mục Nhóm quyền.',
   },
   '/quan-tri/nhan-su/them': {
     title: 'Thêm thành viên',
@@ -98,7 +98,7 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     sub: 'Địa điểm hoạt động của văn phòng. Đổi tên hoặc thêm địa điểm không tự cấp quyền cho ai; địa điểm đã có hồ sơ không xóa được.',
   },
   '/quan-tri/phan-quyen': {
-    title: 'Phân quyền',
+    title: 'Nhóm quyền',
     sub: 'Ai được làm gì, ở đâu. Quyền hiệu lực = nhóm quyền + phạm vi, rồi trừ đi các quy tắc bắt buộc của hồ sơ lưu trữ.',
   },
   '/quan-tri/phan-quyen/de-xuat': {
@@ -111,7 +111,7 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   },
   '/quan-tri/email': {
     title: 'Email gửi thư',
-    sub: 'Cấu hình máy chủ gửi thư để gửi link đăng nhập và nhắc hạn. Chưa cấu hình thì người dùng chỉ đăng nhập bằng mật khẩu.',
+    sub: 'Cấu hình máy chủ gửi thư để gửi link đặt lại mật khẩu và nhắc hạn. Gửi link đặt lại mật khẩu cho người quên mật khẩu.',
   },
   '/quan-tri/lich': {
     title: 'Lịch làm việc',
@@ -137,8 +137,8 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Xuất sổ S-05 · Preview',
     sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
   },
-  '/cai-dat': {
-    title: 'Cấu hình văn phòng',
+  '/quan-tri/cai-dat': {
+    title: 'Cài đặt văn phòng',
     sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',
   },
   '/so-sach/theo-doi-so': {
