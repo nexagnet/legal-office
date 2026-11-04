@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AdminBanner } from '../../../../../components/admin-banner';
 import { notFound } from 'next/navigation';
 import { DeleteGroupButton } from '../../../../../components/permissions/DeleteGroupButton';
+import { GroupPermissionEditor } from '../../../../../components/permissions/GroupPermissionEditor';
 import { GroupStatusButton } from '../../../../../components/permissions/GroupStatusButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
@@ -138,20 +139,9 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
         </p>
         <div className="flex flex-wrap gap-2.5">
           {active && !isTemplateGroup(group) && !isSystemGroup(group) ? (
-            <>
-              <Link
-                className="primary btn-link"
-                href={`/quan-tri/phan-quyen/de-xuat?loai=GRANT&nhom=${group.id}`}
-              >
-                Thêm quyền vào nhóm
-              </Link>
-              <Link
-                className="btn-link"
-                href={`/quan-tri/phan-quyen/de-xuat?loai=REVOKE&nhom=${group.id}`}
-              >
-                Thu hồi quyền
-              </Link>
-            </>
+            <a className="primary btn-link" href="#sua-quyen">
+              Sửa quyền của nhóm
+            </a>
           ) : null}
           {active ? (
             <Link
@@ -256,10 +246,10 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
             aria-labelledby="his-t"
           >
             <h2 id="his-t" className="font-serif text-base">
-              Đề xuất của nhóm
+              Thay đổi gần đây của nhóm
             </h2>
             <ul className="m-0 grid list-none gap-3 p-0 text-sm">
-              {mine.length === 0 ? <li className="muted">Chưa có đề xuất nào.</li> : null}
+              {mine.length === 0 ? <li className="muted">Chưa có thay đổi nào.</li> : null}
               {mine.slice(0, 8).map((r) => (
                 <li key={r.id} className="grid gap-1 border-b border-line pb-2">
                   <span className="flex flex-wrap items-center gap-2">
@@ -282,6 +272,14 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
           </section>
         </div>
       </div>
+      {ctx.canApprove && active && !isTemplateGroup(group) && !isSystemGroup(group) ? (
+        <section className="panel" id="sua-quyen" aria-labelledby="edit-t">
+          <h2 id="edit-t" className="font-serif text-base">
+            Sửa quyền của nhóm
+          </h2>
+          <GroupPermissionEditor groupId={group.id} permissions={group.permissions} />
+        </section>
+      ) : null}
       <NoteBox tone="warn" title="Sửa nhóm đang có người dùng">
         Một đề xuất thêm hoặc thu hồi quyền ảnh hưởng tới cả {group.member_ids.length} thành viên
         của nhóm. Quyền mới chỉ có hiệu lực sau khi Admin khác duyệt; Admin tự đề xuất thì có hiệu

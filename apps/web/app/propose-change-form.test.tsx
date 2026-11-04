@@ -40,7 +40,7 @@ describe('ProposeChangeForm (Figma P7)', () => {
     fireEvent.change(picker, { target: { value: 'u1' } });
     fireEvent.change(screen.getByLabelText('Thêm thành viên'), { target: { value: 'u2' } });
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Nhân sự mới' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Gửi duyệt' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
     await waitFor(() => expect(push).toHaveBeenCalled());
     const bodies = spy.mock.calls.map(([, init]) => JSON.parse(String((init as RequestInit).body)));
     expect(bodies).toEqual([
@@ -48,8 +48,8 @@ describe('ProposeChangeForm (Figma P7)', () => {
       { kind: 'ADD_MEMBER', userId: 'u2', reason: 'Nhân sự mới' },
     ]);
     expect(spy.mock.calls.map(([u]) => String(u))).toEqual([
-      '/api/dms/groups/g1/requests',
-      '/api/dms/groups/g1/requests',
+      '/api/dms/groups/g1/changes',
+      '/api/dms/groups/g1/changes',
     ]);
   });
 
@@ -57,7 +57,7 @@ describe('ProposeChangeForm (Figma P7)', () => {
     const spy = vi.spyOn(globalThis, 'fetch');
     render(<ProposeChangeForm groups={groups} people={people} initial={{}} />);
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'x' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Gửi duyệt' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
     expect(screen.getByRole('alert').textContent).toContain('Hãy chọn thành viên');
     expect(spy).not.toHaveBeenCalled();
   });

@@ -67,12 +67,12 @@ describe('GroupWizard (Figma P4/P5)', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /Xem hồ sơ · Vi bằng/ }));
     fireEvent.click(screen.getByRole('button', { name: /Tiếp: xem trước/ }));
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Mùa tập sự' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Gửi duyệt' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo nhóm' }));
     await waitFor(() => expect(push).toHaveBeenCalledWith('/quan-tri/phan-quyen/nhom/g-new'));
     expect(calls(spy)).toEqual([
       ['/api/dms/groups', { officeId: 'o1', name: 'Thực tập sinh' }],
       [
-        '/api/dms/groups/g-new/requests',
+        '/api/dms/groups/g-new/changes',
         { kind: 'GRANT', permission: 'vibang.read.own', reason: 'Mùa tập sự' },
       ],
     ]);
@@ -85,7 +85,7 @@ describe('GroupWizard (Figma P4/P5)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: chọn quyền/ }));
     fireEvent.click(screen.getByRole('checkbox', { name: /Xem hồ sơ · Vi bằng/ }));
     fireEvent.click(screen.getByRole('button', { name: /Tiếp: xem trước/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Gửi duyệt' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo nhóm' }));
     expect(screen.getByRole('alert').textContent).not.toBe('');
     expect(spy).not.toHaveBeenCalled();
   });
