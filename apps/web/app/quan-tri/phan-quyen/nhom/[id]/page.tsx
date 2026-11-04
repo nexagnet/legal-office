@@ -43,7 +43,7 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
         tone="danger"
         alert
         title="Không đủ quyền"
-        description="Xem nhóm quyền cần quyền đề xuất hoặc duyệt thay đổi quyền."
+        description="Xem nhóm quyền cần quyền quản trị phân quyền."
       />
     );
   }
@@ -278,9 +278,8 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
         </section>
       ) : null}
       <NoteBox tone="warn" title="Sửa nhóm đang có người dùng">
-        Một đề xuất thêm hoặc thu hồi quyền ảnh hưởng tới cả {group.member_ids.length} thành viên
-        của nhóm. Quyền mới chỉ có hiệu lực sau khi Admin khác duyệt; Admin tự đề xuất thì có hiệu
-        lực ngay và được ghi nhật ký.
+        Thêm hoặc thu hồi quyền ảnh hưởng tới cả {group.member_ids.length} thành viên của nhóm và có
+        hiệu lực ngay; mỗi thay đổi được ghi vào nhật ký phân quyền kèm lý do.
       </NoteBox>
     </>
   );

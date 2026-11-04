@@ -124,8 +124,7 @@ export default async function PersonnelPage({
         </DataTable>
       )}
       <p className="muted">
-        Vai và địa điểm thay đổi qua đề xuất hai người (Admin đề xuất, Trưởng văn phòng duyệt),
-        không sửa ở màn này.
+        Vai và địa điểm do Admin đổi ở mục Phân quyền (có ghi nhật ký), không sửa ở màn này.
       </p>
     </section>
   );

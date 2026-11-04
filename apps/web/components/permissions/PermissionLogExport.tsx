@@ -2,7 +2,7 @@
 export function PermissionLogExport({ officeId }: { readonly officeId: string }) {
   return (
     <a
-      className="btn-link"
+      className="primary btn-link"
       href={`/api/dms/permission-log/export?officeId=${encodeURIComponent(officeId)}`}
       download
     >

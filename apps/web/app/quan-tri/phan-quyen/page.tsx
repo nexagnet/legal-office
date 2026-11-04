@@ -53,7 +53,7 @@ export default async function PermissionPage({
         tone="danger"
         alert
         title="Không đủ quyền"
-        description="Mục Phân quyền cần quyền đề xuất hoặc duyệt thay đổi quyền. Liên hệ Admin của văn phòng nếu bạn cần quyền này."
+        description="Mục Phân quyền cần quyền quản trị phân quyền. Liên hệ Admin của văn phòng nếu bạn cần quyền này."
       />
     );
   }

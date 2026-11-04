@@ -144,22 +144,14 @@ describe('AppShell', () => {
 });
 
 describe('AppShell subpage head', () => {
-  it('shows the intake header from Figma 3:54 while keeping Vi bằng as the current menu item', () => {
-    path.current = '/vi-bang/tao-moi';
+  it('đầu trang Hồ sơ do tôi tạo lấy tiêu đề riêng và sáng đúng mục menu', () => {
+    path.current = '/dms/cua-toi';
     render(
       <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
-    expect(document.querySelector('.topbar-h')?.textContent).toBe('Tạo hồ sơ Vi bằng');
-    expect(document.querySelector('.topbar-sub')?.textContent).toBe(
-      'Tiếp nhận yêu cầu lập Vi bằng',
-    );
-    expect(
-      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
-        .getByRole('link', { name: 'Vi bằng' })
-        .getAttribute('aria-current'),
-    ).toBe('page');
+    expect(document.querySelector('.topbar-h')?.textContent).toBe('Hồ sơ do tôi tạo');
   });
 });
 
@@ -250,14 +242,14 @@ describe('ModuleState', () => {
 describe('AppShell v2', () => {
   const items = ALL_ITEMS;
 
-  it('có thanh điều hướng dưới với việc của tôi, hộp duyệt và nút Thêm', () => {
+  it('có thanh điều hướng dưới với hồ sơ do tôi tạo, Trình / Duyệt và nút Thêm', () => {
     render(
       <AppShell items={items} tenantName={null} signedIn>
         <p>nội dung</p>
       </AppShell>,
     );
     const quick = within(screen.getByRole('navigation', { name: 'Truy cập nhanh' }));
-    for (const name of ['Việc của tôi', 'Hộp duyệt', 'Vi bằng', 'Tống đạt', 'Thêm'])
+    for (const name of ['Hồ sơ do tôi tạo', 'Trình / Duyệt', 'Thêm'])
       expect(quick.getByRole(name === 'Thêm' ? 'button' : 'link', { name })).toBeTruthy();
   });
 
@@ -272,21 +264,21 @@ describe('AppShell v2', () => {
     expect(screen.getByText('form đăng nhập')).toBeTruthy();
     expect(screen.getByRole('main')).toBeTruthy();
   });
-  it('hiện huy hiệu số chờ duyệt cạnh Hộp duyệt, ẩn khi bằng 0', () => {
+  it('hiện huy hiệu số chờ duyệt cạnh Trình / Duyệt, ẩn khi bằng 0', () => {
     const items = ALL_ITEMS;
     const { rerender } = render(
-      <AppShell items={items} tenantName={null} badges={{ 'hop-duyet': 12 }}>
+      <AppShell items={items} tenantName={null} badges={{ 'dms-trinh-duyet': 12 }}>
         <p>nội dung</p>
       </AppShell>,
     );
     const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
-    expect(nav.getByRole('link', { name: /Hộp duyệt/ }).textContent).toContain('12');
+    expect(nav.getByRole('link', { name: /Trình \/ Duyệt/ }).textContent).toContain('12');
     rerender(
-      <AppShell items={items} tenantName={null} badges={{ 'hop-duyet': 0 }}>
+      <AppShell items={items} tenantName={null} badges={{ 'dms-trinh-duyet': 0 }}>
         <p>nội dung</p>
       </AppShell>,
     );
-    expect(nav.getByRole('link', { name: 'Hộp duyệt' }).textContent).toBe('Hộp duyệt');
+    expect(nav.getByRole('link', { name: 'Trình / Duyệt' }).textContent).toBe('Trình / Duyệt');
   });
 });
 
