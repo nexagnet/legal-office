@@ -1122,3 +1122,24 @@
   font-weight: 400;
   color: var(--fg-muted);
 }
+
+/* Điện thoại: bảng tài khoản thành thẻ xếp dọc để không bị cắt cột Nhóm quyền. */
+@media (max-width: 767px) {
+  .admin-main .people thead {
+    display: none;
+  }
+  .admin-main .people tbody tr {
+    display: grid;
+    gap: 6px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e3e9f2;
+  }
+  .admin-main .people tbody th,
+  .admin-main .people tbody td {
+    display: block;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+}

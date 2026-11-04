@@ -1,5 +1,7 @@
 # Legal Office — hợp đồng nghiệp vụ đã chốt
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 > **Nguồn chính thức:** [GitHub Issue #1](https://github.com/nexagnet/legal-office/issues/1). Tài liệu này là bản sao truy vết của những quy tắc đã được owner chốt; nếu về sau Issue #1 cập nhật, cần PR đồng bộ tài liệu, không tự coi file cũ là quyết định mới.
 >
 > **Phạm vi:** 4 nghiệp vụ pháp lý và quản lý Văn phòng, đa tenant, không triển khai kế toán MISA.

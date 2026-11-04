@@ -1,5 +1,7 @@
 # Legal Office — Nghiệp vụ toàn dự án (bản đọc cho chủ dự án)
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 Ngày lập: 26/10/2026. Dành cho: Phùng Việt (chủ dự án).
 
 **Nguồn:** `nghiệp vụ.md` (bản tổng hợp 11/10/2026), NĐ 151/2026/NĐ-CP, TT 08/2026/TT-BTP, các báo cáo trong `reports/` (mới nhất 22–23/10), và repo `nexagnet/legal-office` ở `main` (commit `517d5a8`, PR #191). Code là sự thật cho phần "đã làm". Tôi đọc code ở mức cấu trúc (menu, migration, tài liệu kiến trúc, quyết định nghiệp vụ), không chạy lại bản đang deploy. Tỷ lệ % lấy từ `legal-office-tien-do-nghiep-vu.md` (ước lượng, không phải số đo tự động). Dữ liệu duy nhất trong hệ thống là **dữ liệu giả**.

@@ -1,5 +1,7 @@
 # Code bốn nghiệp vụ theo Figma N17 (28/10/2026)
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 Nguồn: Figma N17 và N15 đã chốt, báo cáo `figma-gap-van-phong-2026-10-28.md`. Mỗi PR gồm migration, API, web và test.
 
 | PR | Nội dung | Figma | Ghi chú |
