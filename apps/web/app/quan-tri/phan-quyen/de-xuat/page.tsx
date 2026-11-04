@@ -28,8 +28,6 @@ export default async function ProposePage({
   const people = [
     ...new Map(ctx.members.map((m) => [m.userId, { userId: m.userId, label: m.label }])).values(),
   ];
-  const pending =
-    ctx.requests === 'error' ? 0 : ctx.requests.filter((r) => r.status === 'PENDING').length;
   return (
     <>
       <PermissionTabs active="nguoi-dung" />

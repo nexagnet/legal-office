@@ -47,10 +47,9 @@ export default async function RequestPage({
   }
   const r = ctx.requests.find((x) => x.id === id);
   if (!r) notFound();
-  const { members, groups, requests } = ctx;
+  const { members, groups } = ctx;
   const names = makeNameBook(groups, members);
   const group = groups.find((g) => g.id === r.group_id);
-  const pendingCount = requests.filter((x) => x.status === 'PENDING').length;
   const mine = ctx.userId !== null && r.proposed_by === ctx.userId;
   const stale = r.status === 'PENDING' && isRequestStale(r, group);
   const sensitive = r.permission ? isSensitivePermission(r.permission) : false;
