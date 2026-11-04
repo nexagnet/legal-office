@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { AddMemberLink, MemberTable } from '../../../components/MemberTable';
 import { loadMembers } from '../../../lib/admin-api';
 import { loadDmsGroups, loadPermissionRequests } from '../../../lib/dms-admin';
@@ -36,10 +37,18 @@ export default async function MembersPage() {
   ) : members.length === 0 ? (
     <p className="muted">Chỉ Admin của văn phòng xem được danh bạ thành viên.</p>
   ) : (
-    <MemberTable
-      members={rows}
-      officeId={isAdmin ? officeId : undefined}
-      action={isAdmin ? <AddMemberLink /> : undefined}
-    />
+    <>
+      <MemberTable
+        members={rows}
+        officeId={isAdmin ? officeId : undefined}
+        action={isAdmin ? <AddMemberLink /> : undefined}
+      />
+      {isAdmin ? (
+        <p className="muted mt-4">
+          Hồ sơ đi kèm tài khoản: <Link href="/quan-tri/the-thv">Thẻ thừa hành viên</Link> ·{' '}
+          <Link href="/quan-tri/ho-so-lao-dong">Hồ sơ lao động</Link>
+        </p>
+      ) : null}
+    </>
   );
 }

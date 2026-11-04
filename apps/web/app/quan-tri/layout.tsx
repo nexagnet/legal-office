@@ -57,21 +57,10 @@ export default async function AdminLayout({ children }: { readonly children: Rea
     (groupRequests === 'error' ? 0 : groupRequests.filter((r) => r.status === 'PENDING').length) +
     (legacyRequests === 'error' ? 0 : legacyRequests.filter((r) => r.status === 'PENDING').length);
   const sections: AdminSection[] = [
-    ...(isAdmin
-      ? [
-          { href: '/quan-tri/nhan-su', label: 'Nhân sự' },
-          { href: '/quan-tri/chi-nhanh', label: 'Chi nhánh' },
-        ]
-      : []),
-    { href: '/quan-tri/phan-quyen', label: 'Phân quyền', badge: pending },
-    ...(isAdmin
-      ? [
-          { href: '/quan-tri/the-thv', label: 'Thẻ THV' },
-          { href: '/quan-tri/email', label: 'Email gửi thư' },
-          { href: '/quan-tri/lich', label: 'Lịch làm việc' },
-        ]
-      : []),
-    { href: '/quan-tri/ho-so-lao-dong', label: 'Hồ sơ lao động' },
+    ...(isAdmin ? [{ href: '/quan-tri/nhan-su', label: 'Tài khoản' }] : []),
+    { href: '/quan-tri/phan-quyen', label: 'Nhóm quyền', badge: pending },
+    ...(isAdmin ? [{ href: '/quan-tri/chi-nhanh', label: 'Chi nhánh' }] : []),
+    ...(isAdmin || isHead ? [{ href: '/quan-tri/cai-dat', label: 'Cài đặt văn phòng' }] : []),
   ];
   return (
     <div className="admin-layout">

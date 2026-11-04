@@ -49,8 +49,8 @@ describe('navigation', () => {
       for (const l of legacy) expect(slugs).not.toContain(l);
     }
     for (const l of legacy) expect(findNav(l)?.hidden).toBe(true);
-    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Người dùng');
-    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Người dùng');
+    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Quản trị');
+    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Quản trị');
     expect(visibleNav([])).toEqual([]);
   });
 

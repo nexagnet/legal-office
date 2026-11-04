@@ -65,6 +65,6 @@ describe('banner Quản trị (Figma N11)', () => {
       </AppShell>,
     );
     expect(screen.queryByRole('navigation', { name: 'Đường dẫn' })).toBeNull();
-    expect(document.querySelector('.topbar-h')?.textContent).toBe('Phân quyền');
+    expect(document.querySelector('.topbar-h')?.textContent).toBe('Nhóm quyền');
   });
 });
