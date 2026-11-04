@@ -125,7 +125,7 @@ export default async function EffectivePage({
               className="primary btn-link"
               href={`/quan-tri/phan-quyen/de-xuat?loai=ADD_MEMBER&nguoi=${id}`}
             >
-              Đề xuất thay đổi nhóm quyền
+              Đổi nhóm quyền
             </Link>
           ) : null}
         </div>
@@ -185,8 +185,8 @@ export default async function EffectivePage({
         </h2>
         <p className="text-sm text-muted">
           Mỗi dòng là một nghiệp vụ. Phạm vi lấy rộng nhất trong các nhóm và quyền thêm riêng của
-          người này, đã trừ quyền bỏ riêng. Muốn đổi nhóm hãy gửi đề xuất; muốn đổi quyền riêng dùng
-          mục phía trên.
+          người này, đã trừ quyền bỏ riêng. Muốn đổi nhóm dùng nút Đổi nhóm quyền; muốn đổi quyền
+          riêng dùng mục phía trên.
         </p>
         {person.isAdmin && !person.suspended ? (
           <p className="text-sm">

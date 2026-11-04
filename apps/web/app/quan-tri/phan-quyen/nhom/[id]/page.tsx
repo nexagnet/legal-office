@@ -127,7 +127,7 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
           ) : null}
         </dl>
         <p className="muted">
-          Quyền và thành viên chỉ đổi qua đề xuất có duyệt.
+          Chỉ Admin đổi quyền và thành viên; mỗi thay đổi có hiệu lực ngay và được ghi nhật ký.
           {isTemplateGroup(group)
             ? ' Nhóm mẫu được bảo vệ: không đổi quyền trực tiếp, hãy sao chép thành nhóm tùy chỉnh.'
             : ''}

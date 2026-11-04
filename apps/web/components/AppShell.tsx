@@ -102,8 +102,8 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     sub: 'Ai được làm gì, ở đâu. Quyền hiệu lực = nhóm quyền + phạm vi, rồi trừ đi các quy tắc bắt buộc của hồ sơ lưu trữ.',
   },
   '/quan-tri/phan-quyen/de-xuat': {
-    title: 'Đề xuất đổi quyền',
-    sub: 'Chọn nhóm và một loại thay đổi. Đề xuất của người không phải Admin chỉ có hiệu lực sau khi Admin có quyền duyệt thay đổi quyền chấp thuận.',
+    title: 'Đổi nhóm hoặc quyền',
+    sub: 'Chọn nhóm và loại thay đổi. Admin áp dụng ngay và mọi thay đổi được ghi vào nhật ký phân quyền.',
   },
   '/quan-tri/the-thv': {
     title: 'Thẻ thừa hành viên',

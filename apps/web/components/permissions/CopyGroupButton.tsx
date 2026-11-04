@@ -54,7 +54,7 @@ export function CopyGroupButton({ groups }: { readonly groups: readonly DmsGroup
           <h2 id="group-copy-t">Sao chép nhóm quyền</h2>
           <p className="muted">
             Nhóm mới có cùng quyền nghiệp vụ nhưng không chép quyền quản trị phân quyền và chưa có
-            thành viên. Thêm thành viên bằng đề xuất ở trang chi tiết nhóm.
+            thành viên. Thêm thành viên ở trang chi tiết nhóm.
           </p>
           <label>
             Nhóm nguồn
