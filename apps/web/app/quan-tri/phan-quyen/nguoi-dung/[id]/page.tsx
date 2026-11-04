@@ -26,7 +26,9 @@ import {
   effectiveByDomain,
   effectivePermissions,
   formatWhen,
+  groupsOfUser,
   isOverridable,
+  isSystemGroup,
   overridableBaseline,
   PERMISSION_SOURCE_LABEL,
   permissionLabel,
@@ -245,13 +247,13 @@ export default async function EffectivePage({
           Quyền hiệu lực = quyền của các nhóm + quyền{' '}
           <strong>{PERMISSION_SOURCE_LABEL.grant.toLowerCase()}</strong> − quyền{' '}
           <strong>{PERMISSION_SOURCE_LABEL.revoke.toLowerCase()}</strong>. Ô đã tick là quyền đang
-          có; màu vàng là thêm riêng, màu đỏ là bỏ riêng so với nhóm. Admin áp dụng ngay, cần lý do,
-          có nhật ký.
+          có; màu vàng là thêm riêng, màu đỏ là bỏ riêng so với nhóm. Admin áp dụng ngay, có nhật
+          ký, không cần nhập lý do.
         </p>
-        {person.isAdmin ? (
+        {person.isAdmin || groupsOfUser(ctx.groups, id).some(isSystemGroup) ? (
           <p className="text-sm">
-            Admin mặc nhiên có mọi quyền nên không đặt quyền riêng. Quyền đề xuất, duyệt thay đổi
-            quyền chỉ theo nhóm.
+            Tài khoản Admin hoặc thuộc nhóm Admin mặc nhiên có mọi quyền nên không đặt quyền riêng.
+            Quyền đề xuất, duyệt thay đổi quyền chỉ theo nhóm.
           </p>
         ) : (
           <UserOverridesEditor
