@@ -33,7 +33,7 @@ describe('Thông báo', () => {
   });
 
   it('dẫn về hồ sơ liên quan', () => {
-    expect(notificationHref({ domain: 'VIBANG_CSDL', caseId: 'c1' })).toBe('/vi-bang/c1');
+    expect(notificationHref({ domain: 'VIBANG_CSDL', caseId: 'c1' })).toBe('/dms/vi-bang');
     expect(notificationHref({ domain: 'LA', caseId: null })).toBeNull();
   });
 
@@ -44,6 +44,6 @@ describe('Thông báo', () => {
     );
     expect(html).toContain('Quá hạn');
     expect(html).toContain('Chưa đọc');
-    expect(html).toContain('/vi-bang/c1');
+    expect(html).toContain('/dms/vi-bang');
   });
 });

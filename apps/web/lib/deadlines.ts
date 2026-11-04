@@ -27,12 +27,12 @@ export const DEADLINE_DOMAIN_LABEL: Record<string, string> = {
 
 /** Trang đích của một hạn. Tống đạt và công văn chưa có trang chi tiết nên về danh sách. */
 export function deadlineHref(d: Pick<DeadlineItem, 'domain' | 'caseId'>): string | null {
-  if (d.domain === 'VIBANG_CSDL' || d.domain === 'VIBANG_N11') return `/vi-bang/${d.caseId}`;
-  if (d.domain === 'TONG_DAT_BAO_KET_QUA') return '/tong-dat';
-  if (d.domain === 'XAC_MINH_QUYET_DINH') return '/xac-minh';
-  if (d.domain === 'THA_THU_HOI') return '/to-chuc-tha';
-  if (d.domain === 'TONG_DAT') return '/tong-dat';
-  if (d.domain === 'CONG_VAN') return '/cong-van';
+  if (d.domain === 'VIBANG_CSDL' || d.domain === 'VIBANG_N11') return '/dms/vi-bang';
+  if (d.domain === 'TONG_DAT_BAO_KET_QUA') return '/dms/tong-dat';
+  if (d.domain === 'XAC_MINH_QUYET_DINH') return '/dms/xac-minh';
+  if (d.domain === 'THA_THU_HOI') return '/dms/to-chuc-tha';
+  if (d.domain === 'TONG_DAT') return '/dms/tong-dat';
+  if (d.domain === 'CONG_VAN') return '/dms/van-ban-den';
   return null;
 }
 

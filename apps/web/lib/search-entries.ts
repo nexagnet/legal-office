@@ -38,7 +38,7 @@ export function searchEntries(
     )
     .map((c) => ({
       kind: 'case',
-      href: `/vi-bang/${c.id}`,
+      href: '/dms/vi-bang',
       label: c.title,
       hint: c.customerName ? `Vi bằng · ${c.customerName}` : 'Vi bằng',
     }));

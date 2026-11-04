@@ -31,7 +31,7 @@ describe('groupMyWork', () => {
       ['Tuần này (1)', ['VIBANG-c']],
       ['Đang xử lý (2)', ['VIBANG-d', 'VIBANG-e']],
     ]);
-    expect(g[0]!.rows[0]!.href).toBe('/vi-bang/a');
+    expect(g[0]!.rows[0]!.href).toBe('/dms/vi-bang');
   });
   it('returns nothing for an empty list', () => {
     expect(groupMyWork([], now)).toEqual([]);
@@ -75,7 +75,7 @@ describe('groupMisaQueue', () => {
       ['Quá 1 ngày (1)', ['MISA-old']],
       ['Hôm nay (1)', ['MISA-new']],
     ]);
-    expect(g[0]?.rows[0]?.href).toBe('/vi-bang/old');
+    expect(g[0]?.rows[0]?.href).toBe('/dms/vi-bang');
     expect(g[0]?.rows[0]?.meta).toBe('Hai Bà Trưng · Tiếp nhận 3 ngày trước');
   });
   it('trả rỗng khi không có hồ sơ chờ', () => {

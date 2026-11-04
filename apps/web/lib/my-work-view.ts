@@ -25,10 +25,10 @@ export const MY_WORK_DOMAIN_LABEL: Record<string, string> = {
 
 /** Trang đích của một việc. Tống đạt, xác minh và THA chưa có trang chi tiết nên về danh sách. */
 export function myWorkHref(item: Pick<MyWorkItem, 'domain' | 'refId'>): string | null {
-  if (item.domain === 'VIBANG') return `/vi-bang/${item.refId}`;
-  if (item.domain === 'TONG_DAT') return '/tong-dat';
-  if (item.domain === 'XAC_MINH') return '/xac-minh';
-  if (item.domain === 'THI_HANH') return '/to-chuc-tha';
+  if (item.domain === 'VIBANG') return '/dms/vi-bang';
+  if (item.domain === 'TONG_DAT') return '/dms/tong-dat';
+  if (item.domain === 'XAC_MINH') return '/dms/xac-minh';
+  if (item.domain === 'THI_HANH') return '/dms/to-chuc-tha';
   return null;
 }
 

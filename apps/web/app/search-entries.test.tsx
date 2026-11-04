@@ -14,11 +14,11 @@ describe('searchEntries', () => {
   });
   it('tìm không phân biệt dấu và hoa thường, trang trước hồ sơ', () => {
     const hits = searchEntries('hoa phat', pages, cases);
-    expect(hits.map((h) => h.href)).toEqual(['/vi-bang/c1']);
+    expect(hits.map((h) => h.href)).toEqual(['/dms/vi-bang']);
     expect(searchEntries('VAN THU', pages, cases)[0]?.href).toBe('/dms/van-ban-den');
   });
   it('tìm theo số vi bằng và khách hàng', () => {
-    expect(searchEntries('12/2026', pages, cases).map((h) => h.href)).toEqual(['/vi-bang/c1']);
+    expect(searchEntries('12/2026', pages, cases).map((h) => h.href)).toEqual(['/dms/vi-bang']);
     expect(searchEntries('sao mai', pages, cases)[0]?.hint).toContain('Cty Sao Mai');
   });
   it('giới hạn số kết quả', () => {

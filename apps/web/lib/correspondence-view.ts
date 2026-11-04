@@ -48,10 +48,10 @@ export const CASE_KIND_LABEL: Record<string, string> = {
 /** Trang hồ sơ liên quan. Mã hồ sơ là id nội bộ nên hiển thị loại hồ sơ, không bịa số hồ sơ. */
 export function linkedCaseHref(kind: string | null, id: string | null): string | null {
   if (!kind || !id) return null;
-  if (kind === 'VIBANG') return `/vi-bang/${id}`;
-  if (kind === 'SERVICE') return `/tong-dat/${id}`;
-  if (kind === 'VERIFICATION') return `/xac-minh/${id}`;
-  if (kind === 'ENFORCEMENT') return `/to-chuc-tha/${id}`;
+  if (kind === 'VIBANG') return '/dms/vi-bang';
+  if (kind === 'SERVICE') return '/dms/tong-dat';
+  if (kind === 'VERIFICATION') return '/dms/xac-minh';
+  if (kind === 'ENFORCEMENT') return '/dms/to-chuc-tha';
   return null;
 }
 

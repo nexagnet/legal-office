@@ -3,10 +3,10 @@ import { linkedCaseHref, progressSteps } from '../lib/correspondence-view';
 
 describe('Chi tiết công văn', () => {
   it('dẫn về hồ sơ liên quan theo loại, không có thì null', () => {
-    expect(linkedCaseHref('VIBANG', 'c1')).toBe('/vi-bang/c1');
-    expect(linkedCaseHref('ENFORCEMENT', 'c2')).toBe('/to-chuc-tha/c2');
-    expect(linkedCaseHref('SERVICE', 'c3')).toBe('/tong-dat/c3');
-    expect(linkedCaseHref('VERIFICATION', 'c4')).toBe('/xac-minh/c4');
+    expect(linkedCaseHref('VIBANG', 'c1')).toBe('/dms/vi-bang');
+    expect(linkedCaseHref('ENFORCEMENT', 'c2')).toBe('/dms/to-chuc-tha');
+    expect(linkedCaseHref('SERVICE', 'c3')).toBe('/dms/tong-dat');
+    expect(linkedCaseHref('VERIFICATION', 'c4')).toBe('/dms/xac-minh');
     expect(linkedCaseHref(null, null)).toBeNull();
     expect(linkedCaseHref('LA', 'x')).toBeNull();
   });
