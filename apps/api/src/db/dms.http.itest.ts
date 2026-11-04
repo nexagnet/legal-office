@@ -386,24 +386,29 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect((await api('GET', '/dms/cases', U.a)).status).toBe(400);
   });
 
-  it('đổi quyền qua HTTP: đề xuất → không tự duyệt → người khác duyệt → có hiệu lực ngay', async () => {
+  it('đổi quyền qua HTTP: chỉ Admin đổi trực tiếp, áp dụng ngay; người chỉ có quyền đề xuất bị từ chối', async () => {
     const groups = await api('GET', `/dms/groups?officeId=${OFF}`, U.approver1);
     expect(groups.status).toBe(200);
     const thvGroup = groups.json.rows.find((g: Row) => g.name === 'THV tạo').id as string;
     expect((await api('GET', `/dms/groups?officeId=${OFF}`, U.a)).json.rows).toEqual([]);
 
-    const p = await api('POST', `/dms/groups/${thvGroup}/requests`, U.proposer, {
-      kind: 'GRANT',
-      permission: 'tongdat.read.own',
-      reason: 'cần đọc tống đạt',
-    });
-    expect(p.status).toBe(201);
-    const reqId = p.json.label as string;
-    // Người đề xuất không có quyền duyệt nên không tự duyệt được (không thấy yêu cầu để duyệt).
+    // Người chỉ có quyền đề xuất không còn đường đổi quyền.
     expect(
       (
-        await api('POST', `/dms/permission-requests/${reqId}/review`, U.proposer, {
-          approve: true,
+        await api('POST', `/dms/groups/${thvGroup}/changes`, U.proposer, {
+          kind: 'GRANT',
+          permission: 'tongdat.read.own',
+          reason: 'cần đọc tống đạt',
+        })
+      ).status,
+    ).toBe(404);
+    // Route đề xuất cũ đã gỡ.
+    expect(
+      (
+        await api('POST', `/dms/groups/${thvGroup}/requests`, U.approver1, {
+          kind: 'GRANT',
+          permission: 'tongdat.read.own',
+          reason: 'x',
         })
       ).status,
     ).toBe(404);
@@ -411,34 +416,33 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       (await api('GET', `/dms/me/permissions?officeId=${OFF}`, U.a)).json.permissions,
     ).not.toContain('tongdat.read.own');
 
-    expect(
-      (
-        await api('POST', `/dms/permission-requests/${reqId}/review`, U.approver2, {
-          approve: true,
-        })
-      ).status,
-    ).toBe(200);
+    // Admin đổi trực tiếp, có hiệu lực ngay và có dòng lịch sử.
+    const grant = await api('POST', `/dms/groups/${thvGroup}/changes`, U.approver1, {
+      kind: 'GRANT',
+      permission: 'tongdat.read.own',
+      reason: 'cần đọc tống đạt',
+    });
+    expect(grant.status).toBe(201);
+    expect(grant.json.code).toBe('REQUEST_APPLIED');
     expect(
       (await api('GET', `/dms/me/permissions?officeId=${OFF}`, U.a)).json.permissions,
     ).toContain('tongdat.read.own');
-    const pending = await api(
+    const applied = await api(
       'GET',
       `/dms/permission-requests?officeId=${OFF}&status=APPROVED`,
       U.approver2,
     );
-    expect(pending.json.rows.some((r: Row) => r.id === reqId)).toBe(true);
-    // Admin đề xuất thì có hiệu lực ngay, không cần ai duyệt (thu hồi khẩn cấp).
-    const urgent = await api('POST', `/dms/groups/${thvGroup}/requests`, U.approver1, {
+    expect(applied.json.rows.some((r: Row) => r.id === grant.json.label)).toBe(true);
+    const urgent = await api('POST', `/dms/groups/${thvGroup}/changes`, U.approver1, {
       kind: 'REVOKE',
       permission: 'tongdat.read.own',
       reason: 'thu hồi khẩn cấp',
     });
     expect(urgent.status).toBe(201);
-    expect(urgent.json.code).toBe('REQUEST_APPLIED');
     expect(
       (await api('GET', `/dms/me/permissions?officeId=${OFF}`, U.a)).json.permissions,
     ).not.toContain('tongdat.read.own');
-    // Không có endpoint ghi quyền trực tiếp.
+    // Không có endpoint ghi cả khối quyền.
     expect(
       (
         await api('PUT', `/dms/groups/${thvGroup}/permissions`, U.approver1, {
@@ -446,10 +450,10 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
         })
       ).status,
     ).toBe(404);
-    // Người thường không đề xuất/duyệt.
+    // Người thường không đổi được.
     expect(
       (
-        await api('POST', `/dms/groups/${thvGroup}/requests`, U.a, {
+        await api('POST', `/dms/groups/${thvGroup}/changes`, U.a, {
           kind: 'GRANT',
           permission: 'vibang.read.all',
           reason: 'x',

@@ -335,8 +335,12 @@ export class DmsPermissionsController {
     return this.run(a, 'dms_group_set_status', [id, b.status, b.reason]);
   }
 
-  @Post('groups/:id/requests')
-  propose(
+  /**
+   * Đổi quyền hoặc thành viên của nhóm: chỉ người có quyền duyệt thay đổi quyền (Admin), áp dụng ngay và ghi nhật ký.
+   * Thay cho luồng đề xuất cũ; chỉ còn route duyệt để xử lý nốt các đề xuất PENDING có từ trước.
+   */
+  @Post('groups/:id/changes')
+  change(
     @CurrentActor() a: AuthenticatedActor,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
@@ -352,7 +356,7 @@ export class DmsPermissionsController {
         .strict(),
       body,
     );
-    return this.run(a, 'dms_permission_propose', [
+    return this.run(a, 'dms_group_change', [
       id,
       b.kind,
       b.permission ?? null,

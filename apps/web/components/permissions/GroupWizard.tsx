@@ -115,7 +115,7 @@ export function GroupWizard({
         ...removed.map((permission) => ({ kind: 'REVOKE', permission })),
       ];
       for (const c of changes) {
-        const r = await postJson(`/dms/groups/${groupId}/requests`, {
+        const r = await postJson(`/dms/groups/${groupId}/changes`, {
           ...c,
           reason: reason.trim(),
         });
@@ -434,7 +434,7 @@ export function GroupWizard({
             aria-busy={busy}
             onClick={submit}
           >
-            Gửi duyệt
+            Tạo nhóm
           </button>
         )}
       </div>

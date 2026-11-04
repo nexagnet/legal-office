@@ -6,7 +6,6 @@ import {
   PermissionTabs,
   activePermissionTab,
 } from '../../../components/permissions/PermissionTabs';
-import { RequestsTab } from '../../../components/permissions/RequestsTab';
 import { UsersTab } from '../../../components/permissions/UsersTab';
 import { StateCard } from '../../../components/ui/state-card';
 import { loadRequests } from '../../../lib/admin-api';
@@ -29,10 +28,6 @@ const TAB_BANNER: Partial<Record<string, { title: string; sub: string }>> = {
   nhom: {
     title: 'Phân quyền',
     sub: 'Nhóm mẫu của hệ thống được bảo vệ. Muốn nhóm riêng: sao chép nhóm mẫu hoặc bắt đầu từ nhóm trống, chọn quyền và phạm vi.',
-  },
-  'yeu-cau': {
-    title: 'Yêu cầu chờ duyệt',
-    sub: 'Admin có quyền duyệt thay đổi quyền duyệt hoặc từ chối các đề xuất do người khác lập. Đề xuất do chính bạn lập không có nút Duyệt.',
   },
   'nhat-ky': {
     title: 'Nhật ký phân quyền',
@@ -104,17 +99,6 @@ export default async function PermissionPage({
           searchParams={params}
           canPropose={ctx.canApprove}
         />
-      ) : tab === 'yeu-cau' ? (
-        <>
-          <RequestsTab
-            requests={ctx.requests}
-            names={names}
-            userId={ctx.userId}
-            searchParams={params}
-            canPropose={ctx.canPropose}
-          />
-          <LegacyRequests rows={legacyRows} roles={ctx.roles} />
-        </>
       ) : (
         <AuditTab
           requests={ctx.requests}

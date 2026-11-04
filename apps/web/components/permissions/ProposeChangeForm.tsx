@@ -108,7 +108,7 @@ export function ProposeChangeForm({
     setError(null);
     try {
       for (const t of targets) {
-        const r = await postJson(`/dms/groups/${group.id}/requests`, {
+        const r = await postJson(`/dms/groups/${group.id}/changes`, {
           kind,
           ...(memberKind ? { userId: t } : { permission: t }),
           reason: reason.trim(),
@@ -118,7 +118,7 @@ export function ProposeChangeForm({
           return setError(`${what}: ${permissionMessage(r.code)}`);
         }
       }
-      router.push('/quan-tri/phan-quyen?tab=yeu-cau');
+      router.push('/quan-tri/phan-quyen?tab=nhat-ky');
       router.refresh();
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
@@ -256,14 +256,14 @@ export function ProposeChangeForm({
       </section>
 
       <section className="wizard-card" aria-labelledby="prev-t">
-        <h2 id="prev-t">4 · Xem trước nếu được duyệt</h2>
+        <h2 id="prev-t">4 · Xem trước</h2>
         <DataTable tableKey="permissions-ProposeChangeForm-1">
           <table>
             <thead>
               <tr>
                 <th scope="col" />
                 <th scope="col">Hiện tại</th>
-                <th scope="col">Sau khi duyệt</th>
+                <th scope="col">Sau khi áp dụng</th>
               </tr>
             </thead>
             <tbody>
@@ -304,12 +304,12 @@ export function ProposeChangeForm({
           <Pill tone={sensitive > 0 ? 'warn' : 'ok'}>
             {sensitive > 0 ? `${sensitive} quyền nhạy cảm` : '0 quyền nhạy cảm'}
           </Pill>
-          <Pill tone="brass">Chưa áp dụng cho đến khi được duyệt</Pill>
+          <Pill tone="brass">Áp dụng ngay</Pill>
         </div>
       </section>
 
       <section className="wizard-card" aria-labelledby="pf-reason">
-        <h2 id="pf-reason">5 · Lý do và người duyệt</h2>
+        <h2 id="pf-reason">5 · Lý do</h2>
         <label>
           Lý do
           <input
@@ -334,7 +334,7 @@ export function ProposeChangeForm({
           Hủy
         </button>
         <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
-          Gửi duyệt
+          Lưu thay đổi
         </button>
       </div>
     </form>
