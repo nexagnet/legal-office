@@ -1,6 +1,6 @@
 # Legal Office: hướng dẫn sử dụng
 
-Bản dựng 4/11/2026. Ảnh chụp từ văn phòng minh họa; mọi tên người, số liệu và hồ sơ trong ảnh đều là hư cấu. Vòng đỏ có số là chỗ cần bấm hoặc nhập, làm theo thứ tự số.
+Bản dựng 5/11/2026. Ảnh chụp từ văn phòng minh họa; mọi tên người, số liệu và hồ sơ trong ảnh đều là hư cấu. Vòng đỏ có số là chỗ cần bấm hoặc nhập, làm theo thứ tự số.
 Tệp này và các PDF trong `pdf/` đều sinh từ `roles/*.json` bằng `scripts/user-guide/build-md.mjs` và `build-pdf.mjs`. Không sửa tay; sửa nguồn rồi dựng lại.
 
 ## Ba nguyên tắc của phần mềm

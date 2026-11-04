@@ -1,11 +1,11 @@
 # Hướng dẫn sử dụng: nguồn, cách dựng lại, tình trạng
 
-Cập nhật: 2026-11-04 (dựng lại từ văn phòng minh họa tạo bằng bootstrap-tenant, dữ liệu nạp bằng SEED_PROFILE=guide; mọi tên và hồ sơ là hư cấu, không nhãn "dữ liệu giả" hay [guide]). Dựng lại: đặt GUIDE_REAL=1 khi chạy các kịch bản role-dms-*.mjs.
+Cập nhật: 2026-11-05 (đối chiếu ảnh với mã giao diện hiện tại: ảnh dựng 04/11 22:05, sau lần đổi giao diện web cuối 04/11 20:48; bỏ PDF theo vai). Trước đó 2026-11-04 (dựng lại từ văn phòng minh họa tạo bằng bootstrap-tenant, dữ liệu nạp bằng SEED_PROFILE=guide; mọi tên và hồ sơ là hư cấu, không nhãn "dữ liệu giả" hay [guide]). Dựng lại: đặt GUIDE_REAL=1 khi chạy các kịch bản role-dms-*.mjs.
 
 ## Có gì
 
 - `roles/*.json`: nguồn duy nhất (phần, bước, chú thích, các dòng khoanh vùng). `roles/<vai>/NN.png`: ảnh có vòng đỏ đánh số.
-- `pdf/huong-dan-<vai>.pdf`: 6 PDF theo vai (Admin, Trưởng văn phòng, Thừa hành viên, Thư ký, Văn thư, Kế toán), mỗi PDF = phần chung + phần của vai. `pdf/huong-dan-day-du.pdf`: gộp tất cả.
+- `pdf/huong-dan-day-du.pdf`: MỘT PDF duy nhất, gồm phần chung rồi phần của từng vai (Admin, Trưởng văn phòng, Thừa hành viên, Thư ký, Văn thư, Kế toán). Các PDF theo vai đã bỏ ngày 05/11/2026, không dựng nữa.
 - `huong-dan-su-dung.md`: bản chữ để đọc trong repo, sinh từ cùng JSON. Không sửa tay.
 
 Phạm vi: toàn bộ giao diện DMS đang hiện trên thanh bên (Hồ sơ do tôi tạo, Mọi hồ sơ của văn phòng, Vi bằng, Tống đạt, Xác minh THA, Tổ chức THA, Văn thư, Trình / Duyệt, Chờ tôi xác nhận, Xuất sổ, Biểu mẫu, Báo cáo, Scan đã xóa, Lịch sử hoạt động, Quản trị gồm Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng). Các màn văn phòng cũ không còn trên thanh bên (Hộp duyệt, Hợp đồng, Sổ sách, Công văn) không có trong hướng dẫn này.
@@ -32,7 +32,7 @@ APPEND=1 node role-dms-vanthu.mjs       # Văn thư
 APPEND=1 node role-dms-khac.mjs         # Trưởng văn phòng, Thư ký, Kế toán
 node role-dms-chung.mjs                 # Phần chung (ghi đè chung.json)
 node prune.mjs --write                  # bỏ phần cũ, xóa ảnh không dùng, kiểm nội dung
-GUIDE_SHA=<mã bản chạy> node build-pdf.mjs
+GUIDE_SHA=<mã bản chạy> node build-pdf.mjs   # chỉ ra 1 PDF: pdf/huong-dan-day-du.pdf
 node build-md.mjs
 ```
 
