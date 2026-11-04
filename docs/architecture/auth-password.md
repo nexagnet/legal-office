@@ -1,4 +1,4 @@
-# Đăng nhập email + mật khẩu
+# Đăng nhập email hoặc CCCD + mật khẩu
 
 Quyết định của chủ dự án (12/10/2026). Bật bằng `AUTH_MODE=password`; mặc định API vẫn **đóng kín**.
 
@@ -17,16 +17,20 @@ Người dùng (mọi vai) chọn **một trong hai** cách, không phải hai l
 - **Mật khẩu:** `POST /auth/login` như mọi người dùng, đúng là có phiên ngay (vẫn khoá tạm khi sai nhiều lần).
 - **Email:** `POST /auth/login/email {tenantId, email}`. Nếu email là tài khoản có ít nhất một vai trong tenant đã lưu SMTP (và công tắc chưa tắt), hệ thống gửi thư có link `<web>/xac-thuc?t=<tenant>.<token>`. API **luôn** trả `200 {code:'VERIFICATION_REQUIRED'}` kèm cookie `lo_challenge` (HttpOnly, SameSite=Strict, 25 phút), kể cả email lạ/chưa có vai/chưa SMTP/đang khoá/gửi lỗi/quá số lần (cookie mồi vô dụng), để không dò được email nào có tài khoản. Lý do thật chỉ ghi log máy chủ.
 
-1. Bấm link mở `/xac-thuc`; bấm "Hiện mã xác thực" mới gọi `POST /auth/verify-link` (trình quét email không làm cháy link). Link dùng một lần, hết hạn 15 phút. Lúc này DB mới sinh mã 6 số, hiệu lực 10 phút, trả đúng một lần.
-2. Nhập mã ở màn đăng nhập: `POST /auth/login/verify`. Cần **cả** cookie `lo_challenge` của trình duyệt đã xin link và mã đúng. Sai 5 lần thì thử thách bị huỷ; đúng thì mới tạo phiên `lo_session`.
-3. Chỉ lưu SHA-256 của bí mật trình duyệt, token link và mã. Tối đa 3 thư mỗi người trong 15 phút; xin lại huỷ thử thách cũ. Mọi bước ghi `audit_log`. `/auth/login/email` chịu giới hạn tốc độ 20/phút như `/auth/login`.
-4. Đường email mở cho mọi tài khoản có vai của tenant **đã lưu SMTP** và công tắc chưa tắt. Đường mật khẩu luôn dùng được, nên Admin đầu tiên vẫn vào được để nhập SMTP.
-5. **Công tắc:** `DATABASE_URL=... TENANT_ID=... MODE=off node dist/auth/admin-verification.cli.js` tắt đăng nhập bằng email cho tenant (mật khẩu không đổi); `MODE=on` bật lại. Mỗi lần chạy ghi `audit_log`.
-6. Cần địa chỉ web để dựng link: `PUBLIC_WEB_URL`, nếu trống lấy Origin đầu tiên trong `WEB_ORIGIN`; không có cả hai thì đường email không gửi được thư.
-7. Email Admin mặc định `phungtienviet14@gmail.com` đặt khi bootstrap: `EMAIL=phungtienviet14@gmail.com ... node dist/auth/set-password.cli.js`.
+Đăng nhập bằng link email không mật khẩu đã bị gỡ khỏi màn đăng nhập (màn `/xac-thuc` và nút đăng nhập bằng email đã xóa;
+công tắc `LEGACY_EMAIL_LOGIN_ENABLED` mặc định tắt).
+
+1. Tài khoản bắt buộc có mật khẩu khi tạo (tối thiểu 12 ký tự). Số CCCD (12 chữ số, duy nhất theo văn phòng) là tùy chọn;
+   đăng nhập bằng email hoặc CCCD. CCCD không ghi vào nhật ký và không đưa lên URL.
+2. Tài khoản mới và tài khoản vừa được Admin đặt lại mật khẩu có cờ `must_change_password`: phải đổi mật khẩu
+   (`POST /auth/change-password`) trước khi dùng tiếp.
+3. Quên mật khẩu: `POST /auth/forgot-password` gửi link một lần (cần SMTP của văn phòng; tối đa 3 lần mỗi 30 phút),
+   `POST /auth/reset-password` đặt mật khẩu mới. Chưa có SMTP thì Admin đặt lại mật khẩu cho người dùng.
+4. Chỉ lưu SHA-256 của token đặt lại. Mọi bước ghi `audit_log`.
+5. Email Admin mặc định đặt khi bootstrap: `node dist/auth/set-password.cli.js` với biến môi trường tạm.
 
 ## Chưa làm / giả định chờ xác nhận
 
-1. Chưa có quên mật khẩu qua email hay hết hạn mật khẩu (đăng nhập bằng link email áp cho mọi vai).
+1. Chưa có hết hạn mật khẩu theo thời gian.
 2. Chưa giới hạn tốc độ theo IP (chỉ khoá theo tài khoản); nên đặt ở lớp proxy khi triển khai.
 3. Chưa có phiên "ghi nhớ" dài hạn.
