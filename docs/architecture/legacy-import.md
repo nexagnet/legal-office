@@ -3,6 +3,8 @@
 Mục đích: đưa kho tệp có sẵn của khách (hàng trăm GB trên máy tính) vào DMS, **chỉ lưu tệp và đánh dấu "tài liệu cũ"**.
 Không tạo hồ sơ nghiệp vụ, không nhập dữ liệu nghiệp vụ. Đề xuất gốc: `reports/de-xuat-nhap-200gb-tai-lieu-cu-2026-10-31.md`.
 
+Kế hoạch triển khai cho khách (điều kiện, quy trình từng bước, rủi ro, ước lượng thời gian): [docs/engineering/nhap-200gb-tai-lieu-cu.md](../engineering/nhap-200gb-tai-lieu-cu.md).
+
 ## Nguyên tắc
 
 - **Bất biến như mọi bản ghi DMS:** không xoá, không ghi đè, không sửa trực tiếp, kể cả Admin. Ép bằng trigger (`dms_legacy_files` chỉ ghi thêm; đợt chỉ đi `OPEN -> CLOSED`). API cố ý không có `DELETE`/`PUT`.

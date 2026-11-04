@@ -15,7 +15,7 @@ Lập 04/11/2026. Đi kèm [northflank-deploy.md](northflank-deploy.md) (thành 
 
   Lệnh in `TENANT_ID`. Đặt `TENANT_ID` và `TENANT_NAME` cho `lo-web`. Admin buộc đổi mật khẩu ở lần đăng nhập đầu.
 - [ ] Đăng nhập Admin, vào **Quản trị > Tài khoản** tạo tài khoản nhân viên (mật khẩu ban đầu tối thiểu 12 ký tự, CCCD nếu có), xếp vào nhóm quyền, cấp chi nhánh.
-- [ ] Nếu có dữ liệu cũ cần chuyển sang: dùng công cụ nhập có sẵn (`docs/architecture/legacy-import.md`), thử trên dev trước.
+- [ ] Nếu có dữ liệu cũ cần chuyển sang (kho tệp hàng trăm GB): làm theo [nhap-200gb-tai-lieu-cu.md](nhap-200gb-tai-lieu-cu.md); công cụ mô tả ở `docs/architecture/legacy-import.md`.
 
 ## 2. Biến môi trường (secret group `legal-office`)
 
