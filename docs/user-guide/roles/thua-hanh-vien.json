@@ -496,7 +496,7 @@
      "title": "Tống đạt: danh sách và nút tạo hồ sơ",
      "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
      "detail": [],
-     "img": "thua-hanh-vien/91.png",
+     "img": "thua-hanh-vien/99.png",
      "marks": [
       {
        "n": 1,
@@ -516,7 +516,7 @@
       "SĐT khách hàng Không in ra sổ.",
       "Ghi chú"
      ],
-     "img": "thua-hanh-vien/92.png",
+     "img": "thua-hanh-vien/100.png",
      "marks": [
       {
        "n": 1,
@@ -556,7 +556,7 @@
      "title": "Xác minh điều kiện thi hành án: danh sách và nút tạo hồ sơ",
      "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
      "detail": [],
-     "img": "thua-hanh-vien/93.png",
+     "img": "thua-hanh-vien/101.png",
      "marks": [
       {
        "n": 1,
@@ -583,7 +583,7 @@
       "Cột 8: NỘI DUNG XÁC MINH",
       "Cột 9: KẾT QUẢ XÁC MINH"
      ],
-     "img": "thua-hanh-vien/94.png",
+     "img": "thua-hanh-vien/102.png",
      "marks": [
       {
        "n": 1,
@@ -651,7 +651,7 @@
      "title": "Tổ chức thi hành án: danh sách và nút tạo hồ sơ",
      "note": "Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm \"+ Tạo hồ sơ\" để tạo bản nháp mới.",
      "detail": [],
-     "img": "thua-hanh-vien/95.png",
+     "img": "thua-hanh-vien/103.png",
      "marks": [
       {
        "n": 1,
@@ -678,7 +678,7 @@
       "Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)",
       "Cột 9: CÁC KHOẢN PHẢI THI HÀNH ÁN (theo hợp đồng)"
      ],
-     "img": "thua-hanh-vien/96.png",
+     "img": "thua-hanh-vien/104.png",
      "marks": [
       {
        "n": 1,
@@ -743,7 +743,7 @@
      "detail": [
       "Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc."
      ],
-     "img": "thua-hanh-vien/97.png",
+     "img": "thua-hanh-vien/105.png",
      "marks": [
       {
        "n": 1,
@@ -758,7 +758,7 @@
       "Nội dung hồ sơ: các ô người soạn đã điền (hiển thị chỉ đọc).",
       "Tài liệu: các tài liệu đã đính kèm vào bản nháp."
      ],
-     "img": "thua-hanh-vien/98.png",
+     "img": "thua-hanh-vien/106.png",
      "marks": [
       {
        "n": 1,

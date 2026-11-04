@@ -1,6 +1,6 @@
 # Hướng dẫn sử dụng: nguồn, cách dựng lại, tình trạng
 
-Cập nhật: 2026-11-04. Chụp từ `https://dev.nexagnet.com` (bản chạy `3ee9471`), dữ liệu giả.
+Cập nhật: 2026-11-04. Chụp từ `https://dev.nexagnet.com` (bản chạy `8e225c0`), dữ liệu giả.
 
 ## Có gì
 

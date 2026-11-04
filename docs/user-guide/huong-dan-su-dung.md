@@ -745,7 +745,7 @@ Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi 
 
 Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Chờ tôi xác nhận" của thừa hành viên đó.
 
-![Chọn thừa hành viên được ghi tên](roles/admin/58.png)
+![Chọn thừa hành viên được ghi tên](roles/admin/59.png)
 
 1. Thừa hành viên được ghi tên
 2. Lưu để giao cho thừa hành viên
@@ -1102,7 +1102,7 @@ Mỗi hồ sơ Tống đạt ghi việc tống đạt văn bản: văn bản nà
 
 Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm "+ Tạo hồ sơ" để tạo bản nháp mới.
 
-![Tống đạt: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/91.png)
+![Tống đạt: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/99.png)
 
 1. Tạo hồ sơ mới (bản nháp)
 2. Xem trước và xuất sổ S-01
@@ -1115,7 +1115,7 @@ Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột).
 - SĐT khách hàng Không in ra sổ.
 - Ghi chú
 
-![Tống đạt: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/92.png)
+![Tống đạt: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/100.png)
 
 1. Tên hồ sơ (bắt buộc)
 2. SĐT khách hàng Không in ra sổ.
@@ -1141,7 +1141,7 @@ Mỗi hồ sơ ghi việc xác minh điều kiện thi hành án theo yêu cầu
 
 Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm "+ Tạo hồ sơ" để tạo bản nháp mới.
 
-![Xác minh điều kiện thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/93.png)
+![Xác minh điều kiện thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/101.png)
 
 1. Tạo hồ sơ mới (bản nháp)
 2. Xem trước và xuất sổ S-04
@@ -1161,7 +1161,7 @@ Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột).
 - Cột 8: NỘI DUNG XÁC MINH
 - Cột 9: KẾT QUẢ XÁC MINH
 
-![Xác minh điều kiện thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/94.png)
+![Xác minh điều kiện thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/102.png)
 
 1. Tên hồ sơ (bắt buộc)
 2. SĐT khách hàng Không in ra sổ.
@@ -1194,7 +1194,7 @@ Mỗi hồ sơ ghi việc tổ chức thi hành một bản án, quyết định
 
 Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm "+ Tạo hồ sơ" để tạo bản nháp mới.
 
-![Tổ chức thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/95.png)
+![Tổ chức thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/103.png)
 
 1. Tạo hồ sơ mới (bản nháp)
 2. Xem trước và xuất sổ S-05
@@ -1214,7 +1214,7 @@ Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột).
 - Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)
 - Cột 9: CÁC KHOẢN PHẢI THI HÀNH ÁN (theo hợp đồng)
 
-![Tổ chức thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/96.png)
+![Tổ chức thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/104.png)
 
 1. Tên hồ sơ (bắt buộc)
 2. SĐT khách hàng Không in ra sổ.
@@ -1248,7 +1248,7 @@ Mỗi dòng là một bản nháp đang chờ bạn. Bấm "Xem và xác nhận"
 
 - Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc.
 
-![Chờ tôi xác nhận](roles/thua-hanh-vien/97.png)
+![Chờ tôi xác nhận](roles/thua-hanh-vien/105.png)
 
 1. Mở bản nháp để xem và xác nhận
 
@@ -1259,7 +1259,7 @@ Hệ thống hiện lại toàn bộ nội dung hồ sơ và các tài liệu. �
 - Nội dung hồ sơ: các ô người soạn đã điền (hiển thị chỉ đọc).
 - Tài liệu: các tài liệu đã đính kèm vào bản nháp.
 
-![Xem và xác nhận nội dung bản nháp](roles/thua-hanh-vien/98.png)
+![Xem và xác nhận nội dung bản nháp](roles/thua-hanh-vien/106.png)
 
 1. Quay lại danh sách Chờ tôi xác nhận
 2. Nội dung hồ sơ cần kiểm tra
@@ -1320,7 +1320,7 @@ Thư ký soạn bản nháp: điền thông tin, thêm tài liệu, tải bản 
 
 Thư ký có Lưu, Lưu nháp và Hủy nháp; không có "Xác nhận lưu chính thức". Ô thừa hành viên chỉ có "Không ghi tên" vì bạn không có quyền chọn.
 
-![Bản nháp do Thư ký soạn](roles/thu-ky/28.png)
+![Bản nháp do Thư ký soạn](roles/thu-ky/29.png)
 
 1. Thừa hành viên được ghi tên (Admin sẽ chọn)
 2. Lưu thay đổi
