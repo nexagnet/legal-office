@@ -65,10 +65,7 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
 
   return (
     <>
-      <PermissionTabs
-        active="nhom"
-        pending={requests.filter((r) => r.status === 'PENDING').length}
-      />
+      <PermissionTabs active="nhom" />
       <AdminBanner
         crumb={[
           ['Quản trị', '/quan-tri'],

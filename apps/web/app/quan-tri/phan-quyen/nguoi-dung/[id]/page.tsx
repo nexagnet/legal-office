@@ -85,10 +85,7 @@ export default async function EffectivePage({
 
   return (
     <>
-      <PermissionTabs
-        active="nguoi-dung"
-        pending={ctx.requests.filter((r) => r.status === 'PENDING').length}
-      />
+      <PermissionTabs active="nguoi-dung" />
       <AdminBanner title={`Quyền hiệu lực · ${person.name}`} />
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-surface p-6 shadow-sm">
         <div className="flex items-center gap-4">

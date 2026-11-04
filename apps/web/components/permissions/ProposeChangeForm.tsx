@@ -118,7 +118,7 @@ export function ProposeChangeForm({
           return setError(`${what}: ${permissionMessage(r.code)}`);
         }
       }
-      router.push('/quan-tri/phan-quyen?tab=nhat-ky');
+      router.push('/dms/lich-su?group=permission');
       router.refresh();
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');

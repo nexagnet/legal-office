@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { DataTable } from '../../../components/ui/data-table';
+import { PermissionLogExport } from '../../../components/permissions/PermissionLogExport';
 import { TabNav } from '../../../components/ui/tab-nav';
 import { DMS_DOMAINS, VAN_THU_DOMAINS, loadMyDmsPermissions } from '../../../lib/dms';
 import {
@@ -34,12 +35,18 @@ function Target({ row }: { readonly row: ActivityRow }) {
     return (
       <Link href={`/dms/trinh-duyet/${row.submission_id}`}>Bản trình · {row.submission_title}</Link>
     );
+  if (row.target_type === 'branch') return <Link href="/quan-tri/chi-nhanh">Chi nhánh</Link>;
+  if (row.target_type === 'office') return <Link href="/quan-tri/cai-dat">Văn phòng</Link>;
+  if (row.target_type === 'user')
+    return <Link href={`/quan-tri/phan-quyen/nguoi-dung/${row.target_id}`}>Tài khoản</Link>;
+  if (row.target_type === 'permission_request')
+    return <Link href={`/quan-tri/phan-quyen/yeu-cau/${row.target_id}`}>Thay đổi quyền</Link>;
   return <span>—</span>;
 }
 
 /**
  * Lịch sử hoạt động (Figma "Lịch sử hoạt động"): ai làm gì, lúc nào, trên hồ sơ, tài liệu, file hay bản trình nào. Chỉ đọc,
- * từ nhật ký không sửa được; CHỈ ADMIN xem. Giờ theo múi Việt Nam.
+ * từ nhật ký không sửa được; Admin và người có quyền duyệt thay đổi quyền xem. Giờ theo múi Việt Nam.
  */
 export default async function ActivityPage({
   searchParams,
@@ -79,8 +86,8 @@ export default async function ActivityPage({
       <section aria-labelledby="t">
         <h1 id="t">Lịch sử hoạt động</h1>
         <div className="state" role="status">
-          <h2>Chỉ Admin được xem mục này</h2>
-          <p>Lịch sử hoạt động ghi lại ai làm gì trên hồ sơ, chỉ Admin xem.</p>
+          <h2>Bạn chưa có quyền xem mục này</h2>
+          <p>Lịch sử hoạt động chỉ dành cho Admin và người có quyền duyệt thay đổi quyền.</p>
         </div>
       </section>
     );
@@ -130,6 +137,11 @@ export default async function ActivityPage({
           ...ACTIVITY_GROUPS.map(([k, label]) => ({ key: k, label, href: href(k) })),
         ]}
       />
+      {group === 'permission' && permissions.includes('dms.audit.export') ? (
+        <p>
+          <PermissionLogExport officeId={officeId} />
+        </p>
+      ) : null}
       <form method="get" action="/dms/lich-su" role="search" className="dms-filters">
         {group ? <input type="hidden" name="group" value={group} /> : null}
         <label>
