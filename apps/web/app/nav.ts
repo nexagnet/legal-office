@@ -62,10 +62,20 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'dms',
-    label: 'Hồ sơ của tôi',
+    label: 'Hồ sơ do tôi tạo',
     group: 'work',
     roles: ALL,
-    summary: 'Hồ sơ và bản scan bốn nghiệp vụ; xuất sổ S-01/02/04/05.',
+    href: '/dms/cua-toi',
+    summary: 'Mọi hồ sơ bạn đã tạo ở các nghiệp vụ, kể cả bản nháp.',
+  },
+  {
+    // Chỉ hiện với tài khoản có quyền xem toàn bộ (`*.read.all`): layout lọc theo quyền.
+    slug: 'dms-van-phong',
+    label: 'Mọi hồ sơ của văn phòng',
+    group: 'work',
+    roles: ALL,
+    href: '/dms/van-phong',
+    summary: 'Hồ sơ của mọi người trong văn phòng, theo quyền xem và chi nhánh được cấp.',
   },
   {
     slug: 'dms-vi-bang',

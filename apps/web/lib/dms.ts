@@ -174,6 +174,8 @@ export interface DmsCaseDetail extends DmsCaseRow {
   readonly returned: boolean;
   /** SĐT khách hàng (thuộc tính hiện hành), null nếu chưa nhập. */
   readonly phone: string | null;
+  /** Tên người tạo hồ sơ (mọi trạng thái); null nếu không xác định. */
+  readonly created_by_name: string | null;
 }
 
 export interface DmsDocumentRow {

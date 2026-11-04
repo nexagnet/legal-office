@@ -34,7 +34,6 @@ import {
   loadDmsBooks,
   loadDmsCase,
   loadDmsDocuments,
-  loadDmsFacets,
   diffRevision,
   loadDmsFiles,
   loadDmsRevisions,
@@ -42,6 +41,7 @@ import {
   type DmsBookColumn,
   loadThvOptions,
 } from '../../../../lib/dms';
+import { actionLabel, activityNote, loadCaseHistory } from '../../../../lib/dms-activity';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -120,6 +120,7 @@ const TABS = [
   { key: 'scan', label: 'Tệp đính kèm' },
   { key: 'phien-ban', label: 'Phiên bản cũ' },
   { key: 'so', label: 'Sổ liên quan' },
+  { key: 'lich-su', label: 'Lịch sử hồ sơ' },
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
 const activeTab = (raw: string | undefined): TabKey =>
@@ -216,10 +217,8 @@ export default async function DmsCasePage({
       ? bookRows.rows.filter((r) => r.case_id === c.id).map((r) => r.stt)
       : [];
 
-  const creatorName = isDraft
-    ? ((await loadDmsFacets(cookie, c.office_id, domain.code)).find((f) => f.case_id === c.id)
-        ?.creator_name ?? null)
-    : null;
+  const creatorName = c.created_by_name;
+  const history = tab === 'lich-su' ? await loadCaseHistory(cookie, c.id) : [];
   const revisions = tab === 'phien-ban' ? await loadDmsRevisions(cookie, c.id) : [];
   const headingOf = new Map<string, string>(
     (book?.columns ?? []).map((col) => [col.key, col.heading]),
@@ -275,15 +274,7 @@ export default async function DmsCasePage({
         ) : null}
       </p>
       {c.status === 'RECORDED' ? (
-        <NoticeBar
-          action={
-            isAdmin ? (
-              <Link href={`/dms/lich-su?q=${encodeURIComponent(c.case_number ?? c.title)}`}>
-                Xem lịch sử
-              </Link>
-            ) : undefined
-          }
-        >
+        <NoticeBar action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
           Hồ sơ đã ghi sổ. Chỉ Admin được sửa nội dung (có lý do, lưu thành phiên bản mới); hồ sơ và
           STT không bị xóa; nhân viên chỉ tải thêm scan. Mọi thao tác đều ghi lịch sử hoạt động.
         </NoticeBar>
@@ -309,16 +300,6 @@ export default async function DmsCasePage({
                     ? fileCount
                     : undefined,
           })),
-          // Lịch sử hoạt động chỉ Admin xem (N4); mở nhật ký đã lọc theo hồ sơ này.
-          ...(isAdmin && !isDraft
-            ? [
-                {
-                  key: 'lich-su',
-                  label: 'Lịch sử hoạt động',
-                  href: `/dms/lich-su?q=${encodeURIComponent(c.case_number ?? c.title)}`,
-                },
-              ]
-            : []),
         ]}
       />
       {tab === 'tai-lieu' || tab === 'scan' || tab === 'phien-ban' ? (
@@ -460,6 +441,7 @@ export default async function DmsCasePage({
                 ['Tên hồ sơ', c.title],
                 ...(hasPhone ? ([['SĐT khách hàng', c.phone ?? '—']] as const) : []),
                 ['Trạng thái', STATUS[c.status] ?? c.status],
+                ['Người tạo', creatorName ?? '—'],
                 ['Ngày tạo', fmt.format(new Date(c.created_at))],
                 ['Ghi sổ', c.recorded_at ? fmt.format(new Date(c.recorded_at)) : '—'],
                 ...(c.status === 'CANCELLED'
@@ -627,6 +609,43 @@ export default async function DmsCasePage({
             )}
           </aside>
         </div>
+      ) : null}
+
+      {tab === 'lich-su' ? (
+        <section aria-labelledby="hist-title" className="mb-5 grid gap-3">
+          <h2 id="hist-title">Lịch sử hồ sơ</h2>
+          <p className="muted text-sm">
+            Ai đã làm gì trên hồ sơ này, kể cả tài liệu và tệp của hồ sơ, mới nhất trước. Người tạo
+            hồ sơ: {creatorName ?? '—'}.
+          </p>
+          {history.length === 0 ? (
+            <p className="muted">Chưa có hoạt động nào được ghi.</p>
+          ) : (
+            <DataTable tableKey="dms-case-history">
+              <table>
+                <caption className="sr-only">Lịch sử hồ sơ</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Thời gian</th>
+                    <th scope="col">Người làm</th>
+                    <th scope="col">Việc đã làm</th>
+                    <th scope="col">Ghi chú</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((h) => (
+                    <tr key={h.id}>
+                      <td>{fmt.format(new Date(h.at))}</td>
+                      <td>{h.actor_label ?? 'Hệ thống'}</td>
+                      <td>{actionLabel(h.action)}</td>
+                      <td>{activityNote(h) || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </DataTable>
+          )}
+        </section>
       ) : null}
 
       {tab === 'phien-ban' ? (

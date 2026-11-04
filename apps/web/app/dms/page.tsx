@@ -1,40 +1,8 @@
-import Link from 'next/link';
-import { DMS_DOMAINS, VAN_THU_DOMAINS } from '../../lib/dms';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
+/** `/dms` không còn là trang riêng: mục menu "Hồ sơ do tôi tạo" thay cho danh sách liên kết cũ. */
 export default function DmsHome() {
-  return (
-    <section aria-labelledby="t">
-      <h1 id="t">Hồ sơ</h1>
-      <p className="muted">
-        Bốn nghiệp vụ lưu hồ sơ và bản scan. Hồ sơ đã lưu chính thức không xoá; nhân viên chỉ tải
-        thêm bản scan, chỉ Admin sửa được nội dung.
-      </p>
-      <ul>
-        {DMS_DOMAINS.map((d) => (
-          <li key={d.slug}>
-            <Link href={`/dms/${d.slug}`}>{d.label}</Link>
-          </li>
-        ))}
-        {VAN_THU_DOMAINS.map((d) => (
-          <li key={d.slug}>
-            <Link href={`/dms/${d.slug}`}>Văn thư · {d.label}</Link>
-          </li>
-        ))}
-        <li>
-          <Link href="/dms/thv">Chờ tôi xác nhận (thừa hành viên)</Link>
-        </li>
-        <li>
-          <Link href="/dms/bao-cao">Báo cáo tổng hợp</Link>
-        </li>
-        <li>
-          <Link href="/dms/trinh-duyet">Trình / Duyệt</Link>
-        </li>
-        <li>
-          <Link href="/dms/so">Xuất sổ nghiệp vụ</Link>
-        </li>
-      </ul>
-    </section>
-  );
+  redirect('/dms/cua-toi');
 }

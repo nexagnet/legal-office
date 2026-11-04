@@ -334,6 +334,21 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect(dl.status).toBe(404);
   });
 
+  it('Lịch sử hồ sơ qua HTTP: người tạo thấy việc đã làm, người khác nhận rỗng, hồ sơ lạ rỗng', async () => {
+    const caseId = (
+      await api('POST', '/dms/cases', U.a, { officeId: OFF, domain: 'vibang', title: 'Có lịch sử' })
+    ).json.label as string;
+    await api('POST', `/dms/cases/${caseId}/documents`, U.a, { kind: 'N-04', title: 'T' });
+    const mine = await api('GET', `/dms/cases/${caseId}/history`, U.a);
+    expect(mine.status).toBe(200);
+    const actions = mine.json.rows.map((r: { action: string }) => r.action);
+    expect(actions).toContain('dms.case.create_draft');
+    expect(actions).toContain('dms.document.add');
+    expect((await api('GET', `/dms/cases/${caseId}/history`, U.b)).json.rows).toEqual([]);
+    expect((await api('GET', `/dms/cases/${id()}/history`, U.a)).json.rows).toEqual([]);
+    expect((await api('GET', `/dms/cases/khong-phai-uuid/history`, U.a)).status).toBe(400);
+  });
+
   it('nhóm quyền qua HTTP: chỉ Admin tạo / xóa; nhóm Admin hệ thống không xóa được', async () => {
     const denied = await api('POST', '/dms/groups', U.proposer, { officeId: OFF, name: 'Của PX' });
     expect(denied.status).toBe(403);
@@ -535,8 +550,8 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect((await api('GET', `/dms/cases/${made.json.label}`, U.a)).status).toBe(200);
 
     expect((await grant(U.a, branchB, false)).json.code).toBe('BRANCH_ACCESS_REVOKED');
-    // Chi nhánh B đã thu hồi: nháp của chính mình ở chi nhánh B cũng không còn thấy được.
-    expect((await api('GET', `/dms/cases/${made.json.label}`, U.a)).status).toBe(404);
+    // Chi nhánh B đã thu hồi: nháp do chính mình tạo vẫn thấy (quy tắc 0111, người tạo vượt ràng buộc chi nhánh).
+    expect((await api('GET', `/dms/cases/${made.json.label}`, U.a)).status).toBe(200);
   });
 
   it('hồ sơ chưa có chi nhánh qua HTTP: chỉ Admin thấy và gắn được; người khác nhận rỗng / 403', async () => {
