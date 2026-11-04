@@ -7,12 +7,17 @@
    "intro": "Mở địa chỉ hệ thống do Văn phòng cung cấp. Mỗi người dùng một tài khoản riêng, không dùng chung.",
    "rules": [
     "Sai mật khẩu quá 5 lần liên tiếp thì tài khoản bị khóa 15 phút. Đợi hết thời gian hoặc nhờ Admin hỗ trợ.",
-    "Không chia sẻ mật khẩu. Mọi thao tác trên hồ sơ đều ghi tên người đăng nhập."
+    "Không chia sẻ mật khẩu. Mọi thao tác trên hồ sơ đều ghi tên người đăng nhập.",
+    "Lần đăng nhập đầu (hoặc sau khi Admin đặt lại mật khẩu) hệ thống bắt đổi mật khẩu mới, tối thiểu 12 ký tự, rồi mới dùng tiếp."
    ],
    "problems": [
     [
-     "Báo \"Email hoặc mật khẩu không đúng\"",
-     "Kiểm tra gõ đúng email Văn phòng cấp, tắt Caps Lock. Mật khẩu phân biệt chữ hoa và chữ thường."
+     "Báo \"Email, số CCCD hoặc mật khẩu không đúng\"",
+     "Kiểm tra gõ đúng email hoặc số CCCD Văn phòng cấp, tắt Caps Lock. Mật khẩu phân biệt chữ hoa và chữ thường."
+    ],
+    [
+     "Quên mật khẩu",
+     "Bấm \"Quên mật khẩu\" ở màn đăng nhập, nhập email; hệ thống gửi link đặt lại vào email của tài khoản. Cũng có thể nhờ Admin đặt lại."
     ],
     [
      "Báo tài khoản bị khóa tạm thời",
@@ -26,17 +31,17 @@
    "steps": [
     {
      "title": "Màn hình đăng nhập",
-     "note": "Có hai cách vào hệ thống: bằng mật khẩu (mọi vai) hoặc bằng liên kết gửi qua email (dành cho Admin).",
+     "note": "Đăng nhập bằng email hoặc số CCCD cùng mật khẩu. Quên mật khẩu thì dùng liên kết bên dưới để nhận link đặt lại qua email.",
      "detail": [
-      "Email: nhập đúng địa chỉ email Văn phòng đã cấp cho bạn.",
-      "Mật khẩu: do Admin cấp lần đầu; phân biệt chữ hoa và chữ thường.",
-      "Nút \"Đăng nhập bằng email\": chỉ Admin dùng, hệ thống gửi một liên kết dùng một lần, hết hạn sau 15 phút."
+      "Email hoặc số CCCD: nhập địa chỉ email Văn phòng đã cấp, hoặc số CCCD 12 chữ số nếu đã được ghi vào tài khoản.",
+      "Mật khẩu: do Admin cấp lần đầu (tối thiểu 12 ký tự); phân biệt chữ hoa và chữ thường.",
+      "Quên mật khẩu: nhận link đặt lại qua email của tài khoản."
      ],
      "img": "chung/01.png",
      "marks": [
       {
        "n": 1,
-       "text": "Nhập Email do Văn phòng cấp"
+       "text": "Nhập email hoặc số CCCD do Văn phòng cấp"
       },
       {
        "n": 2,
@@ -48,7 +53,7 @@
       },
       {
        "n": 4,
-       "text": "Chỉ Admin: nhận liên kết đăng nhập qua email"
+       "text": "Quên mật khẩu: nhận link đặt lại qua email"
       }
      ]
     },
@@ -60,7 +65,7 @@
      "marks": [
       {
        "n": 1,
-       "text": "Thông báo lỗi: kiểm tra lại email và mật khẩu"
+       "text": "Thông báo lỗi: kiểm tra lại email hoặc số CCCD và mật khẩu"
       }
      ]
     }
@@ -77,7 +82,7 @@
    "steps": [
     {
      "title": "Thanh bên, ô tìm kiếm, chuông thông báo và tài khoản",
-     "note": "Đây là trang Hồ sơ của tôi, điểm bắt đầu của hầu hết các vai.",
+     "note": "Đây là trang Hồ sơ do tôi tạo, điểm bắt đầu của hầu hết các vai.",
      "detail": [
       "Thanh bên: bấm tên mục để chuyển màn. Mục đang mở được tô sáng.",
       "Ô Tìm kiếm (hoặc bấm Ctrl K ở bất kỳ màn nào): tìm nhanh hồ sơ và trang.",
@@ -176,7 +181,7 @@
      "title": "Bảng hồ sơ: số hồ sơ, SĐT, ô Đã trả kết quả",
      "note": "Mỗi hồ sơ chính thức có số hồ sơ do hệ thống cấp. Ô tích Đã trả kết quả chỉ để theo dõi, không đổi trạng thái hồ sơ.",
      "detail": [
-      "Bấm Xem để mở hồ sơ.",
+      "Bấm số hồ sơ để mở hồ sơ.",
       "Ô tích Đã trả kết quả: tích khi đã trả kết quả cho khách; số lượng này hiện ở thẻ \"Đã trả kết quả\" trên Tổng quan.",
       "Cột SĐT khách hàng chỉ để liên hệ, không in ra sổ."
      ],
@@ -196,7 +201,7 @@
       },
       {
        "n": 4,
-       "text": "Bấm Xem để mở hồ sơ"
+       "text": "Bấm số hồ sơ để mở hồ sơ"
       }
      ]
     },
@@ -327,7 +332,7 @@
   },
   {
    "title": "Thư viện biểu mẫu",
-   "intro": "Nơi tra cứu và tải các biểu mẫu (phụ lục) của văn phòng, và soạn nội dung vi bằng theo mẫu N-04.",
+   "intro": "Nơi tra cứu và tải các biểu mẫu (phụ lục) của văn phòng.",
    "rules": [
     "Thư viện chỉ để tải và soạn; việc ký và ban hành vẫn do người có thẩm quyền làm ngoài đời."
    ],
@@ -335,17 +340,13 @@
    "steps": [
     {
      "title": "Thư viện biểu mẫu",
-     "note": "Gõ tên vào ô tìm rồi bấm Tìm. Bấm \"Tải về\" để lấy biểu mẫu; bấm \"Soạn nội dung Vi bằng N-04\" để soạn nội dung vi bằng.",
+     "note": "Gõ tên vào ô tìm rồi bấm Tìm. Bấm \"Tải về\" để lấy biểu mẫu.",
      "detail": [],
      "img": "chung/12.png",
      "marks": [
       {
        "n": 1,
        "text": "Tìm biểu mẫu theo tên"
-      },
-      {
-       "n": 2,
-       "text": "Soạn nội dung Vi bằng theo mẫu N-04"
       }
      ]
     }
@@ -359,13 +360,13 @@
    "steps": [
     {
      "title": "Danh sách hồ sơ trên điện thoại",
-     "note": "Mỗi thẻ là một hồ sơ, các thông tin ghi rõ tên trường. Bấm Xem để mở hồ sơ. Cuộn xuống để xem thẻ tiếp theo.",
+     "note": "Mỗi thẻ là một hồ sơ, các thông tin ghi rõ tên trường. Bấm số hồ sơ để mở hồ sơ. Cuộn xuống để xem thẻ tiếp theo.",
      "detail": [],
      "img": "chung/13.png",
      "marks": [
       {
        "n": 1,
-       "text": "Bấm Xem để mở hồ sơ"
+       "text": "Bấm số hồ sơ để mở hồ sơ"
       }
      ]
     }

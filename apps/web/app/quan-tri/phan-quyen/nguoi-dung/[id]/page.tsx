@@ -413,9 +413,11 @@ export default async function EffectivePage({
                 {STATUS_LABEL[r.status].toLowerCase()}
               </span>
               <span className="text-muted">
-                Đề xuất: {names.userName(r.proposed_by)}
-                {r.reviewed_by ? ` · Duyệt: ${names.userName(r.reviewed_by)}` : ''} · Lý do:{' '}
-                {r.reason} ·{' '}
+                Người thực hiện: {names.userName(r.proposed_by)}
+                {r.reviewed_by && r.reviewed_by !== r.proposed_by
+                  ? ` · Duyệt: ${names.userName(r.reviewed_by)}`
+                  : ''}{' '}
+                · Lý do: {r.reason} ·{' '}
                 <Link href={`/quan-tri/phan-quyen/yeu-cau/${r.id}`}>{requestCode(r.id)}</Link>
               </span>
             </li>

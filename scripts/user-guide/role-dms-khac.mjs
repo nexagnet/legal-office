@@ -9,19 +9,18 @@ const link = (page, name, o = {}) => page.getByRole('link', { name, ...o }).firs
 {
   const { page } = await asRole(b, 'TRUONG_VP');
   const g = new Guide('truong-van-phong', 'Hướng dẫn dành cho Trưởng văn phòng');
-  g.section('DMS · Trưởng văn phòng: những màn bạn dùng', 'Trưởng văn phòng theo dõi toàn bộ nghiệp vụ, xem báo cáo và duyệt các đề xuất cần người thứ hai (như cấp hoặc đổi quyền). Bạn xem được hồ sơ nhưng không tạo hồ sơ nghiệp vụ.', [
+  g.section('DMS · Trưởng văn phòng: những màn bạn dùng', 'Trưởng văn phòng theo dõi nghiệp vụ và xem báo cáo trong phạm vi quyền của nhóm quyền được cấp. Việc phân quyền do Admin làm trực tiếp, không còn bước đề xuất và duyệt.', [
     '"Duyệt" trong phần mềm là xác nhận nội bộ, không phải chữ ký pháp lý. Văn bản pháp lý vẫn do người có thẩm quyền ký và đóng dấu ngoài đời.',
-    'Đề xuất cấp hoặc đổi quyền do Admin gửi cần bạn duyệt (quy tắc hai người: người đề xuất và người duyệt phải khác nhau).',
+    'Quyền của bạn nằm ở nhóm quyền Admin xếp bạn vào; muốn thêm hoặc bớt quyền, nhờ Admin (mọi thay đổi có ghi nhật ký).',
   ], [
     ['Danh sách hồ sơ trống', 'Hồ sơ hiện theo chi nhánh bạn được cấp. Nhờ Admin kiểm tra phạm vi chi nhánh của tài khoản.'],
     ['Không thấy nút tạo hồ sơ', 'Đúng thiết kế: Trưởng văn phòng theo dõi và duyệt, việc tạo hồ sơ do Thừa hành viên, Thư ký làm.'],
   ]);
   await go(page, '/');
-  await g.shot(page, { title: 'Tổng quan của Trưởng văn phòng', note: 'Thanh bên có thêm Báo cáo tổng hợp, Người dùng và Cấu hình hệ thống. Các thẻ số liệu cho biết tình hình toàn văn phòng trong năm.',
+  await g.shot(page, { title: 'Tổng quan của Trưởng văn phòng', note: 'Thanh bên hiện các mục theo nhóm quyền của bạn, ví dụ Báo cáo tổng hợp. Các thẻ số liệu cho biết tình hình toàn văn phòng trong năm.',
     marks: [
       { loc: link(page, /Báo cáo tổng hợp/), text: 'Báo cáo tổng hợp N-09, N-10' },
-      { loc: link(page, /Người dùng/), text: 'Người dùng: xem và duyệt đề xuất phân quyền' },
-      { loc: link(page, /Cấu hình hệ thống/), text: 'Cấu hình hệ thống' },
+      { loc: link(page, /Hồ sơ do tôi tạo/), text: 'Hồ sơ do tôi tạo', optional: true },
       { loc: link(page, /Trình \/ Duyệt/), text: 'Trình / Duyệt', optional: true },
     ] });
   await go(page, '/dms/bao-cao');
@@ -65,7 +64,7 @@ const link = (page, name, o = {}) => page.getByRole('link', { name, ...o }).firs
   await go(page, '/vat-tu');
   await g.shot(page, { title: 'Vật tư: tồn kho, nhập và xuất', note: 'Thẻ Tồn kho cho thấy số lượng hiện có. "Nhập / xuất" để ghi nhập hoặc xuất kho; "Đặt ngưỡng" để hệ thống báo Sắp hết.',
     marks: [
-      { loc: page.getByRole('button', { name: 'Nhập / xuất' }).or(link(page, 'Nhập / xuất')).first(), text: 'Ghi nhập hoặc xuất kho' },
+      { loc: page.getByRole('button', { name: 'Nhập / xuất' }).or(link(page, 'Nhập / xuất')).first(), text: 'Ghi nhập hoặc xuất kho', optional: true },
       { loc: page.getByPlaceholder(/Tìm theo tên vật tư/), text: 'Tìm theo tên vật tư' },
       { loc: page.getByRole('button', { name: 'Đặt ngưỡng' }).first(), text: 'Đặt ngưỡng cảnh báo sắp hết', optional: true },
     ] });

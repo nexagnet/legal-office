@@ -20,7 +20,7 @@
      "title": "Danh sách hồ sơ của Thư ký",
      "note": "Bạn có nút \"+ Tạo hồ sơ\" ở các nghiệp vụ được cấp quyền. Cách điền biểu mẫu xem phần Vi bằng trong hướng dẫn Thừa hành viên.",
      "detail": [],
-     "img": "thu-ky/25.png",
+     "img": "thu-ky/04.png",
      "marks": [
       {
        "n": 1,
@@ -36,7 +36,7 @@
      "title": "Tổng quan của Thư ký",
      "note": "Thanh bên của Thư ký gồm Chờ tôi xác nhận, Trình / Duyệt, các nghiệp vụ, Văn thư, Xuất sổ và Báo cáo tổng hợp.",
      "detail": [],
-     "img": "thu-ky/26.png",
+     "img": "thu-ky/05.png",
      "marks": [
       {
        "n": 1,
@@ -76,7 +76,7 @@
      "title": "Bản nháp do Thư ký soạn",
      "note": "Thư ký có Lưu, Lưu nháp và Hủy nháp; không có \"Xác nhận lưu chính thức\". Ô thừa hành viên chỉ có \"Không ghi tên\" vì bạn không có quyền chọn.",
      "detail": [],
-     "img": "thu-ky/29.png",
+     "img": "thu-ky/03.png",
      "marks": [
       {
        "n": 1,

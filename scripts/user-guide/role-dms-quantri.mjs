@@ -1,6 +1,6 @@
 import { browser, asRole, BASE } from './lib.mjs';
 import { Guide } from './guide.mjs';
-// Admin: các màn Quản trị (nhân sự, chi nhánh, phân quyền, thẻ THV, email, lịch, hồ sơ lao động, cấu hình, báo cáo, vật tư). Chỉ xem và mở hộp thoại, KHÔNG lưu gì. Chạy với APPEND=1.
+// Admin: các màn Quản trị (tài khoản, nhóm quyền, chi nhánh, thẻ THV, email, lịch, hồ sơ lao động, cài đặt, báo cáo, vật tư). Chỉ xem và mở hộp thoại, KHÔNG lưu gì. Chạy với APPEND=1.
 const b = await browser();
 const { page } = await asRole(b, 'ADMIN');
 const g = new Guide('admin', 'Hướng dẫn dành cho Admin');
@@ -18,26 +18,36 @@ const autoMarks = async (scope, max = 8) => {
   return marks;
 };
 
-g.section('Quản trị · Nhân sự và tài khoản', 'Admin tạo tài khoản, đổi tên, xem quyền hiệu lực và khóa/mở khóa thành viên. Mọi màn quản trị nằm trong nhóm QUẢN TRỊ của thanh bên, chuyển qua lại bằng dãy thẻ phía trên.', [
-  'Mỗi người một tài khoản riêng, đăng nhập bằng email. Không dùng chung tài khoản.',
-  'Cấp quyền và vai theo quy tắc hai người: người đề xuất và người duyệt phải khác nhau.',
+g.section('Quản trị · Tài khoản', 'Admin tạo tài khoản cho thành viên văn phòng: họ tên, email, số CCCD (không bắt buộc) và mật khẩu ban đầu. Quyền không nằm ở đây mà ở mục Nhóm quyền. Mọi màn quản trị nằm trong nhóm QUẢN TRỊ của thanh bên (Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng).', [
+  'Mỗi người một tài khoản riêng. Đăng nhập bằng email hoặc số CCCD cùng mật khẩu; quên mật khẩu thì dùng liên kết "Quên mật khẩu" ở màn đăng nhập (link đặt lại gửi qua email).',
+  'Mật khẩu ban đầu tối thiểu 12 ký tự; người dùng phải đổi mật khẩu ngay ở lần đăng nhập đầu.',
+  'Tài khoản vừa tạo chưa có quyền gì cho tới khi được xếp vào nhóm quyền.',
 ], [
-  ['Người mới không đăng nhập được', 'Kiểm tra thành viên đã được duyệt chưa (thẻ Chờ duyệt) và đã được gán nhóm quyền chưa (thẻ Chưa có quyền).'],
+  ['Người mới đăng nhập được nhưng không thấy gì', 'Chưa được xếp vào nhóm quyền: mở Nhóm quyền rồi bấm Gán nhóm quyền (thẻ Chưa có quyền lọc ra những người này).'],
   ['Cần đổi họ tên hiển thị', 'Bấm Sửa tên ở dòng thành viên.'],
+  ['Người dùng quên mật khẩu', 'Họ tự bấm Quên mật khẩu ở màn đăng nhập; Admin cũng có thể đặt lại mật khẩu cho họ, khi đó họ phải đổi mật khẩu ở lần đăng nhập kế tiếp.'],
 ]);
 await go('/quan-tri/nhan-su');
-await g.shot(page, { title: 'Nhân sự: danh sách thành viên', note: 'Các thẻ Tất cả, Chờ duyệt, Chưa có quyền, Tạm khóa lọc nhanh theo trạng thái; số đếm hiện bên cạnh.',
-  detail: ['Dãy thẻ phía trên (Nhân sự, Chi nhánh, Phân quyền, Thẻ THV, Email gửi thư, Lịch làm việc, Hồ sơ lao động) là các màn quản trị.', '+ Thêm thành viên: tạo đề xuất thành viên mới.', 'Xem quyền hiệu lực: mở chi tiết quyền thực sự của người đó.', 'Sửa tên: đổi họ tên hiển thị.'],
+await g.shot(page, { title: 'Tài khoản: danh sách thành viên', note: 'Các thẻ Tất cả, Chưa có quyền, Tạm khóa lọc nhanh theo trạng thái; số đếm hiện bên cạnh.',
+  detail: ['Dãy mục bên trái (Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng) là các màn quản trị.', '+ Thêm thành viên: tạo tài khoản mới.', 'Xem quyền hiệu lực: mở chi tiết quyền thực sự của người đó.', 'Sửa tên: đổi họ tên hiển thị.'],
   marks: [
-    { loc: R('Chi nhánh', { exact: true }), text: 'Các màn quản trị khác (Chi nhánh, Phân quyền, Thẻ THV...)' },
-    { loc: R(/Chưa có quyền/), text: 'Lọc: thành viên chưa được gán quyền' },
+    { loc: R('Nhóm quyền', { exact: true }), text: 'Các mục quản trị khác (Nhóm quyền, Chi nhánh, Cài đặt văn phòng)' },
+    { loc: R(/Chưa có quyền/), text: 'Lọc: thành viên chưa được xếp vào nhóm quyền' },
     { loc: page.getByPlaceholder(/Tìm thành viên/), text: 'Tìm theo tên hoặc email' },
     { loc: R('+ Thêm thành viên'), text: 'Thêm thành viên mới' },
     { loc: R(/Xem quyền hiệu lực/), text: 'Xem quyền hiệu lực của người này' },
     { loc: R('Sửa tên'), text: 'Đổi họ tên hiển thị' },
   ] });
 await R('+ Thêm thành viên').click(); await page.waitForTimeout(1500);
-await g.shot(page, { title: 'Thêm thành viên mới', note: 'Điền họ tên, email và vai đề nghị. Việc cấp quyền cần người thứ hai duyệt ở màn Phân quyền.', marks: await autoMarks(page.locator('main')) });
+await g.shot(page, { title: 'Thêm thành viên mới', note: 'Điền họ tên, email, CCCD (nếu có), mật khẩu ban đầu và nhập lại; chọn nhóm quyền và quyền chi tiết (tùy chọn) rồi bấm tạo. Tài khoản có hiệu lực ngay, không cần ai duyệt.',
+  detail: ['Số CCCD: 12 chữ số, không trùng tài khoản khác. Có CCCD thì đăng nhập được bằng CCCD.', 'Mật khẩu ban đầu: tối thiểu 12 ký tự; người dùng đổi ở lần đăng nhập đầu.', 'Nhóm quyền: tích nhóm cần xếp người này vào. Quyền chi tiết (tùy chọn) thêm hoặc bỏ riêng từng quyền.'],
+  marks: [
+    { loc: page.getByLabel('Họ và tên'), text: 'Họ và tên' },
+    { loc: page.getByLabel(/Email đăng nhập/), text: 'Email đăng nhập (cũng là nơi nhận link đặt lại mật khẩu)' },
+    { loc: page.getByLabel(/Số CCCD/), text: 'Số CCCD 12 chữ số (không bắt buộc)' },
+    { loc: page.getByLabel(/Mật khẩu ban đầu/), text: 'Mật khẩu ban đầu, tối thiểu 12 ký tự' },
+    { loc: page.getByLabel('Nhập lại mật khẩu'), text: 'Nhập lại mật khẩu' },
+  ] });
 
 g.section('Quản trị · Chi nhánh', 'Chi nhánh (địa điểm hoạt động) quyết định hồ sơ của ai hiện ở đâu. Thành viên chỉ thấy hồ sơ thuộc chi nhánh được cấp.', [
   'Hồ sơ chưa gắn chi nhánh chỉ Admin thấy; gắn chi nhánh để đúng người thấy.',
@@ -50,42 +60,52 @@ await g.shot(page, { title: 'Chi nhánh và hồ sơ chưa gắn chi nhánh', no
     { loc: R('Đổi tên'), text: 'Đổi tên chi nhánh' },
     { loc: R(/Xem người được cấp/), text: 'Xem ai được cấp chi nhánh này' },
     { loc: page.getByLabel('Chọn tất cả hồ sơ'), text: 'Tích để chọn tất cả hồ sơ chưa gắn', optional: true },
-    { loc: page.locator('select[name=branch]'), text: 'Chọn chi nhánh đích' },
-    { loc: R(/Gắn chi nhánh/), text: 'Gắn các hồ sơ đã chọn vào chi nhánh' },
+    { loc: page.locator('select[name=branch]'), text: 'Chọn chi nhánh đích', optional: true },
+    { loc: R(/Gắn chi nhánh/), text: 'Gắn các hồ sơ đã chọn vào chi nhánh', optional: true },
   ] });
 
-g.section('Quản trị · Phân quyền', 'Quyền của mỗi người = nhóm quyền + phạm vi (chi nhánh) + quyền cấp riêng. Màn Phân quyền cho xem quyền hiệu lực, quản lý nhóm quyền và duyệt đề xuất.', [
-  'Đề xuất cấp hoặc đổi quyền cần người khác duyệt (quy tắc hai người).',
+g.section('Quản trị · Nhóm quyền và phân quyền', 'Quyền của mỗi người = các nhóm quyền người đó thuộc + quyền thêm hoặc bỏ riêng. Chỉ Admin tạo nhóm, đổi quyền của nhóm, xếp người vào nhóm và đặt quyền riêng. Mọi thay đổi có hiệu lực ngay (không còn đề xuất và duyệt) và được ghi vào Lịch sử hoạt động, nhóm Phân quyền.', [
+  'Nhóm "Admin" là nhóm hệ thống: không xóa, không ngừng dùng, không đổi quyền; người thuộc nhóm Admin và tài khoản Admin không đặt được quyền riêng.',
+  'Mỗi thay đổi cần ghi lý do ngắn (bắt buộc, trừ khi Admin tự đổi quyền riêng của chính mình thì không cần).',
   'Quyền "xóa scan" chỉ cấp riêng cho từng người, không nằm trong nhóm quyền.',
-  'Mọi thay đổi quyền ghi vào Nhật ký phân quyền.',
 ]);
-await go('/quan-tri/phan-quyen');
-await g.shot(page, { title: 'Phân quyền: người dùng và quyền hiệu lực', note: 'Mỗi dòng là một thành viên với nhóm quyền, phạm vi, tình trạng tài khoản và đề xuất đang chờ. Bấm Xem để mở chi tiết.',
-  detail: ['Người dùng & quyền hiệu lực: tổng hợp quyền thực tế.', 'Nhóm quyền: tạo và sửa nhóm.', 'Yêu cầu chờ duyệt: đề xuất cấp quyền chờ người thứ hai duyệt.', 'Nhật ký phân quyền: lịch sử mọi thay đổi.'],
+await go('/quan-tri/phan-quyen?tab=nhom');
+await g.shot(page, { title: 'Nhóm quyền: danh sách nhóm', note: 'Mỗi nhóm cho biết số quyền, số thành viên và trạng thái. Bấm tên nhóm để xem và sửa; bấm "+ Tạo nhóm quyền" để tạo nhóm mới hoặc sao chép từ nhóm mẫu.',
   marks: [
-    { loc: page.getByRole('link', { name: /Nhóm quyền/ }).first(), text: 'Quản lý nhóm quyền', optional: true },
-    { loc: page.getByRole('link', { name: /Yêu cầu chờ duyệt/ }).first(), text: 'Duyệt đề xuất cấp quyền', optional: true },
+    { loc: R('+ Tạo nhóm quyền'), text: 'Tạo nhóm quyền mới hoặc sao chép nhóm mẫu', optional: true },
+    { loc: page.getByRole('link', { name: /Nhật ký phân quyền/ }).first(), text: 'Nhật ký phân quyền (mở Lịch sử hoạt động)', optional: true },
+  ] });
+await go('/quan-tri/phan-quyen');
+await g.shot(page, { title: 'Người dùng và quyền hiệu lực', note: 'Mỗi dòng là một thành viên với nhóm quyền, phạm vi và tình trạng tài khoản. Bấm Xem để mở chi tiết; "Gán nhóm quyền" xếp người vào nhóm.',
+  marks: [
+    { loc: R('Gán nhóm quyền'), text: 'Xếp thành viên vào một nhóm quyền', optional: true },
     { loc: page.getByPlaceholder(/Tìm thành viên/), text: 'Tìm thành viên' },
     { loc: page.getByRole('link', { name: /Xem ›/ }).first(), text: 'Mở chi tiết quyền của người này' },
   ] });
-await page.getByRole('link', { name: /Xem ›/ }).nth(1).click(); await page.waitForTimeout(1500);
-console.log('chi tiết phân quyền:', page.url(), JSON.stringify(await page.evaluate(() => [...document.querySelectorAll('main button,main a')].filter(e => e.getClientRects().length).map(e => e.innerText.trim()).filter(Boolean).slice(0, 25))));
-await g.shot(page, { title: 'Chi tiết quyền của một người', note: 'Màn này tổng hợp quyền hiệu lực của người đó từ các nhóm quyền. Muốn đổi nhóm quyền thì gửi đề xuất; người thứ hai sẽ duyệt.',
-  detail: ['Nhóm quyền đang áp dụng: nhóm hiện tại của người này.', 'Chi nhánh được xem: người này chỉ thấy hồ sơ của các chi nhánh liệt kê ở đây.', 'Tạm khóa tài khoản: chặn đăng nhập tạm thời mà không xóa dữ liệu.', 'Đề xuất thay đổi nhóm quyền: gửi đề xuất cho người thứ hai duyệt.'],
+await page.getByRole('link', { name: /Xem ›/ }).nth(1).click(); await page.waitForURL(/\/nguoi-dung\//, { timeout: 30000 }); await page.waitForTimeout(1500);
+const detailUrl = page.url();
+await g.shot(page, { title: 'Chi tiết một tài khoản: Quyền', note: 'Ba thẻ: Quyền, Thẻ thừa hành viên, Hồ sơ lao động. Thẻ Quyền cho thấy nhóm đang áp dụng, quyền hiệu lực theo nghiệp vụ và chi nhánh được xem.',
+  detail: ['Nhóm quyền đang áp dụng: các nhóm người này thuộc.', 'Đổi nhóm quyền: xếp vào hoặc gỡ khỏi nhóm, có hiệu lực ngay.', 'Tạm khóa tài khoản: chặn đăng nhập mà không xóa dữ liệu.', 'Cấp chi nhánh: người này chỉ thấy hồ sơ của chi nhánh được cấp (hồ sơ do chính họ tạo luôn thấy).'],
   marks: [
     { loc: R('Tạm khóa tài khoản'), text: 'Tạm khóa tài khoản' },
-    { loc: R('Đề xuất thay đổi nhóm quyền'), text: 'Đề xuất đổi nhóm quyền (cần người thứ hai duyệt)' },
-    { loc: page.getByText('Nhóm quyền đang áp dụng'), text: 'Nhóm quyền hiện tại' },
-    { loc: page.getByText('Chi nhánh được xem'), text: 'Phạm vi chi nhánh được xem' },
+    { loc: R('Đổi nhóm quyền'), text: 'Đổi nhóm quyền của người này (áp dụng ngay)' },
+    { loc: R('Thẻ thừa hành viên'), text: 'Thẻ thừa hành viên của người này' },
+    { loc: R('Hồ sơ lao động'), text: 'Hồ sơ lao động của người này', optional: true },
   ] });
-await R('Lưu quyền riêng').scrollIntoViewIfNeeded();
-await page.evaluate(() => window.scrollBy(0, 200)); await page.waitForTimeout(400);
-await g.shot(page, { title: 'Quyền chi tiết riêng của người này (ví dụ quyền xóa scan)', note: 'Ô đã tích là quyền đang có. Có thể thêm riêng hoặc bỏ riêng một quyền cho từng người mà không đổi nhóm quyền. Quyền xóa scan chỉ cấp ở đây, không nằm trong nhóm quyền.',
-  detail: ['Lưu quyền riêng: ghi lại các quyền thêm hoặc bỏ riêng cho người này (có lý do, ghi vào Nhật ký phân quyền).', 'Quay về đúng theo nhóm: xóa mọi quyền cấp riêng, quyền trở lại đúng theo nhóm quyền.', 'Cấp quyền xóa scan: chỉ cấp cho người thật sự cần và thu hồi khi xong việc.'],
+await R('Đổi nhóm quyền').click(); await page.waitForTimeout(1500);
+await g.shot(page, { title: 'Đổi nhóm hoặc quyền', note: 'Chọn loại thay đổi (gán nhóm, gỡ khỏi nhóm, thêm quyền vào nhóm, thu hồi quyền khỏi nhóm), chọn nhóm, chọn thành viên, xem trước rồi ghi lý do và áp dụng. Không còn bước chờ người thứ hai duyệt.',
+  marks: [{ loc: page.getByRole('button', { name: /Gán nhóm quyền/ }).first(), text: 'Loại thay đổi', optional: true }] });
+await page.goto(detailUrl, { waitUntil: 'networkidle' }); await page.waitForTimeout(800);
+await page.getByText(/Quyền riêng|Quyền chi tiết/).first().scrollIntoViewIfNeeded().catch(() => {}); await page.waitForTimeout(500);
+await g.shot(page, { title: 'Quyền riêng của người này', note: 'Bảng 7 nghiệp vụ x 6 hành động (phạm vi: của tôi tạo hoặc toàn văn phòng) cộng 8 quyền đặc biệt. Tích để thêm riêng, bỏ tích để bỏ riêng một quyền mà không đổi nhóm.',
+  detail: ['Lưu quyền riêng: ghi lại quyền thêm hoặc bỏ riêng, kèm lý do, ghi vào nhật ký.', 'Quay về đúng theo nhóm: xóa mọi quyền riêng.'],
   marks: [
-    { loc: R('Lưu quyền riêng'), text: 'Lưu quyền riêng của người này' },
-    { loc: R('Quay về đúng theo nhóm'), text: 'Bỏ hết quyền riêng, quay về đúng theo nhóm' },
+    { loc: R('Lưu quyền riêng'), text: 'Lưu quyền riêng của người này', optional: true },
+    { loc: R('Quay về đúng theo nhóm'), text: 'Bỏ hết quyền riêng, quay về đúng theo nhóm', optional: true },
   ] });
+await go('/dms/lich-su?group=permission');
+await g.shot(page, { title: 'Nhật ký phân quyền trong Lịch sử hoạt động', note: 'Mọi lần đổi nhóm, quyền, quyền riêng, chi nhánh được ghi tại Lịch sử hoạt động, thẻ Phân quyền. Ai có quyền xuất nhật ký thấy nút "Xuất bản sao".',
+  marks: [{ loc: R('Xuất bản sao'), text: 'Xuất bản sao nhật ký phân quyền', optional: true }, { loc: R('Phân quyền', { exact: true }), text: 'Thẻ lọc nhóm hoạt động Phân quyền', optional: true }] });
 
 g.section('Quản trị · Thẻ thừa hành viên', 'Mỗi thừa hành viên có số thẻ riêng; số thẻ được ghi vào các sổ và biểu mẫu ở cột Thừa hành viên.', [
   'Thiếu thẻ hoặc thẻ ngừng hiệu lực thì không ghi tên thừa hành viên đó được vào sổ.',
@@ -111,16 +131,15 @@ await g.shot(page, { title: 'Nhập thông tin thẻ', note: 'Thẻ chỉ có hi
   ] });
 await page.keyboard.press('Escape');
 
-g.section('Quản trị · Email gửi thư (SMTP)', 'Cấu hình hộp thư hệ thống dùng để gửi liên kết đăng nhập và nhắc hạn cho nhân viên.', [
+g.section('Quản trị · Email gửi thư (SMTP)', 'Cấu hình hộp thư hệ thống dùng để gửi liên kết đặt lại mật khẩu và nhắc hạn cho nhân viên.', [
   'Mật khẩu SMTP được mã hóa khi lưu và không bao giờ hiện lại trên màn hình.',
   'Sau khi lưu nên bấm "Gửi thư thử" để chắc thư gửi được.',
 ], [
   ['Thư thử không đến', 'Kiểm tra máy chủ, cổng, TLS/SSL đúng nhà cung cấp; với Gmail dùng mật khẩu ứng dụng, không dùng mật khẩu đăng nhập.'],
-  ['Muốn tắt đăng nhập bằng liên kết email', 'Bỏ tích "Cho phép đăng nhập bằng link email" rồi lưu.'],
 ]);
 await go('/quan-tri/email');
 await g.shot(page, { title: 'Máy chủ gửi thư (SMTP)', note: 'Điền thông tin do nhà cung cấp email cung cấp. Có thể gửi thư thử tới chính bạn để kiểm tra.',
-  detail: ['Máy chủ và Cổng: ví dụ smtp.gmail.com, cổng 465.', 'Kết nối mã hóa TLS/SSL: tích khi dùng cổng 465.', 'Tài khoản và Mật khẩu SMTP: tài khoản gửi thư.', 'Địa chỉ người gửi: địa chỉ hiện ở thư gửi đi.', 'Cho phép đăng nhập bằng link email: bật/tắt cho mọi người dùng.'],
+  detail: ['Máy chủ và Cổng: ví dụ smtp.gmail.com, cổng 465.', 'Kết nối mã hóa TLS/SSL: tích khi dùng cổng 465.', 'Tài khoản và Mật khẩu SMTP: tài khoản gửi thư.', 'Địa chỉ người gửi: địa chỉ hiện ở thư gửi đi.'],
   marks: [
     { loc: page.locator('[name=host]'), text: 'Máy chủ gửi thư' },
     { loc: page.locator('[name=port]'), text: 'Cổng' },
@@ -156,27 +175,18 @@ g.section('Quản trị · Cấu hình văn phòng', 'Thông tin pháp lý của
   'Đúng tên pháp lý và địa chỉ là bắt buộc vì in lên biểu mẫu chính thức.',
   'Số cuối của sổ chỉ nhập một lần và chỉ được tăng, để số tiếp theo nối tiếp sổ giấy.',
 ]);
-await go('/cai-dat');
+await go('/quan-tri/cai-dat');
 await g.shot(page, { title: 'Cấu hình văn phòng', note: 'Điền đúng thông tin pháp lý, bấm Lưu thay đổi. Phần Quy tắc số cho biết cách đánh số hồ sơ; nút "Nhập số cuối" dùng khi chuyển từ sổ giấy sang phần mềm.',
   marks: [
     { loc: page.locator('[name=legalName]'), text: 'Đơn vị pháp lý (tên đầy đủ)' },
     { loc: page.locator('[name=displayName]'), text: 'Tên hiển thị trên văn bản' },
-    { loc: R('Lưu thay đổi'), text: 'Lưu thay đổi' },
+    { loc: R('Lưu thay đổi'), text: 'Lưu thay đổi', optional: true },
     { loc: R('Nhập số cuối'), text: 'Nhập số cuối của sổ giấy', optional: true },
   ] });
 
-g.section('Quản trị · Báo cáo', 'Hai nơi xem báo cáo: Báo cáo hoạt động (số lượng theo khoảng thời gian, chi nhánh) và Báo cáo tổng hợp (số liệu theo mẫu N-09, N-10).', [
+g.section('Quản trị · Báo cáo', 'Báo cáo tổng hợp cho số liệu theo mẫu N-09, N-10.', [
   'Mỗi đơn vị tính riêng, không cộng chéo giữa các nghiệp vụ.',
 ]);
-await go('/bao-cao');
-await g.shot(page, { title: 'Báo cáo hoạt động', note: 'Chọn khoảng ngày, chi nhánh và cách chia rồi bấm Áp dụng. Chuyển thẻ để xem Vi bằng, Tống đạt/Xác minh/THA, hoặc công văn, vật tư, nhân sự.',
-  marks: [
-    { loc: page.locator('[name=from]'), text: 'Từ ngày' },
-    { loc: page.locator('[name=to]'), text: 'Đến ngày' },
-    { loc: page.locator('[name=branchId]'), text: 'Chi nhánh' },
-    { loc: page.locator('[name=groupBy]'), text: 'Chia theo' },
-    { loc: R('Áp dụng'), text: 'Áp dụng bộ lọc' },
-  ] });
 await go('/dms/bao-cao');
 await g.shot(page, { title: 'Báo cáo tổng hợp (N-09, N-10)', note: 'Số liệu tổng hợp theo hai mẫu báo cáo. Nút Sao chép ở từng chỉ tiêu giúp chép con số sang văn bản báo cáo.',
   marks: [{ loc: R(/N-10/), text: 'Chuyển giữa mẫu N-09 và N-10' }, { loc: R(/Sao chép/), text: 'Sao chép số liệu', optional: true }] });
@@ -187,9 +197,9 @@ g.section('Quản trị · Vật tư văn phòng', 'Theo dõi tồn kho văn ph�
 await go('/vat-tu');
 await g.shot(page, { title: 'Vật tư: tồn kho', note: 'Thẻ Tồn kho cho thấy số lượng hiện có của từng mặt hàng. "Đặt ngưỡng" để hệ thống báo Sắp hết khi dưới mức đặt.',
   marks: [
-    { loc: R('Nhập / xuất'), text: 'Ghi nhập hoặc xuất kho' },
-    { loc: R('Thêm tác vụ vật tư'), text: 'Thêm tác vụ vật tư' },
-    { loc: page.getByPlaceholder(/Tìm theo tên vật tư/), text: 'Tìm theo tên vật tư' },
-    { loc: R('Đặt ngưỡng'), text: 'Đặt ngưỡng cảnh báo sắp hết' },
+    { loc: R('Nhập / xuất'), text: 'Ghi nhập hoặc xuất kho', optional: true },
+    { loc: R('Thêm tác vụ vật tư'), text: 'Thêm tác vụ vật tư', optional: true },
+    { loc: page.getByPlaceholder(/Tìm theo tên vật tư/), text: 'Tìm theo tên vật tư', optional: true },
+    { loc: R('Đặt ngưỡng'), text: 'Đặt ngưỡng cảnh báo sắp hết', optional: true },
   ] });
 g.save(); await b.close(); console.log('done', g.n);
