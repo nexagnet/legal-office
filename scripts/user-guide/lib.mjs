@@ -1,9 +1,10 @@
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 export const BASE = process.env.GUIDE_BASE ?? 'https://dev.nexagnet.com';
-export const TENANT = fs.readFileSync(new URL('./tenant.txt', import.meta.url), 'utf8').trim();
-const ACC = 'C:/Users/phung/Documents/legal-office-test-accounts-thu.txt';
-const ADMIN = 'C:/Users/phung/Documents/legal-office-admin-thu.txt';
+export const TENANT = process.env.GUIDE_TENANT ?? fs.readFileSync(new URL('./tenant.txt', import.meta.url), 'utf8').trim();
+/** Mặc định đọc tệp tài khoản thử của dev; biến GUIDE_ACC / GUIDE_ADMIN cho phép trỏ sang tệp của bản chạy cục bộ. */
+const ACC = process.env.GUIDE_ACC ?? 'C:/Users/phung/Documents/legal-office-test-accounts-thu.txt';
+const ADMIN = process.env.GUIDE_ADMIN ?? 'C:/Users/phung/Documents/legal-office-admin-thu.txt';
 /** Mỗi dòng tệp tài khoản thử: email,mật khẩu,VAI (hoặc cách nhau bằng tab). Không bao giờ in mật khẩu ra. */
 export function creds() {
   const m = {};

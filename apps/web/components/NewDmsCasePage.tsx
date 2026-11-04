@@ -121,7 +121,7 @@ export function NewDmsCasePage({
               type="tel"
               inputMode="tel"
               maxLength={20}
-              pattern="\+?[0-9 .()\-]{8,20}"
+              pattern="\+?[0-9 .\(\)\-]{8,20}"
               title="Số điện thoại 8-15 chữ số, có thể có dấu cách, chấm, gạch, ngoặc hoặc +84"
             />
             <span className="text-xs font-normal text-muted">Không in ra sổ.</span>

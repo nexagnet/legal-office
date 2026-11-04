@@ -38,7 +38,8 @@ await g.shot(page, { title: 'Điền thông tin Vi bằng (phần đầu)', note
 await f('title', TITLE); await f('phone', '123');
 await f('nguoi_yeu_cau', 'Nguyễn Văn An, 12 phố Huế, quận Hai Bà Trưng, Hà Nội');
 await f('noi_dung_yeu_cau', 'Ghi nhận việc giao nhận tiền đặt cọc mua bán nhà');
-await page.getByRole('button', { name: 'Lưu nháp' }).click(); await page.waitForTimeout(1500);
+await page.locator('form').first().evaluate((f) => { f.noValidate = true; }); // để chụp được thông báo lỗi của ứng dụng thay vì bong bóng gợi ý của trình duyệt
+await page.getByRole('button', { name: 'Lưu nháp' }).click(); await page.getByText(/Thông tin chưa hợp lệ/).waitFor({ timeout: 30000 }); await page.waitForTimeout(500);
 await g.shot(page, { title: 'Nhập sai SĐT: hệ thống chặn và báo lỗi', note: 'SĐT "123" không phải số điện thoại hợp lệ nên hồ sơ chưa được lưu. Sửa lại cho đúng rồi bấm Lưu nháp lần nữa.',
   marks: [
     { loc: page.locator('[name=phone]'), text: 'Ô SĐT báo lỗi: nhập lại 10 số, bắt đầu bằng 0' },
@@ -56,7 +57,7 @@ await g.shot(page, { title: 'Điền thông tin Vi bằng (phần cuối) rồi 
     { loc: page.locator('[name=ghi_chu]'), text: 'Cột 7: ghi chú' },
     { loc: page.getByRole('button', { name: 'Lưu nháp' }), text: 'Bấm Lưu nháp' },
   ] });
-await page.getByRole('button', { name: 'Lưu nháp' }).click(); await page.waitForURL(/\/dms\/vi-bang\/[0-9a-f-]{36}/, { timeout: 15000 }); await page.waitForTimeout(1200);
+await page.getByRole('button', { name: 'Lưu nháp' }).click(); await page.waitForURL(/\/dms\/vi-bang\/[0-9a-f-]{36}/, { timeout: 60000 }); await page.waitForTimeout(1200);
 const draftUrl = page.url();
 await g.shot(page, { title: 'Bản nháp vừa tạo', note: 'Hệ thống chuyển sang trang chi tiết của bản nháp. Từ đây bạn lưu thêm, thêm tài liệu, hủy nháp hoặc lưu chính thức.',
   detail: ['Lưu hoặc Lưu nháp: lưu lại các ô vừa sửa, vẫn là bản nháp.', '+ Thêm tài liệu: mở tab Tài liệu để thêm văn bản và tải bản scan.', 'Hủy nháp: bỏ bản nháp (phải nêu lý do), xem phần "Hủy bản nháp".', 'Xác nhận lưu chính thức: cấp số hồ sơ, vào sổ, từ đó không sửa trực tiếp được nữa.'],

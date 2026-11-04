@@ -19,21 +19,22 @@ Mở địa chỉ hệ thống do Văn phòng cung cấp. Mỗi người dùng m
 
 - Sai mật khẩu quá 5 lần liên tiếp thì tài khoản bị khóa 15 phút. Đợi hết thời gian hoặc nhờ Admin hỗ trợ.
 - Không chia sẻ mật khẩu. Mọi thao tác trên hồ sơ đều ghi tên người đăng nhập.
+- Lần đăng nhập đầu (hoặc sau khi Admin đặt lại mật khẩu) hệ thống bắt đổi mật khẩu mới, tối thiểu 12 ký tự, rồi mới dùng tiếp.
 
 #### Bước 1.1 · Màn hình đăng nhập
 
-Có hai cách vào hệ thống: bằng mật khẩu (mọi vai) hoặc bằng liên kết gửi qua email (dành cho Admin).
+Đăng nhập bằng email hoặc số CCCD cùng mật khẩu. Quên mật khẩu thì dùng liên kết bên dưới để nhận link đặt lại qua email.
 
-- Email: nhập đúng địa chỉ email Văn phòng đã cấp cho bạn.
-- Mật khẩu: do Admin cấp lần đầu; phân biệt chữ hoa và chữ thường.
-- Nút "Đăng nhập bằng email": chỉ Admin dùng, hệ thống gửi một liên kết dùng một lần, hết hạn sau 15 phút.
+- Email hoặc số CCCD: nhập địa chỉ email Văn phòng đã cấp, hoặc số CCCD 12 chữ số nếu đã được ghi vào tài khoản.
+- Mật khẩu: do Admin cấp lần đầu (tối thiểu 12 ký tự); phân biệt chữ hoa và chữ thường.
+- Quên mật khẩu: nhận link đặt lại qua email của tài khoản.
 
 ![Màn hình đăng nhập](roles/chung/01.png)
 
-1. Nhập Email do Văn phòng cấp
+1. Nhập email hoặc số CCCD do Văn phòng cấp
 2. Nhập Mật khẩu
 3. Bấm Đăng nhập để vào hệ thống
-4. Chỉ Admin: nhận liên kết đăng nhập qua email
+4. Quên mật khẩu: nhận link đặt lại qua email
 
 #### Bước 1.2 · Khi nhập sai email hoặc mật khẩu
 
@@ -41,13 +42,14 @@ Hệ thống báo lỗi ngay dưới ô nhập và không cho vào. Nhập lại
 
 ![Khi nhập sai email hoặc mật khẩu](roles/chung/02.png)
 
-1. Thông báo lỗi: kiểm tra lại email và mật khẩu
+1. Thông báo lỗi: kiểm tra lại email hoặc số CCCD và mật khẩu
 
 **Lỗi thường gặp và cách xử lý**
 
 | Hiện tượng | Cách xử lý |
 | --- | --- |
-| Báo "Email hoặc mật khẩu không đúng" | Kiểm tra gõ đúng email Văn phòng cấp, tắt Caps Lock. Mật khẩu phân biệt chữ hoa và chữ thường. |
+| Báo "Email, số CCCD hoặc mật khẩu không đúng" | Kiểm tra gõ đúng email hoặc số CCCD Văn phòng cấp, tắt Caps Lock. Mật khẩu phân biệt chữ hoa và chữ thường. |
+| Quên mật khẩu | Bấm "Quên mật khẩu" ở màn đăng nhập, nhập email; hệ thống gửi link đặt lại vào email của tài khoản. Cũng có thể nhờ Admin đặt lại. |
 | Báo tài khoản bị khóa tạm thời | Đã nhập sai quá 5 lần. Đợi 15 phút rồi thử lại, hoặc nhờ Admin. |
 | Vào được nhưng thiếu mục trên thanh bên | Mỗi vai chỉ thấy mục thuộc vai của mình. Cần thêm quyền thì nhờ Admin. |
 
@@ -62,7 +64,7 @@ Mọi màn đều có cùng bố cục: thanh bên trái để chuyển mục, t
 
 #### Bước 2.1 · Thanh bên, ô tìm kiếm, chuông thông báo và tài khoản
 
-Đây là trang Hồ sơ của tôi, điểm bắt đầu của hầu hết các vai.
+Đây là trang Hồ sơ do tôi tạo, điểm bắt đầu của hầu hết các vai.
 
 - Thanh bên: bấm tên mục để chuyển màn. Mục đang mở được tô sáng.
 - Ô Tìm kiếm (hoặc bấm Ctrl K ở bất kỳ màn nào): tìm nhanh hồ sơ và trang.
@@ -114,7 +116,7 @@ Mỗi dòng là một hồ sơ. Dòng trên cùng là các tab trạng thái; b�
 
 Mỗi hồ sơ chính thức có số hồ sơ do hệ thống cấp. Ô tích Đã trả kết quả chỉ để theo dõi, không đổi trạng thái hồ sơ.
 
-- Bấm Xem để mở hồ sơ.
+- Bấm số hồ sơ để mở hồ sơ.
 - Ô tích Đã trả kết quả: tích khi đã trả kết quả cho khách; số lượng này hiện ở thẻ "Đã trả kết quả" trên Tổng quan.
 - Cột SĐT khách hàng chỉ để liên hệ, không in ra sổ.
 
@@ -123,7 +125,7 @@ Mỗi hồ sơ chính thức có số hồ sơ do hệ thống cấp. Ô tích �
 1. Bật/tắt cột hiển thị
 2. Thu gọn hàng để xem được nhiều dòng hơn
 3. Tích khi đã trả kết quả cho khách
-4. Bấm Xem để mở hồ sơ
+4. Bấm số hồ sơ để mở hồ sơ
 
 #### Bước 3.3 · Bộ lọc đã lưu
 
@@ -212,7 +214,7 @@ Chọn Năm, bấm Xem để dựng bản xem trước. Dùng "Xuất PDF để 
 
 ### 7. Thư viện biểu mẫu
 
-Nơi tra cứu và tải các biểu mẫu (phụ lục) của văn phòng, và soạn nội dung vi bằng theo mẫu N-04.
+Nơi tra cứu và tải các biểu mẫu (phụ lục) của văn phòng.
 
 **Cần nhớ:**
 
@@ -220,12 +222,11 @@ Nơi tra cứu và tải các biểu mẫu (phụ lục) của văn phòng, và 
 
 #### Bước 7.1 · Thư viện biểu mẫu
 
-Gõ tên vào ô tìm rồi bấm Tìm. Bấm "Tải về" để lấy biểu mẫu; bấm "Soạn nội dung Vi bằng N-04" để soạn nội dung vi bằng.
+Gõ tên vào ô tìm rồi bấm Tìm. Bấm "Tải về" để lấy biểu mẫu.
 
 ![Thư viện biểu mẫu](roles/chung/12.png)
 
 1. Tìm biểu mẫu theo tên
-2. Soạn nội dung Vi bằng theo mẫu N-04
 
 ### 8. Dùng trên điện thoại
 
@@ -233,11 +234,11 @@ Trên màn nhỏ (dưới 600 px), mỗi hồ sơ hiện thành một thẻ có 
 
 #### Bước 8.1 · Danh sách hồ sơ trên điện thoại
 
-Mỗi thẻ là một hồ sơ, các thông tin ghi rõ tên trường. Bấm Xem để mở hồ sơ. Cuộn xuống để xem thẻ tiếp theo.
+Mỗi thẻ là một hồ sơ, các thông tin ghi rõ tên trường. Bấm số hồ sơ để mở hồ sơ. Cuộn xuống để xem thẻ tiếp theo.
 
 ![Danh sách hồ sơ trên điện thoại](roles/chung/13.png)
 
-1. Bấm Xem để mở hồ sơ
+1. Bấm số hồ sơ để mở hồ sơ
 
 ## Dành cho Admin
 
@@ -259,7 +260,7 @@ Bốn thẻ số liệu ở trên, bên dưới là biểu đồ hồ sơ theo n
 - Đã trả kết quả: số hồ sơ đã được tích Đã trả kết quả.
 - Cần bổ sung scan: bấm Mở để vào thẳng hồ sơ thiếu scan.
 
-![Trang Tổng quan](roles/admin/18.png)
+![Trang Tổng quan](roles/admin/01.png)
 
 1. Số hồ sơ theo từng nghiệp vụ: bấm tên để mở danh sách
 2. Hồ sơ còn thiếu bản scan
@@ -286,7 +287,7 @@ Bản trình là cách nhân viên (Thừa hành viên, Văn thư) gửi tiêu �
 
 Admin thấy bản trình của mọi người. Huy hiệu đỏ trên thanh bên cho biết số bản đang chờ.
 
-![Hàng chờ duyệt của Admin](roles/admin/19.png)
+![Hàng chờ duyệt của Admin](roles/admin/02.png)
 
 1. Thanh bên: số bản trình đang chờ duyệt
 2. Bản trình cần xem
@@ -299,7 +300,7 @@ Xem thông tin người gửi và bản scan ngay trong trang. Nhập ghi chú r
 - Thêm scan: bổ sung bản scan cho bản trình nếu còn thiếu.
 - Xóa scan: chỉ người có quyền xóa scan mới thấy nút này.
 
-![Xem bản trình và quyết định](roles/admin/20.png)
+![Xem bản trình và quyết định](roles/admin/03.png)
 
 1. Ghi chú (bắt buộc khi từ chối)
 2. Duyệt bản trình
@@ -310,7 +311,7 @@ Xem thông tin người gửi và bản scan ngay trong trang. Nhập ghi chú r
 
 Trạng thái chuyển sang Đã duyệt, kèm người duyệt, thời điểm và ghi chú. Bản trình đã quyết định không duyệt lại được.
 
-![Bản trình đã duyệt](roles/admin/21.png)
+![Bản trình đã duyệt](roles/admin/04.png)
 
 **Lỗi thường gặp và cách xử lý**
 
@@ -333,7 +334,7 @@ Hồ sơ đã lưu chính thức không sửa trực tiếp. Chỉ Admin sửa �
 
 Chỉ Admin thấy nút này trên hồ sơ đã ghi sổ. Bấm để mở hộp thoại sửa.
 
-![Nút "Sửa hồ sơ (Admin)"](roles/admin/22.png)
+![Nút "Sửa hồ sơ (Admin)"](roles/admin/05.png)
 
 1. Sửa hồ sơ (chỉ Admin)
 
@@ -341,7 +342,7 @@ Chỉ Admin thấy nút này trên hồ sơ đã ghi sổ. Bấm để mở hộ
 
 Sửa các ô cần thiết, bắt buộc nhập Lý do sửa, rồi bấm Lưu thay đổi. Hệ thống lưu thành phiên bản mới.
 
-![Hộp thoại Sửa hồ sơ (Admin)](roles/admin/23.png)
+![Hộp thoại Sửa hồ sơ (Admin)](roles/admin/06.png)
 
 1. Tên hồ sơ
 2. Ô cần sửa (ví dụ Ghi chú)
@@ -352,7 +353,7 @@ Sửa các ô cần thiết, bắt buộc nhập Lý do sửa, rồi bấm Lưu 
 
 Mỗi lần Admin sửa tạo thêm một dòng: bản gốc khi ghi sổ và các bản sửa kèm người sửa, thời điểm và lý do.
 
-![Tab Phiên bản cũ: bản gốc và bản sửa](roles/admin/24.png)
+![Tab Phiên bản cũ: bản gốc và bản sửa](roles/admin/07.png)
 
 1. Tab Phiên bản cũ
 
@@ -377,7 +378,7 @@ Chỉ file scan xóa được; hồ sơ, số hồ sơ và dòng sổ vẫn còn
 
 Đọc kỹ ba lưu ý trong hộp thoại, nhập lý do rồi bấm Xóa scan. Hồ sơ và dòng sổ không bị ảnh hưởng.
 
-![Hộp thoại Xóa file scan](roles/admin/25.png)
+![Hộp thoại Xóa file scan](roles/admin/08.png)
 
 1. Lý do xóa (bắt buộc)
 2. Hủy: không xóa
@@ -390,7 +391,7 @@ Liệt kê file đã xóa kèm hồ sơ gốc, người xóa, ngày xóa, lý do
 - Cột Còn lại: số ngày đến khi file bị xóa hẳn khỏi kho.
 - Cột Tải: tải file về máy (chỉ Admin).
 
-![Mục Scan đã xóa 30 ngày](roles/admin/26.png)
+![Mục Scan đã xóa 30 ngày](roles/admin/09.png)
 
 1. File vừa xóa: xem lý do, người xóa, còn bao nhiêu ngày
 2. Tải file về máy
@@ -417,57 +418,89 @@ Chọn nhóm bằng các nút phía trên, hoặc gõ số hồ sơ, tên ngư�
 - Thời gian, Người làm, Hoạt động, Đối tượng, Chi tiết: mỗi dòng là một thao tác.
 - Nhóm: Hồ sơ, Tài liệu, Tệp & scan, Trình / Duyệt, Phân quyền.
 
-![Lịch sử hoạt động](roles/admin/27.png)
+![Lịch sử hoạt động](roles/admin/10.png)
 
 1. Lọc theo nhóm hoạt động
 2. Tìm theo số hồ sơ, người làm hoặc từ khóa
 3. Một thao tác: người làm, hoạt động, đối tượng, chi tiết
 
-### 14. Quản trị · Nhân sự và tài khoản
+### 14. Admin: soạn nháp và chọn Thừa hành viên ghi tên
 
-Admin tạo tài khoản, đổi tên, xem quyền hiệu lực và khóa/mở khóa thành viên. Mọi màn quản trị nằm trong nhóm QUẢN TRỊ của thanh bên, chuyển qua lại bằng dãy thẻ phía trên.
+Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục "Chờ tôi xác nhận" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.
 
 **Cần nhớ:**
 
-- Mỗi người một tài khoản riêng, đăng nhập bằng email. Không dùng chung tài khoản.
-- Cấp quyền và vai theo quy tắc hai người: người đề xuất và người duyệt phải khác nhau.
+- Chỉ người có quyền xem danh sách thừa hành viên mới chọn được. Chọn "Không ghi tên" nếu chưa biết.
+- Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác.
 
-#### Bước 14.1 · Nhân sự: danh sách thành viên
+#### Bước 14.1 · Chọn thừa hành viên được ghi tên
 
-Các thẻ Tất cả, Chờ duyệt, Chưa có quyền, Tạm khóa lọc nhanh theo trạng thái; số đếm hiện bên cạnh.
+Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Chờ tôi xác nhận" của thừa hành viên đó.
 
-- Dãy thẻ phía trên (Nhân sự, Chi nhánh, Phân quyền, Thẻ THV, Email gửi thư, Lịch làm việc, Hồ sơ lao động) là các màn quản trị.
-- + Thêm thành viên: tạo đề xuất thành viên mới.
-- Xem quyền hiệu lực: mở chi tiết quyền thực sự của người đó.
-- Sửa tên: đổi họ tên hiển thị.
+![Chọn thừa hành viên được ghi tên](roles/admin/11.png)
 
-![Nhân sự: danh sách thành viên](roles/admin/42.png)
-
-1. Các màn quản trị khác (Chi nhánh, Phân quyền, Thẻ THV...)
-2. Lọc: thành viên chưa được gán quyền
-3. Tìm theo tên hoặc email
-4. Thêm thành viên mới
-5. Xem quyền hiệu lực của người này
-6. Đổi họ tên hiển thị
-
-#### Bước 14.2 · Thêm thành viên mới
-
-Điền họ tên, email và vai đề nghị. Việc cấp quyền cần người thứ hai duyệt ở màn Phân quyền.
-
-![Thêm thành viên mới](roles/admin/43.png)
-
-1. Ô: Họ và tên
-2. Ô: Email đăng nhập Người dùng bấm link trong email để đăng nhập, không ai
-3. Ô: Lý do
+1. Thừa hành viên được ghi tên
+2. Lưu để giao cho thừa hành viên
 
 **Lỗi thường gặp và cách xử lý**
 
 | Hiện tượng | Cách xử lý |
 | --- | --- |
-| Người mới không đăng nhập được | Kiểm tra thành viên đã được duyệt chưa (thẻ Chờ duyệt) và đã được gán nhóm quyền chưa (thẻ Chưa có quyền). |
-| Cần đổi họ tên hiển thị | Bấm Sửa tên ở dòng thành viên. |
+| Thừa hành viên không thấy hồ sơ trong "Chờ tôi xác nhận" | Chưa chọn đúng thừa hành viên ở ô "Thừa hành viên được ghi tên" hoặc chưa bấm Lưu. |
 
-### 15. Quản trị · Chi nhánh
+### 15. Quản trị · Tài khoản
+
+Admin tạo tài khoản cho thành viên văn phòng: họ tên, email, số CCCD (không bắt buộc) và mật khẩu ban đầu. Quyền không nằm ở đây mà ở mục Nhóm quyền. Mọi màn quản trị nằm trong nhóm QUẢN TRỊ của thanh bên (Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng).
+
+**Cần nhớ:**
+
+- Mỗi người một tài khoản riêng. Đăng nhập bằng email hoặc số CCCD cùng mật khẩu; quên mật khẩu thì dùng liên kết "Quên mật khẩu" ở màn đăng nhập (link đặt lại gửi qua email).
+- Mật khẩu ban đầu tối thiểu 12 ký tự; người dùng phải đổi mật khẩu ngay ở lần đăng nhập đầu.
+- Tài khoản vừa tạo chưa có quyền gì cho tới khi được xếp vào nhóm quyền.
+
+#### Bước 15.1 · Tài khoản: danh sách thành viên
+
+Các thẻ Tất cả, Chưa có quyền, Tạm khóa lọc nhanh theo trạng thái; số đếm hiện bên cạnh.
+
+- Dãy mục bên trái (Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng) là các màn quản trị.
+- + Thêm thành viên: tạo tài khoản mới.
+- Xem quyền hiệu lực: mở chi tiết quyền thực sự của người đó.
+- Sửa tên: đổi họ tên hiển thị.
+
+![Tài khoản: danh sách thành viên](roles/admin/46.png)
+
+1. Các mục quản trị khác (Nhóm quyền, Chi nhánh, Cài đặt văn phòng)
+2. Lọc: thành viên chưa được xếp vào nhóm quyền
+3. Tìm theo tên hoặc email
+4. Thêm thành viên mới
+5. Xem quyền hiệu lực của người này
+6. Đổi họ tên hiển thị
+
+#### Bước 15.2 · Thêm thành viên mới
+
+Điền họ tên, email, CCCD (nếu có), mật khẩu ban đầu và nhập lại; chọn nhóm quyền và quyền chi tiết (tùy chọn) rồi bấm tạo. Tài khoản có hiệu lực ngay, không cần ai duyệt.
+
+- Số CCCD: 12 chữ số, không trùng tài khoản khác. Có CCCD thì đăng nhập được bằng CCCD.
+- Mật khẩu ban đầu: tối thiểu 12 ký tự; người dùng đổi ở lần đăng nhập đầu.
+- Nhóm quyền: tích nhóm cần xếp người này vào. Quyền chi tiết (tùy chọn) thêm hoặc bỏ riêng từng quyền.
+
+![Thêm thành viên mới](roles/admin/47.png)
+
+1. Họ và tên
+2. Email đăng nhập (cũng là nơi nhận link đặt lại mật khẩu)
+3. Số CCCD 12 chữ số (không bắt buộc)
+4. Mật khẩu ban đầu, tối thiểu 12 ký tự
+5. Nhập lại mật khẩu
+
+**Lỗi thường gặp và cách xử lý**
+
+| Hiện tượng | Cách xử lý |
+| --- | --- |
+| Người mới đăng nhập được nhưng không thấy gì | Chưa được xếp vào nhóm quyền: mở Nhóm quyền rồi bấm Gán nhóm quyền (thẻ Chưa có quyền lọc ra những người này). |
+| Cần đổi họ tên hiển thị | Bấm Sửa tên ở dòng thành viên. |
+| Người dùng quên mật khẩu | Họ tự bấm Quên mật khẩu ở màn đăng nhập; Admin cũng có thể đặt lại mật khẩu cho họ, khi đó họ phải đổi mật khẩu ở lần đăng nhập kế tiếp. |
+
+### 16. Quản trị · Chi nhánh
 
 Chi nhánh (địa điểm hoạt động) quyết định hồ sơ của ai hiện ở đâu. Thành viên chỉ thấy hồ sơ thuộc chi nhánh được cấp.
 
@@ -475,7 +508,7 @@ Chi nhánh (địa điểm hoạt động) quyết định hồ sơ của ai hi�
 
 - Hồ sơ chưa gắn chi nhánh chỉ Admin thấy; gắn chi nhánh để đúng người thấy.
 
-#### Bước 15.1 · Chi nhánh và hồ sơ chưa gắn chi nhánh
+#### Bước 16.1 · Chi nhánh và hồ sơ chưa gắn chi nhánh
 
 Phần trên là danh sách địa điểm; phần dưới liệt kê hồ sơ chưa gắn chi nhánh để bạn chọn nhiều hồ sơ rồi gắn một lần.
 
@@ -484,71 +517,87 @@ Phần trên là danh sách địa điểm; phần dưới liệt kê hồ sơ c
 - Xem người được cấp: những ai được xem hồ sơ của chi nhánh này.
 - Gắn chi nhánh: tích các hồ sơ, chọn chi nhánh đích rồi bấm nút.
 
-![Chi nhánh và hồ sơ chưa gắn chi nhánh](roles/admin/44.png)
+![Chi nhánh và hồ sơ chưa gắn chi nhánh](roles/admin/48.png)
 
 1. Thêm địa điểm (chi nhánh) mới
 2. Đổi tên chi nhánh
 3. Xem ai được cấp chi nhánh này
-4. Tích để chọn tất cả hồ sơ chưa gắn
-5. Chọn chi nhánh đích
-6. Gắn các hồ sơ đã chọn vào chi nhánh
 
-### 16. Quản trị · Phân quyền
+### 17. Quản trị · Nhóm quyền và phân quyền
 
-Quyền của mỗi người = nhóm quyền + phạm vi (chi nhánh) + quyền cấp riêng. Màn Phân quyền cho xem quyền hiệu lực, quản lý nhóm quyền và duyệt đề xuất.
+Quyền của mỗi người = các nhóm quyền người đó thuộc + quyền thêm hoặc bỏ riêng. Chỉ Admin tạo nhóm, đổi quyền của nhóm, xếp người vào nhóm và đặt quyền riêng. Mọi thay đổi có hiệu lực ngay (không còn đề xuất và duyệt) và được ghi vào Lịch sử hoạt động, nhóm Phân quyền.
 
 **Cần nhớ:**
 
-- Đề xuất cấp hoặc đổi quyền cần người khác duyệt (quy tắc hai người).
+- Nhóm "Admin" là nhóm hệ thống: không xóa, không ngừng dùng, không đổi quyền; người thuộc nhóm Admin và tài khoản Admin không đặt được quyền riêng.
+- Mỗi thay đổi cần ghi lý do ngắn (bắt buộc, trừ khi Admin tự đổi quyền riêng của chính mình thì không cần).
 - Quyền "xóa scan" chỉ cấp riêng cho từng người, không nằm trong nhóm quyền.
-- Mọi thay đổi quyền ghi vào Nhật ký phân quyền.
 
-#### Bước 16.1 · Phân quyền: người dùng và quyền hiệu lực
+#### Bước 17.1 · Nhóm quyền: danh sách nhóm
 
-Mỗi dòng là một thành viên với nhóm quyền, phạm vi, tình trạng tài khoản và đề xuất đang chờ. Bấm Xem để mở chi tiết.
+Mỗi nhóm cho biết số quyền, số thành viên và trạng thái. Bấm tên nhóm để xem và sửa; bấm "+ Tạo nhóm quyền" để tạo nhóm mới hoặc sao chép từ nhóm mẫu.
 
-- Người dùng & quyền hiệu lực: tổng hợp quyền thực tế.
-- Nhóm quyền: tạo và sửa nhóm.
-- Mọi thay đổi quyền do Admin áp dụng ngay và được ghi vào Nhật ký phân quyền.
-- Nhật ký phân quyền: lịch sử mọi thay đổi.
+![Nhóm quyền: danh sách nhóm](roles/admin/49.png)
 
-![Phân quyền: người dùng và quyền hiệu lực](roles/admin/45.png)
+1. Tạo nhóm quyền mới hoặc sao chép nhóm mẫu
+2. Nhật ký phân quyền (mở Lịch sử hoạt động)
 
-1. Quản lý nhóm quyền
-2. Duyệt đề xuất cấp quyền
-3. Tìm thành viên
-4. Mở chi tiết quyền của người này
+#### Bước 17.2 · Người dùng và quyền hiệu lực
 
-#### Bước 16.2 · Chi tiết quyền của một người
+Mỗi dòng là một thành viên với nhóm quyền, phạm vi và tình trạng tài khoản. Bấm Xem để mở chi tiết; "Gán nhóm quyền" xếp người vào nhóm.
 
-Màn này tổng hợp quyền hiệu lực của người đó từ các nhóm quyền. Muốn đổi nhóm quyền thì gửi đề xuất; người thứ hai sẽ duyệt.
+![Người dùng và quyền hiệu lực](roles/admin/50.png)
 
-- Nhóm quyền đang áp dụng: nhóm hiện tại của người này.
-- Chi nhánh được xem: người này chỉ thấy hồ sơ của các chi nhánh liệt kê ở đây.
-- Tạm khóa tài khoản: chặn đăng nhập tạm thời mà không xóa dữ liệu.
-- Đề xuất thay đổi nhóm quyền: gửi đề xuất cho người thứ hai duyệt.
+1. Xếp thành viên vào một nhóm quyền
+2. Tìm thành viên
+3. Mở chi tiết quyền của người này
 
-![Chi tiết quyền của một người](roles/admin/46.png)
+#### Bước 17.3 · Chi tiết một tài khoản: Quyền
+
+Ba thẻ: Quyền, Thẻ thừa hành viên, Hồ sơ lao động. Thẻ Quyền cho thấy nhóm đang áp dụng, quyền hiệu lực theo nghiệp vụ và chi nhánh được xem.
+
+- Nhóm quyền đang áp dụng: các nhóm người này thuộc.
+- Đổi nhóm quyền: xếp vào hoặc gỡ khỏi nhóm, có hiệu lực ngay.
+- Tạm khóa tài khoản: chặn đăng nhập mà không xóa dữ liệu.
+- Cấp chi nhánh: người này chỉ thấy hồ sơ của chi nhánh được cấp (hồ sơ do chính họ tạo luôn thấy).
+
+![Chi tiết một tài khoản: Quyền](roles/admin/51.png)
 
 1. Tạm khóa tài khoản
-2. Đề xuất đổi nhóm quyền (cần người thứ hai duyệt)
-3. Nhóm quyền hiện tại
-4. Phạm vi chi nhánh được xem
+2. Đổi nhóm quyền của người này (áp dụng ngay)
+3. Thẻ thừa hành viên của người này
+4. Hồ sơ lao động của người này
 
-#### Bước 16.3 · Quyền chi tiết riêng của người này (ví dụ quyền xóa scan)
+#### Bước 17.4 · Đổi nhóm hoặc quyền
 
-Ô đã tích là quyền đang có. Có thể thêm riêng hoặc bỏ riêng một quyền cho từng người mà không đổi nhóm quyền. Quyền xóa scan chỉ cấp ở đây, không nằm trong nhóm quyền.
+Chọn loại thay đổi (gán nhóm, gỡ khỏi nhóm, thêm quyền vào nhóm, thu hồi quyền khỏi nhóm), chọn nhóm, chọn thành viên, xem trước rồi ghi lý do và áp dụng. Không còn bước chờ người thứ hai duyệt.
 
-- Lưu quyền riêng: ghi lại các quyền thêm hoặc bỏ riêng cho người này (có lý do, ghi vào Nhật ký phân quyền).
-- Quay về đúng theo nhóm: xóa mọi quyền cấp riêng, quyền trở lại đúng theo nhóm quyền.
-- Cấp quyền xóa scan: chỉ cấp cho người thật sự cần và thu hồi khi xong việc.
+![Đổi nhóm hoặc quyền](roles/admin/52.png)
 
-![Quyền chi tiết riêng của người này (ví dụ quyền xóa scan)](roles/admin/47.png)
+1. Loại thay đổi
+
+#### Bước 17.5 · Quyền riêng của người này
+
+Bảng 7 nghiệp vụ x 6 hành động (phạm vi: của tôi tạo hoặc toàn văn phòng) cộng 8 quyền đặc biệt. Tích để thêm riêng, bỏ tích để bỏ riêng một quyền mà không đổi nhóm.
+
+- Lưu quyền riêng: ghi lại quyền thêm hoặc bỏ riêng, kèm lý do, ghi vào nhật ký.
+- Quay về đúng theo nhóm: xóa mọi quyền riêng.
+
+![Quyền riêng của người này](roles/admin/53.png)
 
 1. Lưu quyền riêng của người này
 2. Bỏ hết quyền riêng, quay về đúng theo nhóm
 
-### 17. Quản trị · Thẻ thừa hành viên
+#### Bước 17.6 · Nhật ký phân quyền trong Lịch sử hoạt động
+
+Mọi lần đổi nhóm, quyền, quyền riêng, chi nhánh được ghi tại Lịch sử hoạt động, thẻ Phân quyền. Ai có quyền xuất nhật ký thấy nút "Xuất bản sao".
+
+![Nhật ký phân quyền trong Lịch sử hoạt động](roles/admin/54.png)
+
+1. Xuất bản sao nhật ký phân quyền
+2. Thẻ lọc nhóm hoạt động Phân quyền
+
+### 18. Quản trị · Thẻ thừa hành viên
 
 Mỗi thừa hành viên có số thẻ riêng; số thẻ được ghi vào các sổ và biểu mẫu ở cột Thừa hành viên.
 
@@ -556,17 +605,17 @@ Mỗi thừa hành viên có số thẻ riêng; số thẻ được ghi vào cá
 
 - Thiếu thẻ hoặc thẻ ngừng hiệu lực thì không ghi tên thừa hành viên đó được vào sổ.
 
-#### Bước 17.1 · Thẻ THV: danh sách và tình trạng
+#### Bước 18.1 · Thẻ THV: danh sách và tình trạng
 
 Thẻ chia theo tình trạng: Còn hiệu lực, Chờ bổ sung, Ngừng hiệu lực. Bấm "Nhập thẻ" để nhập số thẻ cho từng người.
 
-![Thẻ THV: danh sách và tình trạng](roles/admin/48.png)
+![Thẻ THV: danh sách và tình trạng](roles/admin/55.png)
 
 1. Lọc thẻ còn thiếu thông tin
 2. Tìm thừa hành viên
 3. Nhập thông tin thẻ cho người này
 
-#### Bước 17.2 · Nhập thông tin thẻ
+#### Bước 18.2 · Nhập thông tin thẻ
 
 Thẻ chỉ có hiệu lực khi có quyết định hoặc giấy tờ kèm bản scan. Lưu xong thẻ có hiệu lực ngay, không cần ai xác nhận; ngừng hiệu lực không xóa thẻ hay lịch sử.
 
@@ -576,7 +625,7 @@ Thẻ chỉ có hiệu lực khi có quyết định hoặc giấy tờ kèm b�
 - Ngày hiệu lực: ngày thẻ bắt đầu có hiệu lực.
 - Bản scan quyết định (bắt buộc): PDF, JPEG hoặc PNG, tối đa 25 MB.
 
-![Nhập thông tin thẻ](roles/admin/49.png)
+![Nhập thông tin thẻ](roles/admin/56.png)
 
 1. Họ tên in trên sổ
 2. Số thẻ thừa hành viên
@@ -586,16 +635,16 @@ Thẻ chỉ có hiệu lực khi có quyết định hoặc giấy tờ kèm b�
 6. Bản scan quyết định (bắt buộc)
 7. Lưu thẻ
 
-### 18. Quản trị · Email gửi thư (SMTP)
+### 19. Quản trị · Email gửi thư (SMTP)
 
-Cấu hình hộp thư hệ thống dùng để gửi liên kết đăng nhập và nhắc hạn cho nhân viên.
+Cấu hình hộp thư hệ thống dùng để gửi liên kết đặt lại mật khẩu và nhắc hạn cho nhân viên.
 
 **Cần nhớ:**
 
 - Mật khẩu SMTP được mã hóa khi lưu và không bao giờ hiện lại trên màn hình.
 - Sau khi lưu nên bấm "Gửi thư thử" để chắc thư gửi được.
 
-#### Bước 18.1 · Máy chủ gửi thư (SMTP)
+#### Bước 19.1 · Máy chủ gửi thư (SMTP)
 
 Điền thông tin do nhà cung cấp email cung cấp. Có thể gửi thư thử tới chính bạn để kiểm tra.
 
@@ -603,9 +652,8 @@ Cấu hình hộp thư hệ thống dùng để gửi liên kết đăng nhập 
 - Kết nối mã hóa TLS/SSL: tích khi dùng cổng 465.
 - Tài khoản và Mật khẩu SMTP: tài khoản gửi thư.
 - Địa chỉ người gửi: địa chỉ hiện ở thư gửi đi.
-- Quên mật khẩu: người dùng nhận link đặt lại mật khẩu qua email của văn phòng.
 
-![Máy chủ gửi thư (SMTP)](roles/admin/50.png)
+![Máy chủ gửi thư (SMTP)](roles/admin/57.png)
 
 1. Máy chủ gửi thư
 2. Cổng
@@ -620,9 +668,8 @@ Cấu hình hộp thư hệ thống dùng để gửi liên kết đăng nhập 
 | Hiện tượng | Cách xử lý |
 | --- | --- |
 | Thư thử không đến | Kiểm tra máy chủ, cổng, TLS/SSL đúng nhà cung cấp; với Gmail dùng mật khẩu ứng dụng, không dùng mật khẩu đăng nhập. |
-| Người dùng quên mật khẩu | Chọn "Quên mật khẩu?" ở màn đăng nhập, hoặc Admin bấm "Đặt lại mật khẩu" ở tài khoản đó. |
 
-### 19. Quản trị · Lịch làm việc và ngày nghỉ
+### 20. Quản trị · Lịch làm việc và ngày nghỉ
 
 Lịch quyết định cách tính hạn theo ngày làm việc: ngày làm việc trong tuần và các ngày nghỉ, lễ.
 
@@ -630,7 +677,7 @@ Lịch quyết định cách tính hạn theo ngày làm việc: ngày làm vi�
 
 - Hạn pháp định và nhắc hạn đều tính theo lịch này. Nhập ngày lễ của năm trước khi dùng.
 
-#### Bước 19.1 · Lịch làm việc
+#### Bước 20.1 · Lịch làm việc
 
 Chọn các thứ trong tuần là ngày làm việc, thêm ngày nghỉ lễ, rồi Lưu lịch. Có công cụ Tính hạn để thử.
 
@@ -638,7 +685,7 @@ Chọn các thứ trong tuần là ngày làm việc, thêm ngày nghỉ lễ, r
 - + Thêm ngày nghỉ: nhập ngày lễ hoặc nghỉ bù.
 - Tính hạn: nhập Từ ngày và Số ngày làm việc để xem ngày hết hạn.
 
-![Lịch làm việc](roles/admin/51.png)
+![Lịch làm việc](roles/admin/58.png)
 
 1. Bật/tắt ngày làm việc trong tuần
 2. Thêm ngày nghỉ, lễ
@@ -647,7 +694,7 @@ Chọn các thứ trong tuần là ngày làm việc, thêm ngày nghỉ lễ, r
 5. Số ngày làm việc
 6. Tính ngày hết hạn
 
-### 20. Quản trị · Hồ sơ lao động
+### 21. Quản trị · Hồ sơ lao động
 
 Hồ sơ lao động của nhân sự văn phòng (dùng cho sổ sử dụng lao động).
 
@@ -655,16 +702,16 @@ Hồ sơ lao động của nhân sự văn phòng (dùng cho sổ sử dụng la
 
 - Chỉ Admin và Trưởng văn phòng xem được. Không lưu số tiền bảo hiểm, chỉ tình trạng và ghi chú.
 
-#### Bước 20.1 · Hồ sơ lao động
+#### Bước 21.1 · Hồ sơ lao động
 
 Các thẻ lọc theo tình trạng làm việc. Bấm "+ Thêm hồ sơ" để thêm hồ sơ cho nhân sự.
 
-![Hồ sơ lao động](roles/admin/52.png)
+![Hồ sơ lao động](roles/admin/59.png)
 
 1. Thêm hồ sơ lao động
 2. Lọc theo tình trạng
 
-### 21. Quản trị · Cấu hình văn phòng
+### 22. Quản trị · Cấu hình văn phòng
 
 Thông tin pháp lý của văn phòng in lên biểu mẫu và sổ, cùng quy tắc đánh số hồ sơ.
 
@@ -673,47 +720,34 @@ Thông tin pháp lý của văn phòng in lên biểu mẫu và sổ, cùng quy 
 - Đúng tên pháp lý và địa chỉ là bắt buộc vì in lên biểu mẫu chính thức.
 - Số cuối của sổ chỉ nhập một lần và chỉ được tăng, để số tiếp theo nối tiếp sổ giấy.
 
-#### Bước 21.1 · Cấu hình văn phòng
+#### Bước 22.1 · Cấu hình văn phòng
 
 Điền đúng thông tin pháp lý, bấm Lưu thay đổi. Phần Quy tắc số cho biết cách đánh số hồ sơ; nút "Nhập số cuối" dùng khi chuyển từ sổ giấy sang phần mềm.
 
-![Cấu hình văn phòng](roles/admin/53.png)
+![Cấu hình văn phòng](roles/admin/60.png)
 
 1. Đơn vị pháp lý (tên đầy đủ)
 2. Tên hiển thị trên văn bản
-3. Lưu thay đổi
-4. Nhập số cuối của sổ giấy
+3. Nhập số cuối của sổ giấy
 
-### 22. Quản trị · Báo cáo
+### 23. Quản trị · Báo cáo
 
-Hai nơi xem báo cáo: Báo cáo hoạt động (số lượng theo khoảng thời gian, chi nhánh) và Báo cáo tổng hợp (số liệu theo mẫu N-09, N-10).
+Báo cáo tổng hợp cho số liệu theo mẫu N-09, N-10.
 
 **Cần nhớ:**
 
 - Mỗi đơn vị tính riêng, không cộng chéo giữa các nghiệp vụ.
 
-#### Bước 22.1 · Báo cáo hoạt động
-
-Chọn khoảng ngày, chi nhánh và cách chia rồi bấm Áp dụng. Chuyển thẻ để xem Vi bằng, Tống đạt/Xác minh/THA, hoặc công văn, vật tư, nhân sự.
-
-![Báo cáo hoạt động](roles/admin/54.png)
-
-1. Từ ngày
-2. Đến ngày
-3. Chi nhánh
-4. Chia theo
-5. Áp dụng bộ lọc
-
-#### Bước 22.2 · Báo cáo tổng hợp (N-09, N-10)
+#### Bước 23.1 · Báo cáo tổng hợp (N-09, N-10)
 
 Số liệu tổng hợp theo hai mẫu báo cáo. Nút Sao chép ở từng chỉ tiêu giúp chép con số sang văn bản báo cáo.
 
-![Báo cáo tổng hợp (N-09, N-10)](roles/admin/55.png)
+![Báo cáo tổng hợp (N-09, N-10)](roles/admin/61.png)
 
 1. Chuyển giữa mẫu N-09 và N-10
 2. Sao chép số liệu
 
-### 23. Quản trị · Vật tư văn phòng
+### 24. Quản trị · Vật tư văn phòng
 
 Theo dõi tồn kho văn phòng phẩm: nhập, xuất, kiểm kê và ngưỡng cảnh báo sắp hết.
 
@@ -721,68 +755,41 @@ Theo dõi tồn kho văn phòng phẩm: nhập, xuất, kiểm kê và ngưỡng
 
 - Xuất vượt tồn bị chặn. Điều chỉnh sau kiểm kê cần Trưởng văn phòng duyệt.
 
-#### Bước 23.1 · Vật tư: tồn kho
+#### Bước 24.1 · Vật tư: tồn kho
 
 Thẻ Tồn kho cho thấy số lượng hiện có của từng mặt hàng. "Đặt ngưỡng" để hệ thống báo Sắp hết khi dưới mức đặt.
 
-![Vật tư: tồn kho](roles/admin/56.png)
+![Vật tư: tồn kho](roles/admin/62.png)
 
-1. Ghi nhập hoặc xuất kho
-2. Thêm tác vụ vật tư
-3. Tìm theo tên vật tư
-4. Đặt ngưỡng cảnh báo sắp hết
-
-### 24. Admin: soạn nháp và chọn Thừa hành viên ghi tên
-
-Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục "Chờ tôi xác nhận" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.
-
-**Cần nhớ:**
-
-- Chỉ người có quyền xem danh sách thừa hành viên mới chọn được. Chọn "Không ghi tên" nếu chưa biết.
-- Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác.
-
-#### Bước 24.1 · Chọn thừa hành viên được ghi tên
-
-Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Chờ tôi xác nhận" của thừa hành viên đó.
-
-![Chọn thừa hành viên được ghi tên](roles/admin/59.png)
-
-1. Thừa hành viên được ghi tên
-2. Lưu để giao cho thừa hành viên
-
-**Lỗi thường gặp và cách xử lý**
-
-| Hiện tượng | Cách xử lý |
-| --- | --- |
-| Thừa hành viên không thấy hồ sơ trong "Chờ tôi xác nhận" | Chưa chọn đúng thừa hành viên ở ô "Thừa hành viên được ghi tên" hoặc chưa bấm Lưu. |
+1. Thêm tác vụ vật tư
+2. Tìm theo tên vật tư
 
 ## Dành cho Trưởng văn phòng
 
 ### 25. Trưởng văn phòng: những màn bạn dùng
 
-Trưởng văn phòng theo dõi toàn bộ nghiệp vụ, xem báo cáo và duyệt các đề xuất cần người thứ hai (như cấp hoặc đổi quyền). Bạn xem được hồ sơ nhưng không tạo hồ sơ nghiệp vụ.
+Trưởng văn phòng theo dõi nghiệp vụ và xem báo cáo trong phạm vi quyền của nhóm quyền được cấp. Việc phân quyền do Admin làm trực tiếp, không còn bước đề xuất và duyệt.
 
 **Cần nhớ:**
 
 - "Duyệt" trong phần mềm là xác nhận nội bộ, không phải chữ ký pháp lý. Văn bản pháp lý vẫn do người có thẩm quyền ký và đóng dấu ngoài đời.
-- Đề xuất cấp hoặc đổi quyền do Admin gửi cần bạn duyệt (quy tắc hai người: người đề xuất và người duyệt phải khác nhau).
+- Quyền của bạn nằm ở nhóm quyền Admin xếp bạn vào; muốn thêm hoặc bớt quyền, nhờ Admin (mọi thay đổi có ghi nhật ký).
 
 #### Bước 25.1 · Tổng quan của Trưởng văn phòng
 
-Thanh bên có thêm Báo cáo tổng hợp, Quản trị. Các thẻ số liệu cho biết tình hình toàn văn phòng trong năm.
+Thanh bên hiện các mục theo nhóm quyền của bạn, ví dụ Báo cáo tổng hợp. Các thẻ số liệu cho biết tình hình toàn văn phòng trong năm.
 
-![Tổng quan của Trưởng văn phòng](roles/truong-van-phong/09.png)
+![Tổng quan của Trưởng văn phòng](roles/truong-van-phong/03.png)
 
 1. Báo cáo tổng hợp N-09, N-10
-2. Người dùng: xem và duyệt đề xuất phân quyền
-3. Quản trị > Cài đặt văn phòng
-4. Trình / Duyệt
+2. Hồ sơ do tôi tạo
+3. Trình / Duyệt
 
 #### Bước 25.2 · Báo cáo tổng hợp N-09, N-10
 
 Chuyển giữa hai mẫu bằng thẻ phía trên. Nút Sao chép ở từng chỉ tiêu giúp chép con số sang văn bản báo cáo.
 
-![Báo cáo tổng hợp N-09, N-10](roles/truong-van-phong/10.png)
+![Báo cáo tổng hợp N-09, N-10](roles/truong-van-phong/04.png)
 
 1. Chuyển sang mẫu N-10
 2. Sao chép số liệu
@@ -810,7 +817,7 @@ Hồ sơ Vi bằng mới luôn bắt đầu là bản NHÁP: chưa có số hồ
 
 Nút nằm ở góc trên bên phải danh sách Vi bằng. Chỉ vai được cấp quyền tạo hồ sơ mới thấy nút này.
 
-![Bấm "+ Tạo hồ sơ"](roles/thua-hanh-vien/69.png)
+![Bấm "+ Tạo hồ sơ"](roles/thua-hanh-vien/01.png)
 
 1. Bấm "+ Tạo hồ sơ" để mở biểu mẫu tạo mới
 
@@ -823,7 +830,7 @@ Biểu mẫu chia 3 phần: A là thông tin phục vụ Sổ S-02, B là tài l
 - Cột 2 (Người yêu cầu lập vi bằng): ghi rõ họ tên và địa chỉ.
 - Cột 3 (Nội dung yêu cầu lập vi bằng): mô tả ngắn việc cần ghi nhận.
 
-![Điền thông tin Vi bằng (phần đầu)](roles/thua-hanh-vien/70.png)
+![Điền thông tin Vi bằng (phần đầu)](roles/thua-hanh-vien/02.png)
 
 1. Tên hồ sơ (bắt buộc)
 2. SĐT khách hàng (10 số, bắt đầu bằng 0)
@@ -834,7 +841,7 @@ Biểu mẫu chia 3 phần: A là thông tin phục vụ Sổ S-02, B là tài l
 
 SĐT "123" không phải số điện thoại hợp lệ nên hồ sơ chưa được lưu. Sửa lại cho đúng rồi bấm Lưu nháp lần nữa.
 
-![Nhập sai SĐT: hệ thống chặn và báo lỗi](roles/thua-hanh-vien/71.png)
+![Nhập sai SĐT: hệ thống chặn và báo lỗi](roles/thua-hanh-vien/03.png)
 
 1. Ô SĐT báo lỗi: nhập lại 10 số, bắt đầu bằng 0
 2. Thông báo lỗi hiện phía dưới biểu mẫu
@@ -848,7 +855,7 @@ SĐT "123" không phải số điện thoại hợp lệ nên hồ sơ chưa đ�
 - Cột 6 (Thừa hành viên lập vi bằng): ghi rõ họ tên và số thẻ.
 - Cột 7 (Ghi chú): thông tin thêm nếu có.
 
-![Điền thông tin Vi bằng (phần cuối) rồi Lưu nháp](roles/thua-hanh-vien/72.png)
+![Điền thông tin Vi bằng (phần cuối) rồi Lưu nháp](roles/thua-hanh-vien/04.png)
 
 1. Cột 5: địa chỉ nơi lập vi bằng
 2. Cột 6: thừa hành viên lập vi bằng (họ tên, số thẻ)
@@ -864,7 +871,7 @@ Hệ thống chuyển sang trang chi tiết của bản nháp. Từ đây bạn 
 - Hủy nháp: bỏ bản nháp (phải nêu lý do), xem phần "Hủy bản nháp".
 - Xác nhận lưu chính thức: cấp số hồ sơ, vào sổ, từ đó không sửa trực tiếp được nữa.
 
-![Bản nháp vừa tạo](roles/thua-hanh-vien/73.png)
+![Bản nháp vừa tạo](roles/thua-hanh-vien/05.png)
 
 1. Lưu thay đổi (vẫn là bản nháp)
 2. Thêm tài liệu cho hồ sơ
@@ -897,7 +904,7 @@ Tài liệu là một văn bản thuộc hồ sơ. Điền Loại tài liệu v�
 - Tên tài liệu: tên gọi dễ nhận biết, ví dụ "Vi bằng ghi nhận thỏa thuận mua bán nhà".
 - Văn bản chính thức: tích nếu đây là văn bản chính thức của hồ sơ (thường là bản vi bằng đã ký).
 
-![Tab Tài liệu: thêm một tài liệu](roles/thua-hanh-vien/74.png)
+![Tab Tài liệu: thêm một tài liệu](roles/thua-hanh-vien/06.png)
 
 1. Loại tài liệu (ví dụ N-04)
 2. Tên tài liệu
@@ -912,7 +919,7 @@ Sau khi thêm tài liệu, mục tải tệp hiện ra. Chọn tệp, đặt tê
 - Tên tệp (tùy chọn): đặt tên dễ nhớ, ví dụ "Bản scan vi bằng đã ký".
 - Bản scan: tích nếu đây là bản scan văn bản giấy đã ký, đóng dấu.
 
-![Chọn tệp scan và tải lên](roles/thua-hanh-vien/75.png)
+![Chọn tệp scan và tải lên](roles/thua-hanh-vien/07.png)
 
 1. Chọn tệp scan trên máy
 2. Tên tệp (không bắt buộc)
@@ -923,7 +930,7 @@ Sau khi thêm tài liệu, mục tải tệp hiện ra. Chọn tệp, đặt tê
 
 Tệp hiện trong danh sách tài liệu. Bấm Xem để xem trước ngay bên cạnh. Chữ trong tệp sẽ được nhận dạng sau 1 đến 2 phút để tìm theo nội dung.
 
-![Tệp đã tải lên](roles/thua-hanh-vien/76.png)
+![Tệp đã tải lên](roles/thua-hanh-vien/08.png)
 
 1. Bấm Xem để xem trước tệp
 
@@ -947,7 +954,7 @@ Khi mở nhầm hoặc không còn cần bản nháp, bạn hủy nháp. Bản n
 
 Nhập lý do rồi bấm Xác nhận hủy. Muốn giữ lại bản nháp thì bấm Giữ bản nháp.
 
-![Hộp thoại Hủy bản nháp](roles/thua-hanh-vien/77.png)
+![Hộp thoại Hủy bản nháp](roles/thua-hanh-vien/09.png)
 
 1. Lý do hủy nháp (bắt buộc)
 2. Giữ bản nháp: đóng hộp thoại, không hủy
@@ -973,7 +980,7 @@ Khi nội dung đã đúng, bạn "Xác nhận lưu chính thức". Hệ thống
 
 Đọc kỹ lưu ý: sau bước này hồ sơ không sửa trực tiếp được. Bấm Lưu chính thức để cấp số, hoặc Quay lại để kiểm tra thêm.
 
-![Hộp thoại xác nhận lưu chính thức](roles/thua-hanh-vien/78.png)
+![Hộp thoại xác nhận lưu chính thức](roles/thua-hanh-vien/10.png)
 
 1. Quay lại để kiểm tra thêm
 2. Lưu chính thức: cấp số hồ sơ và vào sổ
@@ -985,7 +992,7 @@ Tiêu đề hiện số hồ sơ vừa cấp. Dải thông báo nhắc rằng ch
 - Các tab: Thông tin chung, Tài liệu, Tệp đính kèm, Phiên bản cũ (các bản trước khi Admin sửa), Sổ liên quan.
 - Bạn không thấy nút sửa vì chỉ Admin sửa được hồ sơ đã ghi sổ.
 
-![Hồ sơ sau khi lưu chính thức](roles/thua-hanh-vien/79.png)
+![Hồ sơ sau khi lưu chính thức](roles/thua-hanh-vien/11.png)
 
 1. Tab Tài liệu: xem và tải thêm scan
 2. Tab Phiên bản cũ: các bản trước khi Admin sửa
@@ -995,7 +1002,7 @@ Tiêu đề hiện số hồ sơ vừa cấp. Dải thông báo nhắc rằng ch
 
 Xem bản scan ngay trong trang. Các nút phía trên khung xem cho phép tải bản scan chính, in, hoặc tải thêm scan.
 
-![Tab Tài liệu của hồ sơ đã ghi sổ](roles/thua-hanh-vien/80.png)
+![Tab Tài liệu của hồ sơ đã ghi sổ](roles/thua-hanh-vien/12.png)
 
 1. Khung xem trước bản scan
 2. Tải bản scan chính về máy
@@ -1022,7 +1029,7 @@ Khi đã trả kết quả (vi bằng) cho khách, bạn tích ô "Đã trả k�
 
 Tích vào ô trên dòng hồ sơ. Hệ thống lưu ngay và thẻ "Đã trả kết quả" phía trên tăng thêm 1.
 
-![Tìm dòng hồ sơ và tích Đã trả kết quả](roles/thua-hanh-vien/81.png)
+![Tìm dòng hồ sơ và tích Đã trả kết quả](roles/thua-hanh-vien/13.png)
 
 1. Tích khi đã trả kết quả cho khách
 
@@ -1030,7 +1037,7 @@ Tích vào ô trên dòng hồ sơ. Hệ thống lưu ngay và thẻ "Đã trả
 
 Ô đã được tích và được lưu ngay. Thẻ "Đã trả kết quả" phía trên đếm lại số hồ sơ đã tích (cập nhật khi tải lại trang). Bỏ tích nếu tích nhầm.
 
-![Đã tích: thẻ Đã trả kết quả tăng](roles/thua-hanh-vien/82.png)
+![Đã tích: thẻ Đã trả kết quả tăng](roles/thua-hanh-vien/14.png)
 
 1. Ô đã tích
 2. Thẻ đếm số hồ sơ đã trả kết quả
@@ -1054,7 +1061,7 @@ Khi cần Admin xem xét một việc kèm bản scan (ví dụ đề nghị c�
 
 Bạn chỉ thấy bản trình do mình gửi. Bấm "+ Trình mới" để gửi bản trình mới.
 
-![Trình / Duyệt: danh sách bản trình của tôi](roles/thua-hanh-vien/66.png)
+![Trình / Duyệt: danh sách bản trình của tôi](roles/thua-hanh-vien/15.png)
 
 1. Bấm "+ Trình mới" để gửi bản trình
 2. Lọc theo trạng thái: Chờ duyệt, Đã duyệt, Từ chối
@@ -1067,7 +1074,7 @@ Bạn chỉ thấy bản trình do mình gửi. Bấm "+ Trình mới" để g�
 - Mô tả: nêu rõ việc cần Admin xem xét.
 - Bản scan: có thể chọn nhiều tệp.
 
-![Hộp thoại Trình mới](roles/thua-hanh-vien/67.png)
+![Hộp thoại Trình mới](roles/thua-hanh-vien/16.png)
 
 1. Tiêu đề bản trình
 2. Mô tả đề nghị
@@ -1078,7 +1085,7 @@ Bạn chỉ thấy bản trình do mình gửi. Bấm "+ Trình mới" để g�
 
 Bản trình hiện trong danh sách với trạng thái Chờ duyệt. Khi Admin duyệt hoặc từ chối, trạng thái đổi theo và bạn nhận thông báo.
 
-![Bản trình vừa gửi ở trạng thái Chờ duyệt](roles/thua-hanh-vien/68.png)
+![Bản trình vừa gửi ở trạng thái Chờ duyệt](roles/thua-hanh-vien/17.png)
 
 1. Bản trình vừa gửi: đang chờ duyệt
 
@@ -1102,7 +1109,7 @@ Mỗi hồ sơ Tống đạt ghi việc tống đạt văn bản: văn bản nà
 
 Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm "+ Tạo hồ sơ" để tạo bản nháp mới.
 
-![Tống đạt: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/99.png)
+![Tống đạt: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/18.png)
 
 1. Tạo hồ sơ mới (bản nháp)
 2. Xem trước và xuất sổ S-01
@@ -1115,7 +1122,7 @@ Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột).
 - SĐT khách hàng Không in ra sổ.
 - Ghi chú
 
-![Tống đạt: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/100.png)
+![Tống đạt: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/19.png)
 
 1. Tên hồ sơ (bắt buộc)
 2. SĐT khách hàng Không in ra sổ.
@@ -1141,7 +1148,7 @@ Mỗi hồ sơ ghi việc xác minh điều kiện thi hành án theo yêu cầu
 
 Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm "+ Tạo hồ sơ" để tạo bản nháp mới.
 
-![Xác minh điều kiện thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/101.png)
+![Xác minh điều kiện thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/20.png)
 
 1. Tạo hồ sơ mới (bản nháp)
 2. Xem trước và xuất sổ S-04
@@ -1161,7 +1168,7 @@ Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột).
 - Cột 8: NỘI DUNG XÁC MINH
 - Cột 9: KẾT QUẢ XÁC MINH
 
-![Xác minh điều kiện thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/102.png)
+![Xác minh điều kiện thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/21.png)
 
 1. Tên hồ sơ (bắt buộc)
 2. SĐT khách hàng Không in ra sổ.
@@ -1194,7 +1201,7 @@ Mỗi hồ sơ ghi việc tổ chức thi hành một bản án, quyết định
 
 Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột). Bấm "+ Tạo hồ sơ" để tạo bản nháp mới.
 
-![Tổ chức thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/103.png)
+![Tổ chức thi hành án: danh sách và nút tạo hồ sơ](roles/thua-hanh-vien/22.png)
 
 1. Tạo hồ sơ mới (bản nháp)
 2. Xem trước và xuất sổ S-05
@@ -1214,7 +1221,7 @@ Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột).
 - Cột 8: BÊN ĐƯỢC THI HÀNH ÁN (họ tên/tên gọi, địa chỉ)
 - Cột 9: CÁC KHOẢN PHẢI THI HÀNH ÁN (theo hợp đồng)
 
-![Tổ chức thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/104.png)
+![Tổ chức thi hành án: các ô của biểu mẫu tạo hồ sơ](roles/thua-hanh-vien/23.png)
 
 1. Tên hồ sơ (bắt buộc)
 2. SĐT khách hàng Không in ra sổ.
@@ -1248,7 +1255,7 @@ Mỗi dòng là một bản nháp đang chờ bạn. Bấm "Xem và xác nhận"
 
 - Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc.
 
-![Chờ tôi xác nhận](roles/thua-hanh-vien/105.png)
+![Chờ tôi xác nhận](roles/thua-hanh-vien/24.png)
 
 1. Mở bản nháp để xem và xác nhận
 
@@ -1259,7 +1266,7 @@ Hệ thống hiện lại toàn bộ nội dung hồ sơ và các tài liệu. �
 - Nội dung hồ sơ: các ô người soạn đã điền (hiển thị chỉ đọc).
 - Tài liệu: các tài liệu đã đính kèm vào bản nháp.
 
-![Xem và xác nhận nội dung bản nháp](roles/thua-hanh-vien/106.png)
+![Xem và xác nhận nội dung bản nháp](roles/thua-hanh-vien/25.png)
 
 1. Quay lại danh sách Chờ tôi xác nhận
 2. Nội dung hồ sơ cần kiểm tra
@@ -1286,7 +1293,7 @@ Thư ký tạo bản nháp hồ sơ cho bốn nghiệp vụ, thêm tài liệu v
 
 Bạn có nút "+ Tạo hồ sơ" ở các nghiệp vụ được cấp quyền. Cách điền biểu mẫu xem phần Vi bằng trong hướng dẫn Thừa hành viên.
 
-![Danh sách hồ sơ của Thư ký](roles/thu-ky/25.png)
+![Danh sách hồ sơ của Thư ký](roles/thu-ky/04.png)
 
 1. Tạo hồ sơ mới (bản nháp)
 2. Bản nháp của bạn nằm ở tab Nháp
@@ -1295,7 +1302,7 @@ Bạn có nút "+ Tạo hồ sơ" ở các nghiệp vụ được cấp quyền.
 
 Thanh bên của Thư ký gồm Chờ tôi xác nhận, Trình / Duyệt, các nghiệp vụ, Văn thư, Xuất sổ và Báo cáo tổng hợp.
 
-![Tổng quan của Thư ký](roles/thu-ky/26.png)
+![Tổng quan của Thư ký](roles/thu-ky/05.png)
 
 1. Hồ sơ nháp đang chờ xác nhận
 2. Báo cáo tổng hợp
@@ -1320,7 +1327,7 @@ Thư ký soạn bản nháp: điền thông tin, thêm tài liệu, tải bản 
 
 Thư ký có Lưu, Lưu nháp và Hủy nháp; không có "Xác nhận lưu chính thức". Ô thừa hành viên chỉ có "Không ghi tên" vì bạn không có quyền chọn.
 
-![Bản nháp do Thư ký soạn](roles/thu-ky/29.png)
+![Bản nháp do Thư ký soạn](roles/thu-ky/03.png)
 
 1. Thừa hành viên được ghi tên (Admin sẽ chọn)
 2. Lưu thay đổi
@@ -1353,7 +1360,7 @@ Ba nút chuyển giữa sổ Văn bản đến, Văn bản đi, Văn bản nội
 - Xuất PDF để in: bản in sổ năm đang chọn. Xuất Excel: tải dữ liệu sổ dạng bảng tính.
 - Ô tìm và các bộ lọc dùng như danh sách hồ sơ nghiệp vụ.
 
-![Sổ Văn bản đến](roles/van-thu/26.png)
+![Sổ Văn bản đến](roles/van-thu/01.png)
 
 1. Chuyển sang sổ Văn bản đi hoặc Văn bản nội bộ
 2. Tab Chính thức, Nháp, Đã hủy
@@ -1368,7 +1375,7 @@ Ba nút chuyển giữa sổ Văn bản đến, Văn bản đi, Văn bản nội
 - Tên loại và trích yếu nội dung (bắt buộc): ghi loại văn bản và nội dung chính, ví dụ "Công văn số 12/UBND về việc phối hợp xác minh".
 - Ghi chú: thông tin thêm nếu có.
 
-![Tạo bản nháp văn bản mới](roles/van-thu/27.png)
+![Tạo bản nháp văn bản mới](roles/van-thu/02.png)
 
 1. Tên loại và trích yếu nội dung (bắt buộc)
 2. Ghi chú (không bắt buộc)
@@ -1378,7 +1385,7 @@ Ba nút chuyển giữa sổ Văn bản đến, Văn bản đi, Văn bản nội
 
 Cũng như hồ sơ nghiệp vụ, bản nháp cho phép sửa, thêm tài liệu và tải bản scan. Khi đã đúng, bấm Xác nhận lưu chính thức để cấp STT và vào sổ.
 
-![Bản nháp văn bản: thêm tài liệu rồi lưu chính thức](roles/van-thu/28.png)
+![Bản nháp văn bản: thêm tài liệu rồi lưu chính thức](roles/van-thu/03.png)
 
 1. Thêm tài liệu và tải bản scan
 2. Hủy bản nháp (cần nêu lý do)
@@ -1388,7 +1395,7 @@ Cũng như hồ sơ nghiệp vụ, bản nháp cho phép sửa, thêm tài liệ
 
 Hai sổ này dùng đúng cách như Văn bản đến: chuyển bằng nút phía trên, mỗi sổ có STT riêng.
 
-![Sổ Văn bản đi và Văn bản nội bộ](roles/van-thu/29.png)
+![Sổ Văn bản đi và Văn bản nội bộ](roles/van-thu/04.png)
 
 1. Chuyển sang sổ Văn bản nội bộ
 
@@ -1412,10 +1419,9 @@ Văn thư cũng gửi được bản trình (tiêu đề, mô tả, bản scan) 
 
 Bấm "+ Trình mới" để gửi bản trình, xem trạng thái ở danh sách bên dưới. Chi tiết từng ô xem phần Trình / Duyệt trong hướng dẫn dành cho Thừa hành viên.
 
-![Trình / Duyệt của Văn thư](roles/van-thu/30.png)
+![Trình / Duyệt của Văn thư](roles/van-thu/05.png)
 
 1. Gửi bản trình mới
-2. Bản trình của bạn và trạng thái duyệt
 
 ## Dành cho Kế toán
 
@@ -1432,7 +1438,7 @@ Trong phần hồ sơ DMS, Kế toán chỉ có Tổng quan và Vật tư văn p
 
 Thanh bên chỉ có hai mục: Tổng quan và Vật tư văn phòng.
 
-![Tổng quan của Kế toán](roles/ke-toan/11.png)
+![Tổng quan của Kế toán](roles/ke-toan/01.png)
 
 1. Vật tư văn phòng
 
@@ -1440,11 +1446,9 @@ Thanh bên chỉ có hai mục: Tổng quan và Vật tư văn phòng.
 
 Thẻ Tồn kho cho thấy số lượng hiện có. "Nhập / xuất" để ghi nhập hoặc xuất kho; "Đặt ngưỡng" để hệ thống báo Sắp hết.
 
-![Vật tư: tồn kho, nhập và xuất](roles/ke-toan/12.png)
+![Vật tư: tồn kho, nhập và xuất](roles/ke-toan/02.png)
 
-1. Ghi nhập hoặc xuất kho
-2. Tìm theo tên vật tư
-3. Đặt ngưỡng cảnh báo sắp hết
+1. Tìm theo tên vật tư
 
 **Lỗi thường gặp và cách xử lý**
 

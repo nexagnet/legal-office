@@ -77,6 +77,7 @@ await ad.page.locator('[name=title]').fill(`[guide] Hồ sơ chờ Thừa hành 
 await ad.page.locator('[name=phone]').fill('0900 000 456');
 await ad.page.locator('[name=nguoi_yeu_cau]').fill('Trần Thị Bình, 25 phố Bạch Mai, Hai Bà Trưng, Hà Nội');
 await ad.page.locator('[name=noi_dung_yeu_cau]').fill('Ghi nhận hiện trạng nhà ở trước khi bàn giao');
+await ad.page.locator('select[name=branch]').selectOption({ index: 1 }).catch(() => {});
 await ad.page.getByRole('button', { name: 'Lưu nháp' }).click(); await ad.page.waitForURL(/\/dms\/vi-bang\/[0-9a-f-]{36}/, { timeout: 15000 }); await ad.page.waitForTimeout(1500);
 const optionLabel = await ad.page.locator('[name=thv] option', { hasText: 'DEMO Thừa hành viên' }).first().innerText();
 await ad.page.locator('[name=thv]').selectOption({ label: optionLabel.trim() });
