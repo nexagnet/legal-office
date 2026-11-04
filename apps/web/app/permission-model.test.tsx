@@ -76,11 +76,13 @@ describe('nhãn quyền', () => {
   it('quyền duyệt sửa đổi hồ sơ tách khỏi quyền duyệt đổi quyền và là quyền nhạy cảm', () => {
     expect(allPermissionCodes()).toContain('dms.amendment.approve');
     expect(allPermissionCodes()).toContain('vibang.amend_request.own');
-    expect(permissionLabel('dms.amendment.approve')).toBe('Duyệt yêu cầu sửa đổi hồ sơ');
+    expect(permissionLabel('dms.amendment.approve')).toBe('Duyệt yêu cầu sửa đổi (không còn dùng)');
     expect(permissionLabel('dms.permission.approve')).toBe('Duyệt thay đổi quyền');
     expect(isSensitivePermission('dms.amendment.approve')).toBe(true);
     expect(isSensitivePermission('vibang.amend_request.own')).toBe(false);
-    expect(permissionLabel('vtden.amend_request.all')).toContain('Đề nghị sửa đổi hồ sơ đã lưu');
+    expect(permissionLabel('vtden.amend_request.all')).toContain(
+      'Đề nghị sửa đổi (không còn dùng)',
+    );
   });
 
   it('danh mục gán được gồm 7 nghiệp vụ × 5 hành động × 2 phạm vi + quyền quản trị', () => {

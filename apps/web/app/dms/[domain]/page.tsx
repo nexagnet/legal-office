@@ -225,7 +225,6 @@ export default async function DmsDomainPage({
   // Figma: chỉ hai chip Nháp và Đã hủy kèm số trong ngoặc; số của bốn chip còn lại nằm ở các thẻ số phía trên.
   const counts: Record<DmsFilter, number | undefined> = {
     'chinh-thuc': chipSet === FILTERS ? undefined : nOfficial,
-    'cho-duyet': undefined,
     'thieu-scan': undefined,
     'du-scan': undefined,
     nhap: nDraft,
@@ -268,7 +267,7 @@ export default async function DmsDomainPage({
     const s = p.toString();
     return s ? `${base}?${s}` : base;
   };
-  const showScanSelect = !isDraftView && filter !== 'cho-duyet';
+  const showScanSelect = !isDraftView;
   const showsTable = !!listLayout && !!(draftKind ? !vanThu : spec) && pageRows.length > 0;
   const sttLabel = domain.code === 'vtden' ? 'Số đến' : 'STT';
   return (

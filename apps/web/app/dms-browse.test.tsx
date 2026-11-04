@@ -6,7 +6,6 @@ describe('lib/dms-browse', () => {
     expect(filterToParams('chinh-thuc', 2026)).toEqual({ status: 'RECORDED', year: 2026 });
     expect(filterToParams('thieu-scan', 2026)).toMatchObject({ scan: 'missing', year: 2026 });
     expect(filterToParams('du-scan', 2026)).toMatchObject({ scan: 'complete' });
-    expect(filterToParams('cho-duyet', 2026)).toMatchObject({ pending: 'true' });
     expect(filterToParams('nhap', 2026)).toEqual({ status: 'DRAFT' });
     expect(filterToParams('da-huy', 2026)).toEqual({ status: 'CANCELLED' });
   });
@@ -59,12 +58,9 @@ describe('bộ lọc đã lưu', () => {
     });
   });
 
-  it('nháp, đã hủy, chờ duyệt và chính thức không năm', () => {
+  it('nháp, đã hủy và chính thức không năm; bộ lọc đã lưu kiểu "chờ duyệt" cũ mở về Chính thức', () => {
     expect(viewToSavedParams({ filter: 'nhap', year: 2025 })).toEqual({ status: 'DRAFT' });
-    expect(viewToSavedParams({ filter: 'cho-duyet' })).toEqual({
-      status: 'RECORDED',
-      pending: true,
-    });
+    expect(savedParamsToHref('/dms/x', { status: 'RECORDED', pending: true })).toBe('/dms/x');
     expect(savedParamsToHref('/dms/x', { status: 'DRAFT' })).toBe('/dms/x?loc=nhap');
     expect(savedParamsToHref('/dms/x', { status: 'RECORDED' })).toBe('/dms/x');
     expect(savedParamsToHref('/dms/x', { status: 'CANCELLED' })).toBe('/dms/x?loc=da-huy');

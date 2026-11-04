@@ -193,9 +193,9 @@ export function GroupsTab({
         </table>
       </DataTable>
       <NoteBox tone="warn" title="Quyền quản trị phân quyền do Admin giữ">
-        Quyền duyệt thay đổi quyền và duyệt yêu cầu sửa đổi hồ sơ gắn với Admin; người đề xuất không
-        tự duyệt đề xuất của mình. Tư cách hành nghề không phải là quyền: không nhóm nào cấp được.
-        Nhóm mới tạo là nhóm trống; thêm quyền và thành viên bằng đề xuất ở trang chi tiết nhóm.
+        Quyền duyệt thay đổi quyền gắn với Admin; người đề xuất không tự duyệt đề xuất của mình. Tư
+        cách hành nghề không phải là quyền: không nhóm nào cấp được. Nhóm mới tạo là nhóm trống;
+        thêm quyền và thành viên bằng đề xuất ở trang chi tiết nhóm.
       </NoteBox>
     </>
   );

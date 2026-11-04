@@ -8,7 +8,8 @@ export default function DmsHome() {
     <section aria-labelledby="t">
       <h1 id="t">Hồ sơ</h1>
       <p className="muted">
-        Bốn nghiệp vụ lưu hồ sơ và bản scan. Hồ sơ đã lưu chính thức không sửa trực tiếp, không xoá.
+        Bốn nghiệp vụ lưu hồ sơ và bản scan. Hồ sơ đã lưu chính thức không xoá; nhân viên chỉ tải
+        thêm bản scan, chỉ Admin sửa được nội dung.
       </p>
       <ul>
         {DMS_DOMAINS.map((d) => (

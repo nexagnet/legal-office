@@ -221,8 +221,8 @@ export function GroupWizard({
                 ) : null}
               </div>
               <p className="muted">
-                Quyền dành riêng (duyệt sửa đổi, duyệt đổi quyền, quản trị người dùng và nhóm quyền)
-                không bao giờ được sao chép sang nhóm tùy chỉnh. Nhóm mới chưa có thành viên.
+                Quyền dành riêng (duyệt đổi quyền, quản trị người dùng và nhóm quyền) không bao giờ
+                được sao chép sang nhóm tùy chỉnh. Nhóm mới chưa có thành viên.
               </p>
             </section>
           ) : null}
@@ -351,8 +351,8 @@ export function GroupWizard({
             <div className="wizard-note">
               <strong>Không thể chọn</strong>
               <span>
-                Duyệt sửa đổi, duyệt đổi quyền, quản trị người dùng và nhóm quyền: quyền dành riêng.
-                Tư cách hành nghề không phải quyền.
+                Duyệt đổi quyền, quản trị người dùng và nhóm quyền: quyền dành riêng. Tư cách hành
+                nghề không phải quyền.
               </span>
             </div>
           </aside>
