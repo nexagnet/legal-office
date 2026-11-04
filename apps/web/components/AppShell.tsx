@@ -64,6 +64,14 @@ const initials = (label: string) =>
 
 /** Trang con có đầu trang riêng trong Figma (3:54). */
 const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
+  '/dms/cua-toi': {
+    title: 'Hồ sơ do tôi tạo',
+    sub: 'Mọi hồ sơ bạn đã tạo ở các nghiệp vụ, kể cả bản nháp. Mở hồ sơ để tải thêm tài liệu dần.',
+  },
+  '/dms/van-phong': {
+    title: 'Mọi hồ sơ của văn phòng',
+    sub: 'Hồ sơ của mọi người trong văn phòng, theo quyền xem toàn bộ và chi nhánh bạn được cấp.',
+  },
   '/dms/xac-minh': {
     title: 'Xác minh THA',
     sub: 'Hồ sơ xác minh điều kiện thi hành án. Các cột còn lại của Sổ S-04 nằm trong chi tiết hồ sơ.',
@@ -272,6 +280,7 @@ const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
   'cong-van': Mail,
   'vat-tu': Package,
   dms: FolderOpen,
+  'dms-van-phong': Building2,
   'dms-vi-bang': FileText,
   'dms-tong-dat': Send,
   'dms-xac-minh': Search,

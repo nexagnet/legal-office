@@ -6,6 +6,7 @@ export interface CaseExtras {
   readonly case_number: string | null;
   readonly returned: boolean;
   readonly phone: string | null;
+  readonly created_by_name: string | null;
 }
 
 /**
@@ -16,7 +17,16 @@ export async function mergeCaseExtras<R extends { readonly id: string }>(
   repo: VibangRepo,
   a: AuthenticatedActor,
   rows: readonly R[],
-): Promise<Array<R & { case_number: string | null; returned: boolean; phone: string | null }>> {
+): Promise<
+  Array<
+    R & {
+      case_number: string | null;
+      returned: boolean;
+      phone: string | null;
+      created_by_name: string | null;
+    }
+  >
+> {
   if (rows.length === 0) return [];
   const extras = await repo.rows<CaseExtras>(a.tenantId, 'dms_case_extras', [
     a.tenantId,
@@ -31,6 +41,7 @@ export async function mergeCaseExtras<R extends { readonly id: string }>(
       case_number: e?.case_number ?? null,
       returned: e?.returned ?? false,
       phone: e?.phone ?? null,
+      created_by_name: e?.created_by_name ?? null,
     };
   });
 }

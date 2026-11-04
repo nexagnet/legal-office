@@ -237,7 +237,13 @@ describe.skipIf(!ADMIN_URL)('DMS phạm vi theo chi nhánh (PostgreSQL)', () => 
       code: 'BRANCH_ACCESS_REVOKED',
     });
     expect(await grant(U.admin, U.a, B1, false)).toMatchObject({ ok: false, code: 'NO_CHANGE' });
-    expect(await list(U.a, 'vtden')).toHaveLength(0);
+    // Mất chi nhánh: chỉ còn thấy hồ sơ do chính mình tạo (quy tắc 0111), không còn hồ sơ của người khác.
+    const after = await list(U.a, 'vtden');
+    const foreign = await owner.query(
+      `SELECT 1 FROM dms_case_files WHERE id = ANY($1::uuid[]) AND created_by <> $2`,
+      [after, U.a],
+    );
+    expect(foreign.rowCount).toBe(0);
     const rows = (
       await owner.query(
         `SELECT revoked_at, revoke_reason FROM dms_branch_access WHERE user_id = $1 AND branch_id = $2`,

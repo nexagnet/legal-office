@@ -95,6 +95,39 @@ export async function searchDmsCases(
     : { rows: body.rows, total: body.total, totalCapped: body.totalCapped };
 }
 
+/**
+ * Hồ sơ xuyên mọi nghiệp vụ và mọi trạng thái (trừ đã hủy), mới nhất trước: dùng cho "Hồ sơ do tôi tạo" (có `creator`)
+ * và "Mọi hồ sơ của văn phòng". Phạm vi nhìn thấy do DB quyết định.
+ */
+export async function searchAllDmsCases(
+  cookie: string | null,
+  p: {
+    readonly officeId: string;
+    readonly creator?: string;
+    readonly q?: string;
+    readonly limit: number;
+    readonly offset: number;
+  },
+): Promise<DmsCaseSearchResult | 'error'> {
+  const q = new URLSearchParams({
+    officeId: p.officeId,
+    limit: String(p.limit),
+    offset: String(p.offset),
+    total: 'true',
+  });
+  if (p.creator) q.set('creator', p.creator);
+  const text = (p.q ?? '').trim();
+  if (text) q.set('q', text);
+  const body = await getJson<{
+    rows: DmsSearchCase[];
+    total: number | null;
+    totalCapped: boolean;
+  }>(`/dms/case-search?${q}`, cookie);
+  return body === 'error'
+    ? 'error'
+    : { rows: body.rows, total: body.total, totalCapped: body.totalCapped };
+}
+
 /** Chỉ cần số đếm của một chip (không tải dòng nào). */
 export async function countDmsCases(
   cookie: string | null,

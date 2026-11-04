@@ -331,12 +331,12 @@ describe('menu DMS', () => {
     const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
     expect(nav.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
     expect(
-      nav.getByRole('link', { name: 'Hồ sơ của tôi' }).getAttribute('aria-current'),
+      nav.getByRole('link', { name: 'Hồ sơ do tôi tạo' }).getAttribute('aria-current'),
     ).toBeNull();
     expect(container.querySelector('.shell')?.getAttribute('data-domain')).toBe('vi-bang');
   });
 
-  it('trang chỉ Admin mở bởi vai khác: tiêu đề đúng trang, không sáng nhầm "Hồ sơ của tôi"', () => {
+  it('trang chỉ Admin mở bởi vai khác: tiêu đề đúng trang, không sáng nhầm "Hồ sơ do tôi tạo"', () => {
     path.current = '/dms/lich-su';
     render(
       <AppShell items={visibleNav(['THV'])} tenantName={null}>
@@ -345,7 +345,7 @@ describe('menu DMS', () => {
     );
     const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
     expect(
-      nav.getByRole('link', { name: 'Hồ sơ của tôi' }).getAttribute('aria-current'),
+      nav.getByRole('link', { name: 'Hồ sơ do tôi tạo' }).getAttribute('aria-current'),
     ).toBeNull();
     expect(document.querySelector('.topbar-h')?.textContent).toBe('Lịch sử hoạt động');
   });

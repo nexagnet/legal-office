@@ -13,6 +13,7 @@ import './theme-v2.css';
 import './tailwind.css';
 import './admin-figma.css';
 import { ROLE_LABEL, visibleNav } from './nav';
+import { loadMyDmsPermissions } from '../lib/dms';
 import { loadPendingSubmissionCount } from '../lib/dms-submissions';
 import { currentSession, requestCookie } from '../lib/server';
 
@@ -25,11 +26,19 @@ export const dynamic = 'force-dynamic';
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const session = await currentSession();
-  const items = session.status === 'authenticated' ? visibleNav(session.roles) : [];
+  const allItems = session.status === 'authenticated' ? visibleNav(session.roles) : [];
   const officeId =
     session.status === 'authenticated'
       ? (session.branches[0]?.officeId ?? session.memberships[0]?.officeId)
       : undefined;
+  // "Mọi hồ sơ của văn phòng" chỉ hiện với tài khoản có quyền xem toàn bộ (`*.read.all`); lỗi tải quyền thì ẩn mục này.
+  const showOfficeCases =
+    officeId && allItems.some((i) => i.slug === 'dms-van-phong')
+      ? (await loadMyDmsPermissions(await requestCookie(), officeId)).some((p) =>
+          p.endsWith('.read.all'),
+        )
+      : false;
+  const items = allItems.filter((i) => i.slug !== 'dms-van-phong' || showOfficeCases);
   const badgeOfficeId =
     officeId && items.some((i) => i.slug === 'hop-duyet') ? officeId : undefined;
   // Huy hiệu "Trình / Duyệt" chỉ có nghĩa với Admin (người duyệt); lỗi tải thì coi như 0, không làm hỏng khung trang.
