@@ -349,6 +349,26 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect((await api('GET', `/dms/cases/khong-phai-uuid/history`, U.a)).status).toBe(400);
   });
 
+  it('nhóm quyền qua HTTP: chỉ Admin tạo / xóa; nhóm Admin hệ thống không xóa được', async () => {
+    const denied = await api('POST', '/dms/groups', U.proposer, { officeId: OFF, name: 'Của PX' });
+    expect(denied.status).toBe(403);
+    const made = await api('POST', '/dms/groups', U.approver1, { officeId: OFF, name: 'Tạm xóa' });
+    expect(made.status).toBe(201);
+    const gid = made.json.label as string;
+    expect((await api('POST', `/dms/groups/${gid}/delete`, U.proposer)).status).toBeGreaterThan(
+      399,
+    );
+    const del = await api('POST', `/dms/groups/${gid}/delete`, U.approver1);
+    expect(del.status).toBe(200);
+    expect(del.json.code).toBe('GROUP_DELETED');
+    const groups = await api('GET', `/dms/groups?officeId=${OFF}`, U.approver1);
+    const sys = groups.json.rows.find((g: Row) => g.kind === 'SYSTEM');
+    expect(sys?.name).toBe('Admin');
+    const protectedDel = await api('POST', `/dms/groups/${sys.id}/delete`, U.approver1);
+    expect(protectedDel.json.code).toBe('ADMIN_GROUP_PROTECTED');
+    expect(protectedDel.status).toBeGreaterThan(399);
+  });
+
   it('kiểm tra đầu vào: miền lạ, thân thừa trường, thiếu officeId', async () => {
     expect(
       (await api('POST', '/dms/cases', U.a, { officeId: OFF, domain: 'khac', title: 'x' })).status,

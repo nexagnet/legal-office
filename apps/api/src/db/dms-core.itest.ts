@@ -468,7 +468,9 @@ describe.skipIf(!ADMIN_URL)('DMS lõi (PostgreSQL)', () => {
   });
 
   it('mã quyền lạ bị từ chối ở CSDL (không tạo quyền ngoài danh mục, không có quyền duyệt/xoá)', async () => {
-    const g = (await owner.query(`SELECT id FROM dms_permission_groups LIMIT 1`)).rows[0].id;
+    const g = (
+      await owner.query(`SELECT id FROM dms_permission_groups WHERE kind <> 'SYSTEM' LIMIT 1`)
+    ).rows[0].id;
     for (const bad of [
       'vibang.delete.all',
       'vibang.amendment.approve',

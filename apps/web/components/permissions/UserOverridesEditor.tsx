@@ -7,8 +7,8 @@ import { permissionMessage, sameSet } from '../../lib/permission-model';
 import { PermissionTree } from './PermissionTree';
 
 /**
- * Chỉnh quyền chi tiết của một tài khoản sau khi đã tạo (cùng cây quyền với lúc tạo). Chỉ Admin; áp dụng ngay, bắt buộc lý do,
- * có nhật ký. Gửi cả tập quyền mong muốn; máy chủ tự suy ra phần thêm riêng / bỏ riêng so với nhóm.
+ * Chỉnh quyền chi tiết của một tài khoản sau khi đã tạo (cùng cây quyền với lúc tạo). Chỉ Admin; áp dụng ngay, có nhật ký,
+ * ghi chú không bắt buộc. Gửi cả tập quyền mong muốn; máy chủ tự suy ra phần thêm riêng / bỏ riêng so với nhóm.
  */
 export function UserOverridesEditor({
   officeId,
@@ -79,8 +79,8 @@ export function UserOverridesEditor({
       {canEdit ? (
         <>
           <label className="grid gap-1 text-sm font-semibold">
-            Lý do
-            <input name="reason" required maxLength={1000} className="font-normal" />
+            Ghi chú (không bắt buộc)
+            <input name="reason" maxLength={1000} className="font-normal" />
           </label>
           <p role="alert" className="error" hidden={!error}>
             {error}
