@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto';
 import {
   BadRequestException,
   Body,
@@ -35,8 +34,16 @@ const memberBody = z
     permissions: z.array(z.string().trim().min(1).max(80)).max(200).optional(),
     /** Chi nhánh được xem, cấp ngay lúc tạo (cùng giao dịch). */
     branchIds: z.array(uuid).max(100).optional(),
-    temporaryPassword: z.string().max(200).nullish(),
-    reason: z.string().trim().min(1).max(1000),
+    /** Mật khẩu ban đầu: BẮT BUỘC (tối thiểu 12 ký tự); người dùng phải đổi ở lần đăng nhập đầu. */
+    password: z.string().min(1).max(200),
+    /** Số CCCD 12 chữ số (không bắt buộc, không trùng trong tenant); đăng nhập được bằng email hoặc CCCD. */
+    cccd: z
+      .string()
+      .trim()
+      .regex(/^\d{12}$/)
+      .optional()
+      .or(z.literal('')),
+    reason: z.string().trim().max(1000).optional(),
   })
   .strict();
 const nameBody = z.object({ officeId: uuid, fullName: z.string().trim().min(1).max(200) }).strict();
@@ -76,23 +83,38 @@ export class MembersController {
   @HttpCode(HttpStatus.OK)
   async addMember(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
     const b = parse(memberBody, body);
-    // Không đặt mật khẩu tạm: băm của một chuỗi ngẫu nhiên không ai biết, người dùng vào bằng link email.
-    const temporary = b.temporaryPassword?.trim() ? b.temporaryPassword : null;
-    if (temporary) {
-      const weak = passwordPolicyError(temporary);
-      if (weak) throw new BadRequestException(weak);
+    // Mật khẩu ban đầu bắt buộc, đủ mạnh; tài khoản mới phải đổi mật khẩu ở lần đăng nhập đầu (DB đặt cờ).
+    const weak = passwordPolicyError(b.password);
+    if (weak)
+      throw new HttpException(
+        { code: 'WEAK_PASSWORD', label: weak },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    const cccd = b.cccd || null;
+    if (cccd) {
+      const used = await this.repo.rows<{ au_cccd_in_use: boolean }>(a.tenantId, 'au_cccd_in_use', [
+        a.tenantId,
+        cccd,
+      ]);
+      if (used[0]?.au_cccd_in_use)
+        throw new HttpException(
+          { code: 'CCCD_IN_USE', label: null },
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
     }
-    const hash = await hashPassword(temporary ?? randomBytes(32).toString('base64url'));
-    return this.run(a, 'ad_member_create', [
+    const hash = await hashPassword(b.password);
+    const created = await this.run(a, 'ad_member_create', [
       b.officeId,
       b.email,
       b.fullName,
       b.groupIds,
       hash,
-      b.reason,
+      b.reason?.trim() || 'Tạo tài khoản mới',
       b.permissions ?? null,
       b.branchIds ?? null,
     ]);
+    if (cccd && created.label) await this.run(a, 'au_set_cccd', [b.officeId, created.label, cccd]);
+    return created;
   }
 
   /** Admin sửa họ tên hiển thị của một thành viên văn phòng (hiện ở avatar và tên trên hồ sơ). */

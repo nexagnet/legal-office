@@ -1,11 +1,13 @@
-import { VerifyLink } from '../../components/VerifyLink';
+import Link from 'next/link';
+import { ResetPasswordForm } from '../../components/ResetPasswordForm';
 
 export const dynamic = 'force-dynamic';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 
-export default async function VerifyPage({
+/** Mở từ link trong email quên mật khẩu: `?t=<mã văn phòng>.<mã đặt lại>`. */
+export default async function ResetPasswordPage({
   searchParams,
 }: {
   searchParams: Promise<{ t?: string }>;
@@ -17,13 +19,15 @@ export default async function VerifyPage({
   if (!UUID.test(tenantId) || !TOKEN.test(token)) {
     return (
       <section>
-        <h1>Xác thực đăng nhập</h1>
+        <h1>Đặt lại mật khẩu</h1>
         <div className="state" role="alert">
           <h2>Link không hợp lệ</h2>
-          <p>Hãy đăng nhập lại để nhận email mới.</p>
+          <p>
+            Hãy <Link href="/quen-mat-khau">yêu cầu link mới</Link>.
+          </p>
         </div>
       </section>
     );
   }
-  return <VerifyLink tenantId={tenantId} token={token} />;
+  return <ResetPasswordForm tenantId={tenantId} token={token} />;
 }

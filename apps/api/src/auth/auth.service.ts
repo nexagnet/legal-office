@@ -3,8 +3,9 @@ import { createHash, randomBytes } from 'node:crypto';
 import { PgService } from '../db/pg.service';
 import type { Mailer } from '../reminders/mailer';
 import { renderLoginLinkMail } from '../mail/login-link';
+import { renderPasswordResetMail } from '../mail/password-reset';
 import type { Op } from '../vibang/vibang.repo';
-import { dummyHash, verifyPassword } from './password';
+import { dummyHash, hashPassword, verifyPassword } from './password';
 
 export const AUTH_CONFIG = Symbol('AUTH_CONFIG');
 export interface AuthConfig {
@@ -22,6 +23,9 @@ export const TENANT_MAILER = Symbol('TENANT_MAILER');
 
 export const CHALLENGE_COOKIE = 'lo_challenge';
 const LINK_TTL_MINUTES = 15;
+/** Luồng cũ "đăng nhập bằng link email" đã tắt; xóa cùng đợt dọn mã sau. */
+const LEGACY_EMAIL_LOGIN_ENABLED = false;
+const RESET_TTL_MINUTES = 30;
 
 export const SESSION_COOKIE = 'lo_session';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,7 +34,13 @@ export const hashToken = (token: string): string =>
   createHash('sha256').update(token).digest('hex');
 
 export type LoginResult =
-  | { readonly status: 'ok'; readonly cookieValue: string; readonly userId: string }
+  | {
+      readonly status: 'ok';
+      readonly cookieValue: string;
+      readonly userId: string;
+      /** Mật khẩu do Admin đặt: người dùng phải đổi ngay ở lần đăng nhập này. */
+      readonly mustChange: boolean;
+    }
   | { readonly status: 'invalid' }
   | { readonly status: 'locked' };
 
@@ -75,12 +85,15 @@ export class AuthService {
     @Inject(TENANT_MAILER) private readonly mailerFor: TenantMailerResolver,
   ) {}
 
+  /** `email` là định danh đăng nhập: email hoặc số CCCD 12 chữ số (DB tự phân biệt). */
   async login(tenantId: string, email: string, password: string): Promise<LoginResult> {
     const state = await this.pg.withTenant(tenantId, async (c) => {
-      const { rows } = await c.query<{ user_id: string; password_hash: string; locked: boolean }>(
-        'SELECT * FROM au_login_state($1,$2)',
-        [tenantId, email],
-      );
+      const { rows } = await c.query<{
+        user_id: string;
+        password_hash: string;
+        locked: boolean;
+        must_change: boolean;
+      }>('SELECT * FROM au_login_state($1,$2)', [tenantId, email]);
       return rows[0];
     });
     // Luôn tốn một lần băm, kể cả khi email lạ hoặc đang khoá.
@@ -96,7 +109,120 @@ export class AuthService {
       });
       return op.code === 'ACCOUNT_LOCKED' ? { status: 'locked' } : { status: 'invalid' };
     }
-    return this.openSession(tenantId, state.user_id);
+    return this.openSession(tenantId, state.user_id, state.must_change);
+  }
+
+  /**
+   * Quên mật khẩu: gửi link đặt lại vào email của tài khoản (nhận email hoặc CCCD). Phản hồi luôn như nhau, kể cả khi định danh
+   * lạ, tenant chưa cấu hình SMTP, bị giới hạn số lần hay gửi thư lỗi, để không dò được ai có tài khoản. Lý do thật ghi vào log.
+   */
+  async forgotPassword(tenantId: string, identifier: string): Promise<void> {
+    try {
+      await this.tryForgotPassword(tenantId, identifier);
+    } catch (err) {
+      this.log.error(`Quên mật khẩu lỗi: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  private async tryForgotPassword(tenantId: string, identifier: string): Promise<void> {
+    const base = (this.config.publicWebUrl ?? this.config.allowedOrigins[0] ?? '').replace(
+      /\/+$/,
+      '',
+    );
+    if (!base) return;
+    const state = await this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ user_id: string }>('SELECT * FROM au_login_state($1,$2)', [
+        tenantId,
+        identifier,
+      ]);
+      return rows[0];
+    });
+    if (!state) return;
+    const token = randomBytes(32).toString('base64url');
+    const created = await this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<Op>('SELECT * FROM au_reset_create($1,$2,$3,$4)', [
+        tenantId,
+        state.user_id,
+        hashToken(token),
+        RESET_TTL_MINUTES,
+      ]);
+      const email = (
+        await c.query<{ email: string | null }>('SELECT au_login_email($1,$2) AS email', [
+          tenantId,
+          state.user_id,
+        ])
+      ).rows[0]?.email;
+      return { op: rows[0]!, email };
+    });
+    if (!created.op.ok) {
+      this.log.warn(`Quên mật khẩu không tạo được mã: ${created.op.code}`);
+      return;
+    }
+    const mailer = await this.mailerFor(tenantId);
+    if (!mailer || !created.email) {
+      this.log.warn('Quên mật khẩu: tenant chưa cấu hình SMTP hoặc tài khoản chưa có email');
+      return;
+    }
+    const url = `${base}/dat-lai-mat-khau?t=${tenantId}.${token}`;
+    await mailer.send({
+      to: created.email,
+      ...(await renderPasswordResetMail({ url, validMinutes: RESET_TTL_MINUTES })),
+    });
+  }
+
+  /** Đặt mật khẩu mới bằng mã trong email (dùng một lần). Đúng thì thu hồi mọi phiên cũ; người dùng đăng nhập lại. */
+  async resetPassword(tenantId: string, token: string, newPassword: string): Promise<boolean> {
+    const hash = await hashPassword(newPassword);
+    const op = await this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<Op>('SELECT * FROM au_reset_redeem($1,$2,$3)', [
+        tenantId,
+        hashToken(token),
+        hash,
+      ]);
+      return rows[0]!;
+    });
+    return op.ok;
+  }
+
+  /** Tự đổi mật khẩu khi đã đăng nhập: cần mật khẩu hiện tại. Giữ phiên này, thu hồi các phiên khác. */
+  async changePassword(
+    tenantId: string,
+    userId: string,
+    sessionToken: string,
+    current: string,
+    next: string,
+  ): Promise<'ok' | 'wrong_password'> {
+    const stored = await this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ h: string | null }>(
+        'SELECT au_credential_hash($1,$2) AS h',
+        [tenantId, userId],
+      );
+      return rows[0]?.h ?? null;
+    });
+    const matches = await verifyPassword(current, stored ?? (await dummyHash()));
+    if (!stored || !matches) return 'wrong_password';
+    const hash = await hashPassword(next);
+    const op = await this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<Op>('SELECT * FROM au_change_password($1,$2,$3,$4)', [
+        tenantId,
+        userId,
+        hash,
+        hashToken(sessionToken),
+      ]);
+      return rows[0]!;
+    });
+    return op.ok ? 'ok' : 'wrong_password';
+  }
+
+  /** Tài khoản có đang phải đổi mật khẩu (mới tạo / Admin vừa đặt lại) không. */
+  async mustChangePassword(tenantId: string, userId: string): Promise<boolean> {
+    return this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ m: boolean }>('SELECT au_must_change($1,$2) AS m', [
+        tenantId,
+        userId,
+      ]);
+      return rows[0]?.m === true;
+    });
   }
 
   /**
@@ -110,6 +236,9 @@ export class AuthService {
     email: string,
   ): Promise<{ readonly challengeCookie: string }> {
     const decoy = { challengeCookie: `${tenantId}.${randomBytes(32).toString('base64url')}` };
+    // Đăng nhập bằng link email đã bỏ khỏi màn đăng nhập (chủ dự án chốt 04/11/2026; thay bằng "Quên mật khẩu") và web không
+    // còn trang nhận link. Endpoint giữ lại để máy khách cũ không vỡ nhưng KHÔNG gửi thư nữa, luôn trả mồi.
+    if (!LEGACY_EMAIL_LOGIN_ENABLED) return decoy;
     try {
       return (await this.tryLoginByEmail(tenantId, email)) ?? decoy;
     } catch (err) {
@@ -148,7 +277,11 @@ export class AuthService {
     return null;
   }
 
-  private async openSession(tenantId: string, userId: string): Promise<LoginResult> {
+  private async openSession(
+    tenantId: string,
+    userId: string,
+    mustChange = false,
+  ): Promise<LoginResult> {
     const token = randomBytes(32).toString('base64url');
     const op = await this.pg.withTenant(tenantId, async (c) => {
       const { rows } = await c.query<Op>('SELECT * FROM au_login_ok($1,$2,$3,$4)', [
@@ -160,7 +293,7 @@ export class AuthService {
       return rows[0]!;
     });
     if (!op.ok) return { status: 'invalid' };
-    return { status: 'ok', cookieValue: `${tenantId}.${token}`, userId };
+    return { status: 'ok', cookieValue: `${tenantId}.${token}`, userId, mustChange };
   }
 
   /** Tạo thử thách và gửi link qua email; chưa có phiên cho tới khi bấm link và nhập đúng mã. */

@@ -55,7 +55,9 @@ const reply = (status: number, body: unknown) =>
 
 describe('LoginForm', () => {
   const fill = () => {
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'a@example.test' } });
+    fireEvent.change(screen.getByLabelText('Email hoặc số CCCD'), {
+      target: { value: 'a@example.test' },
+    });
     fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'mat-khau-gia-lap' } });
     fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
   };
@@ -81,7 +83,9 @@ describe('LoginForm', () => {
     spy.mockImplementationOnce(() => reply(401, { code: 'INVALID_CREDENTIALS' }));
     render(<LoginForm tenantId="t-1" />);
     fill();
-    expect((await screen.findByRole('alert')).textContent).toBe('Email hoặc mật khẩu không đúng.');
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'Email, số CCCD hoặc mật khẩu không đúng.',
+    );
     spy.mockImplementationOnce(() => reply(429, { code: 'ACCOUNT_LOCKED' }));
     fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
     await waitFor(() =>

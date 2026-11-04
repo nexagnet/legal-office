@@ -52,6 +52,7 @@ describe('AdminNav', () => {
   });
 });
 
+const PW_INIT = 'mat-khau-ban-dau-12';
 const groups = [
   {
     id: 'g1',
@@ -69,7 +70,13 @@ describe('AddMemberForm', () => {
     fireEvent.change(screen.getByLabelText(/Email đăng nhập/), {
       target: { value: 'nhien@example.test' },
     });
-    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'nhân sự mới' } });
+    fireEvent.change(screen.getByLabelText(/Mật khẩu ban đầu/), {
+      target: { value: 'mat-khau-ban-dau-12' },
+    });
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu'), {
+      target: { value: 'mat-khau-ban-dau-12' },
+    });
+    fireEvent.change(screen.getByLabelText(/Ghi chú/), { target: { value: 'nhân sự mới' } });
   };
   const submit = () =>
     fireEvent.click(screen.getByRole('button', { name: 'Tạo tài khoản và áp dụng quyền' }));
@@ -90,9 +97,32 @@ describe('AddMemberForm', () => {
       officeId: 'o1',
       email: 'nhien@example.test',
       fullName: 'Hoàng An Nhiên',
+      password: PW_INIT,
       groupIds: ['g1'],
       reason: 'nhân sự mới',
     });
+  });
+
+  it('sends the CCCD only when typed, and refuses two different passwords without calling the API', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'u8' }));
+    pushSpy = vi.fn();
+    render(<AddMemberForm officeId="o1" groups={groups} />);
+    fill();
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu'), {
+      target: { value: 'mat-khau-khac-12345' },
+    });
+    submit();
+    await screen.findByText('Hai mật khẩu chưa giống nhau.');
+    expect(spy).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu'), {
+      target: { value: 'mat-khau-ban-dau-12' },
+    });
+    fireEvent.change(screen.getByLabelText(/Số CCCD/), { target: { value: '012345678901' } });
+    submit();
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    expect(bodyOf(spy)).toMatchObject({ cccd: '012345678901', password: PW_INIT });
   });
 
   it('previews the merged permissions and flags sensitive or wide scope', () => {
@@ -108,13 +138,13 @@ describe('AddMemberForm', () => {
     expect(screen.getByText('Phạm vi rộng: có')).toBeTruthy();
   });
 
-  it('allows creating an account with no group yet, and never offers a role or password field', async () => {
+  it('allows creating an account with no group yet; never offers a role but always asks for the initial password', async () => {
     const spy = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(() => reply(200, { code: 'ALLOWED', label: 'u1' }));
     render(<AddMemberForm officeId="o1" groups={groups} />);
     expect(screen.queryByText(/Vai trò/)).toBeNull();
-    expect(screen.queryByLabelText(/Mật khẩu/)).toBeNull();
+    expect((screen.getByLabelText(/Mật khẩu ban đầu/) as HTMLInputElement).required).toBe(true);
     fill();
     submit();
     await waitFor(() => expect(spy).toHaveBeenCalled());

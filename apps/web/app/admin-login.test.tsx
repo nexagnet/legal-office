@@ -1,7 +1,10 @@
+// @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ChangePasswordForm } from '../components/ChangePasswordForm';
+import { ForgotPasswordForm } from '../components/ForgotPasswordForm';
 import { LoginForm } from '../components/LoginForm';
-import { VerifyLink } from '../components/VerifyLink';
+import { ResetPasswordForm } from '../components/ResetPasswordForm';
 
 const push = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push, refresh: vi.fn() }) }));
@@ -16,90 +19,165 @@ const reply = (status: number, body: unknown) =>
   Promise.resolve(new Response(JSON.stringify(body), { status }));
 const T = '11111111-1111-4111-8111-111111111111';
 const TOKEN = 'a'.repeat(43);
+const PW_FAKE = 'mat-khau-gia-lap-1';
+const PW_NEW = 'mat-khau-moi-dai-1';
 
-function fillLogin() {
-  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.test' } });
+function fillLogin(identifier = 'admin@example.test') {
+  fireEvent.change(screen.getByLabelText('Email hoặc số CCCD'), { target: { value: identifier } });
   fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'mat-khau-gia-lap-1' } });
   fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
 }
 
-function startEmail() {
-  fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập bằng email' }));
-  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.test' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Gửi link qua email' }));
-}
-
-describe('LoginForm — mọi tài khoản chọn mật khẩu hoặc email', () => {
-  it('mật khẩu đúng vào thẳng trang chủ, không có bước thứ hai', async () => {
+describe('LoginForm — email hoặc CCCD + mật khẩu', () => {
+  it('mật khẩu đúng vào thẳng trang chủ; không còn đăng nhập bằng link email', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementationOnce(() => reply(200, { code: 'ALLOWED' }));
     render(<LoginForm tenantId={T} />);
+    expect(screen.queryByRole('button', { name: /email/i })).toBeNull();
     fillLogin();
     await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
     expect(fetchMock.mock.calls[0]![0]).toBe('/api/auth/login');
   });
 
-  it('đăng nhập bằng email: gửi email, nhập mã đúng thì vào trang chủ', async () => {
+  it('gửi số CCCD trong cùng trường định danh', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
-      .mockImplementationOnce(() => reply(200, { code: 'VERIFICATION_REQUIRED' }))
       .mockImplementationOnce(() => reply(200, { code: 'ALLOWED' }));
     render(<LoginForm tenantId={T} />);
-    startEmail();
-    await screen.findByText('Xác thực đăng nhập');
-    expect(push).not.toHaveBeenCalled();
-    const [url0, init0] = fetchMock.mock.calls[0]!;
-    expect(url0).toBe('/api/auth/login/email');
-    expect(JSON.parse(String((init0 as RequestInit).body))).toEqual({
+    fillLogin(' 012345678901 ');
+    await waitFor(() => expect(push).toHaveBeenCalled());
+    expect(JSON.parse(String((fetchMock.mock.calls[0]![1] as RequestInit).body))).toEqual({
       tenantId: T,
-      email: 'admin@example.test',
+      email: '012345678901',
+      password: PW_FAKE,
     });
-    fireEvent.change(screen.getByLabelText('Mã xác thực'), { target: { value: '123456' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận' }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
-    const [url, init] = fetchMock.mock.calls[1]!;
-    expect(url).toBe('/api/auth/login/verify');
-    expect(JSON.parse(String((init as RequestInit).body))).toEqual({ code: '123456' });
   });
 
-  it('sai mã thì ở lại bước nhập mã; phiên hết hạn thì quay về bước email', async () => {
-    vi.spyOn(globalThis, 'fetch')
-      .mockImplementationOnce(() => reply(200, { code: 'VERIFICATION_REQUIRED' }))
-      .mockImplementationOnce(() => reply(401, { code: 'INVALID_CODE' }))
-      .mockImplementationOnce(() => reply(401, { code: 'CHALLENGE_EXPIRED' }));
+  it('tài khoản mới / vừa được đặt lại mật khẩu bị chuyển sang trang đổi mật khẩu', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementationOnce(() =>
+      reply(200, { code: 'ALLOWED', mustChangePassword: true }),
+    );
     render(<LoginForm tenantId={T} />);
-    startEmail();
-    await screen.findByLabelText('Mã xác thực');
-    fireEvent.change(screen.getByLabelText('Mã xác thực'), { target: { value: '000000' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận' }));
-    await screen.findByText(/Mã xác thực chưa đúng/);
-    expect(screen.getByLabelText('Mã xác thực')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận' }));
-    await screen.findByRole('button', { name: 'Gửi link qua email' });
-    expect(screen.getByText(/đã hết hạn/)).toBeTruthy();
+    fillLogin();
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/doi-mat-khau'));
+  });
+
+  it('sai thông tin hoặc bị khóa thì báo lỗi và ở lại; có liên kết Quên mật khẩu', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() => reply(401, { code: 'INVALID_CREDENTIALS' }))
+      .mockImplementationOnce(() => reply(429, {}));
+    render(<LoginForm tenantId={T} />);
+    expect(screen.getByRole('link', { name: 'Quên mật khẩu?' }).getAttribute('href')).toBe(
+      '/quen-mat-khau',
+    );
+    fillLogin();
+    await screen.findByText(/CCCD hoặc mật khẩu không đúng/);
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
+    await screen.findByText(/tạm khoá 15 phút/);
+    expect(push).not.toHaveBeenCalled();
   });
 });
 
-describe('VerifyLink', () => {
-  it('không gọi API khi mở trang; chỉ hiện mã sau khi bấm nút', async () => {
+describe('ForgotPasswordForm', () => {
+  it('gửi định danh rồi hiện thông báo kiểm tra email (không lộ tài khoản có tồn tại hay không)', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
-      .mockImplementation(() => reply(200, { verificationCode: '654321', validMinutes: 10 }));
-    render(<VerifyLink tenantId={T} token={TOKEN} />);
+      .mockImplementation(() => reply(200, { code: 'RESET_REQUESTED' }));
+    render(<ForgotPasswordForm tenantId={T} />);
+    fireEvent.change(screen.getByLabelText('Email hoặc số CCCD'), {
+      target: { value: 'an@example.test' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi link đặt lại mật khẩu' }));
+    await screen.findByText('Kiểm tra email của bạn');
+    expect(fetchMock.mock.calls[0]![0]).toBe('/api/auth/forgot-password');
+    expect(JSON.parse(String((fetchMock.mock.calls[0]![1] as RequestInit).body))).toEqual({
+      tenantId: T,
+      identifier: 'an@example.test',
+    });
+  });
+});
+
+describe('ResetPasswordForm', () => {
+  it('hai mật khẩu khác nhau thì không gọi API; đặt xong hiện nút đăng nhập', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(<ResetPasswordForm tenantId={T} token={TOKEN} />);
+    fireEvent.change(screen.getByLabelText(/Mật khẩu mới/), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu mới'), {
+      target: { value: 'mat-khau-khac-dai-2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu mật khẩu mới' }));
+    await screen.findByText('Hai mật khẩu chưa giống nhau.');
     expect(fetchMock).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Hiện mã xác thực' }));
-    await screen.findByText('654321');
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu mới'), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu mật khẩu mới' }));
+    await screen.findByText('Đã đặt mật khẩu mới');
     expect(JSON.parse(String((fetchMock.mock.calls[0]![1] as RequestInit).body))).toEqual({
       tenantId: T,
       token: TOKEN,
+      password: PW_NEW,
     });
   });
 
-  it('link đã dùng thì báo lỗi, không hiện mã', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(422, { code: 'LINK_INVALID' }));
-    render(<VerifyLink tenantId={T} token={TOKEN} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Hiện mã xác thực' }));
+  it('link đã dùng thì báo lỗi', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      reply(422, { code: 'RESET_INVALID', label: null }),
+    );
+    render(<ResetPasswordForm tenantId={T} token={TOKEN} />);
+    fireEvent.change(screen.getByLabelText(/Mật khẩu mới/), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu mới'), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu mật khẩu mới' }));
     await screen.findByText(/không hợp lệ, đã dùng hoặc đã hết hạn/);
+  });
+});
+
+describe('ChangePasswordForm', () => {
+  it('bắt buộc: có lời nhắc, đổi thành công thì về trang chủ', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'ALLOWED' }));
+    render(<ChangePasswordForm forced />);
+    expect(screen.getByText(/do quản trị viên đặt/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Mật khẩu hiện tại'), {
+      target: { value: 'mat-khau-cu-12345' },
+    });
+    fireEvent.change(screen.getByLabelText(/Mật khẩu mới/), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu mới'), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
+    expect(fetchMock.mock.calls[0]![0]).toBe('/api/auth/change-password');
+  });
+
+  it('mật khẩu hiện tại sai thì báo lỗi và ở lại', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
+      reply(422, { code: 'WRONG_PASSWORD', label: null }),
+    );
+    render(<ChangePasswordForm forced={false} />);
+    fireEvent.change(screen.getByLabelText('Mật khẩu hiện tại'), {
+      target: { value: 'sai-mat-khau-xyz' },
+    });
+    fireEvent.change(screen.getByLabelText(/Mật khẩu mới/), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu mới'), {
+      target: { value: 'mat-khau-moi-dai-1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }));
+    await screen.findByText('Mật khẩu hiện tại chưa đúng.');
+    expect(push).not.toHaveBeenCalled();
   });
 });

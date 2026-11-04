@@ -240,7 +240,12 @@ const STAGE_PATH = /^\/vi-bang\/[^/]+\/([a-z0-9-]+)$/;
 const CASE_HEAD = { title: 'Chi tiết và tiến độ Vi bằng', sub: 'Theo dõi tiến độ và xử lý hồ sơ' };
 
 /** Màn đăng nhập/xác thực: không thanh bên, nền một khối có panel thương hiệu. */
-const AUTH_PATHS: ReadonlySet<string> = new Set(['/login', '/xac-thuc']);
+const AUTH_PATHS: ReadonlySet<string> = new Set([
+  '/login',
+  '/quen-mat-khau',
+  '/dat-lai-mat-khau',
+  '/doi-mat-khau',
+]);
 /** Lối tắt trên thanh dưới (điện thoại): việc của tôi, hộp duyệt, hai nghiệp vụ dùng nhiều nhất. */
 const QUICK_SLUGS = ['viec-cua-toi', 'hop-duyet', 'vi-bang', 'tong-dat'] as const;
 
