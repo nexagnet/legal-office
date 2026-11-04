@@ -151,6 +151,45 @@ describe('bộ lọc đã lưu', () => {
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Thiếu scan 2025' })).toBeNull());
   });
 
+  it('hộp mở canh theo mép phải của nút khi nút sát mép phải màn hình, không tràn ra ngoài', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ rows: [] }));
+    vi.stubGlobal('innerWidth', 1440);
+    const rect = (left: number, right: number) =>
+      ({
+        left,
+        right,
+        top: 0,
+        bottom: 0,
+        width: right - left,
+        height: 40,
+        x: left,
+        y: 0,
+      }) as DOMRect;
+    const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect');
+    const panelOf = () =>
+      document.getElementById(
+        screen.getByRole('button', { name: /Bộ lọc đã lưu/ }).getAttribute('aria-controls')!,
+      )!;
+    try {
+      spy.mockReturnValue(rect(1230, 1400)); // nút sát mép phải: 1230 + 320 > 1440
+      render(
+        <DmsSavedFilters officeId="o1" domain="vibang" basePath="/dms/vi-bang" current={{}} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Bộ lọc đã lưu/ }));
+      await waitFor(() => expect(panelOf().className).toContain('right-0'));
+      cleanup();
+      spy.mockReturnValue(rect(300, 470)); // còn chỗ bên phải: giữ canh trái
+      render(
+        <DmsSavedFilters officeId="o1" domain="vibang" basePath="/dms/vi-bang" current={{}} />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Bộ lọc đã lưu/ }));
+      await waitFor(() => expect(panelOf().className).toContain('left-0'));
+      expect(panelOf().className).not.toContain('right-0');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('báo lỗi dễ hiểu khi đã đủ 30 bộ lọc', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (_i, init) =>
       init?.method === 'POST' ? json({ code: 'INVALID_ITEM' }, false) : json({ rows: [] }),
