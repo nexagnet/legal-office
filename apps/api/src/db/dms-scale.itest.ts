@@ -289,9 +289,18 @@ describe.skipIf(!ADMIN_URL)('DMS tìm kiếm và lọc quy mô lớn (PostgreSQL
     for (const r of noBranch.rows) expect(adminSeesNoBranch.has(r.id)).toBe(true);
     for (const who of [U.clerk, U.own]) {
       const rows = await search(who);
-      expect(rows.every((r: { branch_id: string | null }) => r.branch_id !== null)).toBe(true);
+      // Hồ sơ chưa gắn chi nhánh chỉ Admin thấy, trừ hồ sơ do chính người đó tạo (quy tắc 0111).
+      expect(
+        rows.every(
+          (r: { branch_id: string | null; created_by: string }) =>
+            r.branch_id !== null || r.created_by === who,
+        ),
+      ).toBe(true);
     }
-    expect(await search(U.none)).toHaveLength(0);
+    // Người không có quyền nào chỉ thấy hồ sơ do chính mình tạo (quy tắc 0111); người bị khóa không thấy gì.
+    expect(
+      (await search(U.none)).every((r: { created_by: string }) => r.created_by === U.none),
+    ).toBe(true);
     expect(await search(U.suspended)).toHaveLength(0);
   });
 
@@ -396,9 +405,15 @@ describe.skipIf(!ADMIN_URL)('DMS tìm kiếm và lọc quy mô lớn (PostgreSQL
     expect(picked.creator).toEqual(base.creator);
     const onlyClerk = await search(U.admin, { ...f, creator: U.clerk });
     expect(Object.values(picked.branch!).reduce((a, b) => a + b, 0)).toBe(onlyClerk.length);
-    // Facet cũng tôn trọng quyền xem: người chỉ thấy chi nhánh 1-2 không được thấy số của chi nhánh 3 hay "chưa gắn".
+    // Facet cũng tôn trọng quyền xem: người chỉ thấy chi nhánh 1-2 không được thấy số của chi nhánh 3 hay "chưa gắn",
+    // ngoại trừ chi nhánh của những hồ sơ do chính người đó tạo (quy tắc 0111).
     const scoped = await facets(U.clerk, f);
-    expect(Object.keys(scoped.branch ?? {}).sort()).toEqual([B1, B2].sort());
+    const own = await owner.query(
+      `SELECT DISTINCT coalesce(branch_id::text, '') AS b FROM dms_case_files WHERE created_by = $1 AND status = 'RECORDED' AND domain = 'vibang'`,
+      [U.clerk],
+    );
+    const expectedBranches = new Set<string>([B1, B2, ...own.rows.map((r) => r.b as string)]);
+    expect(Object.keys(scoped.branch ?? {}).sort()).toEqual([...expectedBranches].sort());
   });
 
   it('chỉ mục tự cập nhật khi thêm tài liệu/tệp, hủy tài liệu, yêu cầu sửa đổi chờ duyệt', async () => {
@@ -455,16 +470,19 @@ describe.skipIf(!ADMIN_URL)('DMS tìm kiếm và lọc quy mô lớn (PostgreSQL
   });
 
   it('tìm trong nội dung OCR: đúng quyền, lọc, xếp hạng, bỏ bản cũ', async () => {
+    // Hồ sơ do chính clerk / none tạo thì họ luôn thấy (quy tắc 0111), nên chọn hồ sơ của người khác để kiểm phạm vi.
     const target = (
       await owner.query(
-        `SELECT c.id FROM dms_case_files c WHERE c.status = 'RECORDED' AND c.branch_id = $1 AND c.domain = 'vibang' ORDER BY c.id LIMIT 1`,
-        [B3],
+        `SELECT c.id FROM dms_case_files c WHERE c.status = 'RECORDED' AND c.branch_id = $1 AND c.domain = 'vibang'
+            AND c.created_by NOT IN ($2, $3) ORDER BY c.id LIMIT 1`,
+        [B3, U.clerk, U.none],
       )
     ).rows[0].id as string;
     const visible = (
       await owner.query(
-        `SELECT c.id FROM dms_case_files c WHERE c.status = 'RECORDED' AND c.branch_id = $1 AND c.domain = 'vibang' ORDER BY c.id LIMIT 1`,
-        [B1],
+        `SELECT c.id FROM dms_case_files c WHERE c.status = 'RECORDED' AND c.branch_id = $1 AND c.domain = 'vibang'
+            AND c.created_by NOT IN ($2, $3) ORDER BY c.id LIMIT 1`,
+        [B1, U.clerk, U.none],
       )
     ).rows[0].id as string;
     const mk = async (caseId: string, text: string, current = true) => {
@@ -579,10 +597,19 @@ describe.skipIf(!ADMIN_URL)('DMS tìm kiếm và lọc quy mô lớn (PostgreSQL
     }
     expect(await hits(U.admin)).toEqual(planted); // Admin thấy cả bốn, kể cả không chi nhánh
     const clerkHits = await hits(U.clerk);
-    expect(clerkHits.has(byBranch.get(B3)!)).toBe(false); // chi nhánh khác
-    expect(clerkHits.has(byBranch.get(null)!)).toBe(false); // chưa gắn chi nhánh: chỉ Admin
+    // Chi nhánh khác và chưa gắn chi nhánh: người khác không thấy, trừ khi chính clerk là người tạo (quy tắc 0111).
+    const creatorOf = async (c: string) =>
+      (await owner.query(`SELECT created_by FROM dms_case_files WHERE id = $1`, [c])).rows[0]
+        .created_by as string;
+    for (const b of [B3, null] as (string | null)[]) {
+      const c = byBranch.get(b)!;
+      expect(clerkHits.has(c), `clerk ${b}`).toBe((await creatorOf(c)) === U.clerk);
+    }
     expect(clerkHits.has(byBranch.get(B1)!) && clerkHits.has(byBranch.get(B2)!)).toBe(true);
-    expect(await hits(U.none)).toEqual(new Set());
+    // Người không có quyền nào chỉ thấy nội dung của hồ sơ do chính mình tạo (quy tắc 0111).
+    const noneOwn = new Set<string>();
+    for (const c of planted) if ((await creatorOf(c)) === U.none) noneOwn.add(c);
+    expect(await hits(U.none)).toEqual(noneOwn);
     expect(await hits(U.suspended)).toEqual(new Set());
     // Facet: tổng đếm của mỗi người đúng bằng số hồ sơ họ xem được qua hàm cũ (dms_case_visible), không hơn.
     for (const who of [U.admin, U.clerk, U.own, U.none, U.suspended]) {
@@ -594,8 +621,14 @@ describe.skipIf(!ADMIN_URL)('DMS tìm kiếm và lọc quy mô lớn (PostgreSQL
           `${who} ${g}`,
         ).toBe(visible);
       if (who !== U.admin) {
-        expect(Object.keys(f.branch ?? {})).not.toContain(''); // không có nhóm "chưa gắn chi nhánh"
-        expect(Object.keys(f.branch ?? {})).not.toContain(B3);
+        // Không có nhóm "chưa gắn chi nhánh" hay chi nhánh 3, trừ khi đó là hồ sơ do chính người đó tạo (quy tắc 0111).
+        const mine = await owner.query(
+          `SELECT DISTINCT coalesce(branch_id::text, '') AS b FROM dms_case_files WHERE created_by = $1 AND status = 'RECORDED'`,
+          [who],
+        );
+        const ownKeys = new Set(mine.rows.map((r) => r.b as string));
+        for (const key of ['', B3])
+          if (!ownKeys.has(key)) expect(Object.keys(f.branch ?? {})).not.toContain(key);
       }
     }
   });

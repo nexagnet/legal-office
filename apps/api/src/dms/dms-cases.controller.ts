@@ -104,6 +104,17 @@ export class DmsCasesController {
       .then((rows) => ({ rows }));
   }
 
+  /**
+   * Lịch sử hồ sơ: ai làm gì, lúc nào, trên hồ sơ này (kể cả tài liệu và tệp của nó), mới nhất trước. Ai xem được hồ sơ thì
+   * xem được lịch sử; người khác nhận danh sách rỗng (DB quyết định). Chỉ đọc.
+   */
+  @Get('cases/:id/history')
+  history(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    return this.repo
+      .rows(a.tenantId, 'dms_case_history', [a.tenantId, a.userId, id])
+      .then((rows) => ({ rows }));
+  }
+
   /** Định nghĩa các sổ (tiêu đề + cột đúng mẫu) để giao diện dựng form nhập và bản xem trước. */
   @Get('books')
   books() {

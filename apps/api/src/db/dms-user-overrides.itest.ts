@@ -312,10 +312,19 @@ describe.skipIf(!ADMIN_URL)('DMS quyền riêng theo tài khoản (PostgreSQL)',
         await call('SELECT id FROM dms_list_cases($1,$2,$3,$4,NULL,100,0)', [T, U.a, OFF, 'vtden'])
       ).map((r) => r.id);
     expect(await ids()).toContain(c.label);
+    // Hồ sơ ghi sổ của NGƯỜI KHÁC (b): a thấy nhờ quyền đọc.
+    await apply(U.admin, U.b, ['vtden.read.all', 'vtden.draft.all', 'vtden.confirm.all']);
+    await op('dms_branch_access_set', [T, U.admin, OFF, U.b, B1, true, 'phân công']);
+    const other = await op('dms_case_create_draft', [T, U.b, OFF, 'vtden', 'Của b', '{}', B1]);
+    expect(other.ok).toBe(true);
+    expect((await op('dms_case_record', [T, U.b, other.label])).ok).toBe(true);
+    expect(await ids()).toContain(other.label);
     await apply(U.admin, U.a, ['vtden.draft.all', 'vtden.confirm.all']); // bỏ quyền đọc
-    expect(await ids()).toHaveLength(0);
-    await apply(U.admin, U.a, ['vtden.read.all', 'vtden.draft.all', 'vtden.confirm.all']);
+    // Mất quyền đọc: không còn thấy hồ sơ của người khác, nhưng vẫn thấy hồ sơ do chính mình tạo.
+    expect(await ids()).not.toContain(other.label);
     expect(await ids()).toContain(c.label);
+    await apply(U.admin, U.a, ['vtden.read.all', 'vtden.draft.all', 'vtden.confirm.all']);
+    expect(await ids()).toContain(other.label);
   });
 
   it('ghi nhật ký nghiệp vụ mỗi lần đổi', async () => {

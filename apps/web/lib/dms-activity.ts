@@ -37,6 +37,24 @@ export interface ActivityList {
   readonly total: number;
 }
 
+/** Một việc đã làm trên một hồ sơ (kể cả tài liệu và tệp của nó). */
+export type CaseHistoryRow = Pick<
+  ActivityRow,
+  'id' | 'at' | 'actor_id' | 'actor_label' | 'action' | 'target_type' | 'target_id' | 'detail'
+>;
+
+/** Lịch sử của MỘT hồ sơ: ai xem được hồ sơ thì xem được. Lỗi thì trả rỗng, không chặn trang. */
+export async function loadCaseHistory(
+  cookie: string | null,
+  caseId: string,
+): Promise<readonly CaseHistoryRow[]> {
+  const body = await getJson<{ rows: CaseHistoryRow[] }>(
+    `/dms/cases/${encodeURIComponent(caseId)}/history`,
+    cookie,
+  );
+  return body === 'error' || body === 404 ? [] : body.rows;
+}
+
 /** Lịch sử hoạt động của văn phòng. Chỉ Admin có dữ liệu; người khác nhận danh sách rỗng từ máy chủ. */
 export function loadActivity(
   cookie: string | null,

@@ -416,7 +416,8 @@ describe.skipIf(!ADMIN_URL)('DMS lõi (PostgreSQL)', () => {
     await op(T, 'dms_case_record', [T, U.thvB, c]);
     expect((await cases(U.thvB, 'tochuc')).some((r) => r.id === c)).toBe(true);
     await owner.query(`DELETE FROM dms_group_members WHERE user_id = $1`, [U.thvB]);
-    expect((await cases(U.thvB, 'tochuc')).some((r) => r.id === c)).toBe(false);
+    // Hồ sơ do chính mình tạo vẫn thấy (quy tắc 0111); quyền tạo thì mất ngay.
+    expect((await cases(U.thvB, 'tochuc')).some((r) => r.id === c)).toBe(true);
     expect(await createCase(U.thvB)).toMatchObject({ code: 'PERMISSION_DENIED' });
   });
 
