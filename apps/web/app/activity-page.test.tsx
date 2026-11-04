@@ -123,7 +123,7 @@ describe('Lịch sử hoạt động', () => {
   it('người không phải Admin chỉ thấy thông báo, không gọi nhật ký', async () => {
     const urls = stubApi([], [row({})]);
     await page();
-    expect(screen.getByText('Chỉ Admin được xem mục này')).toBeTruthy();
+    expect(screen.getByText('Bạn chưa có quyền xem mục này')).toBeTruthy();
     expect(urls.some((u) => u.includes('/dms/activity'))).toBe(false);
   });
 });

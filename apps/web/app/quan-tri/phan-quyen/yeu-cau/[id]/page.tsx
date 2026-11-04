@@ -73,12 +73,12 @@ export default async function RequestPage({
 
   return (
     <>
-      <PermissionTabs active="yeu-cau" pending={pendingCount} />
+      <PermissionTabs active={null} />
       <AdminBanner
         crumb={[
           ['Quản trị', '/quan-tri'],
           ['Phân quyền', '/quan-tri/phan-quyen'],
-          ['Yêu cầu chờ duyệt', '/quan-tri/phan-quyen?tab=yeu-cau'],
+          ['Lịch sử phân quyền', '/dms/lich-su?group=permission'],
           [requestCode(r.id)],
         ]}
       />

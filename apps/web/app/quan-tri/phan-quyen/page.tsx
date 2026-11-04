@@ -1,4 +1,3 @@
-import { AuditTab } from '../../../components/permissions/AuditTab';
 import { AdminBanner } from '../../../components/admin-banner';
 import { GroupsTab } from '../../../components/permissions/GroupsTab';
 import { LegacyRequests } from '../../../components/permissions/LegacyRequests';
@@ -10,7 +9,6 @@ import { UsersTab } from '../../../components/permissions/UsersTab';
 import { StateCard } from '../../../components/ui/state-card';
 import { loadRequests } from '../../../lib/admin-api';
 import { loadPermissionContext } from '../../../lib/dms-admin';
-import { makeNameBook } from '../../../lib/permission-model';
 import { requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -28,10 +26,6 @@ const TAB_BANNER: Partial<Record<string, { title: string; sub: string }>> = {
   nhom: {
     title: 'Phân quyền',
     sub: 'Nhóm mẫu của hệ thống được bảo vệ. Muốn nhóm riêng: sao chép nhóm mẫu hoặc bắt đầu từ nhóm trống, chọn quyền và phạm vi.',
-  },
-  'nhat-ky': {
-    title: 'Nhật ký phân quyền',
-    sub: 'Lịch sử cấp quyền, thu hồi, đổi nhóm và quyết định duyệt. Chỉ thêm dòng mới, không sửa hay xóa.',
   },
 };
 
@@ -77,13 +71,11 @@ export default async function PermissionPage({
 
   const params = await searchParams;
   const tab = activePermissionTab(params.tab);
-  const pending = ctx.requests.filter((r) => r.status === 'PENDING').length;
-  const names = makeNameBook(ctx.groups, ctx.members);
   const banner = TAB_BANNER[tab];
   return (
     <>
       {banner ? <AdminBanner title={banner.title} sub={banner.sub} /> : null}
-      <PermissionTabs active={tab} pending={pending} />
+      <PermissionTabs active={tab} />
       {tab === 'nguoi-dung' ? (
         <UsersTab
           members={ctx.members}
@@ -92,20 +84,12 @@ export default async function PermissionPage({
           searchParams={params}
           canPropose={ctx.canPropose}
         />
-      ) : tab === 'nhom' ? (
+      ) : (
         <GroupsTab
           groups={ctx.groups}
           requests={ctx.requests}
           searchParams={params}
           canPropose={ctx.canApprove}
-        />
-      ) : (
-        <AuditTab
-          requests={ctx.requests}
-          names={names}
-          searchParams={params}
-          officeId={ctx.officeId}
-          canExport={ctx.canExportAudit}
         />
       )}
     </>

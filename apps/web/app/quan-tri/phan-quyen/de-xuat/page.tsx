@@ -32,7 +32,7 @@ export default async function ProposePage({
     ctx.requests === 'error' ? 0 : ctx.requests.filter((r) => r.status === 'PENDING').length;
   return (
     <>
-      <PermissionTabs active="nguoi-dung" pending={pending} />
+      <PermissionTabs active="nguoi-dung" />
       <AdminBanner
         crumb={[
           ['Quản trị', '/quan-tri'],
