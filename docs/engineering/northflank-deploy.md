@@ -17,7 +17,9 @@ Build: `docker build --target api -t lo-api .` và `docker build --target web --
 
 1. Tạo vai ứng dụng (không superuser, không BYPASSRLS) bằng tài khoản chủ: `CREATE ROLE legal_app LOGIN PASSWORD '<mật khẩu mới>';`
 2. Chạy job `lo-migrate` với `DATABASE_URL` (chủ) và `APP_DB_ROLE=legal_app` (cấp quyền bảng/sequence cho vai đó).
-3. Tạo tenant, văn phòng, người dùng Admin đầu tiên (dữ liệu thử), rồi đặt mật khẩu bằng `node dist/auth/set-password.cli.js` (xem `docs/architecture/auth-password.md`).
+3. Tạo tenant, văn phòng, chi nhánh, Admin đầu tiên và nhóm quyền mẫu bằng `node dist/auth/bootstrap-tenant.cli.js` (không nạp dữ liệu mẫu; chi tiết và biến môi trường ở [go-live-checklist.md](go-live-checklist.md)). Đặt lại mật khẩu một tài khoản đã có: `node dist/auth/set-password.cli.js` (xem `docs/architecture/auth-password.md`).
+
+Trước khi mở cho khách dùng thật, làm hết [go-live-checklist.md](go-live-checklist.md) (lịch dọn scan, nhắc hạn, OCR, SMTP, sao lưu).
 
 ## Migration tự áp khi lo-api khởi động
 

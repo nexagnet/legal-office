@@ -9,7 +9,12 @@ const env = process.env;
 const API = (env.SEED_API_URL ?? 'https://dev.nexagnet.com/api').replace(/\/$/, '');
 const PER_DOMAIN = Number(env.SEED_COUNT ?? 36);
 const ONLY = (env.SEED_DOMAINS ?? Object.keys(DOMAINS).join(',')).split(',');
-const FOOTER = 'DỮ LIỆU GIẢ để thử nghiệm (seed-demo) – không phải hồ sơ thật';
+// SEED_PROFILE=guide: dữ liệu minh họa cho bộ hướng dẫn gửi khách (không nhãn "dữ liệu giả" / "[seed-demo]" lộ ra giao diện và ảnh chụp).
+const GUIDE = env.SEED_PROFILE === 'guide';
+const FOOTER = GUIDE
+  ? 'Hồ sơ minh họa trong tài liệu hướng dẫn sử dụng'
+  : 'DỮ LIỆU GIẢ để thử nghiệm (seed-demo) – không phải hồ sơ thật';
+const SUB_PREFIX = GUIDE ? '' : '[seed-demo] ';
 
 class Client {
   constructor(headers) {
@@ -159,7 +164,11 @@ async function seedCase(c, ctx, spec, idx) {
   }
   if (spec.status === 'CANCELLED')
     await c.ok('POST', `/dms/cases/${caseId}/cancel-draft`, {
-      json: { reason: 'Nhập nhầm hồ sơ, hủy bản nháp (dữ liệu giả)' },
+      json: {
+        reason: GUIDE
+          ? 'Nhập nhầm hồ sơ, hủy bản nháp'
+          : 'Nhập nhầm hồ sơ, hủy bản nháp (dữ liệu giả)',
+      },
     });
   else if (spec.status === 'RECORDED') {
     await c.ok('POST', `/dms/cases/${caseId}/record`);
@@ -177,14 +186,14 @@ async function seedCase(c, ctx, spec, idx) {
  */
 async function seedSubmissions(submitter, admin, officeId) {
   const plan = [
-    { title: '[seed-demo] Bổ sung giấy ủy quyền', decide: null },
-    { title: '[seed-demo] Đề nghị cấp bản sao vi bằng', decide: null },
+    { title: `${SUB_PREFIX}Bổ sung giấy ủy quyền`, decide: null },
+    { title: `${SUB_PREFIX}Đề nghị cấp bản sao vi bằng`, decide: null },
     {
-      title: '[seed-demo] Giấy xác nhận địa chỉ nhận văn bản',
+      title: `${SUB_PREFIX}Giấy xác nhận địa chỉ nhận văn bản`,
       decide: { approve: true, note: 'Đủ giấy tờ' },
     },
     {
-      title: '[seed-demo] Biên nhận thiếu chữ ký',
+      title: `${SUB_PREFIX}Biên nhận thiếu chữ ký`,
       decide: { approve: false, note: 'Thiếu chữ ký của bên nhận, gửi lại bản đủ.' },
     },
   ];
@@ -192,7 +201,7 @@ async function seedSubmissions(submitter, admin, officeId) {
   for (const status of ['PENDING', 'APPROVED', 'REJECTED']) {
     const { rows } = await admin.ok(
       'GET',
-      `/dms/submissions?${new URLSearchParams({ officeId, status, q: '[seed-demo]', limit: '100' })}`,
+      `/dms/submissions?${new URLSearchParams({ officeId, status, ...(SUB_PREFIX ? { q: SUB_PREFIX.trim() } : {}), limit: '100' })}`,
     );
     for (const r of rows) have.add(r.title);
   }
@@ -200,17 +209,19 @@ async function seedSubmissions(submitter, admin, officeId) {
   for (const p of plan) {
     if (have.has(p.title)) continue;
     const bytes = await buildScan({
-      title: p.title.replace('[seed-demo] ', ''),
+      title: p.title.replace(SUB_PREFIX, ''),
       footer: FOOTER,
       vector: false,
-      lines: ['Nội dung bản trình giả để thử nghiệm Trình / Duyệt.', 'Không phải hồ sơ thật.'],
+      lines: GUIDE
+        ? ['Bản trình minh họa cho luồng Trình / Duyệt.']
+        : ['Nội dung bản trình giả để thử nghiệm Trình / Duyệt.', 'Không phải hồ sơ thật.'],
     });
     const up = await submitter.ok('POST', '/dms/uploads', { bytes, type: 'application/pdf' });
     const created = await submitter.ok('POST', '/dms/submissions', {
       json: {
         officeId,
         title: p.title,
-        description: 'Bản trình giả (seed-demo) để thử nghiệm.',
+        description: GUIDE ? 'Bản trình minh họa.' : 'Bản trình giả (seed-demo) để thử nghiệm.',
         files: [{ stagedId: up.label, label: 'ban-scan-1.pdf' }],
       },
     });

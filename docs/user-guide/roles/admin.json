@@ -25,7 +25,7 @@
       "Đã trả kết quả: số hồ sơ đã được tích Đã trả kết quả.",
       "Cần bổ sung scan: bấm Mở để vào thẳng hồ sơ thiếu scan."
      ],
-     "img": "admin/01.png",
+     "img": "admin/30.png",
      "marks": [
       {
        "n": 1,
@@ -67,7 +67,7 @@
      "title": "Hàng chờ duyệt của Admin",
      "note": "Admin thấy bản trình của mọi người. Huy hiệu đỏ trên thanh bên cho biết số bản đang chờ.",
      "detail": [],
-     "img": "admin/02.png",
+     "img": "admin/31.png",
      "marks": [
       {
        "n": 1,
@@ -87,7 +87,7 @@
       "Thêm scan: bổ sung bản scan cho bản trình nếu còn thiếu.",
       "Xóa scan: chỉ người có quyền xóa scan mới thấy nút này."
      ],
-     "img": "admin/03.png",
+     "img": "admin/32.png",
      "marks": [
       {
        "n": 1,
@@ -111,7 +111,7 @@
      "title": "Bản trình đã duyệt",
      "note": "Trạng thái chuyển sang Đã duyệt, kèm người duyệt, thời điểm và ghi chú. Bản trình đã quyết định không duyệt lại được.",
      "detail": [],
-     "img": "admin/04.png",
+     "img": "admin/33.png",
      "marks": []
     }
    ]
@@ -139,7 +139,7 @@
      "title": "Nút \"Sửa hồ sơ (Admin)\"",
      "note": "Chỉ Admin thấy nút này trên hồ sơ đã ghi sổ. Bấm để mở hộp thoại sửa.",
      "detail": [],
-     "img": "admin/05.png",
+     "img": "admin/34.png",
      "marks": [
       {
        "n": 1,
@@ -151,7 +151,7 @@
      "title": "Hộp thoại Sửa hồ sơ (Admin)",
      "note": "Sửa các ô cần thiết, bắt buộc nhập Lý do sửa, rồi bấm Lưu thay đổi. Hệ thống lưu thành phiên bản mới.",
      "detail": [],
-     "img": "admin/06.png",
+     "img": "admin/35.png",
      "marks": [
       {
        "n": 1,
@@ -175,7 +175,7 @@
      "title": "Tab Phiên bản cũ: bản gốc và bản sửa",
      "note": "Mỗi lần Admin sửa tạo thêm một dòng: bản gốc khi ghi sổ và các bản sửa kèm người sửa, thời điểm và lý do.",
      "detail": [],
-     "img": "admin/07.png",
+     "img": "admin/36.png",
      "marks": [
       {
        "n": 1,
@@ -208,7 +208,7 @@
      "title": "Hộp thoại Xóa file scan",
      "note": "Đọc kỹ ba lưu ý trong hộp thoại, nhập lý do rồi bấm Xóa scan. Hồ sơ và dòng sổ không bị ảnh hưởng.",
      "detail": [],
-     "img": "admin/08.png",
+     "img": "admin/37.png",
      "marks": [
       {
        "n": 1,
@@ -231,7 +231,7 @@
       "Cột Còn lại: số ngày đến khi file bị xóa hẳn khỏi kho.",
       "Cột Tải: tải file về máy (chỉ Admin)."
      ],
-     "img": "admin/09.png",
+     "img": "admin/38.png",
      "marks": [
       {
        "n": 1,
@@ -260,7 +260,7 @@
       "Thời gian, Người làm, Hoạt động, Đối tượng, Chi tiết: mỗi dòng là một thao tác.",
       "Nhóm: Hồ sơ, Tài liệu, Tệp & scan, Trình / Duyệt, Phân quyền."
      ],
-     "img": "admin/10.png",
+     "img": "admin/39.png",
      "marks": [
       {
        "n": 1,
@@ -273,38 +273,6 @@
       {
        "n": 3,
        "text": "Một thao tác: người làm, hoạt động, đối tượng, chi tiết"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "title": "DMS · Admin: soạn nháp và chọn Thừa hành viên ghi tên",
-   "intro": "Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục \"Chờ tôi xác nhận\" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.",
-   "rules": [
-    "Chỉ người có quyền xem danh sách thừa hành viên mới chọn được. Chọn \"Không ghi tên\" nếu chưa biết.",
-    "Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác."
-   ],
-   "problems": [
-    [
-     "Thừa hành viên không thấy hồ sơ trong \"Chờ tôi xác nhận\"",
-     "Chưa chọn đúng thừa hành viên ở ô \"Thừa hành viên được ghi tên\" hoặc chưa bấm Lưu."
-    ]
-   ],
-   "steps": [
-    {
-     "title": "Chọn thừa hành viên được ghi tên",
-     "note": "Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở \"Chờ tôi xác nhận\" của thừa hành viên đó.",
-     "detail": [],
-     "img": "admin/11.png",
-     "marks": [
-      {
-       "n": 1,
-       "text": "Thừa hành viên được ghi tên"
-      },
-      {
-       "n": 2,
-       "text": "Lưu để giao cho thừa hành viên"
       }
      ]
     }
@@ -342,7 +310,7 @@
       "Xem quyền hiệu lực: mở chi tiết quyền thực sự của người đó.",
       "Sửa tên: đổi họ tên hiển thị."
      ],
-     "img": "admin/46.png",
+     "img": "admin/40.png",
      "marks": [
       {
        "n": 1,
@@ -378,7 +346,7 @@
       "Mật khẩu ban đầu: tối thiểu 12 ký tự; người dùng đổi ở lần đăng nhập đầu.",
       "Nhóm quyền: tích nhóm cần xếp người này vào. Quyền chi tiết (tùy chọn) thêm hoặc bỏ riêng từng quyền."
      ],
-     "img": "admin/47.png",
+     "img": "admin/41.png",
      "marks": [
       {
        "n": 1,
@@ -421,7 +389,7 @@
       "Xem người được cấp: những ai được xem hồ sơ của chi nhánh này.",
       "Gắn chi nhánh: tích các hồ sơ, chọn chi nhánh đích rồi bấm nút."
      ],
-     "img": "admin/48.png",
+     "img": "admin/42.png",
      "marks": [
       {
        "n": 1,
@@ -453,7 +421,7 @@
      "title": "Nhóm quyền: danh sách nhóm",
      "note": "Mỗi nhóm cho biết số quyền, số thành viên và trạng thái. Bấm tên nhóm để xem và sửa; bấm \"+ Tạo nhóm quyền\" để tạo nhóm mới hoặc sao chép từ nhóm mẫu.",
      "detail": [],
-     "img": "admin/49.png",
+     "img": "admin/43.png",
      "marks": [
       {
        "n": 1,
@@ -469,7 +437,7 @@
      "title": "Người dùng và quyền hiệu lực",
      "note": "Mỗi dòng là một thành viên với nhóm quyền, phạm vi và tình trạng tài khoản. Bấm Xem để mở chi tiết; \"Gán nhóm quyền\" xếp người vào nhóm.",
      "detail": [],
-     "img": "admin/50.png",
+     "img": "admin/44.png",
      "marks": [
       {
        "n": 1,
@@ -494,7 +462,7 @@
       "Tạm khóa tài khoản: chặn đăng nhập mà không xóa dữ liệu.",
       "Cấp chi nhánh: người này chỉ thấy hồ sơ của chi nhánh được cấp (hồ sơ do chính họ tạo luôn thấy)."
      ],
-     "img": "admin/51.png",
+     "img": "admin/45.png",
      "marks": [
       {
        "n": 1,
@@ -518,7 +486,7 @@
      "title": "Đổi nhóm hoặc quyền",
      "note": "Chọn loại thay đổi (gán nhóm, gỡ khỏi nhóm, thêm quyền vào nhóm, thu hồi quyền khỏi nhóm), chọn nhóm, chọn thành viên, xem trước rồi ghi lý do và áp dụng. Không còn bước chờ người thứ hai duyệt.",
      "detail": [],
-     "img": "admin/52.png",
+     "img": "admin/46.png",
      "marks": [
       {
        "n": 1,
@@ -533,7 +501,7 @@
       "Lưu quyền riêng: ghi lại quyền thêm hoặc bỏ riêng, kèm lý do, ghi vào nhật ký.",
       "Quay về đúng theo nhóm: xóa mọi quyền riêng."
      ],
-     "img": "admin/53.png",
+     "img": "admin/47.png",
      "marks": [
       {
        "n": 1,
@@ -549,7 +517,7 @@
      "title": "Nhật ký phân quyền trong Lịch sử hoạt động",
      "note": "Mọi lần đổi nhóm, quyền, quyền riêng, chi nhánh được ghi tại Lịch sử hoạt động, thẻ Phân quyền. Ai có quyền xuất nhật ký thấy nút \"Xuất bản sao\".",
      "detail": [],
-     "img": "admin/54.png",
+     "img": "admin/48.png",
      "marks": [
       {
        "n": 1,
@@ -575,7 +543,7 @@
      "title": "Thẻ THV: danh sách và tình trạng",
      "note": "Thẻ chia theo tình trạng: Còn hiệu lực, Chờ bổ sung, Ngừng hiệu lực. Bấm \"Nhập thẻ\" để nhập số thẻ cho từng người.",
      "detail": [],
-     "img": "admin/55.png",
+     "img": "admin/49.png",
      "marks": [
       {
        "n": 1,
@@ -601,7 +569,7 @@
       "Ngày hiệu lực: ngày thẻ bắt đầu có hiệu lực.",
       "Bản scan quyết định (bắt buộc): PDF, JPEG hoặc PNG, tối đa 25 MB."
      ],
-     "img": "admin/56.png",
+     "img": "admin/50.png",
      "marks": [
       {
        "n": 1,
@@ -658,7 +626,7 @@
       "Tài khoản và Mật khẩu SMTP: tài khoản gửi thư.",
       "Địa chỉ người gửi: địa chỉ hiện ở thư gửi đi."
      ],
-     "img": "admin/57.png",
+     "img": "admin/51.png",
      "marks": [
       {
        "n": 1,
@@ -708,7 +676,7 @@
       "+ Thêm ngày nghỉ: nhập ngày lễ hoặc nghỉ bù.",
       "Tính hạn: nhập Từ ngày và Số ngày làm việc để xem ngày hết hạn."
      ],
-     "img": "admin/58.png",
+     "img": "admin/52.png",
      "marks": [
       {
        "n": 1,
@@ -750,7 +718,7 @@
      "title": "Hồ sơ lao động",
      "note": "Các thẻ lọc theo tình trạng làm việc. Bấm \"+ Thêm hồ sơ\" để thêm hồ sơ cho nhân sự.",
      "detail": [],
-     "img": "admin/59.png",
+     "img": "admin/53.png",
      "marks": [
       {
        "n": 1,
@@ -777,7 +745,7 @@
      "title": "Cấu hình văn phòng",
      "note": "Điền đúng thông tin pháp lý, bấm Lưu thay đổi. Phần Quy tắc số cho biết cách đánh số hồ sơ; nút \"Nhập số cuối\" dùng khi chuyển từ sổ giấy sang phần mềm.",
      "detail": [],
-     "img": "admin/60.png",
+     "img": "admin/54.png",
      "marks": [
       {
        "n": 1,
@@ -807,7 +775,7 @@
      "title": "Báo cáo tổng hợp (N-09, N-10)",
      "note": "Số liệu tổng hợp theo hai mẫu báo cáo. Nút Sao chép ở từng chỉ tiêu giúp chép con số sang văn bản báo cáo.",
      "detail": [],
-     "img": "admin/61.png",
+     "img": "admin/55.png",
      "marks": [
       {
        "n": 1,
@@ -833,7 +801,7 @@
      "title": "Vật tư: tồn kho",
      "note": "Thẻ Tồn kho cho thấy số lượng hiện có của từng mặt hàng. \"Đặt ngưỡng\" để hệ thống báo Sắp hết khi dưới mức đặt.",
      "detail": [],
-     "img": "admin/62.png",
+     "img": "admin/56.png",
      "marks": [
       {
        "n": 1,
@@ -842,6 +810,38 @@
       {
        "n": 2,
        "text": "Tìm theo tên vật tư"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Admin: soạn nháp và chọn Thừa hành viên ghi tên",
+   "intro": "Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục \"Chờ tôi xác nhận\" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.",
+   "rules": [
+    "Chỉ người có quyền xem danh sách thừa hành viên mới chọn được. Chọn \"Không ghi tên\" nếu chưa biết.",
+    "Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác."
+   ],
+   "problems": [
+    [
+     "Thừa hành viên không thấy hồ sơ trong \"Chờ tôi xác nhận\"",
+     "Chưa chọn đúng thừa hành viên ở ô \"Thừa hành viên được ghi tên\" hoặc chưa bấm Lưu."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Chọn thừa hành viên được ghi tên",
+     "note": "Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở \"Chờ tôi xác nhận\" của thừa hành viên đó.",
+     "detail": [],
+     "img": "admin/29.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thừa hành viên được ghi tên"
+      },
+      {
+       "n": 2,
+       "text": "Lưu để giao cho thừa hành viên"
       }
      ]
     }

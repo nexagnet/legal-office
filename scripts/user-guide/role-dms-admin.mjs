@@ -11,7 +11,9 @@ const thv = await asRole(b, 'THV');
 const g = new Guide('admin', 'Hướng dẫn dành cho Admin');
 const gt = new Guide('thua-hanh-vien', 'Hướng dẫn dành cho Thừa hành viên');
 const go = async (p, pg = page) => { await pg.goto(BASE + p, { waitUntil: 'networkidle' }); await pg.waitForTimeout(900); };
-const stamp = new Date().toISOString().slice(5, 16).replace('T', ' ');
+const REAL = process.env.GUIDE_REAL === '1'; // dữ liệu minh họa gửi khách: tiêu đề thật, không tiền tố [guide], không mốc giờ
+const TAG = REAL ? '' : '[guide] ';
+const stamp = REAL ? '' : new Date().toISOString().slice(5, 16).replace('T', ' ');
 
 // ---------- Tổng quan ----------
 g.section('DMS · Tổng quan của Admin', 'Tổng quan cho biết nhanh tình hình năm hiện tại: số hồ sơ, tài liệu, hồ sơ thiếu scan, số hồ sơ đã trả kết quả và các bản trình đang chờ bạn duyệt.', [
@@ -49,7 +51,7 @@ await gt.shot(thv.page, { title: 'Trình / Duyệt: danh sách bản trình củ
   { loc: thv.page.getByRole('link', { name: 'Chờ duyệt' }).or(thv.page.getByRole('button', { name: 'Chờ duyệt' })).first(), text: 'Lọc theo trạng thái: Chờ duyệt, Đã duyệt, Từ chối' },
 ] });
 await thv.page.getByRole('button', { name: '+ Trình mới' }).click(); await thv.page.waitForTimeout(700);
-await thv.page.getByLabel('Tiêu đề').fill(`[guide] Đề nghị cấp bản sao vi bằng ${stamp}`);
+await thv.page.getByLabel('Tiêu đề').fill(`${TAG}Đề nghị cấp bản sao vi bằng${REAL ? ' số 07/2026' : ' ' + stamp}`);
 await thv.page.getByLabel('Mô tả').fill('Khách hàng đề nghị cấp 02 bản sao vi bằng số 035/2026/VB-TPL.');
 await thv.page.locator('input[name=files]').setInputFiles(SCAN);
 await gt.shot(thv.page, { title: 'Hộp thoại Trình mới', note: 'Điền tiêu đề, mô tả và chọn bản scan (PDF, JPEG hoặc PNG) rồi bấm Gửi bản trình. Không cần chọn loại hay từ khóa.',
@@ -63,14 +65,14 @@ await gt.shot(thv.page, { title: 'Hộp thoại Trình mới', note: 'Điền ti
 await thv.page.getByRole('button', { name: 'Gửi bản trình' }).click(); await thv.page.waitForTimeout(2500);
 await go('/dms/trinh-duyet', thv.page);
 await gt.shot(thv.page, { title: 'Bản trình vừa gửi ở trạng thái Chờ duyệt', note: 'Bản trình hiện trong danh sách với trạng thái Chờ duyệt. Khi Admin duyệt hoặc từ chối, trạng thái đổi theo và bạn nhận thông báo.',
-  marks: [{ loc: thv.page.locator('tbody tr', { hasText: '[guide]' }).first(), text: 'Bản trình vừa gửi: đang chờ duyệt' }] });
+  marks: [{ loc: thv.page.locator('tbody tr', { hasText: REAL ? 'số 07/2026' : '[guide]' }).first(), text: 'Bản trình vừa gửi: đang chờ duyệt' }] });
 await go('/dms/trinh-duyet');
 await g.shot(page, { title: 'Hàng chờ duyệt của Admin', note: 'Admin thấy bản trình của mọi người. Huy hiệu đỏ trên thanh bên cho biết số bản đang chờ.',
   marks: [
     { loc: page.getByRole('link', { name: /Trình \/ Duyệt/ }).first(), text: 'Thanh bên: số bản trình đang chờ duyệt' },
-    { loc: page.locator('tbody tr', { hasText: '[guide]' }).first(), text: 'Bản trình cần xem' },
+    { loc: page.locator('tbody tr', { hasText: REAL ? 'số 07/2026' : '[guide]' }).first(), text: 'Bản trình cần xem' },
   ] });
-await page.locator('tbody tr', { hasText: '[guide]' }).first().getByRole('link').first().click(); await page.waitForTimeout(1500);
+await page.locator('tbody tr', { hasText: REAL ? 'số 07/2026' : '[guide]' }).first().getByRole('link').first().click(); await page.waitForTimeout(1500);
 await page.locator('textarea[name=note]').fill('Đã đối chiếu với hồ sơ, hợp lệ.');
 await g.shot(page, { title: 'Xem bản trình và quyết định', note: 'Xem thông tin người gửi và bản scan ngay trong trang. Nhập ghi chú rồi bấm Duyệt hoặc Từ chối.',
   detail: ['Ghi chú: bắt buộc khi từ chối, tùy chọn khi duyệt.', 'Thêm scan: bổ sung bản scan cho bản trình nếu còn thiếu.', 'Xóa scan: chỉ người có quyền xóa scan mới thấy nút này.'],
@@ -85,7 +87,7 @@ await g.shot(page, { title: 'Bản trình đã duyệt', note: 'Trạng thái ch
 
 // ---------- Sửa sau ghi sổ, xóa scan ----------
 await go('/dms/vi-bang');
-const row = page.locator('tbody tr', { hasText: '[guide]' }).first();
+const row = page.locator('tbody tr', { hasText: REAL ? 'thỏa thuận mua bán nhà' : '[guide]' }).first();
 const caseHref = await row.getByRole('link', { name: 'Xem' }).first().getAttribute('href');
 await go(caseHref);
 g.section('DMS · Admin sửa hồ sơ đã ghi sổ', 'Hồ sơ đã lưu chính thức không sửa trực tiếp. Chỉ Admin sửa được nội dung, bắt buộc nêu lý do; mỗi lần sửa tạo một phiên bản mới, bản gốc khi ghi sổ vẫn được giữ.', [
