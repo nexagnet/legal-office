@@ -24,7 +24,7 @@ type Step = 1 | 2 | 3;
 const STEPS: readonly (readonly [Step, string])[] = [
   [1, 'Nguồn & tên'],
   [2, 'Quyền và phạm vi'],
-  [3, 'Xem trước & gửi duyệt'],
+  [3, 'Xem trước & tạo nhóm'],
 ];
 
 /** Ba nhóm tab quyền: nghiệp vụ hồ sơ, văn thư, quản trị khác. Mỗi nghiệp vụ là một tab con. */
@@ -50,9 +50,8 @@ const toggled = (set: ReadonlySet<string>, code: string, on: boolean): Set<strin
 };
 
 /**
- * "Tạo nhóm quyền" (Figma P4/P5). Ba bước: nguồn & tên → quyền và phạm vi → xem trước & gửi duyệt.
- * Nhóm tạo ra là nhóm trống chưa có thành viên; sao chép đi qua API sao chép; phần quyền khác nguồn đi qua đề xuất có duyệt
- * (người đề xuất không tự duyệt). Việc "Lưu nháp" chưa có ở máy chủ nên không có nút giả.
+ * "Tạo nhóm quyền" (Figma P4/P5). Ba bước: nguồn & tên → quyền và phạm vi → xem trước & tạo nhóm.
+ * Nhóm tạo ra là nhóm trống chưa có thành viên; sao chép đi qua API sao chép; phần quyền khác nguồn áp dụng ngay qua API đổi quyền của Admin. Việc "Lưu nháp" chưa có ở máy chủ nên không có nút giả.
  */
 export function GroupWizard({
   officeId,
@@ -121,7 +120,7 @@ export function GroupWizard({
         });
         if (!r.ok) {
           setError(
-            `Nhóm đã tạo nhưng đề xuất "${permissionLabel(c.permission)}" lỗi: ${permissionMessage(r.code)}`,
+            `Nhóm đã tạo nhưng quyền "${permissionLabel(c.permission)}" lỗi: ${permissionMessage(r.code)}`,
           );
           return;
         }
@@ -344,7 +343,7 @@ export function GroupWizard({
                 <span>
                   {sensitive.length} quyền nhạy cảm
                   {wide.length > 0 ? `, trong đó ${wide.length} quyền phạm vi toàn văn phòng` : ''}.
-                  Cần lý do rõ khi gửi duyệt.
+                  Cần lý do rõ để ghi nhật ký.
                 </span>
               </div>
             ) : null}
@@ -390,7 +389,7 @@ export function GroupWizard({
             {picked.size === 0 ? <p className="muted">Nhóm trống: chưa cấp quyền nào.</p> : null}
           </section>
           <section className="wizard-card">
-            <h2>Lý do và người duyệt</h2>
+            <h2>Lý do</h2>
             <label>
               Lý do
               <input

@@ -77,7 +77,7 @@ export default async function EffectivePage({
         tone="danger"
         alert
         title="Không đủ quyền"
-        description="Xem quyền hiệu lực cần quyền đề xuất hoặc duyệt thay đổi quyền."
+        description="Xem quyền hiệu lực cần quyền quản trị phân quyền."
       />
     );
   }
@@ -362,7 +362,7 @@ export default async function EffectivePage({
         {person.isAdmin || groupsOfUser(ctx.groups, id).some(isSystemGroup) ? (
           <p className="text-sm">
             Tài khoản Admin hoặc thuộc nhóm Admin mặc nhiên có mọi quyền nên không đặt quyền riêng.
-            Quyền đề xuất, duyệt thay đổi quyền chỉ theo nhóm.
+            Quyền quản trị phân quyền chỉ theo nhóm.
           </p>
         ) : (
           <UserOverridesEditor

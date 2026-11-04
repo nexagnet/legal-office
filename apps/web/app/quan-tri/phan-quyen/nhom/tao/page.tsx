@@ -5,7 +5,7 @@ import { loadPermissionContext } from '../../../../../lib/dms-admin';
 
 export const dynamic = 'force-dynamic';
 
-/** Tạo nhóm quyền (Figma P4/P5). Cần quyền đề xuất; máy chủ vẫn ép quyền ở từng bước. */
+/** Tạo nhóm quyền (Figma P4/P5). Chỉ Admin tạo nhóm; máy chủ vẫn ép quyền ở từng bước. */
 export default async function CreateGroupPage() {
   const ctx = await loadPermissionContext();
   if (!ctx) return null;
@@ -30,7 +30,7 @@ export default async function CreateGroupPage() {
           ['Tạo nhóm quyền'],
         ]}
         title="Tạo nhóm quyền"
-        sub="Bắt đầu từ nhóm trống hoặc sao chép một nhóm, rồi chọn quyền và phạm vi. Nhóm mới chỉ có hiệu lực sau khi người có thẩm quyền duyệt."
+        sub="Bắt đầu từ nhóm trống hoặc sao chép một nhóm, rồi chọn quyền và phạm vi. Nhóm mới có hiệu lực ngay khi Admin bấm Tạo nhóm và được ghi vào nhật ký phân quyền."
       />
       <GroupWizard officeId={ctx.officeId} groups={ctx.groups} />
     </>

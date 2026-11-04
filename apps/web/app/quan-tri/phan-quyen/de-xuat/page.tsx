@@ -21,7 +21,7 @@ export default async function ProposePage({
         tone="danger"
         alert
         title="Không đủ quyền"
-        description="Chỉ người có quyền đề xuất hoặc duyệt thay đổi quyền lập được đề xuất."
+        description="Chỉ người có quyền quản trị phân quyền đổi được nhóm hoặc quyền."
       />
     );
   }
@@ -43,7 +43,7 @@ export default async function ProposePage({
           <StateCard
             mark="!"
             title="Chưa có nhóm quyền"
-            description="Tạo nhóm quyền ở tab Nhóm quyền trước, rồi quay lại để đề xuất."
+            description="Tạo nhóm quyền ở tab Nhóm quyền trước, rồi quay lại để đổi nhóm hoặc quyền."
           />
         ) : (
           <ProposeChangeForm

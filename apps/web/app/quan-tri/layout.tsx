@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { readonly children: Rea
   const isHead = session.roles.includes('TRUONG_VP');
   const officeId = session.memberships[0]?.officeId ?? session.branches[0]?.officeId;
   const cookie = await requestCookie();
-  // Phân quyền theo nhóm quyền DMS: người có quyền đề xuất/duyệt thay đổi quyền cũng vào được mục Phân quyền.
+  // Phân quyền theo nhóm quyền DMS: người được cấp quyền quản trị phân quyền cũng vào được mục Phân quyền.
   const perms = officeId ? await loadMyDmsPermissions(cookie, officeId) : [];
   const canPermissions =
     perms.includes('dms.permission.propose') || perms.includes('dms.permission.approve');
@@ -37,10 +37,7 @@ export default async function AdminLayout({ children }: { readonly children: Rea
         <h1 id="t">Quản trị</h1>
         <div className="state" role="alert">
           <h2>Không có quyền</h2>
-          <p>
-            Mục Quản trị chỉ dành cho Admin và người được cấp quyền đề xuất hoặc duyệt thay đổi
-            quyền.
-          </p>
+          <p>Mục Quản trị chỉ dành cho Admin và người được cấp quyền quản trị phân quyền.</p>
         </div>
       </section>
     );

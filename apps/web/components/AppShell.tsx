@@ -34,7 +34,6 @@ import { NavPending } from './NavPending';
 import { Avatar } from './ui/avatar';
 import { ProfileMenu } from './ProfileMenu';
 import { SearchPalette } from './SearchPalette';
-import { usePendingApprovals } from './usePendingApprovals';
 
 interface Props {
   readonly items: readonly NavItem[];
@@ -43,7 +42,6 @@ interface Props {
   /** Số hiện ở huy hiệu cạnh mục menu, theo `slug`; thiếu hoặc 0 thì không hiện. */
   readonly badges?: Readonly<Record<string, number>>;
   /** Có giá trị thì huy hiệu Hộp duyệt được nạp ở trình duyệt sau khi trang đã hiện, không chặn khung. */
-  readonly badgeOfficeId?: string;
   /** Vai hiển thị ở thẻ người dùng cuối thanh bên (không phải nguồn quyền). */
   readonly roleLabel?: string | null;
   /** Họ tên và mã người đăng nhập, để hiện avatar và tên ở thẻ người dùng; thiếu thì hiện theo vai. */
@@ -141,19 +139,6 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Cài đặt văn phòng',
     sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',
   },
-  '/so-sach/theo-doi-so': {
-    title: 'Sổ theo dõi S-03',
-    sub: 'Theo dõi thông tin cập nhật Sở Tư pháp',
-  },
-  '/hop-dong/n-03': {
-    title: 'Hợp đồng dịch vụ lập Vi bằng · N-03',
-    sub: 'Tạo từ dữ liệu, nhập DOCX/PDF, cho phép một hợp đồng gắn nhiều Vi bằng.',
-  },
-  '/bieu-mau/n-04': {
-    title: 'Biên soạn nội dung Vi bằng · N-04',
-    sub: 'THV trực tiếp chứng kiến, chịu trách nhiệm nội dung Vi bằng.',
-  },
-  '/vi-bang/tao-moi': { title: 'Tạo hồ sơ Vi bằng', sub: 'Tiếp nhận yêu cầu lập Vi bằng' },
 };
 
 /** Trang chi tiết của mục Phân quyền: tên nhóm/người nằm trong thân trang nên đầu trang dùng tên chung. */
@@ -161,19 +146,22 @@ const PERMISSION_DETAIL_HEAD: readonly [RegExp, { title: string; sub: string }][
   [
     /^\/quan-tri\/phan-quyen\/yeu-cau\/[^/]+$/,
     {
-      title: 'Duyệt thay đổi quyền',
-      sub: 'Đọc tác động, kiểm tra điều kiện rồi duyệt hoặc từ chối kèm lý do. Người đề xuất không tự duyệt.',
+      title: 'Yêu cầu đổi quyền (cũ)',
+      sub: 'Yêu cầu đổi quyền lập theo cách cũ. Từ nay Admin đổi quyền trực tiếp và mọi thay đổi ghi vào nhật ký phân quyền.',
     },
   ],
   [
     /^\/quan-tri\/phan-quyen\/nhom\/[^/]+$/,
-    { title: 'Nhóm quyền', sub: 'Quyền và thành viên của nhóm chỉ đổi qua đề xuất có duyệt.' },
+    {
+      title: 'Nhóm quyền',
+      sub: 'Chỉ Admin đổi quyền và thành viên của nhóm; mỗi thay đổi có hiệu lực ngay và được ghi nhật ký.',
+    },
   ],
   [
     /^\/quan-tri\/phan-quyen\/nguoi-dung\/[^/]+$/,
     {
       title: 'Quyền hiệu lực',
-      sub: 'Tổng hợp từ các nhóm quyền của người này. Màn này chỉ để xem; muốn đổi hãy gửi đề xuất.',
+      sub: 'Tổng hợp từ các nhóm quyền của người này. Muốn đổi, dùng nút Đổi nhóm quyền hoặc mục Quyền riêng; thay đổi có hiệu lực ngay và được ghi nhật ký.',
     },
   ],
 ];
@@ -246,8 +234,8 @@ const AUTH_PATHS: ReadonlySet<string> = new Set([
   '/dat-lai-mat-khau',
   '/doi-mat-khau',
 ]);
-/** Lối tắt trên thanh dưới (điện thoại): việc của tôi, hộp duyệt, hai nghiệp vụ dùng nhiều nhất. */
-const QUICK_SLUGS = ['viec-cua-toi', 'hop-duyet', 'vi-bang', 'tong-dat'] as const;
+/** Lối tắt trên thanh dưới (điện thoại): hồ sơ do tôi tạo, Trình / Duyệt, hai nghiệp vụ dùng nhiều nhất. */
+const QUICK_SLUGS = ['dms', 'dms-trinh-duyet', 'dms-vi-bang', 'dms-tong-dat'] as const;
 
 function AuthStage({ children }: { readonly children: ReactNode }) {
   return (
@@ -355,7 +343,6 @@ export function AppShell({
   tenantName,
   signedIn = false,
   badges: initialBadges = {},
-  badgeOfficeId,
   roleLabel = null,
   userName = null,
   userId = null,
@@ -383,8 +370,7 @@ export function AppShell({
       return !v;
     });
   };
-  const pending = usePendingApprovals(badgeOfficeId, pathname);
-  const badges = pending ? { ...initialBadges, 'hop-duyet': pending } : initialBadges;
+  const badges = initialBadges;
   const visibleCurrent = currentItem(items, pathname);
   // Người không có mục này trong menu (vd. `/dms/lich-su` với THV): tiêu đề theo đúng trang, không sáng nhầm mục cha.
   const hiddenMatch = hiddenFromRole(items, pathname, visibleCurrent);
@@ -499,10 +485,10 @@ export function AppShell({
               <Link
                 href="/thong-bao"
                 className="appbar-icon"
-                aria-label={badges['viec-cua-toi'] ? 'Thông báo: có việc đang chờ' : 'Thông báo'}
+                aria-label={badges['dms-trinh-duyet'] ? 'Thông báo: có việc đang chờ' : 'Thông báo'}
               >
                 <Bell aria-hidden="true" />
-                {badges['viec-cua-toi'] || badges['hop-duyet'] ? (
+                {badges['dms-trinh-duyet'] ? (
                   <span className="appbar-dot" aria-hidden="true" />
                 ) : null}
               </Link>

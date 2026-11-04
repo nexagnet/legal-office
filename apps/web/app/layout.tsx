@@ -39,8 +39,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         )
       : false;
   const items = allItems.filter((i) => i.slug !== 'dms-van-phong' || showOfficeCases);
-  const badgeOfficeId =
-    officeId && items.some((i) => i.slug === 'hop-duyet') ? officeId : undefined;
   // Huy hiệu "Trình / Duyệt" chỉ có nghĩa với Admin (người duyệt); lỗi tải thì coi như 0, không làm hỏng khung trang.
   const pendingSubmissions =
     officeId && session.status === 'authenticated' && session.roles.includes('ADMIN')
@@ -62,7 +60,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <AppShell
           items={items}
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
-          badgeOfficeId={badgeOfficeId}
           badges={pendingSubmissions ? { 'dms-trinh-duyet': pendingSubmissions } : undefined}
           signedIn={session.status === 'authenticated'}
           userName={session.status === 'authenticated' ? (session.displayName ?? null) : null}

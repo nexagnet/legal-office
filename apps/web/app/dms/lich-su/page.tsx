@@ -144,15 +144,18 @@ export default async function ActivityPage({
       ) : null}
       <form method="get" action="/dms/lich-su" role="search" className="dms-filters">
         {group ? <input type="hidden" name="group" value={group} /> : null}
-        <label>
-          <span className="sr-only">Tìm hoạt động</span>
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Tìm theo số hồ sơ, tên hồ sơ, bản trình hoặc người làm"
-            maxLength={200}
-          />
-        </label>
+        <div>
+          <label>
+            <span className="sr-only">Tìm hoạt động</span>
+            <input
+              type="search"
+              name="q"
+              defaultValue={q}
+              placeholder="Tìm theo số hồ sơ, tên hồ sơ, bản trình hoặc người làm"
+              maxLength={200}
+            />
+          </label>
+        </div>
         <button type="submit">Tìm</button>
       </form>
       {list.rows.length === 0 ? (

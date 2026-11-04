@@ -41,7 +41,7 @@ export default async function RequestPage({
         tone="danger"
         alert
         title="Không đủ quyền"
-        description="Xem yêu cầu đổi quyền cần quyền đề xuất hoặc duyệt thay đổi quyền."
+        description="Xem yêu cầu đổi quyền cần quyền quản trị phân quyền."
       />
     );
   }
