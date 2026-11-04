@@ -30,7 +30,7 @@ const STEPS: readonly [string, string, string][] = [
   [
     '3 · Hoạt động',
     'ok',
-    'Đăng nhập bằng link email. Quyền hiệu lực = quyền của các nhóm + quyền thêm riêng − quyền bỏ riêng.',
+    'Đăng nhập bằng email hoặc CCCD cùng mật khẩu ban đầu, rồi đổi mật khẩu ngay. Quyền hiệu lực = quyền của các nhóm + quyền thêm riêng − quyền bỏ riêng.',
   ],
 ];
 
@@ -122,6 +122,8 @@ export function AddMemberForm({
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    if (String(f.get('password') ?? '') !== String(f.get('passwordConfirm') ?? ''))
+      return setError('Hai mật khẩu chưa giống nhau.');
     setBusy(true);
     setError(null);
     try {
@@ -132,6 +134,8 @@ export function AddMemberForm({
           officeId,
           email: String(f.get('email') ?? '').trim(),
           fullName: String(f.get('fullName') ?? '').trim(),
+          password: String(f.get('password') ?? ''),
+          ...(String(f.get('cccd') ?? '').trim() ? { cccd: String(f.get('cccd')).trim() } : {}),
           groupIds: chosen.map((g) => g.id),
           ...(customized ? { permissions: [...value] } : {}),
           ...(branchPicked.size > 0 ? { branchIds: [...branchPicked] } : {}),
@@ -139,7 +143,10 @@ export function AddMemberForm({
         }),
       });
       const json = (await res.json().catch(() => ({}))) as { code?: string; label?: string };
-      if (!res.ok) return setError(permissionMessage(json.code));
+      if (!res.ok)
+        return setError(
+          json.code === 'WEAK_PASSWORD' && json.label ? json.label : permissionMessage(json.code),
+        );
       router.push(
         json.label ? `/quan-tri/phan-quyen/nguoi-dung/${json.label}` : '/quan-tri/nhan-su',
       );
@@ -163,9 +170,43 @@ export function AddMemberForm({
           <label>
             Email đăng nhập
             <input name="email" type="email" required maxLength={254} autoComplete="off" />
+            <small>Email cũng là nơi nhận link khi người dùng quên mật khẩu.</small>
+          </label>
+          <label>
+            Số CCCD (không bắt buộc)
+            <input
+              name="cccd"
+              inputMode="numeric"
+              pattern="\d{12}"
+              maxLength={12}
+              autoComplete="off"
+            />
             <small>
-              Người dùng bấm link trong email để đăng nhập, không ai biết mật khẩu của họ.
+              12 chữ số, không trùng tài khoản khác. Có CCCD thì đăng nhập được bằng CCCD.
             </small>
+          </label>
+          <label>
+            Mật khẩu ban đầu (tối thiểu 12 ký tự)
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={12}
+              maxLength={200}
+              autoComplete="new-password"
+            />
+            <small>Người dùng phải đổi mật khẩu này ở lần đăng nhập đầu tiên.</small>
+          </label>
+          <label>
+            Nhập lại mật khẩu
+            <input
+              name="passwordConfirm"
+              type="password"
+              required
+              minLength={12}
+              maxLength={200}
+              autoComplete="new-password"
+            />
           </label>
         </section>
 
@@ -274,8 +315,8 @@ export function AddMemberForm({
             </Pill>
           </div>
           <label>
-            Lý do
-            <input name="reason" required maxLength={1000} />
+            Ghi chú (không bắt buộc)
+            <input name="reason" maxLength={1000} />
           </label>
         </section>
 

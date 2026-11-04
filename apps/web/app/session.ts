@@ -19,6 +19,8 @@ export type Session =
       readonly tenantName: string;
       readonly userId?: string;
       readonly displayName?: string | null;
+      /** Mật khẩu do Admin đặt / tài khoản mới: phải đổi ngay trước khi dùng tiếp. */
+      readonly mustChangePassword?: boolean;
       readonly memberships: readonly Membership[];
       readonly branches: readonly Branch[];
     };
@@ -39,6 +41,7 @@ export type Fetcher = (url: string, init: { headers: Record<string, string> }) =
 interface MeBody {
   readonly userId?: string;
   readonly displayName?: string | null;
+  readonly mustChangePassword?: boolean;
   readonly memberships?: readonly { officeId: string; role: string; legalSigner: boolean }[];
   readonly branches?: readonly Branch[];
 }
@@ -84,6 +87,7 @@ export async function loadSession(
       tenantName,
       userId: body.userId,
       displayName: body.displayName ?? null,
+      mustChangePassword: body.mustChangePassword === true,
       memberships,
       branches: body.branches ?? [],
     };

@@ -34,7 +34,13 @@ const MESSAGES: Record<string, string> = {
   CASE_NOT_UNASSIGNED:
     'Có hồ sơ đã được gắn chi nhánh từ trước nên không đổi được. Tải lại trang để xem danh sách mới.',
   INVALID_CUSTOMER: 'Loại khách hàng không hợp lệ.',
-  INVALID_CREDENTIALS: 'Email hoặc mật khẩu không đúng.',
+  INVALID_CREDENTIALS: 'Email, số CCCD hoặc mật khẩu không đúng.',
+  WRONG_PASSWORD: 'Mật khẩu hiện tại chưa đúng.',
+  PASSWORD_UNCHANGED: 'Mật khẩu mới phải khác mật khẩu hiện tại.',
+  RESET_INVALID:
+    'Link đặt lại mật khẩu không hợp lệ, đã dùng hoặc đã hết hạn. Hãy yêu cầu link mới.',
+  CCCD_IN_USE: 'Số CCCD này đã gắn với một tài khoản khác.',
+  INVALID_CCCD: 'Số CCCD phải đủ 12 chữ số.',
   EDIT_WINDOW_CLOSED: 'Đã quá 48 giờ, hãy lập đề nghị thay đổi.',
   CUSTOMER_LOCKED:
     'Khách này đã có hồ sơ quá 48 giờ hoặc đã cấp số, hãy lập đề nghị thay đổi trong hồ sơ để Admin duyệt.',

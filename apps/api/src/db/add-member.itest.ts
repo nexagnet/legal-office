@@ -11,6 +11,8 @@ import { verifyPassword } from '../auth/password';
 
 // Cần PostgreSQL tạm. HTTP thật + DB thật + vai legal_app có RLS. Dữ liệu giả lập.
 const ADMIN_URL = process.env.DATABASE_URL;
+const PW_INIT = 'mat-khau-ban-dau-12';
+const PW_TMP = 'mat-khau-tam-12345';
 const DIR = resolve(__dirname, '../../drizzle');
 const MIGRATION = readdirSync(DIR)
   .filter((f) => f.endsWith('.sql'))
@@ -121,6 +123,7 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
       email: 'Moi@Example.TEST',
       fullName: 'Người Mới',
       groupIds: [G.clerk],
+      password: PW_INIT,
       reason: 'nhân sự mới giả lập',
       ...body,
     });
@@ -146,7 +149,8 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
       [T, G.clerk],
     );
     const r = await add(U.admin, {
-      temporaryPassword: 'mat-khau-tam-12345',
+      password: PW_TMP,
+      cccd: '012345678901',
       groupIds: [G.clerk, G.reader, G.clerk],
     });
     expect(r.status).toBe(200);
@@ -155,10 +159,13 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
       { role: 'THANH_VIEN', legal_signer: false, groups: ['Văn thư', 'Đọc'] },
     ]);
     const cred = await owner.query(
-      `SELECT c.password_hash, u.full_name, u.external_ref FROM auth_credentials c JOIN users u ON u.id = c.user_id WHERE c.email = 'moi@example.test'`,
+      `SELECT c.password_hash, c.cccd, c.must_change_password, u.full_name, u.external_ref FROM auth_credentials c JOIN users u ON u.id = c.user_id WHERE c.email = 'moi@example.test'`,
     );
     expect(cred.rows[0].full_name).toBe('Người Mới');
-    expect(await verifyPassword('mat-khau-tam-12345', cred.rows[0].password_hash)).toBe(true);
+    // Tài khoản mới phải đổi mật khẩu ở lần đăng nhập đầu; CCCD được lưu.
+    expect(cred.rows[0].must_change_password).toBe(true);
+    expect(cred.rows[0].cccd).toBe('012345678901');
+    expect(await verifyPassword(PW_TMP, cred.rows[0].password_hash)).toBe(true);
     // Hiệu lực ngay, nhưng chỉ theo nhóm: không quyền nào từ vai.
     const eff = await api('GET', `/dms/me/permissions?officeId=${OFF}`, uid);
     expect(JSON.stringify(eff.json)).toContain('vtden.read.own');
@@ -185,11 +192,14 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
     expect(
       (await add(U.admin, { email: 'a2@example.test', groupIds: [G.otherOffice] })).status,
     ).toBe(404);
-    expect(
-      (await add(U.admin, { email: 'a3@example.test', temporaryPassword: 'ngan' })).status,
-    ).toBe(400);
+    // Mật khẩu bắt buộc và đủ mạnh (tối thiểu 12 ký tự).
+    expect((await add(U.admin, { email: 'a3@example.test', password: 'ngan' })).status).toBe(422);
+    expect((await add(U.admin, { email: 'a4@example.test', password: undefined })).status).toBe(
+      400,
+    );
     expect((await add(U.admin, { email: 'khong-hop-le' })).status).toBe(422);
-    expect((await add(U.admin, { email: 'a5@example.test', reason: ' ' })).status).toBe(400);
+    // CCCD phải đủ 12 chữ số; lý do không còn bắt buộc.
+    expect((await add(U.admin, { email: 'a5@example.test', cccd: '123' })).status).toBe(400);
     expect((await add(U.admin, { email: 'a6@example.test', role: 'ADMIN' })).status).toBe(400);
     const none = await owner.query(`SELECT 1 FROM auth_credentials WHERE email ~ '^a[1-6]@'`);
     expect(none.rowCount).toBe(0);
@@ -233,13 +243,22 @@ describe.skipIf(!ADMIN_URL)('Add member + branches (HTTP + PostgreSQL)', () => {
     expect((list.json.rows as unknown[]).length).toBeGreaterThanOrEqual(1);
   });
 
-  it('without a temporary password the stored hash matches no guessable password', async () => {
-    const r = await add(U.admin, { email: 'link@example.test' });
+  it('the initial password is stored hashed, the reason is optional and a duplicate CCCD is refused', async () => {
+    const r = await add(U.admin, { email: 'link@example.test', reason: undefined });
     expect(r.status).toBe(200);
     const h = await owner.query(
       `SELECT password_hash FROM auth_credentials WHERE email = 'link@example.test'`,
     );
-    expect(await verifyPassword('', h.rows[0].password_hash)).toBe(false);
+    expect(h.rows[0].password_hash).not.toContain('mat-khau-ban-dau-12');
+    expect(await verifyPassword(PW_INIT, h.rows[0].password_hash)).toBe(true);
+    // CCCD trùng trong cùng tenant bị từ chối và không tạo tài khoản nào.
+    const dup = await add(U.admin, { email: 'cccd-trung@example.test', cccd: '012345678901' });
+    expect(dup.status).toBe(422);
+    expect(dup.json.code).toBe('CCCD_IN_USE');
+    const none = await owner.query(
+      `SELECT 1 FROM auth_credentials WHERE email = 'cccd-trung@example.test'`,
+    );
+    expect(none.rowCount).toBe(0);
   });
 
   it('refuses duplicate emails and callers without approve permission or from another tenant', async () => {

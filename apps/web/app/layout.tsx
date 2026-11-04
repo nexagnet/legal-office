@@ -2,6 +2,7 @@ import NextTopLoader from 'nextjs-toploader';
 import type { ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
 import { AppToaster } from '../components/AppToaster';
+import { ForcePasswordChange } from '../components/ForcePasswordChange';
 import '@fontsource/be-vietnam-pro/400.css';
 import '@fontsource/be-vietnam-pro/500.css';
 import '@fontsource/be-vietnam-pro/600.css';
@@ -39,6 +40,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="vi">
       <body>
+        {session.status === 'authenticated' && session.mustChangePassword ? (
+          <ForcePasswordChange />
+        ) : null}
         <NextTopLoader
           color="#c9a24a"
           height={2}

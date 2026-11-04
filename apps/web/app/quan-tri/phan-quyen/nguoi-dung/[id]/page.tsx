@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { BranchAccessSection } from '../../../../../components/permissions/BranchAccessSection';
 import { MemberSuspendButton } from '../../../../../components/permissions/MemberSuspendButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
+import { ResetMemberPasswordButton } from '../../../../../components/permissions/ResetMemberPasswordButton';
 import { UserOverridesEditor } from '../../../../../components/permissions/UserOverridesEditor';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
 import { Avatar } from '../../../../../components/ui/avatar';
@@ -113,6 +114,9 @@ export default async function EffectivePage({
         <div className="flex flex-wrap items-center gap-2">
           {ctx.canApprove && id !== ctx.userId ? (
             <MemberSuspendButton userId={id} officeId={ctx.officeId} suspended={person.suspended} />
+          ) : null}
+          {ctx.canApprove && id !== ctx.userId && person.email ? (
+            <ResetMemberPasswordButton userId={id} email={person.email} />
           ) : null}
           {ctx.canPropose ? (
             <Link

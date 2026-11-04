@@ -32,11 +32,28 @@ interface HeaderSource {
   headers: IncomingHttpHeaders;
 }
 
+/** `email` là định danh đăng nhập: email hoặc số CCCD 12 chữ số (tên trường giữ nguyên để không vỡ máy khách cũ). */
 const loginBody = z
   .object({
     tenantId: z.string().uuid(),
     email: z.string().min(3).max(254),
     password: z.string().min(1).max(MAX_PASSWORD_LENGTH),
+  })
+  .strict();
+const forgotBody = z
+  .object({ tenantId: z.string().uuid(), identifier: z.string().trim().min(3).max(254) })
+  .strict();
+const resetBody = z
+  .object({
+    tenantId: z.string().uuid(),
+    token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+    password: z.string().max(MAX_PASSWORD_LENGTH),
+  })
+  .strict();
+const changeBody = z
+  .object({
+    currentPassword: z.string().min(1).max(MAX_PASSWORD_LENGTH),
+    newPassword: z.string().max(MAX_PASSWORD_LENGTH),
   })
   .strict();
 const emailLoginBody = z
@@ -89,6 +106,87 @@ export class AuthController {
       'Set-Cookie',
       this.cookie(result.cookieValue, this.auth.config.sessionTtlMinutes * 60),
     );
+    return { code: 'ALLOWED', label: null, mustChangePassword: result.mustChange };
+  }
+
+  /**
+   * Quên mật khẩu: nhận email hoặc CCCD, gửi link đặt lại vào email của tài khoản. LUÔN trả cùng một phản hồi, bất kể
+   * tài khoản có tồn tại, tenant có SMTP hay không, để không dò được tài khoản.
+   */
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() raw: unknown, @Res({ passthrough: true }) res: HeaderSink) {
+    const parsed = forgotBody.safeParse(raw);
+    if (!parsed.success) throw new BadRequestException('Dữ liệu không hợp lệ');
+    await this.auth.forgotPassword(parsed.data.tenantId, parsed.data.identifier);
+    res.setHeader('Cache-Control', 'no-store');
+    return { code: 'RESET_REQUESTED', label: null };
+  }
+
+  /** Đặt mật khẩu mới bằng mã trong email (dùng một lần, có hạn). Đúng thì mọi phiên cũ bị thu hồi. */
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() raw: unknown, @Res({ passthrough: true }) res: HeaderSink) {
+    const parsed = resetBody.safeParse(raw);
+    if (!parsed.success) throw new BadRequestException('Dữ liệu không hợp lệ');
+    const weak = passwordPolicyError(parsed.data.password);
+    if (weak)
+      throw new HttpException(
+        { code: 'WEAK_PASSWORD', label: weak },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    res.setHeader('Cache-Control', 'no-store');
+    const ok = await this.auth.resetPassword(
+      parsed.data.tenantId,
+      parsed.data.token,
+      parsed.data.password,
+    );
+    if (!ok)
+      throw new HttpException(
+        { code: 'RESET_INVALID', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    return { code: 'ALLOWED', label: null };
+  }
+
+  /** Tự đổi mật khẩu (bắt buộc ở lần đăng nhập đầu hoặc sau khi Admin đặt lại). Cần mật khẩu hiện tại. */
+  @Post('change-password')
+  @UseGuards(ActorGuard)
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @CurrentActor() a: AuthenticatedActor,
+    @Body() raw: unknown,
+    @Req() req: HeaderSource,
+    @Res({ passthrough: true }) res: HeaderSink,
+  ) {
+    const parsed = changeBody.safeParse(raw);
+    if (!parsed.success) throw new BadRequestException('Dữ liệu không hợp lệ');
+    const weak = passwordPolicyError(parsed.data.newPassword);
+    if (weak)
+      throw new HttpException(
+        { code: 'WEAK_PASSWORD', label: weak },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    if (parsed.data.newPassword === parsed.data.currentPassword)
+      throw new HttpException(
+        { code: 'PASSWORD_UNCHANGED', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    const session = AuthService.parseCookieValue(readCookie(req.headers, SESSION_COOKIE));
+    if (!session) throw new UnauthorizedException({ code: 'UNAUTHENTICATED', label: null });
+    res.setHeader('Cache-Control', 'no-store');
+    const result = await this.auth.changePassword(
+      a.tenantId,
+      a.userId,
+      session.token,
+      parsed.data.currentPassword,
+      parsed.data.newPassword,
+    );
+    if (result !== 'ok')
+      throw new HttpException(
+        { code: 'WRONG_PASSWORD', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     return { code: 'ALLOWED', label: null };
   }
 
@@ -178,6 +276,7 @@ export class AuthController {
       userId: a.userId,
       tenantId: a.tenantId,
       displayName: await this.auth.displayName(a.tenantId, a.userId),
+      mustChangePassword: await this.auth.mustChangePassword(a.tenantId, a.userId),
       memberships: await this.auth.memberships(a.tenantId, a.userId),
       branches: await this.auth.branches(a.tenantId, a.userId),
     };
