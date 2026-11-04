@@ -193,15 +193,18 @@ const MESSAGES: Record<string, string> = {
   OUTCOME_REQUIRED: 'Cần ghi kết quả thực tế của việc chấm dứt.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
   PERMISSION_DENIED: 'Nhóm quyền của bạn chưa cho phép thao tác này.',
-  CASE_NOT_DRAFT: 'Hồ sơ đã lưu chính thức, không sửa trực tiếp được. Hãy lập yêu cầu sửa đổi.',
+  CASE_NOT_DRAFT:
+    'Hồ sơ đã lưu chính thức nên không sửa trực tiếp được. Bạn chỉ tải thêm bản scan; việc sửa nội dung do Admin thực hiện.',
   CASE_CANCELLED: 'Hồ sơ nháp này đã hủy.',
   THV_CONFIRMATION_REQUIRED:
     'Hồ sơ có ghi tên thừa hành viên. Chính thừa hành viên đó phải xác nhận nội dung trước khi lưu chính thức.',
   THV_CONFIRMATION_STALE:
     'Nội dung đã đổi sau khi thừa hành viên xác nhận. Thừa hành viên cần xác nhận lại.',
-  CASE_NOT_RECORDED: 'Chỉ hồ sơ đã lưu chính thức mới lập yêu cầu sửa đổi. Bản nháp sửa trực tiếp.',
+  CASE_NOT_RECORDED:
+    'Thao tác này chỉ dùng cho hồ sơ đã lưu chính thức. Bản nháp thì sửa trực tiếp.',
   OBJECT_KEY_IN_USE: 'Tệp này đã được dùng ở nơi khác. Hãy tải lên lại.',
-  DOCUMENT_NOT_DRAFT: 'Tài liệu đã lưu chính thức, không sửa trực tiếp được.',
+  DOCUMENT_NOT_DRAFT:
+    'Tài liệu đã lưu chính thức nên không sửa trực tiếp được. Bạn chỉ tải thêm bản scan.',
   INVALID_DOMAIN: 'Nghiệp vụ không hợp lệ.',
   INVALID_INPUT: 'Thông tin chưa hợp lệ. Kiểm tra lại các trường bắt buộc.',
   SELF_APPROVAL_NOT_ALLOWED: 'Người đề xuất không được tự duyệt yêu cầu của mình.',

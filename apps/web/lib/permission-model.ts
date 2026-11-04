@@ -66,7 +66,7 @@ export const PERMISSION_ACTIONS = [
   ['confirm', 'Xác nhận lưu chính thức'],
   ['add_document', 'Thêm tài liệu và tải tệp lên'],
   ['download', 'Tải tệp, in'],
-  ['amend_request', 'Đề nghị sửa đổi hồ sơ đã lưu'],
+  ['amend_request', 'Đề nghị sửa đổi (không còn dùng)'],
 ] as const;
 
 export const SCOPE_LABEL: Readonly<Record<string, string>> = {
@@ -78,7 +78,7 @@ export const SCOPE_LABEL: Readonly<Record<string, string>> = {
 export const SPECIAL_PERMISSIONS: Readonly<Record<string, string>> = {
   'dms.permission.propose': 'Đề xuất đổi quyền',
   'dms.permission.approve': 'Duyệt thay đổi quyền',
-  'dms.amendment.approve': 'Duyệt yêu cầu sửa đổi hồ sơ',
+  'dms.amendment.approve': 'Duyệt yêu cầu sửa đổi (không còn dùng)',
   'dms.stock.write': 'Nhập, xuất, kiểm kê văn phòng phẩm',
   'dms.legacy.import': 'Nhập tài liệu cũ',
   'dms.legacy.read': 'Xem tài liệu cũ đã nhập',
@@ -521,7 +521,7 @@ export const formatWhen = (iso: string): string => dateTime.format(new Date(iso)
 
 /** Giới hạn bắt buộc theo nghiệp vụ (Figma P2): luật cứng, không nhóm quyền hay quyền riêng nào mở được. */
 const RECORD_LIMIT =
-  'Bản nháp sửa tự do đến khi xác nhận lưu chính thức. Sau đó không xóa, không sửa trực tiếp; chỉ sửa qua đề nghị kèm bản quét căn cứ.';
+  'Bản nháp sửa tự do đến khi xác nhận lưu chính thức. Sau đó không xóa; nhân viên chỉ tải thêm bản scan, chỉ Admin sửa được nội dung (có lý do, lưu thành phiên bản mới).';
 const BOOK_LIMIT =
   'Số đến và STT do hệ thống tự đánh; không tự cấp số hoặc ký hiệu văn bản pháp lý.';
 export const DOMAIN_LIMIT: Readonly<Record<string, string>> = {

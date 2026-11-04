@@ -6,14 +6,12 @@ import type { DmsFilter } from './dms';
 export function filterToParams(
   filter: DmsFilter,
   year: number,
-): { status: 'RECORDED' | 'DRAFT' | 'CANCELLED'; year?: number; scan?: string; pending?: string } {
+): { status: 'RECORDED' | 'DRAFT' | 'CANCELLED'; year?: number; scan?: string } {
   switch (filter) {
     case 'nhap':
       return { status: 'DRAFT' };
     case 'da-huy':
       return { status: 'CANCELLED' };
-    case 'cho-duyet':
-      return { status: 'RECORDED', year, pending: 'true' };
     case 'thieu-scan':
       return { status: 'RECORDED', year, scan: 'missing' };
     case 'du-scan':
@@ -41,7 +39,6 @@ export function viewToSavedParams(v: DmsView): DmsSavedParams {
   const base = filterToParams(v.filter, v.year ?? 0);
   const out: Record<string, string | number | boolean> = { status: base.status };
   if (base.scan) out.scan = base.scan;
-  if (base.pending) out.pending = true;
   if (v.year && base.year !== undefined) out.year = v.year;
   if (v.q?.trim()) out.q = v.q.trim();
   if (v.creator) out.creator = v.creator;
@@ -55,7 +52,6 @@ export function savedParamsToHref(base: string, p: DmsSavedParams): string {
   let loc: DmsFilter = 'chinh-thuc';
   if (p.status === 'DRAFT') loc = 'nhap';
   else if (p.status === 'CANCELLED') loc = 'da-huy';
-  else if (p.pending === true || p.pending === 'true') loc = 'cho-duyet';
   else if (p.scan === 'missing') loc = 'thieu-scan';
   else if (p.scan === 'complete') loc = 'du-scan';
   const qs = new URLSearchParams();
