@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
-// Dựng PDF hướng dẫn từ docs/user-guide/roles/*.json: 6 PDF theo vai (phần chung + phần của vai) và 1 bản đầy đủ.
-// Dùng: node build-pdf.mjs [vai|day-du]   (GUIDE_SHA=<mã bản deploy> để ghi lên bìa)
+// Dựng MỘT PDF hướng dẫn đầy đủ (phần chung + phần của từng vai) từ docs/user-guide/roles/*.json.
+// Dùng: node build-pdf.mjs   (GUIDE_SHA=<mã bản deploy> để ghi lên bìa)
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../docs/user-guide');
 const ROLES = path.join(ROOT, 'roles'), PDF = path.join(ROOT, 'pdf');
 fs.mkdirSync(PDF, { recursive: true });
@@ -34,7 +34,7 @@ ${st.detail?.length ? `<ul class="detail">${st.detail.map((d) => `<li>${esc(d)}<
 ${s.problems?.length ? `<div class="problems"><h3>Lỗi thường gặp và cách xử lý</h3><table><tr><th style="width:38%">Hiện tượng</th><th>Cách xử lý</th></tr>${s.problems.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</table></div>` : ''}`;
 const tocHtml = (parts) => { let n = 0; return `<div class="toc"><h2>Mục lục</h2><ol>${parts.map((p) => `${p.title ? `<li class="p">${esc(p.title)}</li>` : ''}${p.sections.map((s) => `<li>${++n}. ${esc(nice(s.title))}</li>`).join('')}`).join('')}</ol></div>`; };
 const body = (parts, base) => { let n = 0; return parts.map((p) => `${p.title ? `<h1 class="part">${esc(p.title)}</h1>` : ''}${p.sections.map((s) => sectionHtml(s, base, ++n)).join('')}`).join(''); };
-const page = (title, parts, base) => `<!doctype html><html lang="vi"><meta charset="utf-8"><style>${css}</style><body>${cover(title)}${tocHtml(parts)}${body(parts, base)}</body></html>`;
+const page = (title, parts, base) => `<!doctype html><html lang="vi"><meta charset="utf-8"><title>${esc(title)}</title><style>${css}</style><body>${cover(title)}${tocHtml(parts)}${body(parts, base)}</body></html>`;
 const read = (f) => JSON.parse(fs.readFileSync(path.join(ROLES, f), 'utf8'));
 const only = process.argv[2];
 const b = await chromium.launch({ executablePath: 'C:/Users/phung/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe' });
@@ -47,6 +47,5 @@ const out = async (name, title, parts) => {
   fs.unlinkSync(tmp); console.log('pdf', name, (fs.statSync(path.join(PDF, `huong-dan-${name}.pdf`)).size / 1048576).toFixed(1) + ' MB'); await pg.close();
 };
 const roles = Object.keys(TITLES);
-if (only !== 'day-du') for (const r of roles) { if (only && only !== r) continue; const j = read(r + '.json'); await out(r, `Hướng dẫn dành cho ${TITLES[r]}`, [{ sections: chung.sections }, { sections: j.sections }]); }
-if (!only || only === 'day-du') await out('day-du', 'Hướng dẫn sử dụng đầy đủ', [{ title: 'Phần chung cho mọi vai', sections: chung.sections }, ...roles.map((r) => ({ title: `Dành cho ${TITLES[r]}`, sections: read(r + '.json').sections }))]);
+await out('day-du', 'Hướng dẫn sử dụng đầy đủ', [{ title: 'Phần chung cho mọi vai', sections: chung.sections }, ...roles.map((r) => ({ title: `Dành cho ${TITLES[r]}`, sections: read(r + '.json').sections }))]);
 await b.close();
