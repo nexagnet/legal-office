@@ -15,6 +15,13 @@ CHUẨN BỊ (làm một lần)
      b. Nhấn F12 -> thẻ "Application" -> "Cookies" -> chọn https://<tên-miền-hệ-thống-của-bạn> -> dòng lo_session.
      c. Nhấp đúp vào cột "Value", copy toàn bộ giá trị, dán sau "lo_session=".
    Cookie này tương đương mật khẩu. KHÔNG gửi cho ai, và XOÁ tệp lo-import.env khi nhập xong.
+   CÁCH KHUYÊN DÙNG cho đợt nhập dài (200 GB, vài chục giờ): thay LO_COOKIE bằng ba dòng sau, chương trình tự
+   đăng nhập và tự đăng nhập lại khi phiên hết hạn, không cần người ngồi canh:
+     LO_TENANT_ID=<mã văn phòng/tenant do người phụ trách cung cấp>
+     LO_LOGIN=<email hoặc số CCCD của tài khoản nhập liệu>
+     LO_PASSWORD=<mật khẩu>
+   Tài khoản này phải đã đăng nhập trên web và đổi mật khẩu lần đầu. Dùng tài khoản riêng cho việc nhập, và
+   XOÁ tệp lo-import.env (hoặc đổi mật khẩu) khi xong.
 3. Mở "Command Prompt" (cmd) rồi chuyển vào thư mục đã giải nén:  cd /d C:\lo-import
 
 CÁC BƯỚC NHẬP
@@ -45,7 +52,7 @@ NẾU CÓ SỰ CỐ
   tiến độ (tệp lo-import-<mã đợt>.jsonl nằm trong thư mục bạn đang đứng) và làm nốt phần còn lại.
   Đừng xoá tệp .jsonl này trước khi đóng đợt.
 - "Phiên đăng nhập đã hết hạn": đăng nhập lại trên Chrome, lấy giá trị lo_session mới, dán vào cửa sổ lệnh
-  khi chương trình hỏi rồi nhấn Enter. Phiên sống khoảng 12 giờ nên nhập cả kho thường phải làm bước này.
+  khi chương trình hỏi rồi nhấn Enter. Phiên sống khoảng 12 giờ; dùng cách đăng nhập tự động ở trên thì không cần làm bước này.
 - Cuối lệnh run có mục "failed": liệt kê tệp lỗi và lý do. Chạy lại lệnh run để thử lại các tệp đó.
   Tệp lớn hơn 5 GiB bị từ chối (FILE_TOO_LARGE): báo lại cho người phụ trách.
 - Mã thoát: 0 = xong; 2 = còn tệp lỗi; 3 = dừng vì hết phiên đăng nhập.

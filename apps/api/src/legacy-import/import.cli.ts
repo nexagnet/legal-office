@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { parseArgs } from 'node:util';
-import { ImportApi } from './client';
+import { ImportApi, loginForCookie } from './client';
 import { Ledger } from './ledger';
 import { runImport } from './run';
 import { scan, toLongPath } from './scan';
@@ -12,6 +12,8 @@ const USAGE = `lo-import: nhập tài liệu cũ vào Legal Office DMS (chỉ l�
 Cấu hình (trong tệp lo-import.env cạnh chương trình, hoặc biến môi trường):
   LO_API_URL=https://www.nexagnet.com/api
   LO_COOKIE=lo_session=<giá trị cookie đăng nhập>
+  hoặc (khuyên dùng cho đợt nhập dài, tự đăng nhập lại khi phiên hết hạn, không cần người túc trực):
+  LO_TENANT_ID=<mã văn phòng/tenant>  LO_LOGIN=<email hoặc số CCCD>  LO_PASSWORD=<mật khẩu>
 
   scan   <thư-mục>                                  đếm tệp và dung lượng, không gửi gì
   open   --office <id> --label <tên> [<thư-mục>]    mở một đợt nhập, in mã đợt
@@ -49,15 +51,22 @@ async function askNewCookie(): Promise<string | null> {
   }
 }
 
-function apiFromEnv(): ImportApi {
-  const baseUrl = process.env.LO_API_URL;
-  const cookie = process.env.LO_COOKIE;
-  if (!baseUrl || !cookie) throw new Error('Thiếu LO_API_URL hoặc LO_COOKIE (xem lo-import.env)');
-  return new ImportApi({
-    baseUrl: baseUrl.replace(/\/$/, ''),
-    headers: { cookie },
-    onUnauthorized: askNewCookie,
-  });
+async function apiFromEnv(): Promise<ImportApi> {
+  const baseUrl = process.env.LO_API_URL?.replace(/\/$/, '');
+  const { LO_COOKIE, LO_TENANT_ID, LO_LOGIN, LO_PASSWORD } = process.env;
+  if (!baseUrl) throw new Error('Thiếu LO_API_URL (xem lo-import.env)');
+  if (LO_TENANT_ID && LO_LOGIN && LO_PASSWORD) {
+    const relogin = () => loginForCookie(baseUrl, LO_TENANT_ID, LO_LOGIN, LO_PASSWORD);
+    const cookie = await relogin();
+    if (!cookie) {
+      throw new Error(
+        'Đăng nhập tự động thất bại: sai thông tin, tài khoản bị khóa, hoặc chưa đổi mật khẩu lần đầu (đăng nhập trên web để đổi trước)',
+      );
+    }
+    return new ImportApi({ baseUrl, headers: { cookie }, onUnauthorized: relogin });
+  }
+  if (!LO_COOKIE) throw new Error('Thiếu LO_COOKIE hoặc bộ LO_TENANT_ID + LO_LOGIN + LO_PASSWORD');
+  return new ImportApi({ baseUrl, headers: { cookie: LO_COOKIE }, onUnauthorized: askNewCookie });
 }
 
 const fmtBytes = (n: number) => `${(n / 1024 ** 3).toFixed(2)} GiB`;
@@ -91,11 +100,9 @@ async function main(): Promise<number> {
     }
     case 'open': {
       if (!values.office || !values.label) throw new Error(USAGE);
-      const r = await apiFromEnv().openBatch(
-        values.office,
-        values.label,
-        dir ? resolve(dir) : undefined,
-      );
+      const r = await (
+        await apiFromEnv()
+      ).openBatch(values.office, values.label, dir ? resolve(dir) : undefined);
       console.log(`Mã đợt: ${r.label}`);
       return 0;
     }
@@ -106,7 +113,7 @@ async function main(): Promise<number> {
       const sum = await runImport({
         root: toLongPath(resolve(dir)),
         batchId: values.batch,
-        api: apiFromEnv(),
+        api: await apiFromEnv(),
         ledger,
         concurrency: Number(values.concurrency),
         skipAbsPaths: new Set([ledgerPath]),
@@ -123,7 +130,7 @@ async function main(): Promise<number> {
     }
     case 'report': {
       if (!values.batch) throw new Error(USAGE);
-      const server = await apiFromEnv().report(values.batch);
+      const server = await (await apiFromEnv()).report(values.batch);
       const local = (await Ledger.open(resolve(`lo-import-${values.batch}.jsonl`))).summary();
       console.log(
         JSON.stringify(
@@ -136,7 +143,7 @@ async function main(): Promise<number> {
     }
     case 'close': {
       if (!values.batch) throw new Error(USAGE);
-      await apiFromEnv().close(values.batch);
+      await (await apiFromEnv()).close(values.batch);
       console.log('Đã đóng đợt.');
       return 0;
     }
