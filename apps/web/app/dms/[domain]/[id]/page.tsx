@@ -180,6 +180,13 @@ export default async function DmsCasePage({
   const hasPhone = !isVanThu(domain.code);
   const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
   const docs = documents === 'error' ? [] : documents;
+  // Ô "Tài liệu khác" chung cho 4 nghiệp vụ: chưa có tài liệu loại này thì hiện ô trống, tạo ngay lần tải đầu tiên.
+  const showOtherBox =
+    documents !== 'error' &&
+    !isVanThu(domain.code) &&
+    c.status !== 'CANCELLED' &&
+    canAddDocument(permissions, domain.code) &&
+    !docs.some((d) => d.kind === 'Tài liệu khác');
   const filesByDoc = await Promise.all(docs.map((d) => loadDmsFiles(cookie, d.id)));
   const fileCount = filesByDoc.reduce((n, f) => n + f.length, 0);
   const allFiles = filesByDoc.flat();
@@ -565,6 +572,15 @@ export default async function DmsCasePage({
                 </FileGroupCard>
               ))
             )}
+            {showOtherBox ? (
+              <FileGroupCard title="Tài liệu khác" hint="(giấy tờ phát sinh)">
+                <p className="m-0 text-sm text-muted">
+                  Chưa có tệp. Dùng cho giấy tờ phát sinh chưa có ô riêng; hồ sơ đã ghi sổ vẫn tải
+                  thêm được.
+                </p>
+                <UploadDmsFile otherForCaseId={c.id} />
+              </FileGroupCard>
+            ) : null}
           </div>
           <aside aria-label="Xem trước tệp">
             {preview ? (

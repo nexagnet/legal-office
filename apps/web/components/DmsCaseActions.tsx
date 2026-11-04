@@ -83,8 +83,18 @@ export function AddDmsDocumentForm({ caseId }: { readonly caseId: string }) {
   );
 }
 
-/** Tải lên một tệp MỚI (không ghi đè) cho tài liệu. Cho cả hồ sơ nháp lẫn đã ghi sổ (bổ sung). */
-export function UploadDmsFile({ documentId }: { readonly documentId: string }) {
+/**
+ * Tải lên một tệp MỚI (không ghi đè) cho tài liệu. Cho cả hồ sơ nháp lẫn đã ghi sổ (bổ sung).
+ * Ô "Tài liệu khác" của hồ sơ chưa có tài liệu loại này: truyền `otherForCaseId` thay cho `documentId`, tài liệu được
+ * tạo ngay lần tải đầu tiên (máy chủ bảo đảm mỗi hồ sơ chỉ có một).
+ */
+export function UploadDmsFile({
+  documentId,
+  otherForCaseId,
+}: {
+  readonly documentId?: string;
+  readonly otherForCaseId?: string;
+}) {
   const { error, busy, setError, setBusy, router } = useSender();
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -97,8 +107,17 @@ export function UploadDmsFile({ documentId }: { readonly documentId: string }) {
     setBusy(true);
     setError(null);
     try {
+      let target = documentId;
+      if (!target) {
+        const made = await fetch(`/api/dms/cases/${otherForCaseId}/other-document`, {
+          method: 'POST',
+        });
+        const madeJson = (await made.json().catch(() => ({}))) as { code?: string; label?: string };
+        if (!made.ok || !madeJson.label) return setError(messageFor(madeJson.code));
+        target = madeJson.label;
+      }
       const q = new URLSearchParams({ label, isScan: f.get('isScan') === 'on' ? 'true' : 'false' });
-      const res = await fetch(`/api/dms/documents/${documentId}/files?${q}`, {
+      const res = await fetch(`/api/dms/documents/${target}/files?${q}`, {
         method: 'POST',
         headers: { 'content-type': file.type || 'application/octet-stream' },
         body: file,
@@ -116,7 +135,7 @@ export function UploadDmsFile({ documentId }: { readonly documentId: string }) {
   return (
     <form
       onSubmit={submit}
-      id={`tai-len-${documentId}`}
+      id={`tai-len-${documentId ?? 'khac'}`}
       className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-head p-3 text-sm"
       aria-label="Tải tệp lên"
     >

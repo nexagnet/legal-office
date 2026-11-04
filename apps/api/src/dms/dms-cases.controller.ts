@@ -396,6 +396,15 @@ export class DmsCasesController {
     ]);
   }
 
+  /**
+   * Ô "Tài liệu khác" dùng chung cho cả 4 nghiệp vụ: trả tài liệu loại này của hồ sơ (chưa có thì tạo). Dùng được cả khi
+   * hồ sơ đã ghi sổ, vì lúc đó chỉ tải thêm tệp được, không thêm tài liệu thủ công. Không vào Sổ S-01 của tống đạt.
+   */
+  @Post('cases/:id/other-document')
+  otherDocument(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    return this.run(a, 'dms_document_other_ensure', [id]);
+  }
+
   @Put('documents/:id/draft')
   updateDocumentDraft(
     @CurrentActor() a: AuthenticatedActor,
