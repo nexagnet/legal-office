@@ -1,5 +1,7 @@
 # Quyết định nghiệp vụ suy ra từ văn bản pháp luật — 16/10/2026
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 > Tệp này **không thay** `nghiệp vụ.md` hay Issue #1. Nó ghi các điểm "cần đối chiếu nguồn" (nghiệp vụ.md §XIII) đã được đối chiếu với NĐ 151/2026 và TT 08/2026, kèm căn cứ. Điểm nào chưa có căn cứ được ghi **CHƯA CHỐT** và không được code thành quy tắc cứng.
 
 ## A. Đã đối chiếu được (làm ngay)

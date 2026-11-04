@@ -1,5 +1,7 @@
 # Rà soát lệch giao diện so với Figma N0 và đề xuất vẽ lại Tống đạt (2026-10-28)
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 Trạng thái: **chờ chủ dự án chốt trong Figma, chưa code UI.**
 
 Figma: https://www.figma.com/design/bueSNVniMoYD6lQFHwqeHz/Nexagnet-Vi-bang-Quan-ly-Van-phong-Hai-Ba-Trung-Full-UX

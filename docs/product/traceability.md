@@ -1,5 +1,7 @@
 # Ma trận truy vết — Legal Office
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 > Quy tắc nghiệp vụ chỉ được thay đổi tại [Issue #1](https://github.com/nexagnet/legal-office/issues/1) bởi coordinator sau khi có quyết định được chốt. Tệp này mô tả việc phân công/truy vết, **không phải kết quả test**.
 > Thiết kế [Figma](https://www.figma.com/design/bueSNVniMoYD6lQFHwqeHz?node-id=92-3) để nghiệm thu UX; bản in pháp lý phải đối chiếu nguồn chính thức riêng.
 

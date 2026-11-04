@@ -45,9 +45,9 @@ Nguồn chi tiết: Issue GitHub **#265** (DMS master, có addendum 30/10), `rep
 12. 🔒 Giữ stack: Next.js, NestJS, Postgres, pnpm, modular monolith. Không đổi framework/ORM.
 
 ### 2.2 Ngày 30–31/10/2026
-13. 🔒 Phân quyền theo **Nhóm quyền** (Permission Group); **không có Role cứng**, **không có "Trưởng văn phòng duyệt"**. Hai quyền duyệt tách riêng: duyệt sửa hồ sơ (`dms.amendment.approve`) và duyệt đổi quyền (`dms.permission.approve`). Người đề xuất không tự duyệt.
+13. 🔒 Phân quyền theo **Nhóm quyền** (Permission Group); **không có Role cứng**, **không có "Trưởng văn phòng duyệt"**. Hai quyền duyệt tách riêng: duyệt sửa hồ sơ (`dms.amendment.approve`) và duyệt đổi quyền (`dms.permission.approve`). ~~Người đề xuất không tự duyệt.~~ (Đã thay ở mục 2.4A: luồng đề xuất/duyệt đổi quyền đã bỏ, Admin đổi trực tiếp.)
 14. 🔒 **Bản nháp**: cho cả 4 nghiệp vụ và 3 sổ Văn thư; sửa tự do đến khi **"Xác nhận lưu chính thức"**, sau đó bất biến. Hai quyền riêng: "Tạo/sửa nháp" và "Xác nhận lưu chính thức". "Hủy nháp" giữ lịch sử, không xóa cứng, **không khôi phục** được.
-15. 🔒 (31/10) **Không kiểm** thiếu scan N-04. Chỉ **một Admin** → khôi phục bằng link email. Admin toàn quyền nhưng **vẫn** không xóa/ghi đè/sửa trực tiếp bản đã lưu; thao tác của chính Admin **không cần ai duyệt** (làm ngay, ghi nhật ký). Thu hồi quyền khẩn: Admin, tức thì, có nhật ký.
+15. 🔒 (31/10) **Không kiểm** thiếu scan N-04. Chỉ **một Admin** → ~~khôi phục bằng link email~~ (thay ở mục 2.4A: quên mật khẩu dùng link đặt lại qua email). Admin toàn quyền nhưng **vẫn** không xóa/ghi đè/sửa trực tiếp bản đã lưu; thao tác của chính Admin **không cần ai duyệt** (làm ngay, ghi nhật ký). Thu hồi quyền khẩn: Admin, tức thì, có nhật ký.
 16. 🔒 (31/10) THV được nêu tên trong hồ sơ **phải tự xác nhận trong app** trước khi ghi sổ. Điều chỉnh tồn kho văn phòng phẩm: **không cần duyệt** nhưng **bắt buộc có lý do** (server ép). Menu workflow cũ **ẩn hẳn** (dữ liệu, trang, API vẫn giữ). `window.confirm` thay bằng modal trong trang.
 17. 🔒 (31/10) Quyền merge: Claude tự merge PR khi CI đúng head xanh và không còn review mở (xem mục 14).
 
@@ -59,6 +59,13 @@ Nguồn chi tiết: Issue GitHub **#265** (DMS master, có addendum 30/10), `rep
 22. 🔒 **Quyền riêng theo từng tài khoản**, đặt được ngay lúc tạo tài khoản: quyền hiệu lực = các nhóm + cấp riêng − thu hồi riêng. Admin có quyền duyệt xử lý yêu cầu sửa đổi/đổi quyền của người không phải Admin. (PR #328 và liên quan, migration 0099–0101.)
 23. 🔒 Xuất "bản sao" nhật ký phân quyền (`dms.audit.export`), việc xuất cũng được ghi nhật ký (PR #308, migration 0096).
 24. 🔒 CD: "bạn đã hiểu hết nghiệp vụ" → điều phối **tự chốt** mọi thứ suy ra được từ quy tắc đã chốt/Figma, không hỏi lại CD. CD kỳ vọng khi hỏi thì công việc đã xong >90%.
+
+### 2.4A Ngày 04/11/2026 (P0–P8, PR #390–#403)
+24. 🔒 **Hồ sơ không bắt buộc gắn THV**; người tạo luôn được lưu và **luôn thấy hồ sơ mình tạo** (kể cả ngoài chi nhánh được cấp; bản nháp chỉ người tạo thấy). Menu "Hồ sơ do tôi tạo"; "Mọi hồ sơ của văn phòng" chỉ hiện khi có quyền `*.read.all`. Tab "Lịch sử hồ sơ" (migration 0111).
+25. 🔒 **Nhóm "Admin" hệ thống**: không xóa, không ngừng dùng, không đổi quyền; tài khoản có vai ADMIN hoặc thuộc nhóm Admin không đặt quyền riêng. Chỉ Admin tạo/xóa nhóm quyền (0112).
+26. 🔒 **Bỏ luồng Đề xuất/Duyệt đổi quyền**: Admin đổi nhóm, quyền của nhóm (ma trận 7 nghiệp vụ x 6 hành động x 2 phạm vi + 8 quyền đặc biệt = 92 quyền) và quyền riêng trực tiếp (`POST /dms/groups/:id/changes`, 0114); lý do quyền riêng của Admin tự đổi không bắt buộc. Nhật ký phân quyền gộp vào Lịch sử hoạt động, nhóm Phân quyền (0115).
+27. 🔒 **Tài khoản**: mật khẩu bắt buộc (tối thiểu 12 ký tự), CCCD 12 số không bắt buộc và duy nhất, đăng nhập bằng email hoặc CCCD, bắt đổi mật khẩu ở lần đăng nhập đầu, quên mật khẩu bằng link email; bỏ đăng nhập bằng link email (0113).
+28. 🔒 **Quản trị gọn**: Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng (Thư ký không còn vào Cài đặt). Thẻ THV và Hồ sơ lao động là tab của tài khoản; `of_personnel.user_id` (0116). Màn nghiệp vụ cũ (vi-bang, tong-dat, hop-duyet, so-sach…) chỉ còn chuyển hướng sang `/dms`; component/lib mồ côi đã xóa (P7).
 
 ### 2.4 Ngày 02/11/2026 (quyết định giao diện/xuất sổ do điều phối chốt)
 25. 🔒 Danh sách theo **Figma DMS v2**: giữ bố cục Figma **nhưng không bỏ cột nào**; dùng `DataTable` chung (cột đầu cố định, nút "Cột hiển thị" mặc định hiện đủ, chế độ gọn, đầu bảng dính). Dưới 1280px nút Xem/Tải hiện thêm ở cột đầu (hai dòng). Văn thư: hàng lọc mặc định chỉ ô tìm + Năm, phần còn lại trong "Bộ lọc nâng cao" đóng sẵn. Giữ mục menu "Chờ tôi xác nhận" và "Thư viện biểu mẫu" dù Figma không có. Ô đếm không có giá trị hiện "—".
@@ -92,7 +99,7 @@ Năm thuộc tính người tách riêng: `createdBy`, `responsibleThv`, `legalS
 - Admin mặc nhiên có mọi quyền DMS ở văn phòng mình (migration 0086), thấy mọi chi nhánh.
 - 6 nhóm mẫu được bảo vệ (văn phòng sao chép rồi chỉnh); nhóm sao chép **không** mang `dms.amendment.approve`, `dms.audit.export`.
 - Thêm mã quyền mới = vá hai CHECK constraint + `dms_permission_propose`, `dms_my_permissions`, `dms_group_copy`, và test đếm danh mục ở web (`permission-model.test.tsx`).
-- Người đề xuất đổi quyền không tự duyệt. Admin tự thao tác không cần duyệt (ghi nhật ký).
+- Từ 04/11/2026 không còn luồng đề xuất/duyệt đổi quyền: Admin đổi nhóm, quyền nhóm và quyền riêng trực tiếp, có hiệu lực ngay, ghi nhật ký (xem mục 2.4A).
 - Thiết kế gốc: Figma trang N11 (P0–P12), `reports/phan-quyen-figma-2026-10-30.md`.
 
 ## 5. Bốn nghiệp vụ

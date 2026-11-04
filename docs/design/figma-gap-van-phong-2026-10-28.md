@@ -1,5 +1,7 @@
 # Rà soát Figma, web và API cho nghiệp vụ văn phòng (28/10/2026)
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 Chỉ khảo sát và vẽ Figma, không sửa code. Phạm vi: các màn phong cách mới (trang N0 Navy–Serif, N11–N15). Không tính các màn cũ ở trang 00–08.
 
 Figma: `bueSNVniMoYD6lQFHwqeHz`, trang **N16 — VĂN PHÒNG · BỔ SUNG THEO NGHIỆP VỤ (CHỜ CHỐT)** (node `306:2`).

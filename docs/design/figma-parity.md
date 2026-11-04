@@ -1,5 +1,7 @@
 # Đối chiếu giao diện với Figma (nguồn chuẩn UX)
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 Figma Full UX: https://www.figma.com/design/bueSNVniMoYD6lQFHwqeHz/Nexagnet-Vi-bang-Quan-ly-Van-phong-Hai-Ba-Trung-Full-UX
 `fileKey = bueSNVniMoYD6lQFHwqeHz`. Giao diện phải khớp Figma; **CI xanh không chứng minh giao diện đúng.**
 
