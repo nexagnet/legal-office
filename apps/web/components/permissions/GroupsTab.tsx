@@ -5,6 +5,7 @@ import {
   defaultScopeLabel,
   groupVersion,
   isGroupActive,
+  isSystemGroup,
   isTemplateGroup,
   normalizeText,
   summarizeGroup,
@@ -63,8 +64,8 @@ export function GroupsTab({
           </span>
         </th>
         <td>
-          <Pill tone={isTemplateGroup(g) ? 'info' : 'brass'}>
-            {isTemplateGroup(g) ? 'Mẫu' : 'Tùy chỉnh'}
+          <Pill tone={isSystemGroup(g) ? 'warn' : isTemplateGroup(g) ? 'info' : 'brass'}>
+            {isSystemGroup(g) ? 'Hệ thống' : isTemplateGroup(g) ? 'Mẫu' : 'Tùy chỉnh'}
           </Pill>
         </td>
         <td>{defaultScopeLabel(g)}</td>
@@ -94,10 +95,11 @@ export function GroupsTab({
     );
   };
   const SECTIONS: readonly (readonly [string, readonly DmsGroup[]])[] = [
+    ['Nhóm Admin hệ thống · không xóa, không chỉnh quyền riêng', shown.filter(isSystemGroup)],
     ['Nhóm mẫu của hệ thống · được bảo vệ, không sửa trực tiếp', shown.filter(isTemplateGroup)],
     [
-      'Nhóm tùy chỉnh của văn phòng · sao chép từ mẫu, sửa cần duyệt',
-      shown.filter((g) => !isTemplateGroup(g)),
+      'Nhóm tùy chỉnh của văn phòng · do Admin tạo',
+      shown.filter((g) => !isTemplateGroup(g) && !isSystemGroup(g)),
     ],
   ];
 

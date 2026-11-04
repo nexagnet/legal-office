@@ -154,12 +154,17 @@ export class DmsPermissionsController {
           officeId: uuid,
           userId: uuid,
           permissions: z.array(z.string().trim().min(1).max(80)).max(200),
-          reason: z.string().trim().min(1).max(1000),
+          reason: z.string().trim().max(1000).optional(),
         })
         .strict(),
       body,
     );
-    return this.run(a, 'dms_user_overrides_apply', [b.officeId, b.userId, b.permissions, b.reason]);
+    return this.run(a, 'dms_user_overrides_apply', [
+      b.officeId,
+      b.userId,
+      b.permissions,
+      b.reason || null,
+    ]);
   }
 
   /** Hồ sơ chưa có chi nhánh (dữ liệu trước ngày áp dụng phạm vi chi nhánh). Chỉ Admin thấy; người khác nhận danh sách rỗng. */
@@ -301,6 +306,16 @@ export class DmsPermissionsController {
   ) {
     const b = parse(z.object({ name: z.string().min(1).max(200) }).strict(), body);
     return this.run(a, 'dms_group_copy', [id, b.name]);
+  }
+
+  /**
+   * Xóa nhóm: chỉ Admin; nhóm Admin hệ thống và nhóm mẫu không xóa được; nhóm còn thành viên hoặc đã có lịch sử yêu cầu
+   * thì không xóa (dùng "ngừng dùng"). DB quyết định và ghi nhật ký.
+   */
+  @Post('groups/:id/delete')
+  @HttpCode(HttpStatus.OK)
+  deleteGroup(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    return this.run(a, 'dms_group_delete', [id]);
   }
 
   /** Ngừng dùng / dùng lại nhóm: người có quyền duyệt, áp dụng ngay, có lý do. Không xoá gì. */
