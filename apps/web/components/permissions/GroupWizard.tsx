@@ -401,12 +401,8 @@ export function GroupWizard({
               />
             </label>
             <div className="wizard-note">
-              <strong>Người duyệt hợp lệ: Admin có quyền duyệt thay đổi quyền</strong>
-              <span>
-                Người đề xuất không tự duyệt, kể cả khi thuộc nhiều nhóm quyền. Admin tự đề xuất thì
-                có hiệu lực ngay và được ghi nhật ký. Mỗi quyền thêm hoặc bỏ so với nguồn là một đề
-                xuất.
-              </span>
+              <strong>Chỉ Admin tạo và sửa nhóm quyền</strong>
+              <span>Thay đổi có hiệu lực ngay và được ghi vào nhật ký phân quyền.</span>
             </div>
           </section>
         </>

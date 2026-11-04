@@ -131,7 +131,7 @@ export function ProposeChangeForm({
   const memberDelta = userIds.length * (kind === 'ADD_MEMBER' ? 1 : -1);
 
   return (
-    <form className="wizard" onSubmit={submit} aria-label="Đề xuất đổi quyền" noValidate>
+    <form className="wizard" onSubmit={submit} aria-label="Đổi nhóm hoặc quyền" noValidate>
       <section className="wizard-card" aria-labelledby="pf-kind">
         <h2 id="pf-kind">1 · Loại thay đổi</h2>
         <div className="chip-row">
@@ -321,11 +321,8 @@ export function ProposeChangeForm({
           />
         </label>
         <div className="wizard-note">
-          <strong>Người duyệt hợp lệ: Admin có quyền duyệt thay đổi quyền</strong>
-          <span>
-            Người đề xuất không tự duyệt, kể cả khi thuộc nhiều nhóm quyền. Mỗi thành viên hoặc mỗi
-            quyền được chọn là một đề xuất riêng cùng lý do.
-          </span>
+          <strong>Chỉ Admin thay đổi quyền</strong>
+          <span>Thay đổi có hiệu lực ngay và được ghi vào nhật ký phân quyền kèm lý do.</span>
         </div>
       </section>
 

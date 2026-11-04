@@ -37,7 +37,7 @@ export default async function ProposePage({
         crumb={[
           ['Quản trị', '/quan-tri'],
           ['Phân quyền', '/quan-tri/phan-quyen'],
-          ['Đề xuất đổi quyền'],
+          ['Đổi nhóm hoặc quyền'],
         ]}
       />
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_270px]">
@@ -74,11 +74,10 @@ export default async function ProposePage({
             </ul>
           </section>
           <section className="grid gap-2 rounded-2xl bg-surface p-5 shadow-sm">
-            <h2 className="font-serif text-base">Một thay đổi, một đề xuất</h2>
+            <h2 className="font-serif text-base">Mỗi thay đổi ghi một dòng nhật ký</h2>
             <p className="text-sm text-muted">
-              Chọn nhiều thành viên hoặc nhiều quyền thì hệ thống lập từng đề xuất riêng cùng một lý
-              do. Admin tự đề xuất thì có hiệu lực ngay và được ghi nhật ký; người khác chờ Admin
-              duyệt.
+              Chọn nhiều thành viên hoặc nhiều quyền thì hệ thống ghi từng thay đổi riêng cùng một
+              lý do. Thay đổi có hiệu lực ngay.
             </p>
           </section>
         </aside>
