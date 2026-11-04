@@ -56,11 +56,14 @@ export function PersonnelSheet({
   branches,
   person,
   trigger,
+  linkUserId,
 }: {
   readonly officeId: string;
   readonly branches: readonly Branch[];
   readonly person: PersonnelRow | null;
   readonly trigger: string;
+  /** Hồ sơ mới được gắn với tài khoản này (khi tạo từ trang tài khoản). */
+  readonly linkUserId?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -124,6 +127,7 @@ export function PersonnelSheet({
           contributionNote: person?.contribution_note ?? null,
           note: blank(v.note),
           workStatus: v.active ? 'ACTIVE' : 'LEFT',
+          ...(linkUserId && !person ? { userId: linkUserId } : {}),
         }),
       });
       const json = (await res.json().catch(() => ({}))) as { code?: string };

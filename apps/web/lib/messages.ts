@@ -79,6 +79,7 @@ const MESSAGES: Record<string, string> = {
   DUPLICATE_DECISION_NO: 'Số quyết định này đã có trong sổ.',
   CASE_LINK_NOT_FOUND: 'Không tìm thấy hồ sơ được liên kết.',
   INVALID_ITEM: 'Cần nhập tên và đơn vị tính của vật tư.',
+  USER_ALREADY_LINKED: 'Tài khoản này đã gắn với một hồ sơ lao động khác.',
   DUPLICATE_ITEM: 'Vật tư này đã có trong danh mục.',
   ITEM_NOT_FOUND: 'Không tìm thấy vật tư.',
   INVALID_QUANTITY: 'Số lượng hoặc nội dung ghi kèm chưa hợp lệ.',
