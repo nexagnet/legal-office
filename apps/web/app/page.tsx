@@ -145,7 +145,7 @@ export default async function HomePage() {
       n: approvalRows.length,
       label: 'Chờ duyệt',
       note: 'Đề xuất chuyển giao, uỷ quyền',
-      href: '/hop-duyet',
+      href: '/dms/trinh-duyet',
     },
     {
       n: overdueDeadlines,
@@ -157,13 +157,13 @@ export default async function HomePage() {
       n: sum.unassigned,
       label: 'Chưa phân công',
       note: 'Hồ sơ Vi bằng chưa có THV',
-      href: '/vi-bang',
+      href: '/dms/vi-bang',
     },
     {
       n: sum.awaitingReturn,
       label: 'Chờ trả khách',
       note: 'Đã ký hoặc đóng dấu',
-      href: '/vi-bang',
+      href: '/dms/vi-bang',
     },
   ];
   return (

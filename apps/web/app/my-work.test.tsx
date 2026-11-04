@@ -15,10 +15,10 @@ const item = (over: Partial<MyWorkItem>): MyWorkItem => ({
 
 describe('Việc của tôi', () => {
   it('dẫn về màn nghiệp vụ tương ứng', () => {
-    expect(myWorkHref({ domain: 'VIBANG', refId: 'c1' })).toBe('/vi-bang/c1');
-    expect(myWorkHref({ domain: 'TONG_DAT', refId: 'x' })).toBe('/tong-dat');
-    expect(myWorkHref({ domain: 'XAC_MINH', refId: 'x' })).toBe('/xac-minh');
-    expect(myWorkHref({ domain: 'THI_HANH', refId: 'x' })).toBe('/to-chuc-tha');
+    expect(myWorkHref({ domain: 'VIBANG', refId: 'c1' })).toBe('/dms/vi-bang');
+    expect(myWorkHref({ domain: 'TONG_DAT', refId: 'x' })).toBe('/dms/tong-dat');
+    expect(myWorkHref({ domain: 'XAC_MINH', refId: 'x' })).toBe('/dms/xac-minh');
+    expect(myWorkHref({ domain: 'THI_HANH', refId: 'x' })).toBe('/dms/to-chuc-tha');
     expect(myWorkHref({ domain: 'LA', refId: 'x' })).toBeNull();
   });
 

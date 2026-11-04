@@ -82,7 +82,7 @@ export function groupApprovals(rows: readonly PendingApproval[], now: Date): Wor
       key: `${r.kind}-${r.subjectId}`,
       title: APPROVAL_KIND_LABEL[r.kind] ?? r.kind,
       meta: age <= 0 ? 'Gửi hôm nay' : `Gửi ${age} ngày trước`,
-      href: '/hop-duyet',
+      href: '/dms/trinh-duyet',
       action: 'Duyệt',
     };
     (age >= 1 ? old : fresh).push(row);
@@ -105,7 +105,7 @@ export function groupMisaQueue(cases: readonly CaseItem[], now: Date): WorkGroup
       meta: [c.branchName, age <= 0 ? 'Tiếp nhận hôm nay' : `Tiếp nhận ${age} ngày trước`]
         .filter(Boolean)
         .join(' · '),
-      href: `/vi-bang/${c.id}`,
+      href: '/dms/vi-bang',
       action: 'Xác nhận MISA',
     };
     (age >= 1 ? old : fresh).push(row);
