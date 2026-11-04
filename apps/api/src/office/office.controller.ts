@@ -1434,6 +1434,7 @@ export class OfficeController {
           contributionNote: z.string().max(500).nullish(),
           note: z.string().max(1000).nullish(),
           workStatus: z.string(),
+          userId: uuid.nullish(),
         })
         .strict(),
       body,
@@ -1456,7 +1457,39 @@ export class OfficeController {
       b.contributionNote ?? null,
       b.note ?? null,
       b.workStatus,
+      b.userId ?? null,
     ]);
+  }
+
+  /** Hồ sơ lao động (bản mới nhất) của một tài khoản; rỗng nếu chưa ghép. Chỉ Admin và Trưởng văn phòng. */
+  @Get('personnel/by-user')
+  async personnelByUser(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('userId', ParseUUIDPipe) userId: string,
+  ) {
+    const rows = await this.read(a, 'of_personnel_for_user', [officeId, userId]);
+    return rows[0] ?? null;
+  }
+
+  /** Hồ sơ lao động chưa gắn tài khoản, để ghép tay. */
+  @Get('personnel/unlinked')
+  personnelUnlinked(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    return this.read(a, 'of_personnel_unlinked', [officeId]);
+  }
+
+  /** Ghép hoặc gỡ (userId = null) hồ sơ lao động với tài khoản. */
+  @Put('personnel/:personId/link')
+  linkPersonnel(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('personId', ParseUUIDPipe) personId: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ officeId: uuid, userId: uuid.nullable() }).strict(), body);
+    return this.run(a, 'of_personnel_link', [b.officeId, personId, b.userId]);
   }
 
   /** Bản mới nhất của mỗi người; lọc tuỳ chọn theo chi nhánh và trạng thái làm việc (ACTIVE/LEFT). */

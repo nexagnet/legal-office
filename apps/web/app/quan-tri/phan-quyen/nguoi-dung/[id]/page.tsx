@@ -6,6 +6,12 @@ import { BranchAccessSection } from '../../../../../components/permissions/Branc
 import { MemberSuspendButton } from '../../../../../components/permissions/MemberSuspendButton';
 import { PermissionTabs } from '../../../../../components/permissions/PermissionTabs';
 import { ResetMemberPasswordButton } from '../../../../../components/permissions/ResetMemberPasswordButton';
+import { LinkPersonnelForm } from '../../../../../components/permissions/LinkPersonnelForm';
+import { PersonnelSheet } from '../../../../../components/PersonnelSheet';
+import { ThvCardsForm } from '../../../../../components/ThvCardsForm';
+import { TabNav } from '../../../../../components/ui/tab-nav';
+import { loadThvCards } from '../../../../../lib/admin-api';
+import { loadPersonnelByUser, loadUnlinkedPersonnel } from '../../../../../lib/personnel';
 import { UserOverridesEditor } from '../../../../../components/permissions/UserOverridesEditor';
 import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
 import { Avatar } from '../../../../../components/ui/avatar';
@@ -16,7 +22,7 @@ import {
   loadPermissionContext,
   loadUserOverrides,
 } from '../../../../../lib/dms-admin';
-import { requestCookie } from '../../../../../lib/server';
+import { currentSession, requestCookie } from '../../../../../lib/server';
 import {
   ACCOUNT_STATE_LABEL,
   DOMAIN_LIMIT,
@@ -40,12 +46,23 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+type AccountTab = 'quyen' | 'the-thv' | 'lao-dong';
+const ACCOUNT_TABS: readonly (readonly [AccountTab, string])[] = [
+  ['quyen', 'Quyền'],
+  ['the-thv', 'Thẻ thừa hành viên'],
+  ['lao-dong', 'Hồ sơ lao động'],
+];
+
 export default async function EffectivePage({
   params,
+  searchParams,
 }: {
   readonly params: Promise<{ id: string }>;
+  readonly searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const rawTab = (await searchParams).tab;
+  const tab: AccountTab = rawTab === 'the-thv' || rawTab === 'lao-dong' ? rawTab : 'quyen';
   const ctx = await loadPermissionContext();
   if (!ctx) return null;
   if (
@@ -82,11 +99,102 @@ export default async function EffectivePage({
   const rows = person.suspended ? [] : effectiveByDomain(ctx.groups, id, activeOverrides);
   const state = accountState(person);
   const history = ctx.requests.filter((r) => r.user_id === id);
+  const canSeeLabor = ctx.roles.includes('ADMIN') || ctx.roles.includes('TRUONG_VP');
+  const tabs = ACCOUNT_TABS.filter(
+    ([k]) => k === 'quyen' || (k === 'the-thv' ? ctx.roles.includes('ADMIN') : canSeeLabor),
+  );
+  const tabNav = (
+    <TabNav
+      label="Các mục của tài khoản"
+      active={tab}
+      tabs={tabs.map(([k, label]) => ({
+        key: k,
+        label,
+        href:
+          k === 'quyen'
+            ? `/quan-tri/phan-quyen/nguoi-dung/${id}`
+            : `/quan-tri/phan-quyen/nguoi-dung/${id}?tab=${k}`,
+      }))}
+    />
+  );
+  if (tab === 'the-thv' && ctx.roles.includes('ADMIN')) {
+    const cards = (await loadThvCards(cookie, ctx.officeId)).filter((c) => c.userId === id);
+    return (
+      <>
+        <PermissionTabs active="nguoi-dung" />
+        <AdminBanner title={`Thẻ thừa hành viên · ${person.name}`} />
+        {tabNav}
+        <ThvCardsForm
+          officeId={ctx.officeId}
+          people={[{ userId: id, label: person.name, groups: person.groups.map((g) => g.name) }]}
+          cards={cards}
+          canEdit
+        />
+      </>
+    );
+  }
+  if (tab === 'lao-dong' && canSeeLabor) {
+    const [labor, unlinked] = await Promise.all([
+      loadPersonnelByUser(cookie, ctx.officeId, id),
+      loadUnlinkedPersonnel(cookie, ctx.officeId),
+    ]);
+    const session = await currentSession();
+    const branches = session.status === 'authenticated' ? session.branches : [];
+    return (
+      <>
+        <PermissionTabs active="nguoi-dung" />
+        <AdminBanner title={`Hồ sơ lao động · ${person.name}`} />
+        {tabNav}
+        {labor === 'error' ? (
+          <StateCard
+            mark="!"
+            tone="danger"
+            alert
+            title="Không tải được hồ sơ lao động"
+            description="Chỉ Admin và Trưởng văn phòng xem được. Vui lòng thử lại sau."
+          />
+        ) : (
+          <section className="panel grid gap-3" aria-labelledby="ld-t">
+            <h2 id="ld-t" className="font-serif text-base">
+              Hồ sơ lao động
+            </h2>
+            {labor ? (
+              <p>
+                <strong>{labor.full_name}</strong> ·{' '}
+                {labor.work_status === 'ACTIVE' ? 'Đang làm' : 'Đã nghỉ'} · v{labor.version}
+                {labor.labor_contract_ref
+                  ? ` · HĐ ${labor.labor_contract_ref}`
+                  : ' · Chưa có hợp đồng lao động'}
+              </p>
+            ) : (
+              <p className="muted">Tài khoản này chưa có hồ sơ lao động.</p>
+            )}
+            <div className="flex flex-wrap items-start gap-3">
+              <PersonnelSheet
+                officeId={ctx.officeId}
+                branches={branches}
+                person={labor}
+                trigger={labor ? 'Cập nhật' : '+ Tạo hồ sơ cho tài khoản này'}
+                linkUserId={id}
+              />
+              <LinkPersonnelForm
+                officeId={ctx.officeId}
+                userId={id}
+                linkedPersonId={labor ? labor.person_id : null}
+                options={unlinked}
+              />
+            </div>
+          </section>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
       <PermissionTabs active="nguoi-dung" />
       <AdminBanner title={`Quyền hiệu lực · ${person.name}`} />
+      {tabNav}
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-surface p-6 shadow-sm">
         <div className="flex items-center gap-4">
           <Avatar name={person.name} id={person.userId} size="lg" />
