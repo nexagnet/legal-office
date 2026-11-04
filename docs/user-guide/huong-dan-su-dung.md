@@ -509,7 +509,7 @@ Mỗi dòng là một thành viên với nhóm quyền, phạm vi, tình trạng
 
 - Người dùng & quyền hiệu lực: tổng hợp quyền thực tế.
 - Nhóm quyền: tạo và sửa nhóm.
-- Yêu cầu chờ duyệt: đề xuất cấp quyền chờ người thứ hai duyệt.
+- Mọi thay đổi quyền do Admin áp dụng ngay và được ghi vào Nhật ký phân quyền.
 - Nhật ký phân quyền: lịch sử mọi thay đổi.
 
 ![Phân quyền: người dùng và quyền hiệu lực](roles/admin/45.png)
@@ -603,7 +603,7 @@ Cấu hình hộp thư hệ thống dùng để gửi liên kết đăng nhập 
 - Kết nối mã hóa TLS/SSL: tích khi dùng cổng 465.
 - Tài khoản và Mật khẩu SMTP: tài khoản gửi thư.
 - Địa chỉ người gửi: địa chỉ hiện ở thư gửi đi.
-- Cho phép đăng nhập bằng link email: bật/tắt cho mọi người dùng.
+- Quên mật khẩu: người dùng nhận link đặt lại mật khẩu qua email của văn phòng.
 
 ![Máy chủ gửi thư (SMTP)](roles/admin/50.png)
 
@@ -620,7 +620,7 @@ Cấu hình hộp thư hệ thống dùng để gửi liên kết đăng nhập 
 | Hiện tượng | Cách xử lý |
 | --- | --- |
 | Thư thử không đến | Kiểm tra máy chủ, cổng, TLS/SSL đúng nhà cung cấp; với Gmail dùng mật khẩu ứng dụng, không dùng mật khẩu đăng nhập. |
-| Muốn tắt đăng nhập bằng liên kết email | Bỏ tích "Cho phép đăng nhập bằng link email" rồi lưu. |
+| Người dùng quên mật khẩu | Chọn "Quên mật khẩu?" ở màn đăng nhập, hoặc Admin bấm "Đặt lại mật khẩu" ở tài khoản đó. |
 
 ### 19. Quản trị · Lịch làm việc và ngày nghỉ
 
@@ -769,13 +769,13 @@ Trưởng văn phòng theo dõi toàn bộ nghiệp vụ, xem báo cáo và duy�
 
 #### Bước 25.1 · Tổng quan của Trưởng văn phòng
 
-Thanh bên có thêm Báo cáo tổng hợp, Người dùng và Cấu hình hệ thống. Các thẻ số liệu cho biết tình hình toàn văn phòng trong năm.
+Thanh bên có thêm Báo cáo tổng hợp, Quản trị. Các thẻ số liệu cho biết tình hình toàn văn phòng trong năm.
 
 ![Tổng quan của Trưởng văn phòng](roles/truong-van-phong/09.png)
 
 1. Báo cáo tổng hợp N-09, N-10
 2. Người dùng: xem và duyệt đề xuất phân quyền
-3. Cấu hình hệ thống
+3. Quản trị > Cài đặt văn phòng
 4. Trình / Duyệt
 
 #### Bước 25.2 · Báo cáo tổng hợp N-09, N-10
