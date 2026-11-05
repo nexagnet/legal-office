@@ -19,16 +19,19 @@ export function FilterChips({
   readonly label: string;
 }) {
   return (
-    <ul aria-label={label} className="m-0 flex list-none flex-wrap gap-2.5 p-0">
+    <ul
+      aria-label={label}
+      className="m-0 flex max-w-full list-none flex-nowrap gap-2.5 overflow-x-auto p-0 pb-0.5 [scrollbar-width:thin]"
+    >
       {chips.map((c) => {
         const on = c.key === active;
         return (
-          <li key={c.key}>
+          <li key={c.key} className="shrink-0">
             <Link
               href={c.href}
               aria-current={on ? 'true' : undefined}
               className={cn(
-                'inline-flex min-h-11 items-center rounded-full border px-4 no-underline text-sm font-semibold',
+                'inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4 no-underline text-sm font-semibold',
                 on
                   ? 'border-[#12263f] bg-[#12263f] text-white'
                   : 'border-line-strong bg-surface text-ink hover:bg-surface-2',

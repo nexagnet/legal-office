@@ -51,7 +51,13 @@ export function TabNav({
     );
   }
   const nav = (
-    <nav aria-label={label} className={cn('flex flex-wrap', compact ? 'gap-1.5' : 'gap-2.5')}>
+    <nav
+      aria-label={label}
+      className={cn(
+        'flex min-w-0 max-w-full flex-nowrap overflow-x-auto pb-0.5 [scrollbar-width:thin]',
+        compact ? 'gap-1.5' : 'gap-2.5',
+      )}
+    >
       {tabs.map((t) => {
         const on = t.key === active;
         return (

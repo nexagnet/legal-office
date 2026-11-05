@@ -137,13 +137,15 @@ export default async function SubmissionPage({
                     <th scope="row">{f.label}</th>
                     <td>{sizeLabel(f.size_bytes)}</td>
                     <td>
-                      <Link href={`${base}?file=${f.id}`}>Xem</Link>{' '}
-                      <a href={`/api/dms/submission-files/${f.id}/download`} download>
-                        Tải
-                      </a>
-                      {canDeleteScan ? (
-                        <DeleteScanButton kind="submission" fileId={f.id} label={f.label} />
-                      ) : null}
+                      <div className="file-actions">
+                        <Link href={`${base}?file=${f.id}`}>Xem</Link>
+                        <a href={`/api/dms/submission-files/${f.id}/download`} download>
+                          Tải
+                        </a>
+                        {canDeleteScan ? (
+                          <DeleteScanButton kind="submission" fileId={f.id} label={f.label} />
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
