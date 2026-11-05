@@ -3009,3 +3009,10 @@ button.btn-link:not(.primary):focus-visible,
     flex-direction: column;
   }
 }
+
+/* Chữ trong viên lọc không bị ngắt dòng giữa chừng */
+.chip,
+.chip-radio span,
+.tab-chip {
+  white-space: nowrap;
+}
