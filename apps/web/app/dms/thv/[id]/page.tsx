@@ -58,7 +58,7 @@ export default async function DmsThvReviewPage({ params }: { params: Promise<{ i
   return (
     <section aria-labelledby="t">
       <p>
-        <Link href="/dms/thv">← Chờ tôi xác nhận</Link>
+        <Link href="/dms/thv">← Hồ sơ nháp chờ tôi lưu</Link>
       </p>
       <h1 id="t">{r.title}</h1>
       <p className="muted">

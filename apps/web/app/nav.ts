@@ -113,7 +113,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'dms-thv',
-    label: 'Chờ tôi xác nhận',
+    label: 'Hồ sơ nháp chờ tôi lưu',
     group: 'work',
     roles: ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV'],
     href: '/dms/thv',
