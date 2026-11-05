@@ -40,6 +40,7 @@ import {
   loadMyDmsPermissions,
   type DmsBookColumn,
   loadThvOptions,
+  withCaseNumber,
 } from '../../../../lib/dms';
 import { actionLabel, activityNote, loadCaseHistory } from '../../../../lib/dms-activity';
 import { currentSession, requestCookie } from '../../../../lib/server';
@@ -362,6 +363,8 @@ export default async function DmsCasePage({
                 current={c.attributes}
                 fixed={{ title: c.title }}
                 legend={`Nội dung vào sổ ${book.code}`}
+                domain={domain.code}
+                caseNumber={c.case_number}
               />
             ) : null}
             {canDraft(permissions, domain.code)
@@ -483,6 +486,8 @@ export default async function DmsCasePage({
                   current={c.attributes}
                   currentTitle={c.title}
                   withPhone={hasPhone}
+                  domain={domain.code}
+                  caseNumber={c.case_number}
                 />
               </div>
             ) : null}
@@ -490,9 +495,13 @@ export default async function DmsCasePage({
           {!isDraft && book && book.source === 'case' ? (
             <InfoCard title={`Nội dung sổ ${book.code}`} id="info-so">
               <InfoGrid
-                items={inputColumns(book).map(
-                  (col) => [col.heading, String(c.attributes[col.key] ?? '')] as const,
-                )}
+                items={inputColumns(book).map((col) => {
+                  const v = String(c.attributes[col.key] ?? '');
+                  return [
+                    col.heading,
+                    col.autoNumber ? withCaseNumber(c.case_number, v) : v,
+                  ] as const;
+                })}
               />
             </InfoCard>
           ) : null}
@@ -561,6 +570,8 @@ export default async function DmsCasePage({
                       columns={inputColumns(book)}
                       current={d.attributes}
                       buttonLabel="Sửa tài liệu (Admin)"
+                      domain={domain.code}
+                      caseNumber={c.case_number}
                     />
                   ) : null}
                   {isDraft &&
@@ -573,6 +584,8 @@ export default async function DmsCasePage({
                       current={d.attributes}
                       fixed={{ kind: d.kind, title: d.title, isOfficial: d.is_official }}
                       legend={`Giấy tờ vào sổ ${book.code}`}
+                      domain={domain.code}
+                      caseNumber={c.case_number}
                     />
                   ) : null}
                   {c.status !== 'CANCELLED' ? <UploadDmsFile documentId={d.id} /> : null}

@@ -17,6 +17,24 @@ export interface BookColumn {
   readonly group?: string;
   /** Cột đánh dấu ✓ (có giá trị là ✓). */
   readonly tick?: boolean;
+  /**
+   * Cột "số, ngày, tháng, năm": số là số hồ sơ do hệ thống cấp khi ghi sổ, người nhập chỉ điền ngày tháng năm.
+   * Ô trong sổ = `<số hồ sơ> ngày <ngày nhập>`.
+   */
+  readonly autoNumber?: boolean;
+}
+
+/** Ngày người nhập điền, có thể kèm chữ "ngày" ở đầu. Giá trị cũ đã có cả số do nhập tay thì không khớp và được giữ nguyên. */
+const DATE_ONLY = /^(ngày\s*)?\d{1,2}\s*[/\-.]\s*\d{1,2}\s*[/\-.]\s*\d{4}$/i;
+
+/** Ghép số hồ sơ tự cấp với ngày người nhập: "037/2026/VB-TPL ngày 31/10/2026". Chưa có số (bản nháp) thì chỉ trả phần ngày. */
+export function withCaseNumber(caseNumber: string | null | undefined, entered: string): string {
+  const n = (caseNumber ?? '').trim();
+  const v = entered.trim();
+  if (n === '') return v;
+  if (v === '') return n;
+  if (!DATE_ONLY.test(v)) return v;
+  return `${n} ngày ${v.replace(/^ngày\s*/i, '')}`;
 }
 
 export interface BookSpec {
@@ -41,7 +59,12 @@ export const BOOKS: Readonly<Record<BookCode, BookSpec>> = {
     columns: [
       stt,
       { no: 2, heading: 'LOẠI VĂN BẢN', key: 'loai_van_ban' },
-      { no: 3, heading: 'SỐ, NGÀY, THÁNG, NĂM VĂN BẢN CẦN TỐNG ĐẠT', key: 'so_ngay_van_ban' },
+      {
+        no: 3,
+        heading: 'SỐ, NGÀY, THÁNG, NĂM VĂN BẢN CẦN TỐNG ĐẠT',
+        key: 'so_ngay_van_ban',
+        autoNumber: true,
+      },
       {
         no: 4,
         heading: 'Tòa án',
@@ -83,7 +106,12 @@ export const BOOKS: Readonly<Record<BookCode, BookSpec>> = {
         key: 'nguoi_yeu_cau',
       },
       { no: 3, heading: 'NỘI DUNG YÊU CẦU LẬP VI BẰNG', key: 'noi_dung_yeu_cau' },
-      { no: 4, heading: 'SỐ, NGÀY, THÁNG, NĂM CỦA VI BẰNG', key: 'so_ngay_vi_bang' },
+      {
+        no: 4,
+        heading: 'SỐ, NGÀY, THÁNG, NĂM CỦA VI BẰNG',
+        key: 'so_ngay_vi_bang',
+        autoNumber: true,
+      },
       {
         no: 5,
         heading: 'ĐỊA CHỈ NƠI LẬP VI BẰNG (xã/phường/đặc khu, tỉnh/thành phố)',
@@ -105,7 +133,12 @@ export const BOOKS: Readonly<Record<BookCode, BookSpec>> = {
     source: 'case',
     columns: [
       stt,
-      { no: 2, heading: 'HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)', key: 'hop_dong_dich_vu' },
+      {
+        no: 2,
+        heading: 'HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)',
+        key: 'hop_dong_dich_vu',
+        autoNumber: true,
+      },
       {
         no: 3,
         heading: 'QUYẾT ĐỊNH VỀ THI HÀNH ÁN (số, ngày, tháng, năm)',
@@ -129,7 +162,12 @@ export const BOOKS: Readonly<Record<BookCode, BookSpec>> = {
     source: 'case',
     columns: [
       stt,
-      { no: 2, heading: 'HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)', key: 'hop_dong_dich_vu' },
+      {
+        no: 2,
+        heading: 'HỢP ĐỒNG DỊCH VỤ (số, ngày, tháng, năm)',
+        key: 'hop_dong_dich_vu',
+        autoNumber: true,
+      },
       {
         no: 3,
         heading: 'Số, ngày, tháng, năm',
@@ -236,6 +274,8 @@ export interface BookRowRaw {
   readonly case_attributes: Record<string, unknown>;
   readonly doc_kind: string | null;
   readonly doc_attributes: Record<string, unknown> | null;
+  /** Số hồ sơ tự cấp lúc ghi sổ (gắn vào dòng sổ bởi API); thiếu thì cột `autoNumber` chỉ hiện phần ngày. */
+  readonly case_number?: string | null;
 }
 
 const text = (v: unknown): string => (v === null || v === undefined ? '' : String(v).trim());
@@ -247,7 +287,8 @@ export function bookCells(spec: BookSpec, row: BookRowRaw): string[] {
     if (c.key === 'stt') return String(row.stt);
     if (c.key === 'title') return text(row.case_title);
     // Loại văn bản của S-01 mặc định lấy từ loại tài liệu nếu người nhập chưa ghi riêng.
-    const v = text(attrs[c.key]) || (c.key === 'loai_van_ban' ? text(row.doc_kind) : '');
+    const raw = text(attrs[c.key]) || (c.key === 'loai_van_ban' ? text(row.doc_kind) : '');
+    const v = c.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
     return c.tick ? (v === '' ? '' : '✓') : v;
   });
 }

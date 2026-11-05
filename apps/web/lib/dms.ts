@@ -258,7 +258,40 @@ export interface DmsBookColumn {
   readonly key: string;
   readonly group?: string;
   readonly tick?: boolean;
+  /** Cột "số, ngày": số là số hồ sơ tự cấp, người nhập chỉ điền ngày tháng năm. */
+  readonly autoNumber?: boolean;
 }
+
+const DATE_ONLY = /^(ngày\s*)?\d{1,2}\s*[/\-.]\s*\d{1,2}\s*[/\-.]\s*\d{4}$/i;
+
+/** Ghép số hồ sơ tự cấp với ngày người nhập ("037/2026/VB-TPL ngày 31/10/2026"); giống `withCaseNumber` của API. */
+export function withCaseNumber(caseNumber: string | null | undefined, entered: string): string {
+  const n = (caseNumber ?? '').trim();
+  const v = entered.trim();
+  if (n === '') return v;
+  if (v === '') return n;
+  if (!DATE_ONLY.test(v)) return v;
+  return `${n} ngày ${v.replace(/^ngày\s*/i, '')}`;
+}
+
+const CODE_OF_DOMAIN: Readonly<Record<string, string>> = {
+  vibang: 'VB',
+  tongdat: 'TĐ',
+  xacminh: 'XM',
+  tochuc: 'TC',
+};
+
+/** Chữ mờ đặt trước ô ngày: số hồ sơ thật nếu đã có, chưa có (bản nháp) thì dạng "…/2026/VB-TPL ngày". */
+export function numberPrefix(domain: string, year: number, caseNumber?: string | null): string {
+  const n = (caseNumber ?? '').trim();
+  return `${n !== '' ? n : `…/${year}/${CODE_OF_DOMAIN[domain] ?? '?'}-TPL`} ngày`;
+}
+
+/** Giá trị đưa vào ô ngày: bỏ chữ "ngày" ở đầu nếu giá trị chỉ là ngày; giá trị cũ có cả số nhập tay giữ nguyên. */
+export const dateOnly = (v: unknown): string => {
+  const s = v === null || v === undefined ? '' : String(v).trim();
+  return DATE_ONLY.test(s) ? s.replace(/^ngày\s*/i, '') : s;
+};
 
 export interface DmsBookSpec {
   readonly code: string;
@@ -278,6 +311,8 @@ export interface DmsBookRow {
   readonly case_attributes: Record<string, unknown>;
   readonly doc_kind: string | null;
   readonly doc_attributes: Record<string, unknown> | null;
+  /** Số hồ sơ tự cấp (API gắn vào); thiếu thì cột `autoNumber` chỉ hiện phần ngày. */
+  readonly case_number?: string | null;
 }
 
 /** Sổ nghiệp vụ; `withVanThu` thêm ba sổ Văn thư (để dựng form nhập ở trang chi tiết). */
@@ -318,7 +353,8 @@ export function bookCell(spec: DmsBookSpec, col: DmsBookColumn, row: DmsBookRow)
   if (col.key === 'stt') return String(row.stt);
   if (col.key === 'title') return strOf(row.case_title);
   const attrs = spec.source === 'document' ? (row.doc_attributes ?? {}) : row.case_attributes;
-  const v = strOf(attrs[col.key]) || (col.key === 'loai_van_ban' ? strOf(row.doc_kind) : '');
+  const raw = strOf(attrs[col.key]) || (col.key === 'loai_van_ban' ? strOf(row.doc_kind) : '');
+  const v = col.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
   return col.tick ? (v === '' ? '' : '✓') : v;
 }
 

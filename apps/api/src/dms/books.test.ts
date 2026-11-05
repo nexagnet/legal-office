@@ -50,6 +50,47 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     ]);
   });
 
+  it('cột số tự cấp: ghép số hồ sơ với ngày người nhập (Vi bằng, Xác minh, Tổ chức, Tống đạt)', () => {
+    const base = { stt: 37, case_title: 't', doc_kind: null, doc_attributes: null };
+    const vb = {
+      ...base,
+      case_number: '037/2026/VB-TPL',
+      case_attributes: { so_ngay_vi_bang: '31/10/2026' },
+    };
+    expect(bookCells(BOOKS['S-02'], vb)[3]).toBe('037/2026/VB-TPL ngày 31/10/2026');
+    // Giá trị cũ "ngày 31/10/2026" không bị lặp chữ "ngày".
+    const old = { ...vb, case_attributes: { so_ngay_vi_bang: 'ngày 31/10/2026' } };
+    expect(bookCells(BOOKS['S-02'], old)[3]).toBe('037/2026/VB-TPL ngày 31/10/2026');
+    // Giá trị cũ đã có số nhập tay thì giữ nguyên, không gắn thêm số.
+    const legacy = {
+      ...vb,
+      case_attributes: { so_ngay_vi_bang: 'TEST-002/2026 ngày 24/10/2026' },
+    };
+    expect(bookCells(BOOKS['S-02'], legacy)[3]).toBe('TEST-002/2026 ngày 24/10/2026');
+    // Chưa nhập ngày: chỉ hiện số. Chưa có số (nháp): chỉ hiện phần ngày.
+    expect(bookCells(BOOKS['S-02'], { ...vb, case_attributes: {} })[3]).toBe('037/2026/VB-TPL');
+    expect(bookCells(BOOKS['S-02'], { ...vb, case_number: null })[3]).toBe('31/10/2026');
+    const xm = {
+      ...base,
+      case_number: '012/2026/XM-TPL',
+      case_attributes: { hop_dong_dich_vu: '01/11/2026' },
+    };
+    expect(bookCells(BOOKS['S-04'], xm)[1]).toBe('012/2026/XM-TPL ngày 01/11/2026');
+    const tc = {
+      ...base,
+      case_number: '005/2026/TC-TPL',
+      case_attributes: { hop_dong_dich_vu: '02/11/2026' },
+    };
+    expect(bookCells(BOOKS['S-05'], tc)[1]).toBe('005/2026/TC-TPL ngày 02/11/2026');
+    const td = {
+      ...base,
+      case_number: '020/2026/TĐ-TPL',
+      case_attributes: {},
+      doc_attributes: { so_ngay_van_ban: '03/11/2026' },
+    };
+    expect(bookCells(BOOKS['S-01'], td)[2]).toBe('020/2026/TĐ-TPL ngày 03/11/2026');
+  });
+
   it('CSV có BOM, thoát dấu, và chặn chèn công thức', () => {
     const csv = toCsv(BOOKS['S-02'], [
       {
