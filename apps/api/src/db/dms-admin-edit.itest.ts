@@ -226,7 +226,7 @@ describe.skipIf(!ADMIN_URL)('DMS Admin sửa hồ sơ đã ghi sổ và hàm đ�
     const noPhone = await recorded({});
     const rows = await extras(U.thv, [c, noPhone.c]);
     const byId = new Map(rows.map((r) => [r.case_id as string, r]));
-    expect(byId.get(c)?.case_number).toMatch(new RegExp(`^\\d{3,}/${YEAR}/VB-TPL$`));
+    expect(byId.get(c)?.case_number).toMatch(new RegExp(`^\\d{3,}/${YEAR}/VB-THV$`));
     expect(byId.get(c)?.returned).toBe(false);
     expect(byId.get(c)?.phone).toBe('0912 345 678');
     expect(byId.get(noPhone.c)?.phone).toBeNull();

@@ -38,7 +38,7 @@ const row = (over: Record<string, unknown>) => ({
   purge_after: '2026-12-01T03:00:00Z',
   days_left: 28,
   case_id: 'c1',
-  case_number: '030/2026/VB-TPL',
+  case_number: '030/2026/VB-THV',
   case_title: 'Hồ sơ A',
   domain: 'vibang',
   submission_id: null,
@@ -87,7 +87,7 @@ describe('Scan đã xóa 30 ngày (N6)', () => {
     expect(screen.getByText('scan-mo.pdf')).toBeTruthy();
     expect(screen.getAllByText('Nguyễn Admin')).toHaveLength(2);
     expect(screen.getAllByText('Scan mờ, tải lại')).toHaveLength(2);
-    expect(screen.getByRole('link', { name: 'Hồ sơ · 030/2026/VB-TPL' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: 'Hồ sơ · 030/2026/VB-THV' }).getAttribute('href')).toBe(
       '/dms/vi-bang/c1',
     );
     expect(

@@ -65,7 +65,7 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
         rows={[
           caseRow({
             pending_count: 1,
-            case_number: '030/2026/VB-TPL',
+            case_number: '030/2026/VB-THV',
             phone: '0912 345 678',
             returned: true,
           }),
@@ -81,12 +81,12 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     );
     expect(screen.getAllByRole('columnheader')).toHaveLength(11);
     expect(screen.getByText('STT 6')).toBeTruthy();
-    expect(screen.getByRole('link', { name: '030/2026/VB-TPL' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '030/2026/VB-THV' })).toBeTruthy();
     expect(screen.getByText('VB-2610-0042')).toBeTruthy();
     // Chip "Chờ duyệt sửa đổi" đã bỏ (N4).
     expect(screen.queryByText('Chờ duyệt')).toBeNull();
     expect(screen.getByText('0912 345 678')).toBeTruthy();
-    const tick = screen.getByRole('checkbox', { name: 'Đã trả kết quả hồ sơ 030/2026/VB-TPL' });
+    const tick = screen.getByRole('checkbox', { name: 'Đã trả kết quả hồ sơ 030/2026/VB-THV' });
     expect((tick as HTMLInputElement).checked).toBe(true);
     // Không có quyền thêm tài liệu thì chỉ xem.
     expect((tick as HTMLInputElement).disabled).toBe(true);

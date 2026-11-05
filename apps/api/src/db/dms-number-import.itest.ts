@@ -157,7 +157,7 @@ describe.skipIf(!ADMIN_URL)('DMS nhập số cuối sổ giấy (PostgreSQL)', (
     const c = await mkCase('vibang');
     expect((await record(c)).ok).toBe(true);
     expect(await sttOf(c, 'S-02')).toEqual([121]);
-    expect(await numberOf(c)).toBe(`121/${YEAR}/VB-TPL`);
+    expect(await numberOf(c)).toBe(`121/${YEAR}/VB-THV`);
     expect(await lastOf('S-02')).toBe(121);
   });
 
@@ -208,7 +208,7 @@ describe.skipIf(!ADMIN_URL)('DMS nhập số cuối sổ giấy (PostgreSQL)', (
     expect(await lastOf('S-02', OFF_B)).toBe(0);
     const c = await mkCase('vibang', OFF_B);
     expect((await record(c)).ok).toBe(true);
-    expect(await numberOf(c)).toBe(`001/${YEAR}/VB-TPL`);
+    expect(await numberOf(c)).toBe(`001/${YEAR}/VB-THV`);
   });
 
   it('dữ liệu sai bị từ chối: sổ lạ, năm ngoài khoảng, số âm hoặc rỗng', async () => {

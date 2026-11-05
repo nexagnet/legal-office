@@ -33,13 +33,13 @@ describe('thành phần chi tiết hồ sơ (Figma A2)', () => {
       <InfoCard title="Thông tin chung" id="x">
         <InfoGrid
           items={[
-            ['Số hồ sơ', '034/2026/VB-TPL'],
+            ['Số hồ sơ', '034/2026/VB-THV'],
             ['SĐT khách hàng', ''],
           ]}
         />
       </InfoCard>,
     );
-    expect(screen.getByText('034/2026/VB-TPL')).not.toBeNull();
+    expect(screen.getByText('034/2026/VB-THV')).not.toBeNull();
     expect(screen.getByText('SĐT khách hàng').nextElementSibling?.textContent).toBe('—');
   });
 

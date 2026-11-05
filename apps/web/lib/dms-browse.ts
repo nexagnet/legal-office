@@ -22,7 +22,7 @@ export interface DmsSearchCase extends DmsCaseRow {
   readonly doc_kinds: readonly string[];
   readonly pending_count: number;
   readonly attributes: Record<string, unknown>;
-  /** Số hồ sơ tự cấp lúc ghi sổ, ví dụ `030/2026/VB-TPL`; nháp và hồ sơ cũ chưa có thì null. */
+  /** Số hồ sơ tự cấp lúc ghi sổ, ví dụ `030/2026/VB-THV`; nháp và hồ sơ cũ chưa có thì null. */
   readonly case_number: string | null;
   /** Ô tích "Đã trả kết quả": chỉ là dấu hiệu nhìn, không đổi trạng thái hồ sơ. */
   readonly returned: boolean;

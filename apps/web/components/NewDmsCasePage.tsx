@@ -161,7 +161,7 @@ export function NewDmsCasePage({
         </div>
         <p className="mt-3 rounded-lg bg-[#eef3fb] px-3 py-2 text-[13px]">
           Số hồ sơ tự cấp khi xác nhận lưu chính thức, trùng phần đầu với STT (STT 30 →
-          030/2026/VB-TPL). STT và số về 01 vào ngày đầu năm mới.
+          030/2026/VB-THV). STT và số về 01 vào ngày đầu năm mới.
         </p>
       </section>
 

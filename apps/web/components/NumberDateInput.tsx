@@ -10,7 +10,7 @@ export function NumberDateInput({
   defaultValue,
 }: {
   readonly name: string;
-  /** Chữ mờ phía trước, ví dụ "037/2026/VB-TPL ngày" hoặc "…/2026/VB-TPL ngày" khi chưa cấp số. */
+  /** Chữ mờ phía trước, ví dụ "037/2026/VB-THV ngày" hoặc "…/2026/VB-THV ngày" khi chưa cấp số. */
   readonly prefix: string;
   readonly defaultValue?: string;
 }) {

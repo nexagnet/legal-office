@@ -693,7 +693,7 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect((await api('POST', `/dms/cases/${caseId}/record`, U.a)).status).toBe(200);
 
     const one = await api('GET', `/dms/cases/${caseId}`, U.a);
-    expect(one.json.case_number).toMatch(/^\d{3,}\/\d{4}\/VB-TPL$/);
+    expect(one.json.case_number).toMatch(/^\d{3,}\/\d{4}\/VB-THV$/);
     expect(one.json.phone).toBe('0912 345 678');
     expect(one.json.returned).toBe(false);
 

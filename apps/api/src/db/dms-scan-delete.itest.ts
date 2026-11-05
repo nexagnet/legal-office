@@ -332,7 +332,7 @@ describe.skipIf(!ADMIN_URL)('DMS xóa mềm file scan (PostgreSQL)', () => {
       domain: 'vibang',
       days_left: 30,
     });
-    expect(mine.case_number).toMatch(/\/VB-TPL$/);
+    expect(mine.case_number).toMatch(/\/VB-THV$/);
     expect(await deletedList(U.thv)).toEqual([]);
     expect(await deletedList(U.clerk)).toEqual([]);
     expect(await deletedList(U.adminB, OFF)).toEqual([]);

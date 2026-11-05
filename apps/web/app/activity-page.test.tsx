@@ -37,7 +37,7 @@ const row = (over: Record<string, unknown>) => ({
   target_id: 'c1',
   detail: {},
   case_id: 'c1',
-  case_number: '030/2026/VB-TPL',
+  case_number: '030/2026/VB-THV',
   case_title: 'Hồ sơ A',
   domain: 'vibang',
   submission_id: null,
@@ -95,7 +95,7 @@ describe('Lịch sử hoạt động', () => {
     // Dọn scan tự động do hệ thống làm.
     expect(screen.getByText('Hệ thống')).toBeTruthy();
     expect(
-      screen.getAllByRole('link', { name: 'Hồ sơ · 030/2026/VB-TPL' })[0]!.getAttribute('href'),
+      screen.getAllByRole('link', { name: 'Hồ sơ · 030/2026/VB-THV' })[0]!.getAttribute('href'),
     ).toBe('/dms/vi-bang/c1');
     expect(
       screen.getByRole('link', { name: 'Bản trình · Bổ sung ủy quyền' }).getAttribute('href'),
@@ -107,10 +107,10 @@ describe('Lịch sử hoạt động', () => {
 
   it('chuyển nhóm và từ khóa xuống API', async () => {
     const urls = stubApi(['dms.permission.approve'], []);
-    await page({ group: 'file', q: 'VB-TPL' });
+    await page({ group: 'file', q: 'VB-THV' });
     const call = urls.find((u) => u.includes('/dms/activity'))!;
     expect(call).toContain('group=file');
-    expect(call).toContain('q=VB-TPL');
+    expect(call).toContain('q=VB-THV');
     expect(screen.getByText('Chưa có hoạt động')).toBeTruthy();
   });
 

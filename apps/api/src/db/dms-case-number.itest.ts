@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-// DMS GĐ 1 (0103): số hồ sơ tự cấp (030/2026/VB-TPL) và ô tích "Đã trả kết quả". PostgreSQL thật, dữ liệu giả lập.
+// DMS GĐ 1 (0103): số hồ sơ tự cấp (030/2026/VB-THV) và ô tích "Đã trả kết quả". PostgreSQL thật, dữ liệu giả lập.
 const ADMIN_URL = process.env.DATABASE_URL;
 const DIR = resolve(__dirname, '../../drizzle');
 const MIGRATION = readdirSync(DIR)
@@ -169,12 +169,12 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
     const fmt = async (n: number | null, y: number, d: string) =>
       (await call(T, 'SELECT dms_case_number_format($1,$2,$3) AS f', [n, y, d]))[0].f as
         string | null;
-    expect(await fmt(30, 2026, 'vibang')).toBe('030/2026/VB-TPL');
-    expect(await fmt(1, 2027, 'vibang')).toBe('001/2027/VB-TPL');
+    expect(await fmt(30, 2026, 'vibang')).toBe('030/2026/VB-THV');
+    expect(await fmt(1, 2027, 'vibang')).toBe('001/2027/VB-THV');
     expect(await fmt(3, 2026, 'tongdat')).toBe('003/2026/TĐ-TPL');
     expect(await fmt(7, 2026, 'xacminh')).toBe('007/2026/XM-TPL');
     expect(await fmt(12, 2026, 'tochuc')).toBe('012/2026/TC-TPL');
-    expect(await fmt(1234, 2026, 'vibang')).toBe('1234/2026/VB-TPL');
+    expect(await fmt(1234, 2026, 'vibang')).toBe('1234/2026/VB-THV');
     expect(await fmt(0, 2026, 'vibang')).toBeNull();
     expect(await fmt(null, 2026, 'vibang')).toBeNull();
   });
@@ -196,13 +196,13 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
 
     expect((await record(U.a, draft)).ok).toBe(true);
     const stt = await firstStt(draft, 'S-02');
-    expect(await numberOf(draft)).toBe(`${pad(stt)}/${YEAR}/VB-TPL`);
+    expect(await numberOf(draft)).toBe(`${pad(stt)}/${YEAR}/VB-THV`);
 
     const next = await mkCase(U.a, 'vibang');
     expect((await record(U.a, next)).ok).toBe(true);
     const stt2 = await firstStt(next, 'S-02');
     expect(stt2).toBe(stt + 1);
-    expect(await numberOf(next)).toBe(`${pad(stt2)}/${YEAR}/VB-TPL`);
+    expect(await numberOf(next)).toBe(`${pad(stt2)}/${YEAR}/VB-THV`);
   });
 
   it('Xác minh THA và Tổ chức THA: số theo STT của sổ S-04 và S-05, đuôi XM-TPL và TC-TPL', async () => {
@@ -244,7 +244,7 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
     expect(await numberOf(c)).toBe(`001/${YEAR}/TĐ-TPL`);
     const v = await mkCase(U.a, 'vibang', OFF_B);
     expect((await record(U.a, v)).ok).toBe(true);
-    expect(await numberOf(v)).toBe(`001/${YEAR}/VB-TPL`);
+    expect(await numberOf(v)).toBe(`001/${YEAR}/VB-THV`);
   });
 
   it('ghi sổ lại bị từ chối và không cấp thêm số; số đã gán không sửa được trực tiếp', async () => {
@@ -254,7 +254,7 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
     expect((await record(U.a, c)).code).toBe('CASE_NOT_DRAFT');
     expect(await numberOf(c)).toBe(num);
     await expect(
-      call(T, `UPDATE dms_case_files SET case_number = '999/${YEAR}/VB-TPL' WHERE id = $1`, [c]),
+      call(T, `UPDATE dms_case_files SET case_number = '999/${YEAR}/VB-THV' WHERE id = $1`, [c]),
     ).rejects.toThrow();
     expect(await numberOf(c)).toBe(num);
   });
@@ -262,7 +262,7 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
   it('ràng buộc: số gán cho nháp bị CSDL từ chối', async () => {
     const draft = await mkCase(U.a, 'vibang');
     await expect(
-      call(T, `UPDATE dms_case_files SET case_number = '001/${YEAR}/VB-TPL' WHERE id = $1`, [
+      call(T, `UPDATE dms_case_files SET case_number = '001/${YEAR}/VB-THV' WHERE id = $1`, [
         draft,
       ]),
     ).rejects.toThrow();
