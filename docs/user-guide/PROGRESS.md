@@ -8,7 +8,7 @@ Cập nhật: 2026-11-05 (đối chiếu ảnh với mã giao diện hiện tạ
 - `pdf/huong-dan-day-du.pdf`: MỘT PDF duy nhất, gồm phần chung rồi phần của từng vai (Admin, Trưởng văn phòng, Thừa hành viên, Thư ký, Văn thư, Kế toán). Các PDF theo vai đã bỏ ngày 05/11/2026, không dựng nữa.
 - `huong-dan-su-dung.md`: bản chữ để đọc trong repo, sinh từ cùng JSON. Không sửa tay.
 
-Phạm vi: toàn bộ giao diện DMS đang hiện trên thanh bên (Hồ sơ do tôi tạo, Mọi hồ sơ của văn phòng, Vi bằng, Tống đạt, Xác minh THA, Tổ chức THA, Văn thư, Trình / Duyệt, Chờ tôi xác nhận, Xuất sổ, Biểu mẫu, Báo cáo, Scan đã xóa, Lịch sử hoạt động, Quản trị gồm Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng). Các màn văn phòng cũ không còn trên thanh bên (Hộp duyệt, Hợp đồng, Sổ sách, Công văn) không có trong hướng dẫn này.
+Phạm vi: toàn bộ giao diện DMS đang hiện trên thanh bên (Hồ sơ do tôi tạo, Mọi hồ sơ của văn phòng, Vi bằng, Tống đạt, Xác minh THA, Tổ chức THA, Văn thư, Trình / Duyệt, Hồ sơ nháp chờ tôi lưu, Xuất sổ, Biểu mẫu, Báo cáo, Scan đã xóa, Lịch sử hoạt động, Quản trị gồm Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng). Các màn văn phòng cũ không còn trên thanh bên (Hộp duyệt, Hợp đồng, Sổ sách, Công văn) không có trong hướng dẫn này.
 
 ## Tài khoản và dữ liệu
 
@@ -25,7 +25,7 @@ Phạm vi: toàn bộ giao diện DMS đang hiện trên thanh bên (Hồ sơ do
 cd scripts/user-guide
 npm i --no-save playwright-core        # chỉ cần cho thư mục này
 APPEND=1 node role-dms-vibang.mjs       # Thừa hành viên: tạo nháp, scan, hủy, lưu chính thức, đã trả
-APPEND=1 node role-dms-nghiepvu.mjs     # Tống đạt / Xác minh / Tổ chức THA, Chờ tôi xác nhận
+APPEND=1 node role-dms-nghiepvu.mjs     # Tống đạt / Xác minh / Tổ chức THA, Hồ sơ nháp chờ tôi lưu
 APPEND=1 node role-dms-admin.mjs        # Admin: Tổng quan, Trình/Duyệt, sửa, xóa scan, lịch sử
 APPEND=1 node role-dms-quantri.mjs      # Admin: Tài khoản, Nhóm quyền, Chi nhánh, Thẻ THV, Email, Lịch, Hồ sơ lao động, Cài đặt, Báo cáo, Vật tư
 APPEND=1 node role-dms-vanthu.mjs       # Văn thư

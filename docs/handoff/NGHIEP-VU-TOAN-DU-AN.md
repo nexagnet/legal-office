@@ -68,7 +68,7 @@ Nguồn chi tiết: Issue GitHub **#265** (DMS master, có addendum 30/10), `rep
 28. 🔒 **Quản trị gọn**: Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng (Thư ký không còn vào Cài đặt). Thẻ THV và Hồ sơ lao động là tab của tài khoản; `of_personnel.user_id` (0116). Màn nghiệp vụ cũ (vi-bang, tong-dat, hop-duyet, so-sach…) chỉ còn chuyển hướng sang `/dms`; component/lib mồ côi đã xóa (P7).
 
 ### 2.4 Ngày 02/11/2026 (quyết định giao diện/xuất sổ do điều phối chốt)
-25. 🔒 Danh sách theo **Figma DMS v2**: giữ bố cục Figma **nhưng không bỏ cột nào**; dùng `DataTable` chung (cột đầu cố định, nút "Cột hiển thị" mặc định hiện đủ, chế độ gọn, đầu bảng dính). Dưới 1280px nút Xem/Tải hiện thêm ở cột đầu (hai dòng). Văn thư: hàng lọc mặc định chỉ ô tìm + Năm, phần còn lại trong "Bộ lọc nâng cao" đóng sẵn. Giữ mục menu "Chờ tôi xác nhận" và "Thư viện biểu mẫu" dù Figma không có. Ô đếm không có giá trị hiện "—".
+25. 🔒 Danh sách theo **Figma DMS v2**: giữ bố cục Figma **nhưng không bỏ cột nào**; dùng `DataTable` chung (cột đầu cố định, nút "Cột hiển thị" mặc định hiện đủ, chế độ gọn, đầu bảng dính). Dưới 1280px nút Xem/Tải hiện thêm ở cột đầu (hai dòng). Văn thư: hàng lọc mặc định chỉ ô tìm + Năm, phần còn lại trong "Bộ lọc nâng cao" đóng sẵn. Giữ mục menu "Hồ sơ nháp chờ tôi lưu" và "Thư viện biểu mẫu" dù Figma không có. Ô đếm không có giá trị hiện "—".
 26. 🔒 PDF sổ: S-05 giữ **13 cột** như mẫu, cột 3 "Quyết định về thi hành án" để trống (web/Excel vẫn 12 cột); in tên pháp lý đầy đủ của văn phòng; dòng địa chỉ để chấm; chỉ thêm số trang nhỏ.
 
 ### 2.5 Quyết định cũ còn hiệu lực (từ trước pivot)

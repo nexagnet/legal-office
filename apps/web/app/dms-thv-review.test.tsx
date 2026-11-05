@@ -22,7 +22,7 @@ afterEach(() => {
 
 const json = (b: unknown) => ({ ok: true, status: 200, json: async () => b }) as Response;
 
-describe('Chờ tôi xác nhận: trang xem và xác nhận nội dung', () => {
+describe('Hồ sơ nháp chờ tôi lưu: trang xem và xác nhận nội dung', () => {
   it('gắn nhãn tiếng Việt cho SĐT và ghi chú, không lộ tên khóa kỹ thuật', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input);

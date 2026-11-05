@@ -43,8 +43,8 @@ const link = (page, name, o = {}) => page.getByRole('link', { name, ...o }).firs
   await g.shot(page, { title: 'Danh sách hồ sơ của Thư ký', note: 'Bạn có nút "+ Tạo hồ sơ" ở các nghiệp vụ được cấp quyền. Cách điền biểu mẫu xem phần Vi bằng trong hướng dẫn Thừa hành viên.',
     marks: [{ loc: page.getByRole('link', { name: '+ Tạo hồ sơ' }).first(), text: 'Tạo hồ sơ mới (bản nháp)' }, { loc: link(page, /^Nháp/), text: 'Bản nháp của bạn nằm ở tab Nháp' }] });
   await go(page, '/');
-  await g.shot(page, { title: 'Tổng quan của Thư ký', note: 'Thanh bên của Thư ký gồm Chờ tôi xác nhận, Trình / Duyệt, các nghiệp vụ, Văn thư, Xuất sổ và Báo cáo tổng hợp.',
-    marks: [{ loc: link(page, /Chờ tôi xác nhận/), text: 'Hồ sơ nháp đang chờ xác nhận' }, { loc: link(page, /Báo cáo tổng hợp/), text: 'Báo cáo tổng hợp' }, { loc: link(page, /Xuất sổ nghiệp vụ/), text: 'Xuất sổ nghiệp vụ' }] });
+  await g.shot(page, { title: 'Tổng quan của Thư ký', note: 'Thanh bên của Thư ký gồm Hồ sơ nháp chờ tôi lưu, Trình / Duyệt, các nghiệp vụ, Văn thư, Xuất sổ và Báo cáo tổng hợp.',
+    marks: [{ loc: link(page, /Hồ sơ nháp chờ tôi lưu/), text: 'Hồ sơ nháp đang chờ xác nhận' }, { loc: link(page, /Báo cáo tổng hợp/), text: 'Báo cáo tổng hợp' }, { loc: link(page, /Xuất sổ nghiệp vụ/), text: 'Xuất sổ nghiệp vụ' }] });
   g.save();
 }
 

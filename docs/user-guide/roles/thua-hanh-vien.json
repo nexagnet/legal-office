@@ -730,20 +730,20 @@
    ]
   },
   {
-   "title": "DMS · Thừa hành viên: Chờ tôi xác nhận",
+   "title": "DMS · Thừa hành viên: Hồ sơ nháp chờ tôi lưu",
    "intro": "Mục này liệt kê các bản nháp người khác soạn và ghi tên bạn. Bạn xem lại nội dung rồi xác nhận lưu chính thức hoặc báo lại người soạn.",
    "rules": [
     "Kiểm tra kỹ từng cột trước khi xác nhận vì sau đó hồ sơ không sửa trực tiếp được."
    ],
    "problems": [
     [
-     "Danh sách \"Chờ tôi xác nhận\" trống",
+     "Danh sách \"Hồ sơ nháp chờ tôi lưu\" trống",
      "Chưa có bản nháp nào ghi tên bạn. Báo người soạn chọn đúng bạn ở ô \"Thừa hành viên được ghi tên\"."
     ]
    ],
    "steps": [
     {
-     "title": "Chờ tôi xác nhận",
+     "title": "Hồ sơ nháp chờ tôi lưu",
      "note": "Mỗi dòng là một bản nháp đang chờ bạn. Bấm \"Xem và xác nhận\" để mở.",
      "detail": [
       "Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc."
@@ -767,7 +767,7 @@
      "marks": [
       {
        "n": 1,
-       "text": "Quay lại danh sách Chờ tôi xác nhận"
+       "text": "Quay lại danh sách Hồ sơ nháp chờ tôi lưu"
       },
       {
        "n": 2,

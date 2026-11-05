@@ -742,7 +742,7 @@ Thẻ Tồn kho cho thấy số lượng hiện có của từng mặt hàng. "�
 
 ### 24. Admin: soạn nháp và chọn Thừa hành viên ghi tên
 
-Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục "Chờ tôi xác nhận" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.
+Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục "Hồ sơ nháp chờ tôi lưu" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.
 
 **Cần nhớ:**
 
@@ -751,7 +751,7 @@ Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi 
 
 #### Bước 24.1 · Chọn thừa hành viên được ghi tên
 
-Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Chờ tôi xác nhận" của thừa hành viên đó.
+Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Hồ sơ nháp chờ tôi lưu" của thừa hành viên đó.
 
 ![Chọn thừa hành viên được ghi tên](roles/admin/29.png)
 
@@ -762,7 +762,7 @@ Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi 
 
 | Hiện tượng | Cách xử lý |
 | --- | --- |
-| Thừa hành viên không thấy hồ sơ trong "Chờ tôi xác nhận" | Chưa chọn đúng thừa hành viên ở ô "Thừa hành viên được ghi tên" hoặc chưa bấm Lưu. |
+| Thừa hành viên không thấy hồ sơ trong "Hồ sơ nháp chờ tôi lưu" | Chưa chọn đúng thừa hành viên ở ô "Thừa hành viên được ghi tên" hoặc chưa bấm Lưu. |
 
 ## Dành cho Trưởng văn phòng
 
@@ -1243,7 +1243,7 @@ Danh sách dùng giống nghiệp vụ Vi bằng (tab, bộ lọc, tìm, cột).
 | Không thấy nút "+ Tạo hồ sơ" ở Tổ chức thi hành án | Tài khoản chưa được cấp quyền tạo hồ sơ nghiệp vụ này. Nhờ Admin kiểm tra phân quyền. |
 | Bấm Lưu nháp báo thiếu thông tin | Điền ô bắt buộc (có ghi chú bắt buộc), kiểm tra SĐT đúng 10 số bắt đầu bằng 0. |
 
-### 35. Thừa hành viên: Chờ tôi xác nhận
+### 35. Thừa hành viên: Hồ sơ nháp chờ tôi lưu
 
 Mục này liệt kê các bản nháp người khác soạn và ghi tên bạn. Bạn xem lại nội dung rồi xác nhận lưu chính thức hoặc báo lại người soạn.
 
@@ -1251,13 +1251,13 @@ Mục này liệt kê các bản nháp người khác soạn và ghi tên bạn.
 
 - Kiểm tra kỹ từng cột trước khi xác nhận vì sau đó hồ sơ không sửa trực tiếp được.
 
-#### Bước 35.1 · Chờ tôi xác nhận
+#### Bước 35.1 · Hồ sơ nháp chờ tôi lưu
 
 Mỗi dòng là một bản nháp đang chờ bạn. Bấm "Xem và xác nhận" để mở.
 
 - Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc.
 
-![Chờ tôi xác nhận](roles/thua-hanh-vien/46.png)
+![Hồ sơ nháp chờ tôi lưu](roles/thua-hanh-vien/46.png)
 
 1. Mở bản nháp để xem và xác nhận
 
@@ -1270,7 +1270,7 @@ Hệ thống hiện lại toàn bộ nội dung hồ sơ và các tài liệu. �
 
 ![Xem và xác nhận nội dung bản nháp](roles/thua-hanh-vien/47.png)
 
-1. Quay lại danh sách Chờ tôi xác nhận
+1. Quay lại danh sách Hồ sơ nháp chờ tôi lưu
 2. Nội dung hồ sơ cần kiểm tra
 3. Xác nhận nội dung (sau đó hồ sơ đủ điều kiện lưu chính thức)
 
@@ -1278,7 +1278,7 @@ Hệ thống hiện lại toàn bộ nội dung hồ sơ và các tài liệu. �
 
 | Hiện tượng | Cách xử lý |
 | --- | --- |
-| Danh sách "Chờ tôi xác nhận" trống | Chưa có bản nháp nào ghi tên bạn. Báo người soạn chọn đúng bạn ở ô "Thừa hành viên được ghi tên". |
+| Danh sách "Hồ sơ nháp chờ tôi lưu" trống | Chưa có bản nháp nào ghi tên bạn. Báo người soạn chọn đúng bạn ở ô "Thừa hành viên được ghi tên". |
 
 ## Dành cho Thư ký
 
@@ -1302,7 +1302,7 @@ Bạn có nút "+ Tạo hồ sơ" ở các nghiệp vụ được cấp quyền.
 
 #### Bước 36.2 · Tổng quan của Thư ký
 
-Thanh bên của Thư ký gồm Chờ tôi xác nhận, Trình / Duyệt, các nghiệp vụ, Văn thư, Xuất sổ và Báo cáo tổng hợp.
+Thanh bên của Thư ký gồm Hồ sơ nháp chờ tôi lưu, Trình / Duyệt, các nghiệp vụ, Văn thư, Xuất sổ và Báo cáo tổng hợp.
 
 ![Tổng quan của Thư ký](roles/thu-ky/06.png)
 

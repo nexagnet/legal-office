@@ -14,7 +14,7 @@ export default async function DmsThvPending() {
   if (session.status !== 'authenticated') {
     return (
       <section aria-labelledby="t">
-        <h1 id="t">Chờ tôi xác nhận</h1>
+        <h1 id="t">Hồ sơ nháp chờ tôi lưu</h1>
         <div className="state" role="alert">
           <h2>Cần đăng nhập</h2>
           <p>
@@ -27,7 +27,7 @@ export default async function DmsThvPending() {
   const rows = await loadThvPending(await requestCookie());
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Chờ tôi xác nhận</h1>
+      <h1 id="t">Hồ sơ nháp chờ tôi lưu</h1>
       <p className="muted">
         Hồ sơ nháp có ghi tên bạn là thừa hành viên. Hồ sơ chỉ được lưu chính thức sau khi chính bạn
         xác nhận.

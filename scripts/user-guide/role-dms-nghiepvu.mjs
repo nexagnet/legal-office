@@ -57,10 +57,10 @@ gk.section('DMS · Thư ký: soạn bản nháp', 'Thư ký soạn bản nháp: 
   ['Không thấy nút "Xác nhận lưu chính thức"', 'Đúng thiết kế của vai Thư ký. Báo người phụ trách xác nhận.'],
   ['Ô "Thừa hành viên được ghi tên" chỉ có "Không ghi tên"', 'Vai Thư ký không có quyền chọn thừa hành viên.'],
 ]);
-ga.section('DMS · Admin: soạn nháp và chọn Thừa hành viên ghi tên', 'Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục "Chờ tôi xác nhận" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.', [
+ga.section('DMS · Admin: soạn nháp và chọn Thừa hành viên ghi tên', 'Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục "Hồ sơ nháp chờ tôi lưu" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.', [
   'Chỉ người có quyền xem danh sách thừa hành viên mới chọn được. Chọn "Không ghi tên" nếu chưa biết.',
   'Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác.',
-], [['Thừa hành viên không thấy hồ sơ trong "Chờ tôi xác nhận"', 'Chưa chọn đúng thừa hành viên ở ô "Thừa hành viên được ghi tên" hoặc chưa bấm Lưu.']]);
+], [['Thừa hành viên không thấy hồ sơ trong "Hồ sơ nháp chờ tôi lưu"', 'Chưa chọn đúng thừa hành viên ở ô "Thừa hành viên được ghi tên" hoặc chưa bấm Lưu.']]);
 await go(tk.page, '/dms/vi-bang/tao-moi');
 await tk.page.locator('[name=title]').fill(`${TAG}Vi bằng ghi nhận hiện trạng nhà số 18 phố Hàng Cót${REAL ? '' : ' ' + stamp}`);
 await tk.page.locator('[name=phone]').fill('0900 000 456');
@@ -84,19 +84,19 @@ await ad.page.locator('select[name=branch]').selectOption({ index: 1 }).catch(()
 await ad.page.getByRole('button', { name: 'Lưu nháp' }).click(); await ad.page.waitForURL(/\/dms\/vi-bang\/[0-9a-f-]{36}/, { timeout: 15000 }); await ad.page.waitForTimeout(1500);
 const optionLabel = await ad.page.locator('[name=thv] option', { hasText: REAL ? 'Phạm Quốc Bảo' : 'DEMO Thừa hành viên' }).first().innerText();
 await ad.page.locator('[name=thv]').selectOption({ label: optionLabel.trim() });
-await ga.shot(ad.page, { title: 'Chọn thừa hành viên được ghi tên', note: 'Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Chờ tôi xác nhận" của thừa hành viên đó.',
+await ga.shot(ad.page, { title: 'Chọn thừa hành viên được ghi tên', note: 'Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở "Hồ sơ nháp chờ tôi lưu" của thừa hành viên đó.',
   marks: [{ loc: ad.page.locator('[name=thv]'), text: 'Thừa hành viên được ghi tên' }, { loc: ad.page.getByRole('button', { name: 'Lưu', exact: true }), text: 'Lưu để giao cho thừa hành viên' }] });
 await ad.page.getByRole('button', { name: 'Lưu', exact: true }).click(); await ad.page.waitForTimeout(2500);
 
-gt.section('DMS · Thừa hành viên: Chờ tôi xác nhận', 'Mục này liệt kê các bản nháp người khác soạn và ghi tên bạn. Bạn xem lại nội dung rồi xác nhận lưu chính thức hoặc báo lại người soạn.', [
+gt.section('DMS · Thừa hành viên: Hồ sơ nháp chờ tôi lưu', 'Mục này liệt kê các bản nháp người khác soạn và ghi tên bạn. Bạn xem lại nội dung rồi xác nhận lưu chính thức hoặc báo lại người soạn.', [
   'Kiểm tra kỹ từng cột trước khi xác nhận vì sau đó hồ sơ không sửa trực tiếp được.',
-], [['Danh sách "Chờ tôi xác nhận" trống', 'Chưa có bản nháp nào ghi tên bạn. Báo người soạn chọn đúng bạn ở ô "Thừa hành viên được ghi tên".']]);
+], [['Danh sách "Hồ sơ nháp chờ tôi lưu" trống', 'Chưa có bản nháp nào ghi tên bạn. Báo người soạn chọn đúng bạn ở ô "Thừa hành viên được ghi tên".']]);
 await go(thv.page, '/dms/thv');
-await gt.shot(thv.page, { title: 'Chờ tôi xác nhận', note: 'Mỗi dòng là một bản nháp đang chờ bạn. Bấm "Xem và xác nhận" để mở.',
+await gt.shot(thv.page, { title: 'Hồ sơ nháp chờ tôi lưu', note: 'Mỗi dòng là một bản nháp đang chờ bạn. Bấm "Xem và xác nhận" để mở.',
   detail: ['Hồ sơ nháp, Nghiệp vụ, Ngày tạo, Trạng thái: thông tin nhanh để chọn việc.'],
   marks: [{ loc: thv.page.getByRole('link', { name: /Xem và xác nhận/ }).first(), text: 'Mở bản nháp để xem và xác nhận' }] });
 await thv.page.getByRole('link', { name: /Xem và xác nhận/ }).first().click(); await thv.page.waitForTimeout(1800);
 await gt.shot(thv.page, { title: 'Xem và xác nhận nội dung bản nháp', note: 'Hệ thống hiện lại toàn bộ nội dung hồ sơ và các tài liệu. Đọc kỹ; nếu đúng thì bấm "Tôi xác nhận nội dung này". Nếu người nhập liệu sửa lại sau khi bạn xác nhận, bạn phải xác nhận lại.',
   detail: ['Nội dung hồ sơ: các ô người soạn đã điền (hiển thị chỉ đọc).', 'Tài liệu: các tài liệu đã đính kèm vào bản nháp.'],
-  marks: [{ loc: thv.page.getByRole('link', { name: /Chờ tôi xác nhận/ }).first(), text: 'Quay lại danh sách Chờ tôi xác nhận' }, { loc: thv.page.getByText('Nội dung hồ sơ', { exact: true }), text: 'Nội dung hồ sơ cần kiểm tra' }, { loc: thv.page.getByRole('button', { name: 'Tôi xác nhận nội dung này' }), text: 'Xác nhận nội dung (sau đó hồ sơ đủ điều kiện lưu chính thức)' }] });
+  marks: [{ loc: thv.page.getByRole('link', { name: /Hồ sơ nháp chờ tôi lưu/ }).first(), text: 'Quay lại danh sách Hồ sơ nháp chờ tôi lưu' }, { loc: thv.page.getByText('Nội dung hồ sơ', { exact: true }), text: 'Nội dung hồ sơ cần kiểm tra' }, { loc: thv.page.getByRole('button', { name: 'Tôi xác nhận nội dung này' }), text: 'Xác nhận nội dung (sau đó hồ sơ đủ điều kiện lưu chính thức)' }] });
 gt.save(); gk.save(); ga.save(); await b.close(); console.log('done', gt.n, gk.n, ga.n);

@@ -817,21 +817,21 @@
   },
   {
    "title": "DMS · Admin: soạn nháp và chọn Thừa hành viên ghi tên",
-   "intro": "Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục \"Chờ tôi xác nhận\" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.",
+   "intro": "Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục \"Hồ sơ nháp chờ tôi lưu\" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.",
    "rules": [
     "Chỉ người có quyền xem danh sách thừa hành viên mới chọn được. Chọn \"Không ghi tên\" nếu chưa biết.",
     "Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác."
    ],
    "problems": [
     [
-     "Thừa hành viên không thấy hồ sơ trong \"Chờ tôi xác nhận\"",
+     "Thừa hành viên không thấy hồ sơ trong \"Hồ sơ nháp chờ tôi lưu\"",
      "Chưa chọn đúng thừa hành viên ở ô \"Thừa hành viên được ghi tên\" hoặc chưa bấm Lưu."
     ]
    ],
    "steps": [
     {
      "title": "Chọn thừa hành viên được ghi tên",
-     "note": "Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở \"Chờ tôi xác nhận\" của thừa hành viên đó.",
+     "note": "Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở \"Hồ sơ nháp chờ tôi lưu\" của thừa hành viên đó.",
      "detail": [],
      "img": "admin/29.png",
      "marks": [
