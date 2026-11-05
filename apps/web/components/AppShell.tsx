@@ -48,6 +48,8 @@ interface Props {
   /** Họ tên và mã người đăng nhập, để hiện avatar và tên ở thẻ người dùng; thiếu thì hiện theo vai. */
   readonly userName?: string | null;
   readonly userId?: string | null;
+  /** Văn phòng của người đăng nhập, để hộp tìm kiếm tìm được trong nội dung tài liệu. */
+  readonly officeId?: string | null;
   readonly children: ReactNode;
 }
 
@@ -348,6 +350,7 @@ export function AppShell({
   roleLabel = null,
   userName = null,
   userId = null,
+  officeId = null,
   children,
 }: Props) {
   const router = useRouter();
@@ -482,7 +485,7 @@ export function AppShell({
         <div className="content">
           {signedIn ? (
             <div className="appbar">
-              <SearchPalette items={items} />
+              <SearchPalette items={items} officeId={officeId} />
               <span className="appbar-gap" />
               <Link
                 href="/thong-bao"

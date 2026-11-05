@@ -66,6 +66,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <AppShell
           items={items}
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
+          officeId={officeId ?? null}
           badges={pendingSubmissions ? { 'dms-trinh-duyet': pendingSubmissions } : undefined}
           signedIn={session.status === 'authenticated'}
           userName={session.status === 'authenticated' ? (session.displayName ?? null) : null}
