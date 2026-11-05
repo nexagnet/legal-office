@@ -467,7 +467,6 @@ export function ThvCardsForm({
         </form>
       ) : null}
 
-
       <Modal
         open={confirmSuspend}
         onOpenChange={setConfirmSuspend}
