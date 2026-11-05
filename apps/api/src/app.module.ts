@@ -25,6 +25,7 @@ import { DmsLegacyController } from './dms/dms-legacy.controller';
 import { DmsBrowseController } from './dms/dms-browse.controller';
 import { DmsSearchController } from './dms/dms-search.controller';
 import { DmsPermissionsController } from './dms/dms-permissions.controller';
+import { DmsNumbersController } from './dms/dms-numbers.controller';
 import { DmsThvController } from './dms/dms-thv.controller';
 import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
 import { FormsController } from './forms/forms.controller';
@@ -90,6 +91,7 @@ export class AppModule {
         DmsBrowseController,
         DmsSearchController,
         DmsPermissionsController,
+        DmsNumbersController,
         DmsThvController,
       ],
       providers: [
