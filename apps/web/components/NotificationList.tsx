@@ -37,7 +37,7 @@ export function NotificationList({
 
   return (
     <div>
-      <div className="toolbar">
+      <div className="toolbar notif-toolbar">
         <Button
           variant="secondary"
           disabled={busy || unread === 0}
@@ -58,7 +58,7 @@ export function NotificationList({
           <p>Chưa có nhắc hạn nào trong mục này.</p>
         </div>
       ) : (
-        <ul className="rows deadline-rows">
+        <ul className="rows deadline-rows notif-list">
           {items.map((n) => {
             const href = notificationHref(n);
             return (
