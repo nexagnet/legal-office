@@ -40,17 +40,117 @@ function useSender() {
   return { send, error, busy, setError, setBusy, router };
 }
 
-/** Thêm một tài liệu vào hồ sơ NHÁP. */
-export function AddDmsDocumentForm({ caseId }: { readonly caseId: string }) {
-  const { send, error, busy } = useSender();
+/** Loại tài liệu chung nhận mọi tệp tải lên không phân loại. Máy chủ giữ đúng tên này để tài liệu này KHÔNG vào Sổ S-01. */
+export const OTHER_KIND = 'Tài liệu khác';
+
+const ACCEPT = 'application/pdf,image/jpeg,image/png';
+
+/**
+ * Tải lên nhiều tệp một lượt vào tài liệu chung "Tài liệu khác" của hồ sơ (tạo ở lần tải đầu tiên, mỗi hồ sơ chỉ một).
+ * Không hỏi loại, không hỏi tên: nhãn là tên tệp, tệp tính là bản scan. Trả số tệp đã tải và mã lỗi đầu tiên (nếu có).
+ */
+export async function uploadUnclassified(
+  caseId: string,
+  files: readonly File[],
+): Promise<{ readonly done: number; readonly error: string | null }> {
+  const list = files.filter((f) => f.size > 0);
+  if (list.length === 0) return { done: 0, error: null };
+  const made = await fetch(`/api/dms/cases/${caseId}/other-document`, { method: 'POST' });
+  const madeJson = (await made.json().catch(() => ({}))) as { code?: string; label?: string };
+  if (!made.ok || !madeJson.label) return { done: 0, error: messageFor(madeJson.code) };
+  let done = 0;
+  for (const file of list) {
+    const q = new URLSearchParams({ label: file.name.slice(0, 200), isScan: 'true' });
+    const res = await fetch(`/api/dms/documents/${madeJson.label}/files?${q}`, {
+      method: 'POST',
+      headers: { 'content-type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    if (!res.ok) {
+      const json = (await res.json().catch(() => ({}))) as { code?: string };
+      return { done, error: `${file.name}: ${messageFor(json.code)}` };
+    }
+    done += 1;
+  }
+  return { done, error: null };
+}
+
+/** Ô tải lên không giới hạn số tệp, không phân loại (cả hồ sơ nháp lẫn đã ghi sổ). */
+export function DmsMultiUpload({ caseId }: { readonly caseId: string }) {
+  const { error, busy, setError, setBusy, router } = useSender();
+  const [note, setNote] = useState<string | null>(null);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const f = new FormData(form);
+    const input = form.elements.namedItem('files');
+    const files = input instanceof HTMLInputElement ? [...(input.files ?? [])] : [];
+    if (files.length === 0) return setError('Hãy chọn ít nhất một tệp PDF, JPEG hoặc PNG.');
+    setBusy(true);
+    setError(null);
+    setNote(null);
+    try {
+      const r = await uploadUnclassified(caseId, files);
+      if (r.done > 0) setNote(`Đã tải lên ${r.done}/${files.length} tệp.`);
+      if (r.error) setError(r.error);
+      else form.reset();
+      if (r.done > 0) router.refresh();
+    } catch {
+      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <form
+      onSubmit={submit}
+      className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-surface p-4 shadow-sm"
+      aria-label="Tải tài liệu lên"
+    >
+      <input
+        type="file"
+        name="files"
+        multiple
+        accept={ACCEPT}
+        aria-label="Chọn tệp"
+        className="min-w-0 max-w-full flex-1 text-[13px] file:mr-3 file:cursor-pointer file:rounded-[10px] file:border-0 file:bg-accent-soft file:px-4 file:py-2 file:text-[13px] file:font-semibold file:text-accent"
+      />
+      <Button type="submit" variant="secondary" loading={busy}>
+        Tải lên
+      </Button>
+      <p className="m-0 w-full text-xs text-muted">
+        Chọn bao nhiêu tệp cũng được (PDF, JPEG, PNG), không cần chọn loại tài liệu.
+      </p>
+      {note ? (
+        <p role="status" className="m-0 w-full text-sm">
+          {note}
+        </p>
+      ) : null}
+      {error ? (
+        <p role="alert" className="m-0 w-full text-sm">
+          {error}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+/**
+ * Tống đạt: thêm một giấy tờ cần tống đạt, tức một dòng Sổ S-01. Không phải bước "loại tài liệu": chỉ cần Cột 2 (Loại văn
+ * bản) của sổ, các cột còn lại nhập ở thẻ giấy tờ ngay bên dưới.
+ */
+export function AddS01DocumentForm({ caseId }: { readonly caseId: string }) {
+  const { send, error, busy, setError } = useSender();
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const loai = String(new FormData(form).get('loai_van_ban') ?? '').trim();
+    if (loai === '') return;
+    if (loai === OTHER_KIND) return setError('"Tài liệu khác" không phải giấy tờ cần tống đạt.');
     const ok = await send(`/api/dms/cases/${caseId}/documents`, {
-      kind: String(f.get('kind') ?? '').trim(),
-      title: String(f.get('title') ?? '').trim(),
-      isOfficial: f.get('isOfficial') === 'on',
+      kind: loai.slice(0, 100),
+      title: loai,
+      isOfficial: true,
+      attributes: { loai_van_ban: loai },
     });
     if (ok) form.reset();
   }
@@ -58,21 +158,14 @@ export function AddDmsDocumentForm({ caseId }: { readonly caseId: string }) {
     <form
       onSubmit={submit}
       className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl bg-surface p-4 shadow-sm"
-      aria-label="Thêm tài liệu"
+      aria-label="Thêm giấy tờ vào sổ S-01"
     >
-      <label className="flex flex-col gap-1 text-[13px] font-semibold">
-        Loại tài liệu
-        <Input name="kind" required maxLength={100} />
-      </label>
       <label className="flex min-w-60 flex-1 flex-col gap-1 text-[13px] font-semibold">
-        Tên tài liệu
-        <Input name="title" required maxLength={500} />
-      </label>
-      <label className="flex min-h-11 items-center gap-2 text-[13px] font-semibold">
-        <input type="checkbox" name="isOfficial" /> Văn bản chính thức
+        Cột 2: LOẠI VĂN BẢN
+        <Input name="loai_van_ban" required maxLength={100} />
       </label>
       <Button type="submit" variant="secondary" loading={busy}>
-        + Thêm tài liệu
+        + Thêm giấy tờ vào sổ S-01
       </Button>
       {error ? (
         <p role="alert" className="w-full text-sm">

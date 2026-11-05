@@ -53,16 +53,19 @@ const view = () =>
   );
 
 describe('NewDmsCasePage (Figma "Tạo hồ sơ")', () => {
-  it('có ba khối A, B, C, thông tin hệ thống chỉ đọc và nút Hủy về danh sách', () => {
+  it('có ba khối A, B, C, phần hệ thống tự sinh không hiện và nút Hủy về danh sách', () => {
     mockApi();
     view();
     expect(
       screen.getByRole('heading', { name: /A\. Thông tin Vi bằng — phục vụ Sổ S-02/ }),
     ).not.toBeNull();
     expect(screen.getByRole('heading', { name: 'B. Tài liệu đính kèm' })).not.toBeNull();
-    expect(screen.getByRole('heading', { name: /C\. Thông tin hệ thống/ })).not.toBeNull();
-    expect(screen.getByText('Tự cấp khi xác nhận')).not.toBeNull();
-    expect(screen.getByText('Lê Hà')).not.toBeNull();
+    expect(
+      screen.getByRole('heading', { name: /C\. Thông tin khác — không vào sổ/ }),
+    ).not.toBeNull();
+    expect(screen.queryByText('Tự cấp khi xác nhận')).toBeNull();
+    expect(screen.queryByText('Lê Hà')).toBeNull();
+    expect((screen.getByLabelText('Chọn tệp đính kèm') as HTMLInputElement).multiple).toBe(true);
     expect(screen.getByRole('link', { name: 'Hủy' }).getAttribute('href')).toBe('/dms/vi-bang');
     expect(screen.getByLabelText(/Cột 2: Người yêu cầu/)).not.toBeNull();
   });
@@ -82,6 +85,32 @@ describe('NewDmsCasePage (Figma "Tạo hồ sơ")', () => {
     const body = createBodyOf(spy);
     expect(body.title).toBe('Vi bằng A');
     expect(body.attributes).toEqual({ nguoi_yeu_cau: 'Cty B', so_dien_thoai: '0912 345 678' });
+  });
+
+  it('mục A chỉ có đúng các cột sổ; Tên hồ sơ, SĐT, Ghi chú nằm ở mục C', () => {
+    mockApi();
+    view();
+    const a = screen.getByRole('heading', { name: /^A\./ }).closest('section')!;
+    const c = screen.getByRole('heading', { name: /^C\./ }).closest('section')!;
+    const labelsOf = (el: Element) =>
+      [...el.querySelectorAll('label')].map((l) => l.textContent?.trim() ?? '');
+    expect(labelsOf(a).every((t) => /^Cột \d+:/.test(t))).toBe(true);
+    expect(labelsOf(a)).toHaveLength(COLUMNS.length);
+    expect(labelsOf(c)).toEqual(['Tên hồ sơ', 'SĐT khách hàng', 'Ghi chú']);
+  });
+
+  it('bỏ trống Tên hồ sơ thì hệ thống tự đặt từ cột sổ đầu tiên, ghi chú vào thuộc tính note', async () => {
+    const spy = mockApi();
+    view();
+    fireEvent.change(screen.getByLabelText(/Cột 2: Người yêu cầu/), {
+      target: { value: 'Cty B' },
+    });
+    fireEvent.change(screen.getByLabelText('Ghi chú'), { target: { value: 'gọi trước' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu nháp' }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/dms/vi-bang/c1'));
+    const body = createBodyOf(spy);
+    expect(body.title).toBe('Vi bằng · Cty B');
+    expect(body.attributes).toEqual({ nguoi_yeu_cau: 'Cty B', note: 'gọi trước' });
   });
 
   it('nhiều chi nhánh thì bắt chọn và gửi branchId', async () => {

@@ -6,14 +6,17 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { DmsBookColumn } from '../lib/dms';
 import { numberPrefix } from '../lib/dms-number';
 import { NumberDateInput } from './NumberDateInput';
+import { autoCaseTitle } from '../lib/dms-case-title';
 import { messageFor } from '../lib/messages';
+import { uploadUnclassified } from './DmsCaseActions';
 import { Button } from './ui/button';
 import { Input } from './ui/field';
 
 /**
- * Trang tạo hồ sơ theo Figma "Tạo hồ sơ" (khối A thông tin, B tài liệu, C thông tin hệ thống, Hủy / Lưu nháp).
- * Chỉ tạo BẢN NHÁP: số hồ sơ và STT cấp khi xác nhận lưu chính thức (N3, N8). Tài liệu đính kèm cần hồ sơ đã có,
- * nên tải lên ở trang chi tiết ngay sau khi lưu nháp. Quyền do máy chủ kiểm.
+ * Trang tạo hồ sơ theo Figma "Tạo hồ sơ". A chỉ gồm đúng các cột của sổ S-0x (không thêm ô nào khác); B tải tài liệu không
+ * giới hạn, không phân loại; C là thông tin không vào sổ (Tên hồ sơ, SĐT khách hàng, Ghi chú). Phần hệ thống tự sinh
+ * (số hồ sơ, trạng thái, người tạo, ngày tạo) không hiện. Chỉ tạo BẢN NHÁP: số hồ sơ và STT cấp khi xác nhận lưu chính thức
+ * (N3, N8). Tệp đã chọn được tải lên ngay sau khi tạo xong bản nháp. Quyền do máy chủ kiểm.
  */
 export function NewDmsCasePage({
   officeId,
@@ -21,7 +24,6 @@ export function NewDmsCasePage({
   domainLabel,
   bookCode,
   columns,
-  creatorName,
   createdOn,
   cancelHref,
   redirectBase,
@@ -32,7 +34,8 @@ export function NewDmsCasePage({
   readonly bookCode: string;
   /** Cột nhập tay của sổ (chỉ sổ mà mỗi hồ sơ là một dòng); sổ S-01 nhập ở từng giấy tờ nên để trống. */
   readonly columns: readonly DmsBookColumn[];
-  readonly creatorName: string;
+  /** Không còn hiển thị (phần hệ thống tự sinh được ẩn); giữ để trang gọi không phải đổi. */
+  readonly creatorName?: string;
   /** Ngày hiện tại theo giờ Việt Nam, đã định dạng. */
   readonly createdOn: string;
   readonly cancelHref: string;
@@ -68,6 +71,9 @@ export function NewDmsCasePage({
     };
     const attributes: Record<string, unknown> = {};
     for (const c of columns) if (text(c.key)) attributes[c.key] = text(c.key);
+    const title = text('title') || autoCaseTitle(domainLabel, columns, attributes, createdOn);
+    const picked = form.elements.namedItem('files');
+    const files = picked instanceof HTMLInputElement ? [...(picked.files ?? [])] : [];
     if (text('note')) attributes.note = text('note');
     // SĐT khách hàng (N1): chỉ gửi khi có nhập; không vào sổ.
     if (text('phone')) attributes.so_dien_thoai = text('phone');
@@ -80,7 +86,7 @@ export function NewDmsCasePage({
         body: JSON.stringify({
           officeId,
           domain: domainCode,
-          title: text('title'),
+          title,
           attributes,
           ...(text('branch') ? { branchId: text('branch') } : {}),
         }),
@@ -92,7 +98,12 @@ export function NewDmsCasePage({
             ? 'Thông tin chưa hợp lệ, kiểm tra lại số điện thoại.'
             : messageFor(json.code),
         );
-      router.push(json.label ? `${redirectBase}/${json.label}` : cancelHref);
+      if (!json.label) return router.push(cancelHref);
+      // Bản nháp đã có: tải tệp đã chọn. Tải lỗi vẫn vào hồ sơ (tab Tài liệu) để tải lại, không mất bản nháp.
+      const up = files.length > 0 ? await uploadUnclassified(json.label, files) : null;
+      router.push(
+        up?.error ? `${redirectBase}/${json.label}?tab=tai-lieu` : `${redirectBase}/${json.label}`,
+      );
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
     } finally {
@@ -112,22 +123,6 @@ export function NewDmsCasePage({
           A. Thông tin {domainLabel} — phục vụ Sổ {bookCode}
         </h2>
         <div className="mt-3 grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="flex flex-col gap-1 text-[13px] font-semibold sm:col-span-2">
-            Tên hồ sơ
-            <Input name="title" required maxLength={500} />
-          </label>
-          <label className="flex flex-col gap-1 text-[13px] font-semibold">
-            SĐT khách hàng
-            <Input
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              maxLength={20}
-              pattern="\+?[0-9 .\(\)\-]{8,20}"
-              title="Số điện thoại 8-15 chữ số, có thể có dấu cách, chấm, gạch, ngoặc hoặc +84"
-            />
-            <span className="text-xs font-normal text-muted">Không in ra sổ.</span>
-          </label>
           {branches.length > 1 ? (
             <label className="flex flex-col gap-1 text-[13px] font-semibold">
               Chi nhánh
@@ -163,10 +158,6 @@ export function NewDmsCasePage({
               )}
             </label>
           ))}
-          <label className="flex flex-col gap-1 text-[13px] font-semibold sm:col-span-2">
-            Ghi chú
-            <Input name="note" maxLength={1000} />
-          </label>
         </div>
         <p className="mt-3 rounded-lg bg-[#eef3fb] px-3 py-2 text-[13px]">
           Số hồ sơ tự cấp khi xác nhận lưu chính thức, trùng phần đầu với STT (STT 30 →
@@ -178,34 +169,45 @@ export function NewDmsCasePage({
         <h2 id="new-b" className="font-serif text-lg font-bold">
           B. Tài liệu đính kèm
         </h2>
-        <p className="mt-2 text-sm">
-          Tải bản scan và tài liệu ở trang chi tiết ngay sau khi lưu nháp. Hồ sơ cần tồn tại trước
-          thì tài liệu mới gắn vào được.
+        <input
+          type="file"
+          name="files"
+          multiple
+          accept="application/pdf,image/jpeg,image/png"
+          aria-label="Chọn tệp đính kèm"
+          className="mt-3 min-w-0 max-w-full text-[13px] file:mr-3 file:cursor-pointer file:rounded-[10px] file:border-0 file:bg-accent-soft file:px-4 file:py-2 file:text-[13px] file:font-semibold file:text-accent"
+        />
+        <p className="mt-2 text-xs text-muted">
+          Chọn bao nhiêu tệp cũng được (PDF, JPEG, PNG), không cần chọn loại tài liệu. Tệp được tải
+          lên ngay sau khi lưu nháp; sau đó vẫn tải thêm được ở trang chi tiết.
         </p>
       </section>
 
       <section aria-labelledby="new-c" className="rounded-2xl bg-surface p-5 shadow-sm">
         <h2 id="new-c" className="font-serif text-lg font-bold">
-          C. Thông tin hệ thống — tự động
+          C. Thông tin khác — không vào sổ
         </h2>
-        <dl className="mt-3 grid gap-x-4 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <dt className="text-xs text-muted">Số hồ sơ</dt>
-            <dd className="font-semibold">Tự cấp khi xác nhận</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Trạng thái</dt>
-            <dd className="font-semibold">Bản nháp</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Người tạo</dt>
-            <dd className="font-semibold">{creatorName}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted">Ngày tạo</dt>
-            <dd className="font-semibold">{createdOn}</dd>
-          </div>
-        </dl>
+        <div className="mt-3 grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="flex flex-col gap-1 text-[13px] font-semibold sm:col-span-2">
+            Tên hồ sơ
+            <Input name="title" maxLength={500} placeholder="Bỏ trống: hệ thống tự đặt" />
+          </label>
+          <label className="flex flex-col gap-1 text-[13px] font-semibold">
+            SĐT khách hàng
+            <Input
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              maxLength={20}
+              pattern="\+?[0-9 .\(\)\-]{8,20}"
+              title="Số điện thoại 8-15 chữ số, có thể có dấu cách, chấm, gạch, ngoặc hoặc +84"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-[13px] font-semibold sm:col-span-2 lg:col-span-4">
+            Ghi chú
+            <Input name="note" maxLength={1000} />
+          </label>
+        </div>
       </section>
 
       {error ? (

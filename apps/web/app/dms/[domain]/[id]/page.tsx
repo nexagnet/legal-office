@@ -7,10 +7,13 @@ import { DmsAdminEdit } from '../../../../components/DmsAdminEdit';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
 import { DmsThvPicker } from '../../../../components/DmsThvActions';
 import {
-  AddDmsDocumentForm,
+  AddS01DocumentForm,
   DmsDraftActions,
+  DmsMultiUpload,
+  OTHER_KIND,
   UploadDmsFile,
 } from '../../../../components/DmsCaseActions';
+import { DmsCaseExtrasForm } from '../../../../components/DmsCaseExtrasForm';
 import { AdminBanner } from '../../../../components/admin-banner';
 import { Button } from '../../../../components/ui/button';
 import {
@@ -58,7 +61,10 @@ const STATUS: Record<string, string> = {
   CANCELLED: 'Đã hủy',
 };
 
-/** Thông tin cấp hợp đồng/quyết định từng nghiệp vụ (Figma "Tạo hồ sơ ..."); lưu trong thuộc tính hồ sơ, tách khỏi cột sổ. Tống đạt: từng giấy tờ là một dòng Sổ S-01 ở thuộc tính tài liệu. */
+/**
+ * Thông tin cấp hợp đồng/quyết định từng nghiệp vụ (Figma "Tạo hồ sơ ..."); lưu trong thuộc tính hồ sơ, KHÔNG phải cột sổ nên
+ * nằm ở mục C (mục A chỉ có đúng các cột sổ S-0x). Tống đạt: từng giấy tờ là một dòng Sổ S-01 ở thuộc tính tài liệu.
+ */
 const col = (no: number, heading: string, key: string): DmsBookColumn => ({ no, heading, key });
 const CONTRACT_CARDS: Readonly<
   Record<string, readonly { title: string; cols: readonly DmsBookColumn[] }[]>
@@ -205,13 +211,15 @@ export default async function DmsCasePage({
               attributes: d.attributes,
             })),
           } as const);
-  // Ô "Tài liệu khác" chung cho 4 nghiệp vụ: chưa có tài liệu loại này thì hiện ô trống, tạo ngay lần tải đầu tiên.
-  const showOtherBox =
+  // Tải lên không phân loại, không giới hạn số tệp (4 nghiệp vụ): mọi tệp vào tài liệu chung "Tài liệu khác" của hồ sơ
+  // (tạo ở lần tải đầu tiên), tài liệu này không vào Sổ S-01. Dùng được cả khi hồ sơ đã ghi sổ.
+  const canUpload =
     documents !== 'error' &&
     !isVanThu(domain.code) &&
     c.status !== 'CANCELLED' &&
-    canAddDocument(permissions, domain.code) &&
-    !docs.some((d) => d.kind === 'Tài liệu khác');
+    canAddDocument(permissions, domain.code);
+  // Tống đạt: mỗi giấy tờ (trừ "Tài liệu khác") là một dòng Sổ S-01, nhập cột sổ ngay ở mục A.
+  const s01Docs = book?.source === 'document' ? draftDocs.filter((d) => d.kind !== OTHER_KIND) : [];
   const filesByDoc = await Promise.all(docs.map((d) => loadDmsFiles(cookie, d.id)));
   const fileCount = filesByDoc.reduce((n, f) => n + f.length, 0);
   const allFiles = filesByDoc.flat();
@@ -342,9 +350,8 @@ export default async function DmsCasePage({
           </p>
           <section aria-labelledby="sec-a" className="rounded-2xl bg-surface p-5 shadow-sm">
             <h2 id="sec-a">
-              {CONTRACT_CARDS[domain.code]?.[0]
-                ? CONTRACT_CARDS[domain.code]![0]!.title
-                : `A. Thông tin ${domain.label}${book ? ` — phục vụ Sổ ${book.code}` : ''}`}
+              A. Thông tin {domain.label}
+              {book ? ` — phục vụ Sổ ${book.code}` : ''}
             </h2>
             {canDraft(permissions, domain.code) && !isVanThu(domain.code) ? (
               <DmsThvPicker
@@ -367,31 +374,39 @@ export default async function DmsCasePage({
                 caseNumber={c.case_number}
               />
             ) : null}
-            {canDraft(permissions, domain.code)
-              ? (CONTRACT_CARDS[domain.code] ?? []).map((card) => (
-                  <DmsAttributesForm
-                    key={card.title}
-                    url={`/api/dms/cases/${c.id}/draft`}
-                    columns={card.cols}
-                    current={c.attributes}
-                    fixed={{ title: c.title }}
-                    legend={card.title}
-                  />
-                ))
-              : null}
+            {book && book.source === 'document' && canDraft(permissions, domain.code) ? (
+              <>
+                {s01Docs.length === 0 ? (
+                  <p className="muted text-sm">
+                    Chưa có giấy tờ nào. Mỗi giấy tờ cần tống đạt là một dòng Sổ {book.code}.
+                  </p>
+                ) : (
+                  s01Docs.map((d, i) => (
+                    <DmsAttributesForm
+                      key={d.id}
+                      url={`/api/dms/documents/${d.id}/draft`}
+                      columns={inputColumns(book).filter((col) => col.key !== THV_KEY)}
+                      current={d.attributes}
+                      fixed={{ kind: d.kind, title: d.title, isOfficial: d.is_official }}
+                      legend={`Giấy tờ vào sổ ${book.code} · ${i + 1}. ${d.title}`}
+                      domain={domain.code}
+                      caseNumber={c.case_number}
+                    />
+                  ))
+                )}
+                {canAddDocument(permissions, domain.code) ? (
+                  <AddS01DocumentForm caseId={c.id} />
+                ) : null}
+              </>
+            ) : null}
             <p className="muted mt-2 text-xs">
               Trước khi lưu còn sửa được; sau khi xác nhận lưu chính thức, chỉ Admin sửa được nội
               dung (có lý do, lưu thành phiên bản mới); nhân viên chỉ tải thêm scan.
             </p>
           </section>
           <section aria-labelledby="sec-b" className="rounded-2xl bg-surface p-5 shadow-sm">
-            <h2 id="sec-b">
-              {domain.code === 'tongdat'
-                ? 'Phụ lục: giấy tờ cần tống đạt (mỗi giấy tờ là một dòng Sổ S-01)'
-                : domain.code === 'tochuc'
-                  ? 'Tài liệu kèm theo'
-                  : 'B. Tài liệu đính kèm'}
-            </h2>
+            <h2 id="sec-b">B. Tài liệu đính kèm</h2>
+            {canUpload ? <DmsMultiUpload caseId={c.id} /> : null}
             {docs.length === 0 ? (
               <p className="muted">Chưa có tài liệu.</p>
             ) : (
@@ -419,39 +434,28 @@ export default async function DmsCasePage({
                 ))}
               </ul>
             )}
-            <p className="mt-3">
-              <Button asChild variant="secondary">
-                <Link className="no-underline" href={`${base}?tab=tai-lieu`}>
-                  + Thêm tài liệu
-                </Link>
-              </Button>
-            </p>
           </section>
-          <section aria-labelledby="sec-c" className="rounded-2xl bg-surface p-5 shadow-sm">
-            <h2 id="sec-c">C. Thông tin hệ thống — tự động</h2>
-            <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <dt className="muted">Người tạo</dt>
-                <dd>{creatorName ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="muted">Ngày tạo</dt>
-                <dd>{fmt.format(new Date(c.created_at))}</dd>
-              </div>
-              <div>
-                <dt className="muted">ID hồ sơ</dt>
-                <dd>{c.id.slice(0, 8)}</dd>
-              </div>
-              <div>
-                <dt className="muted">Trạng thái scan</dt>
-                <dd>{c.scan_count > 0 ? `${c.scan_count} scan` : 'Chưa có scan'}</dd>
-              </div>
-              <div>
-                <dt className="muted">{domain.code === 'vtden' ? 'Số đến' : 'STT số'}</dt>
-                <dd>Cấp khi xác nhận lưu chính thức</dd>
-              </div>
-            </dl>
-          </section>
+          {canDraft(permissions, domain.code) ? (
+            <section aria-labelledby="sec-c" className="rounded-2xl bg-surface p-5 shadow-sm">
+              <h2 id="sec-c">C. Thông tin khác — không vào sổ</h2>
+              <DmsCaseExtrasForm
+                caseId={c.id}
+                title={c.title}
+                current={c.attributes}
+                withPhone={hasPhone}
+              />
+              {(CONTRACT_CARDS[domain.code] ?? []).map((card) => (
+                <DmsAttributesForm
+                  key={card.title}
+                  url={`/api/dms/cases/${c.id}/draft`}
+                  columns={card.cols}
+                  current={c.attributes}
+                  fixed={{ title: c.title }}
+                  legend={card.title}
+                />
+              ))}
+            </section>
+          ) : null}
           <DmsDraftActions
             caseId={c.id}
             canRecord={canConfirm(permissions, domain.code)}
@@ -511,9 +515,7 @@ export default async function DmsCasePage({
       {tab === 'tai-lieu' ? (
         <div className="grid gap-5 lg:grid-cols-2">
           <div>
-            {isDraft && canAddDocument(permissions, domain.code) ? (
-              <AddDmsDocumentForm caseId={c.id} />
-            ) : null}
+            {canUpload ? <DmsMultiUpload caseId={c.id} /> : null}
             {docs.length === 0 ? (
               <div className="state" role="status">
                 <h3>Chưa có tài liệu</h3>
@@ -522,8 +524,12 @@ export default async function DmsCasePage({
               docs.map((d, i) => (
                 <FileGroupCard
                   key={d.id}
-                  title={d.title}
-                  hint={`(${d.kind}${d.is_official ? ' · chính thức' : ''})`}
+                  title={d.kind === OTHER_KIND ? 'Tài liệu đính kèm' : d.title}
+                  hint={
+                    d.kind === OTHER_KIND
+                      ? '(không phân loại, không vào sổ)'
+                      : `(${d.kind}${d.is_official ? ' · chính thức' : ''})`
+                  }
                 >
                   {filesByDoc[i]!.length === 0 ? (
                     <p className="m-0 text-sm text-muted">Chưa có tệp.</p>
@@ -574,33 +580,12 @@ export default async function DmsCasePage({
                       caseNumber={c.case_number}
                     />
                   ) : null}
-                  {isDraft &&
-                  book &&
-                  book.source === 'document' &&
-                  canDraft(permissions, domain.code) ? (
-                    <DmsAttributesForm
-                      url={`/api/dms/documents/${d.id}/draft`}
-                      columns={inputColumns(book)}
-                      current={d.attributes}
-                      fixed={{ kind: d.kind, title: d.title, isOfficial: d.is_official }}
-                      legend={`Giấy tờ vào sổ ${book.code}`}
-                      domain={domain.code}
-                      caseNumber={c.case_number}
-                    />
+                  {c.status !== 'CANCELLED' && d.kind !== OTHER_KIND ? (
+                    <UploadDmsFile documentId={d.id} />
                   ) : null}
-                  {c.status !== 'CANCELLED' ? <UploadDmsFile documentId={d.id} /> : null}
                 </FileGroupCard>
               ))
             )}
-            {showOtherBox ? (
-              <FileGroupCard title="Tài liệu khác" hint="(giấy tờ phát sinh)">
-                <p className="m-0 text-sm text-muted">
-                  Chưa có tệp. Dùng cho giấy tờ phát sinh chưa có ô riêng; hồ sơ đã ghi sổ vẫn tải
-                  thêm được.
-                </p>
-                <UploadDmsFile otherForCaseId={c.id} />
-              </FileGroupCard>
-            ) : null}
           </div>
           <aside aria-label="Xem trước tệp">
             {preview ? (
