@@ -40,8 +40,8 @@ import {
   loadMyDmsPermissions,
   type DmsBookColumn,
   loadThvOptions,
-  withCaseNumber,
 } from '../../../../lib/dms';
+import { withCaseNumber } from '../../../../lib/dms-number';
 import { actionLabel, activityNote, loadCaseHistory } from '../../../../lib/dms-activity';
 import { currentSession, requestCookie } from '../../../../lib/server';
 

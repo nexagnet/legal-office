@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
-import { dateOnly, numberPrefix, type DmsBookColumn } from '../lib/dms';
+import type { DmsBookColumn } from '../lib/dms';
+import { dateOnly, numberPrefix } from '../lib/dms-number';
 import { Button } from './ui/button';
 import { Input } from './ui/field';
 import { NumberDateInput } from './NumberDateInput';

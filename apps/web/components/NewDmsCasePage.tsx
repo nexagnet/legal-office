@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
-import { numberPrefix, type DmsBookColumn } from '../lib/dms';
+import type { DmsBookColumn } from '../lib/dms';
+import { numberPrefix } from '../lib/dms-number';
 import { NumberDateInput } from './NumberDateInput';
 import { messageFor } from '../lib/messages';
 import { Button } from './ui/button';
