@@ -120,11 +120,12 @@ export default async function SubmissionsPage({
         ]}
         action={<NewSubmissionButton officeId={officeId} />}
       />
-      <form method="get" action="/dms/trinh-duyet" role="search" className="dms-filters">
+      <form method="get" action="/dms/trinh-duyet" role="search" className="dms-filters search-bar">
         {status ? <input type="hidden" name="status" value={status} /> : null}
         <label>
           <span className="sr-only">Tìm bản trình</span>
           <input
+            type="search"
             name="q"
             defaultValue={q}
             placeholder="Tìm theo tiêu đề hoặc mô tả"
