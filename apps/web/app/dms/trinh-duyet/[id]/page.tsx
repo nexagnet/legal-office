@@ -79,7 +79,7 @@ export default async function SubmissionPage({
           {s.files.length} scan
         </span>
       </p>
-      <dl className="mb-4">
+      <dl className="detail-kv">
         <dt>Người gửi</dt>
         <dd>{names.get(s.submitted_by) ?? '—'}</dd>
         <dt>Ngày gửi</dt>
