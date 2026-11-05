@@ -71,6 +71,9 @@ export const PERMISSION_ACTIONS = [
   ['amend_request', 'Đề nghị sửa đổi (không còn dùng)'],
 ] as const;
 
+/** Hành động hiện trên giao diện chọn quyền: bỏ "Đề nghị sửa đổi" (không còn dùng); mã quyền vẫn nằm trong danh mục DB. */
+export const PERMISSION_ACTIONS_SHOWN = PERMISSION_ACTIONS.filter(([a]) => a !== 'amend_request');
+
 export const SCOPE_LABEL: Readonly<Record<string, string>> = {
   own: 'Hồ sơ do tôi tạo',
   all: 'Mọi hồ sơ của văn phòng',

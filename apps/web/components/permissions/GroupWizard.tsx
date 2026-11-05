@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { postJson } from '../../lib/post-json';
 import {
-  PERMISSION_ACTIONS,
+  PERMISSION_ACTIONS_SHOWN,
   PERMISSION_DOMAINS,
   SCOPE_LABEL,
   SPECIAL_PERMISSIONS,
@@ -286,7 +286,7 @@ export function GroupWizard({
                     </span>
                   </div>
                 ))
-              : PERMISSION_ACTIONS.map(([action, label]) => {
+              : PERMISSION_ACTIONS_SHOWN.map(([action, label]) => {
                   const own = `${activeDomain}.${action}.own`;
                   const all = `${activeDomain}.${action}.all`;
                   const on = picked.has(own) || picked.has(all);
