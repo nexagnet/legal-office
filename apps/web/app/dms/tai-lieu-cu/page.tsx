@@ -104,7 +104,7 @@ export default async function LegacyDocumentsPage({
         Tài liệu được nạp từ kho cũ của văn phòng. Chỉ xem và tải, không sửa, không xóa. Mỗi lần mở
         tệp đều được ghi nhật ký.
       </p>
-      <form method="get" role="search" className="toolbar">
+      <form method="get" role="search" className="toolbar search-bar">
         <label className="sr-only" htmlFor="legacy-prefix">
           Thư mục hoặc đường dẫn bắt đầu bằng
         </label>
