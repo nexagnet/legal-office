@@ -3304,3 +3304,220 @@ td mark {
   font-size: 12px;
   color: var(--muted);
 }
+
+/* Bộ lọc mới của danh sách 4 nghiệp vụ (Figma 05/11): ô mở ra dạng <details>, chip "Đang lọc", thẻ số bấm được */
+.dms-pop {
+  position: relative;
+}
+.dms-pop > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 27px;
+  padding: 0 11px;
+  font: 500 12px/1 var(--font);
+  color: var(--muted);
+  list-style: none;
+  cursor: pointer;
+  background: #eceff4;
+  border: 1px solid transparent;
+  border-radius: 12px;
+}
+.dms-pop > summary::-webkit-details-marker {
+  display: none;
+}
+.dms-pop > summary::after {
+  content: '▾';
+  font-size: 10px;
+}
+.dms-pop[data-active] > summary {
+  font-weight: 600;
+  color: var(--accent);
+  background: #e8effb;
+  border-color: var(--accent);
+}
+.dms-pop > summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.dms-pop-body {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(15, 31, 59, 0.16);
+}
+.dms-pop-narrow {
+  width: 300px;
+}
+.dms-pop-wide .dms-pop-body {
+  right: 0;
+  left: auto;
+  width: 640px;
+}
+.dms-pop-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.dms-pop-hint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.dms-pop-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.dms-pop-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+.dms-pop-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+.dms-pop-cols > div {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.dms-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.dms-field .dms-select {
+  width: 100%;
+  min-height: 34px;
+  font-size: 13px;
+  color: var(--ink);
+  background-color: var(--surface);
+  border: 1px solid var(--line-strong, #cbd5e3);
+  border-radius: 10px;
+}
+.dms-period {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.dms-period label {
+  position: relative;
+}
+.dms-period input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  cursor: pointer;
+}
+.dms-period span {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2, #f7f9fc);
+}
+.dms-period input:checked + span {
+  font-weight: 600;
+  color: var(--accent);
+  background: #e8effb;
+  border-color: var(--accent);
+}
+.dms-period input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.dms-checklist {
+  max-height: 240px;
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  list-style: none;
+}
+.dms-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+.dms-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: -6px 0 14px;
+  font-size: 12px;
+}
+.dms-chips-label {
+  font-weight: 600;
+  color: var(--muted);
+}
+.dms-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 10px;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--line-strong, #cbd5e3);
+  border-radius: 999px;
+}
+.dms-chip:hover {
+  border-color: var(--accent);
+}
+.dms-chip [aria-hidden='true'] {
+  font-weight: 700;
+  color: var(--muted);
+}
+.dms-chips-count {
+  margin-left: auto;
+  color: var(--muted);
+}
+.kpi[data-link] {
+  position: relative;
+}
+.kpi[data-link]:hover {
+  box-shadow: 0 4px 14px rgba(15, 31, 59, 0.12);
+}
+.kpi-link {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.kpi-link:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (max-width: 768px) {
+  .dms-pop-body,
+  .dms-pop-wide .dms-pop-body {
+    position: fixed;
+    inset: auto 16px 16px;
+    width: auto;
+  }
+  .dms-pop-cols {
+    grid-template-columns: 1fr;
+  }
+}

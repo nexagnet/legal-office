@@ -6,6 +6,7 @@ import { AdminBanner } from '../../../components/admin-banner';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { DmsDomainTable } from '../../../components/DmsDomainTable';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
+import { DmsActiveChips, DmsFilterFields } from '../../../components/DmsFilterBar';
 import { KpiStrip, type Kpi } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
 import { PdfPrintButton } from '../../../components/PdfPrintButton';
@@ -34,10 +35,13 @@ import {
   loadBookRowsForCases,
   loadDmsFacetCounts,
   pageWindow,
+  parseExtraView,
   searchDmsCases,
   TOTAL_CAP,
+  viewHref,
   viewToSavedParams,
 } from '../../../lib/dms-browse';
+import type { DmsView } from '../../../lib/dms-filter-params';
 import { dmsDateRange } from '../../../lib/dms-date-range';
 import { listLayoutFor, vanThuLayout } from '../../../lib/dms-list-layout';
 import { currentSession, requestCookie } from '../../../lib/server';
@@ -47,8 +51,8 @@ export const dynamic = 'force-dynamic';
 const PAGE_SIZE = 10;
 /** API đếm tối đa 10.001 hồ sơ: không có trang nào sau mốc đó (thu hẹp bộ lọc để thấy tiếp). */
 const MAX_PAGE = Math.ceil((TOTAL_CAP + 1) / PAGE_SIZE);
-// Chip "Chờ duyệt sửa đổi" đã bỏ (N4): sửa đổi nay do Admin sửa trực tiếp, người khác dùng Trình / Duyệt.
-const FILTERS: readonly DmsFilter[] = ['chinh-thuc', 'thieu-scan', 'du-scan', 'nhap', 'da-huy'];
+// Ba chip trạng thái. Thiếu/Đủ scan đã chuyển vào ngăn "Bộ lọc khác" (Figma 05/11); chip "Chờ duyệt sửa đổi" đã bỏ từ N4.
+const CHIPS: readonly DmsFilter[] = ['chinh-thuc', 'nhap', 'da-huy'];
 
 /** Bốn thẻ số đầu danh sách theo Figma DMS v2 (mỗi nghiệp vụ một bộ, không bịa số: thiếu dữ liệu hiện "—"). */
 function kpiItems(
@@ -60,12 +64,24 @@ function kpiItems(
     missingScan: number | undefined;
     returned: number | undefined;
     stillOpen: number | undefined;
+    /** Bấm thẻ số = bật đúng bộ lọc tương ứng (Figma 05/11). */
+    links: { missing: string; open: string; returned: string };
   },
 ): Kpi[] {
   const official: Kpi = { label: `Hồ sơ chính thức ${v.year}`, value: v.official ?? '—' };
-  const missing: Kpi = { label: 'Thiếu scan', value: v.missingScan ?? '—', tone: 'danger' };
+  const missing: Kpi = {
+    label: 'Thiếu scan',
+    value: v.missingScan ?? '—',
+    tone: 'danger',
+    href: v.links.missing,
+  };
   const docs = (label: string): Kpi => ({ label, value: v.documents ?? '—' });
-  const open = (label: string): Kpi => ({ label, value: v.stillOpen ?? '—', tone: 'warn' });
+  const open = (label: string): Kpi => ({
+    label,
+    value: v.stillOpen ?? '—',
+    tone: 'warn',
+    href: v.links.open,
+  });
   switch (code) {
     case 'tongdat':
       return [official, docs('Giấy tờ cần tống đạt'), open('Chưa tống đạt'), missing];
@@ -78,7 +94,7 @@ function kpiItems(
         official,
         docs('Tài liệu hiện hành'),
         missing,
-        { label: 'Đã trả kết quả', value: v.returned ?? '—', tone: 'ok' },
+        { label: 'Đã trả kết quả', value: v.returned ?? '—', tone: 'ok', href: v.links.returned },
       ];
   }
 }
@@ -110,6 +126,10 @@ export default async function DmsDomainPage({
     dv?: string;
     tu?: string;
     den?: string;
+    thv?: string | string[];
+    mo?: string;
+    tra?: string;
+    ky?: string;
   }>;
 }) {
   const domain = domainBySlug((await params).domain);
@@ -152,11 +172,17 @@ export default async function DmsDomainPage({
   const cookie = await requestCookie();
   const pageNo = Math.max(1, Math.floor(Number(sp.p)) || 1);
   // Khoảng ngày giờ chính xác (giờ Việt Nam, đến phút); có khoảng thì không lọc theo năm.
-  const range = dmsDateRange(sp.tu, sp.den);
+  const extra = parseExtraView(sp);
+  const range = dmsDateRange(sp.tu, sp.den, extra.ky);
   const hasRange = Boolean(range.from || range.to);
+  // Thừa hành viên, việc còn dở, đã trả chỉ áp cho bốn nghiệp vụ; hai bộ sau chỉ ở danh sách chính thức (nháp không có).
+  const recordedView = !vanThu && filter !== 'nhap' && filter !== 'da-huy';
   const search = {
     from: range.from,
     to: range.to,
+    thv: vanThu ? undefined : extra.thv,
+    open: recordedView ? extra.open : undefined,
+    returned: recordedView ? extra.returned : undefined,
     officeId,
     domain: domain.code,
     filter,
@@ -204,8 +230,7 @@ export default async function DmsDomainPage({
     );
   }
   const isDraftView = filter === 'nhap' || filter === 'da-huy';
-  const chipSet: readonly DmsFilter[] =
-    vanThu || isDraftView ? ['chinh-thuc', 'nhap', 'da-huy'] : FILTERS;
+  const chipSet = CHIPS;
   // Dòng sổ chỉ lấy cho các hồ sơ đang hiện trên trang này, không tải cả sổ cả năm.
   const bookData = isDraftView
     ? null
@@ -232,7 +257,7 @@ export default async function DmsDomainPage({
   const stillOpen = report === 'error' ? undefined : report.pending[domain.code];
   // Figma: chỉ hai chip Nháp và Đã hủy kèm số trong ngoặc; số của bốn chip còn lại nằm ở các thẻ số phía trên.
   const counts: Record<DmsFilter, number | undefined> = {
-    'chinh-thuc': chipSet === FILTERS ? undefined : nOfficial,
+    'chinh-thuc': vanThu || isDraftView ? nOfficial : undefined,
     'thieu-scan': undefined,
     'du-scan': undefined,
     nhap: nDraft,
@@ -252,32 +277,33 @@ export default async function DmsDomainPage({
     },
     { label: 'Đã hủy', value: nCancelled ?? '—', tone: 'warn' },
   ];
-  const href = (f: DmsFilter, keepRange = true) => {
-    const p = new URLSearchParams();
-    if (f !== 'chinh-thuc') p.set('loc', f);
-    if (q) p.set('q', q);
-    if (sp.year) p.set('year', String(year));
-    if (sp.nt) p.set('nt', sp.nt);
-    if (sp.lt) p.set('lt', sp.lt);
-    if (sp.dv) p.set('dv', sp.dv);
-    if (keepRange && range.tu) p.set('tu', range.tu);
-    if (keepRange && range.den) p.set('den', range.den);
-    const s = p.toString();
-    return s ? `${base}?${s}` : base;
+  // Một cách nhìn duy nhất cho mọi liên kết của trang (chip, trang, thẻ số, ×): xem DmsView.
+  const view: DmsView = {
+    filter,
+    year: sp.year ? year : undefined,
+    q,
+    creator: sp.nt,
+    kind: sp.lt,
+    branch: sp.dv,
+    thv: search.thv,
+    open: search.open,
+    returned: search.returned,
+    tu: range.tu,
+    den: range.den,
+    ky: range.ky,
   };
-  const pageHref = (n: number) => {
-    const p = new URLSearchParams();
-    if (filter !== 'chinh-thuc') p.set('loc', filter);
-    if (q) p.set('q', q);
-    if (sp.year) p.set('year', String(year));
-    if (sp.nt) p.set('nt', sp.nt);
-    if (sp.lt) p.set('lt', sp.lt);
-    if (sp.dv) p.set('dv', sp.dv);
-    if (range.tu) p.set('tu', range.tu);
-    if (range.den) p.set('den', range.den);
-    if (n > 1) p.set('p', String(n));
-    const s = p.toString();
-    return s ? `${base}?${s}` : base;
+  const href = (f: DmsFilter, keepRange = true) =>
+    viewHref(
+      base,
+      keepRange
+        ? { ...view, filter: f }
+        : { ...view, filter: f, tu: undefined, den: undefined, ky: undefined },
+    );
+  const pageHref = (n: number) => viewHref(base, view, { page: n });
+  const kpiLinks = {
+    missing: viewHref(base, { ...view, filter: 'thieu-scan' }),
+    open: viewHref(base, { ...view, filter: 'chinh-thuc', open: true }),
+    returned: viewHref(base, { ...view, filter: 'chinh-thuc', returned: true }),
   };
   const showScanSelect = !isDraftView;
   const showsTable = !!listLayout && !!(draftKind ? !vanThu : spec) && pageRows.length > 0;
@@ -316,6 +342,7 @@ export default async function DmsDomainPage({
             missingScan: nMissing,
             returned: report === 'error' ? undefined : report.returned[domain.code],
             stillOpen,
+            links: kpiLinks,
           })}
         />
       )}
@@ -329,7 +356,9 @@ export default async function DmsDomainPage({
           href: href(k),
           count: counts[k],
           tone:
-            chipSet === FILTERS && (k === 'nhap' || k === 'da-huy') ? ('warn' as const) : undefined,
+            !vanThu && !isDraftView && (k === 'nhap' || k === 'da-huy')
+              ? ('warn' as const)
+              : undefined,
         }))}
         action={
           <span className="dms-actionbar">
@@ -377,20 +406,22 @@ export default async function DmsDomainPage({
           year={filterToParams(filter, year).year}
           defaultValue={q}
         />
-        <label>
-          <span className="sr-only">Năm</span>
-          <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
-            {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
-              .concat(year)
-              .filter((y, i, a) => a.indexOf(y) === i)
-              .sort((x, y) => y - x)
-              .map((y) => (
-                <option key={y} value={y}>
-                  Năm {y}
-                </option>
-              ))}
-          </select>
-        </label>
+        {vanThu ? (
+          <label>
+            <span className="sr-only">Năm</span>
+            <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
+              {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
+                .concat(year)
+                .filter((y, i, a) => a.indexOf(y) === i)
+                .sort((x, y) => y - x)
+                .map((y) => (
+                  <option key={y} value={y}>
+                    Năm {y}
+                  </option>
+                ))}
+            </select>
+          </label>
+        ) : null}
         {vanThu ? (
           <>
             <Button type="submit" variant="secondary" className="dms-find">
@@ -492,134 +523,50 @@ export default async function DmsDomainPage({
           </>
         ) : (
           <>
-            {(() => {
-              const options = (
-                list: readonly { value: string; label: string; n: number }[],
-                now?: string,
-              ) => {
-                // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
-                list = list.filter((o) => o.value !== '');
-                const rows =
-                  list.some((o) => o.value === now) || !now
-                    ? list
-                    : [...list, { value: now, label: now, n: 0 }];
-                return rows.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label} ({o.n.toLocaleString('vi-VN')})
-                  </option>
-                ));
-              };
-              return (
-                <>
-                  <label>
-                    <span className="sr-only">Loại tài liệu</span>
-                    <select
-                      name="lt"
-                      defaultValue={sp.lt ?? ''}
-                      className="dms-select"
-                      style={{ width: 112 }}
-                    >
-                      <option value="">Loại tài liệu</option>
-                      {options(facets.kind, sp.lt)}
-                    </select>
-                  </label>
-                  <label>
-                    <span className="sr-only">Người tạo</span>
-                    <select
-                      name="nt"
-                      defaultValue={sp.nt ?? ''}
-                      className="dms-select"
-                      style={{ width: 98 }}
-                    >
-                      <option value="">Người tạo</option>
-                      {options(facets.creator, sp.nt)}
-                    </select>
-                  </label>
-                  <label>
-                    <span className="sr-only">Đơn vị</span>
-                    <select
-                      name="dv"
-                      defaultValue={sp.dv ?? ''}
-                      className="dms-select"
-                      style={{ width: 78 }}
-                    >
-                      <option value="">Đơn vị</option>
-                      {options(facets.branch, sp.dv)}
-                    </select>
-                  </label>
-                </>
-              );
-            })()}
-            {showScanSelect ? (
-              <label>
-                <span className="sr-only">Tình trạng scan</span>
-                <select
-                  name="loc"
-                  defaultValue={
-                    filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'
-                  }
-                  className="dms-select"
-                  style={{ width: 126 }}
-                >
-                  <option value="chinh-thuc">Tình trạng scan</option>
-                  <option value="thieu-scan">Thiếu scan</option>
-                  <option value="du-scan">Đủ scan</option>
-                </select>
-              </label>
-            ) : null}
-            <label className="dms-datetime">
-              <span>Từ</span>
-              <input
-                type="datetime-local"
-                name="tu"
-                defaultValue={range.tu ?? ''}
-                min="2000-01-01T00:00"
-                max="2100-12-31T23:59"
-                aria-label="Từ ngày giờ"
-                title="Từ ngày giờ ghi sổ (giờ Việt Nam)"
-              />
-            </label>
-            <label className="dms-datetime">
-              <span>Đến</span>
-              <input
-                type="datetime-local"
-                name="den"
-                defaultValue={range.den ?? ''}
-                min="2000-01-01T00:00"
-                max="2100-12-31T23:59"
-                aria-label="Đến ngày giờ"
-                title="Đến hết phút này, theo giờ ghi sổ (giờ Việt Nam)"
-              />
-            </label>
-            <DmsSavedFilters
-              officeId={officeId}
+            <DmsFilterFields
+              view={view}
+              range={range}
+              facets={facets}
               domain={domain.code}
-              basePath={base}
-              current={viewToSavedParams({
-                filter,
-                year: sp.year ? year : undefined,
-                q,
-                creator: sp.nt,
-                kind: sp.lt,
-                branch: sp.dv,
-              })}
-            />
+              year={year}
+              years={Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
+                .concat(year)
+                .filter((y, i, a) => a.indexOf(y) === i)
+                .sort((x, y) => y - x)}
+              yearChosen={Boolean(sp.year) && year !== yearOfVn(new Date())}
+              recordedView={recordedView}
+            >
+              <DmsSavedFilters
+                officeId={officeId}
+                domain={domain.code}
+                basePath={base}
+                current={viewToSavedParams(view)}
+              />
+            </DmsFilterFields>
             <Button type="submit" variant="secondary" className="dms-find">
               Tìm
             </Button>
-            {hasRange ? (
-              <Link className="dms-scan-link" href={href(filter, false)}>
-                Bỏ lọc ngày giờ
-              </Link>
-            ) : null}
           </>
         )}
       </form>
+      {vanThu ? null : (
+        <DmsActiveChips
+          base={base}
+          view={view}
+          range={range}
+          facets={facets}
+          domain={domain.code}
+          year={year}
+          yearChosen={Boolean(sp.year) && year !== yearOfVn(new Date())}
+          recordedView={recordedView}
+          matchText={formatTotal(total, result.totalCapped)}
+        />
+      )}
       {range.inverted ? (
         <p className="dms-range-note" role="alert">
           “Từ” đang muộn hơn “Đến” nên không có hồ sơ nào. Hãy đổi lại hai mốc thời gian.
         </p>
-      ) : hasRange ? (
+      ) : hasRange && vanThu ? (
         <p className="dms-range-note" role="status">
           Đang lọc theo thời điểm ghi sổ (nháp: giờ tạo), giờ Việt Nam
           {range.tu ? `, từ ${range.tu.replace('T', ' ')}` : ''}

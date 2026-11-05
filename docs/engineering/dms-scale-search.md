@@ -84,3 +84,13 @@ Lưu ý khi đọc bảng: cột "trước" là các truy vấn mà API đang g�
 - Ô tìm hồ sơ (`DmsCaseSuggest`) gợi ý tối đa 8 hồ sơ sau khi ngừng gõ 0,2 giây (từ 2 ký tự), dùng `case-search` với `total=false`. Chọn gợi ý mở thẳng hồ sơ; Enter khi chưa chọn gửi biểu mẫu tìm như cũ. Lỗi gợi ý không chặn việc tìm.
 - Nút "Bộ lọc đã lưu" (`DmsSavedFilters`): lưu cách lọc hiện tại (chip, năm đã chọn, từ khoá, người tạo, loại tài liệu, đơn vị) với một tên, mở lại bằng một cú bấm, xoá được; tối đa 30 mỗi miền, riêng từng người.
 - Trang `/dms/tim-kiem` thêm lọc nghiệp vụ, năm ghi sổ, loại tài liệu, người tạo, đơn vị (kèm số hồ sơ) và phân trang Trước/Sau, tối đa 220 kết quả (thu hẹp bằng bộ lọc nếu cần thêm).
+
+## Bộ lọc danh sách 4 nghiệp vụ (migration 0119, 05/11/2026)
+
+Căn cứ: tài liệu quyết định "Phương án bộ lọc hồ sơ cho 4 nghiệp vụ" (Phương án B) và Figma DMS v2 trang "01 · Vi bằng" (511:450, 512:469, 512:759). Chỉ áp cho màn danh sách, không đụng phần xuất sổ S-0x.
+
+- **Tiêu chí mới**: Thừa hành viên (chọn nhiều), Việc còn dở, Đã trả kết quả, cùng mốc nhanh của ô Thời gian (Hôm nay, Tuần này từ thứ Hai, Tháng này, Tháng trước, Quý này, Năm nay; tính theo giờ Việt Nam).
+- **DB**: `dms_case_index` có thêm cột `thv_user_id`, `returned`, `open_flag` (chỉ mục `dms_ci_thv_idx`, `dms_ci_open_idx` một phần). `open_flag` dùng CÙNG luật với thẻ số `dms_domain_pending_counts` (Tống đạt: còn giấy tờ chưa có `ngay_tong_dat`; Xác minh: chưa có `ket_qua_xac_minh`; Tổ chức: chưa có tài liệu loại N-08; nghiệp vụ khác luôn false), nên thẻ số và bộ lọc không lệch nhau. Tham số mới đi trong một tham số jsonb cuối `p_extra` của `dms_ci_where`, `dms_search_cases`, `dms_case_facet_counts` nên thứ tự tham số cũ không đổi. Tenant đã lập chỉ mục trước migration được dựng lại ở lần tìm kiếm đầu (`dms_index_state.version`).
+- **API**: `/dms/case-search` và `/dms/case-facet-counts` nhận `thv` (uuid cách nhau dấu phẩy, tối đa 20), `open`, `returned`; facet trả thêm nhóm `thv`, `open`, `returned`. Bộ lọc chỉ thu hẹp trong phạm vi xem (quyền miền và chi nhánh vẫn do `dms_ci_vis_sql` quyết định).
+- **Web**: thanh địa chỉ là nguồn sự thật (`DmsView` trong `apps/web/lib/dms-filter-params.ts`: `thv` lặp lại, `mo`, `tra`, `ky`, `tu`, `den`). Chip, liên kết trang, thẻ số bấm được và bộ lọc đã lưu (nay lưu cả Từ/Đến và mốc nhanh dạng tương đối) đều dựng từ cùng một `DmsView`. Nút Xuất Excel theo bộ lọc (PR sau) sẽ dùng lại đúng chuỗi truy vấn này và `dms_ci_where`.
+- **Chưa làm**: chọn nhiều giá trị cho Người tạo, Đơn vị, Loại tài liệu; lọc theo Hình thức tống đạt và Cơ quan giao; xuất Excel.

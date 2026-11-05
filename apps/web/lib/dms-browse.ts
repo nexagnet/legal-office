@@ -4,7 +4,10 @@ import { filterToParams } from './dms-filter-params';
 
 export {
   filterToParams,
+  parseExtraView,
   savedParamsToHref,
+  viewHref,
+  viewToQuery,
   viewToSavedParams,
   type DmsSavedParams,
   type DmsView,
@@ -42,6 +45,10 @@ export interface DmsCaseSearchParams {
   /** Khoảng ngày giờ ghi sổ (ISO): `from` tính cả mốc, `to` không tính mốc. Có một trong hai thì bỏ lọc theo năm. */
   readonly from?: string;
   readonly to?: string;
+  /** Thừa hành viên (chọn nhiều), việc còn dở, đã trả kết quả (migration 0119). */
+  readonly thv?: readonly string[];
+  readonly open?: boolean;
+  readonly returned?: boolean;
   readonly limit?: number;
   readonly offset?: number;
   readonly total?: boolean;
@@ -65,6 +72,9 @@ function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
   if (p.creator) q.set('creator', p.creator);
   if (p.kind) q.set('kind', p.kind);
   if (p.branch) q.set('branch', p.branch);
+  if (p.thv && p.thv.length > 0) q.set('thv', p.thv.join(','));
+  if (p.open !== undefined) q.set('open', String(p.open));
+  if (p.returned !== undefined) q.set('returned', String(p.returned));
   if (p.from || p.to) {
     // Khoảng ngày giờ có thể trải qua nhiều năm nên thay cho ô "Năm", không chồng lên nhau.
     q.delete('year');
@@ -155,6 +165,8 @@ export interface DmsFacetCounts {
   readonly creator: readonly DmsFacetOption[];
   readonly branch: readonly DmsFacetOption[];
   readonly kind: readonly DmsFacetOption[];
+  /** Thừa hành viên có hồ sơ trong phạm vi xem; `value` rỗng = chưa chọn (không lọc được). */
+  readonly thv: readonly DmsFacetOption[];
 }
 
 /** Lựa chọn của ba ô lọc kèm số hồ sơ, đếm theo các bộ lọc khác đang chọn; lỗi thì bỏ qua, không chặn trang. */
@@ -166,13 +178,14 @@ export async function loadDmsFacetCounts(
     `/dms/case-facet-counts?${searchQuery(p)}`,
     cookie,
   );
-  const empty: DmsFacetCounts = { creator: [], branch: [], kind: [] };
+  const empty: DmsFacetCounts = { creator: [], branch: [], kind: [], thv: [] };
   return body === 'error'
     ? empty
     : {
         creator: body.creator ?? [],
         branch: body.branch ?? [],
         kind: body.kind ?? [],
+        thv: body.thv ?? [],
       };
 }
 
@@ -226,11 +239,12 @@ export async function loadDmsOcrFacets(
     cookie,
   );
   return body === 'error'
-    ? { creator: [], branch: [], kind: [], year: [] }
+    ? { creator: [], branch: [], kind: [], thv: [], year: [] }
     : {
         creator: body.creator ?? [],
         branch: body.branch ?? [],
         kind: body.kind ?? [],
+        thv: body.thv ?? [],
         year: body.year ?? [],
       };
 }

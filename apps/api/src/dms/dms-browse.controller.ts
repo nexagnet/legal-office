@@ -38,6 +38,17 @@ const filterShape = {
   kind: z.string().min(1).max(100).optional(),
   scan: z.enum(['missing', 'complete', 'empty']).optional(),
   pending: bool.optional(),
+  /** Thừa hành viên: một hoặc nhiều mã, cách nhau dấu phẩy (tối đa 20). */
+  thv: z
+    .string()
+    .max(800)
+    .transform((v) => v.split(',').filter(Boolean))
+    .pipe(z.array(z.string().uuid()).min(1).max(20))
+    .optional(),
+  /** Việc còn dở (luật riêng từng nghiệp vụ, cùng luật thẻ số): true = còn dở, false = đã xong. */
+  open: bool.optional(),
+  /** Ô "Đã trả kết quả". */
+  returned: bool.optional(),
 };
 
 export type CaseFilters = z.infer<z.ZodObject<typeof filterShape>>;
@@ -56,6 +67,15 @@ export const filterArgs = (f: CaseFilters) => [
   f.scan ?? null,
   f.pending ?? null,
 ];
+
+/** Tham số lọc mới đi chung một tham số jsonb cuối của hàm DB (xem migration 0119); không có thì NULL. */
+export const extraArg = (f: CaseFilters): string | null => {
+  const e: Record<string, unknown> = {};
+  if (f.thv) e.thv = f.thv;
+  if (f.open !== undefined) e.open = f.open;
+  if (f.returned !== undefined) e.returned = f.returned;
+  return Object.keys(e).length > 0 ? JSON.stringify(e) : null;
+};
 
 interface SearchRow {
   readonly total_capped: string | null;
@@ -104,6 +124,7 @@ export class DmsBrowseController {
       q.limit,
       q.offset,
       q.total,
+      extraArg(q),
     ]);
     // Trang đầu không có dòng nào thì tổng là 0 (DB chỉ gắn tổng vào dòng), không phải "không biết".
     const emptyFirstPage = q.total && rows.length === 0 && q.offset === 0 && q.cursor === undefined;
@@ -131,6 +152,7 @@ export class DmsBrowseController {
       a.tenantId,
       a.userId,
       ...filterArgs(q),
+      extraArg(q),
     ]);
     const groups: Record<string, { value: string; label: string; n: number }[]> = {
       creator: [],
@@ -138,6 +160,9 @@ export class DmsBrowseController {
       kind: [],
       scan: [],
       year: [],
+      thv: [],
+      open: [],
+      returned: [],
     };
     for (const r of rows)
       groups[r.group_key]?.push({ value: r.value, label: r.label, n: Number(r.n) });
@@ -195,7 +220,16 @@ export class DmsBrowseController {
           officeId: uuid,
           domain,
           name: z.string().trim().min(1).max(80),
-          params: z.object(filterShape).omit({ officeId: true, domain: true }).partial().strict(),
+          params: z
+            .object(filterShape)
+            .omit({ officeId: true, domain: true })
+            .partial()
+            .extend({
+              ky: z.string().max(20).optional(),
+              tu: z.string().max(16).optional(),
+              den: z.string().max(16).optional(),
+            })
+            .strict(),
         })
         .strict(),
       body,
