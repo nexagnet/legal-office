@@ -345,11 +345,6 @@ export function AddMemberForm({
             ))}
           </ul>
         </section>
-        <p className="callout">
-          <strong>Không có vai trò</strong>
-          Quyền của mỗi người = quyền của các nhóm + quyền thêm riêng − quyền bỏ riêng. Quyền quản
-          trị phân quyền chỉ theo nhóm. Đổi nhóm hay quyền riêng sau này làm ở mục Phân quyền.
-        </p>
       </aside>
     </form>
   );

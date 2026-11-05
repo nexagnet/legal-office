@@ -12,7 +12,7 @@ import {
 } from '../lib/permission-model';
 import { CaseActionDialog } from './CaseActionDialog';
 import { MemberNameForm } from './MemberNameForm';
-import { NoteBox, Pill, type PillTone } from './permissions/Pill';
+import { Pill, type PillTone } from './permissions/Pill';
 import { Avatar } from './ui/avatar';
 
 export type { MemberRow } from '../lib/permission-model';
@@ -188,11 +188,6 @@ export function MemberTable({
           </tbody>
         </table>
       </DataTable>
-      <NoteBox title="Không còn cột “Quyền ký”">
-        Một người có thể thuộc nhiều nhóm quyền; quyền hiệu lực là tập hợp quyền của từng nhóm, giữ
-        đúng phạm vi. Việc ký pháp lý không đến từ nhóm quyền: tư cách hành nghề quản lý riêng ở mục
-        Thẻ THV.
-      </NoteBox>
     </>
   );
 }

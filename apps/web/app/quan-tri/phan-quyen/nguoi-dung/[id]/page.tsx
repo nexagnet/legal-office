@@ -13,7 +13,7 @@ import { TabNav } from '../../../../../components/ui/tab-nav';
 import { loadThvCards } from '../../../../../lib/admin-api';
 import { loadPersonnelByUser, loadUnlinkedPersonnel } from '../../../../../lib/personnel';
 import { UserOverridesEditor } from '../../../../../components/permissions/UserOverridesEditor';
-import { NoteBox, Pill } from '../../../../../components/permissions/Pill';
+import { Pill } from '../../../../../components/permissions/Pill';
 import { Avatar } from '../../../../../components/ui/avatar';
 import { StateCard } from '../../../../../components/ui/state-card';
 import {
@@ -274,25 +274,11 @@ export default async function EffectivePage({
             </p>
           ))}
         </section>
-        <section className="grid gap-2 rounded-2xl bg-surface p-5 shadow-sm" aria-labelledby="hn-t">
-          <h2 id="hn-t" className="text-xs font-bold tracking-wide text-muted uppercase">
-            Tư cách hành nghề
-          </h2>
-          <p className="text-sm">
-            Tư cách Thừa hành viên và số Thẻ quản lý riêng ở mục{' '}
-            <Link href="/quan-tri/the-thv">Thẻ THV</Link>; gán nhóm quyền không tạo ra tư cách này.
-          </p>
-        </section>
       </div>
       <section className="grid gap-3 rounded-2xl bg-surface p-6 shadow-sm" aria-labelledby="eff-t">
         <h2 id="eff-t" className="font-serif text-lg">
           Quyền hiệu lực theo nghiệp vụ
         </h2>
-        <p className="text-sm text-muted">
-          Mỗi dòng là một nghiệp vụ. Phạm vi lấy rộng nhất trong các nhóm và quyền thêm riêng của
-          người này, đã trừ quyền bỏ riêng. Muốn đổi nhóm dùng nút Đổi nhóm quyền; muốn đổi quyền
-          riêng dùng mục phía trên.
-        </p>
         {person.isAdmin && !person.suspended ? (
           <p className="text-sm">
             Admin mặc nhiên có mọi quyền ở tất cả nghiệp vụ, phạm vi toàn văn phòng.
@@ -352,13 +338,6 @@ export default async function EffectivePage({
         <h2 id="ovr-t" className="font-serif text-lg">
           Quyền chi tiết của riêng người này
         </h2>
-        <p className="text-sm text-muted">
-          Quyền hiệu lực = quyền của các nhóm + quyền{' '}
-          <strong>{PERMISSION_SOURCE_LABEL.grant.toLowerCase()}</strong> − quyền{' '}
-          <strong>{PERMISSION_SOURCE_LABEL.revoke.toLowerCase()}</strong>. Ô đã tick là quyền đang
-          có; màu vàng là thêm riêng, màu đỏ là bỏ riêng so với nhóm. Admin áp dụng ngay, có nhật
-          ký, không cần nhập lý do.
-        </p>
         {person.isAdmin || groupsOfUser(ctx.groups, id).some(isSystemGroup) ? (
           <p className="text-sm">
             Tài khoản Admin hoặc thuộc nhóm Admin mặc nhiên có mọi quyền nên không đặt quyền riêng.
@@ -424,10 +403,6 @@ export default async function EffectivePage({
           ))}
         </ul>
       </section>
-      <NoteBox title="Quyền được kiểm ở máy chủ">
-        Việc kiểm tra thật nằm ở máy chủ. Khi thu hồi quyền, hiệu lực áp dụng ngay cho API, tải tệp,
-        tìm kiếm và xuất sổ; màn này không chỉ ẩn nút.
-      </NoteBox>
     </>
   );
 }
