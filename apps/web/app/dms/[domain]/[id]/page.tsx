@@ -181,6 +181,29 @@ export default async function DmsCasePage({
   const hasPhone = !isVanThu(domain.code);
   const book = books === 'error' ? undefined : books.find((b) => b.domain === domain.code);
   const docs = documents === 'error' ? [] : documents;
+  // Cột THV của sổ (cả 4 sổ đều có): chữ ghi ở thuộc tính hồ sơ (S-02/04/05) hoặc ở từng giấy tờ nháp (S-01).
+  const THV_KEY = 'thua_hanh_vien';
+  const hasThvColumn = Boolean(book?.columns.some((col) => col.key === THV_KEY));
+  const draftDocs = docs.filter((d) => d.status === 'DRAFT');
+  const thvText =
+    book?.source === 'document'
+      ? String(draftDocs.find((d) => d.attributes[THV_KEY])?.attributes[THV_KEY] ?? '')
+      : String(c.attributes[THV_KEY] ?? '');
+  const thvTarget =
+    !hasThvColumn || !book
+      ? null
+      : book.source === 'case'
+        ? ({ kind: 'case', title: c.title, attributes: c.attributes } as const)
+        : ({
+            kind: 'documents',
+            docs: draftDocs.map((d) => ({
+              id: d.id,
+              kind: d.kind,
+              title: d.title,
+              isOfficial: d.is_official,
+              attributes: d.attributes,
+            })),
+          } as const);
   // Ô "Tài liệu khác" chung cho 4 nghiệp vụ: chưa có tài liệu loại này thì hiện ô trống, tạo ngay lần tải đầu tiên.
   const showOtherBox =
     documents !== 'error' &&
@@ -328,12 +351,14 @@ export default async function DmsCasePage({
                 options={thvOptions}
                 currentId={c.thv_user_id}
                 confirmed={c.thv_confirmed}
+                text={thvText}
+                target={thvTarget}
               />
             ) : null}
             {book && book.source === 'case' && canDraft(permissions, domain.code) ? (
               <DmsAttributesForm
                 url={`/api/dms/cases/${c.id}/draft`}
-                columns={inputColumns(book)}
+                columns={inputColumns(book).filter((col) => col.key !== THV_KEY)}
                 current={c.attributes}
                 fixed={{ title: c.title }}
                 legend={`Nội dung vào sổ ${book.code}`}
