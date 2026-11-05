@@ -27,7 +27,7 @@ export interface BookColumn {
 /** Ngày người nhập điền, có thể kèm chữ "ngày" ở đầu. Giá trị cũ đã có cả số do nhập tay thì không khớp và được giữ nguyên. */
 const DATE_ONLY = /^(ngày\s*)?\d{1,2}\s*[/\-.]\s*\d{1,2}\s*[/\-.]\s*\d{4}$/i;
 
-/** Ghép số hồ sơ tự cấp với ngày người nhập: "037/2026/VB-TPL ngày 31/10/2026". Chưa có số (bản nháp) thì chỉ trả phần ngày. */
+/** Ghép số hồ sơ tự cấp với ngày người nhập: "037/2026/VB-THV ngày 31/10/2026". Chưa có số (bản nháp) thì chỉ trả phần ngày. */
 export function withCaseNumber(caseNumber: string | null | undefined, entered: string): string {
   const n = (caseNumber ?? '').trim();
   const v = entered.trim();

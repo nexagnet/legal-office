@@ -326,7 +326,7 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt và xóa scan qua HTTP (Postgr
     expect(del.status).toBe(200);
     const after = await api('GET', `/dms/cases/${caseId}`, U.m1);
     expect(after.json).toMatchObject({ scan_count: 0, status: 'RECORDED' });
-    expect(after.json.case_number).toMatch(/VB-TPL$/);
+    expect(after.json.case_number).toMatch(/VB-THV$/);
     const docs = await api('GET', `/dms/cases/${caseId}/documents`, U.m1);
     expect(docs.json.rows).toHaveLength(1);
     expect((await download(`/dms/files/${fileId}/download`, U.m1)).status).toBe(404);
@@ -348,7 +348,7 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt và xóa scan qua HTTP (Postgr
     expect(all.json.total).toBe(rows.length);
     // Mỗi dòng có người làm; hồ sơ có số hồ sơ, bản trình có tiêu đề.
     expect(rows.every((r) => typeof r.actor_label === 'string')).toBe(true);
-    expect(rows.find((r) => r.action === 'dms.case.record')?.case_number).toMatch(/VB-TPL$/);
+    expect(rows.find((r) => r.action === 'dms.case.record')?.case_number).toMatch(/VB-THV$/);
     expect(
       rows.find((r) => r.action === 'dms.submission.create' && r.submission_title === 'Cần duyệt'),
     ).toBeTruthy();

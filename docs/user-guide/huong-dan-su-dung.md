@@ -809,7 +809,7 @@ Hồ sơ Vi bằng mới luôn bắt đầu là bản NHÁP: chưa có số hồ
 
 **Cần nhớ:**
 
-- Bản nháp chưa có số hồ sơ. Số hồ sơ (dạng 034/2026/VB-TPL) chỉ được cấp khi lưu chính thức.
+- Bản nháp chưa có số hồ sơ. Số hồ sơ (dạng 034/2026/VB-THV) chỉ được cấp khi lưu chính thức.
 - Tên hồ sơ là ô bắt buộc duy nhất. SĐT khách hàng nên nhập để liên hệ nhưng không in ra sổ.
 - Các ô Cột 2 đến Cột 7 chính là các cột của Sổ S-02. Điền đúng chính tả vì đây là nội dung sẽ ghi vào sổ.
 

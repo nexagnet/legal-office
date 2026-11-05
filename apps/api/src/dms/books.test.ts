@@ -54,13 +54,13 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     const base = { stt: 37, case_title: 't', doc_kind: null, doc_attributes: null };
     const vb = {
       ...base,
-      case_number: '037/2026/VB-TPL',
+      case_number: '037/2026/VB-THV',
       case_attributes: { so_ngay_vi_bang: '31/10/2026' },
     };
-    expect(bookCells(BOOKS['S-02'], vb)[3]).toBe('037/2026/VB-TPL ngày 31/10/2026');
+    expect(bookCells(BOOKS['S-02'], vb)[3]).toBe('037/2026/VB-THV ngày 31/10/2026');
     // Giá trị cũ "ngày 31/10/2026" không bị lặp chữ "ngày".
     const old = { ...vb, case_attributes: { so_ngay_vi_bang: 'ngày 31/10/2026' } };
-    expect(bookCells(BOOKS['S-02'], old)[3]).toBe('037/2026/VB-TPL ngày 31/10/2026');
+    expect(bookCells(BOOKS['S-02'], old)[3]).toBe('037/2026/VB-THV ngày 31/10/2026');
     // Giá trị cũ đã có số nhập tay thì giữ nguyên, không gắn thêm số.
     const legacy = {
       ...vb,
@@ -68,7 +68,7 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     };
     expect(bookCells(BOOKS['S-02'], legacy)[3]).toBe('TEST-002/2026 ngày 24/10/2026');
     // Chưa nhập ngày: chỉ hiện số. Chưa có số (nháp): chỉ hiện phần ngày.
-    expect(bookCells(BOOKS['S-02'], { ...vb, case_attributes: {} })[3]).toBe('037/2026/VB-TPL');
+    expect(bookCells(BOOKS['S-02'], { ...vb, case_attributes: {} })[3]).toBe('037/2026/VB-THV');
     expect(bookCells(BOOKS['S-02'], { ...vb, case_number: null })[3]).toBe('31/10/2026');
     const xm = {
       ...base,

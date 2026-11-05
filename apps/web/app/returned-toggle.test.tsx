@@ -15,8 +15,8 @@ describe('ReturnedToggle (ô "Đã trả kết quả", N2)', () => {
   it('tích gọi API đúng đường dẫn và thân, giữ trạng thái đã tích', async () => {
     const fetchMock = vi.fn(() => reply(200, { code: 'CASE_RETURNED_SET', label: null }));
     vi.stubGlobal('fetch', fetchMock);
-    render(<ReturnedToggle caseId="c1" initial={false} editable caseLabel="030/2026/VB-TPL" />);
-    const box = screen.getByRole('checkbox', { name: 'Đã trả kết quả hồ sơ 030/2026/VB-TPL' });
+    render(<ReturnedToggle caseId="c1" initial={false} editable caseLabel="030/2026/VB-THV" />);
+    const box = screen.getByRole('checkbox', { name: 'Đã trả kết quả hồ sơ 030/2026/VB-THV' });
     fireEvent.click(box);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
