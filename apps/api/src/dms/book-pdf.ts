@@ -351,10 +351,9 @@ const VT_BODY_FONT = 10;
 const VT_PAD = 4;
 const VT_MIN_ROW = 22;
 
-function vanThuTitle(L: VanThuLayout, office: string | null, year: number): [string, string] {
-  const suffix =
-    office && office.trim() !== '' ? ` - ${office.trim().toLocaleUpperCase('vi-VN')}` : '';
-  return [`${L.title}${suffix}`, `NĂM ${year}`];
+// Tiêu đề chỉ gồm tên sổ và năm; không kèm tên văn phòng.
+function vanThuTitle(L: VanThuLayout, year: number): [string, string] {
+  return [L.title, `NĂM ${year}`];
 }
 
 function drawVanThuBook(doc: Doc, spec: BookSpec, input: BookPdfInput) {
@@ -409,7 +408,7 @@ function drawVanThuBook(doc: Doc, spec: BookSpec, input: BookPdfInput) {
     y += r.h;
   }
 
-  const [t1, t2] = vanThuTitle(L, input.officeName, input.year);
+  const [t1, t2] = vanThuTitle(L, input.year);
   pages.forEach((page, p) => {
     newPage(doc);
     let top = VT_MARGIN;
