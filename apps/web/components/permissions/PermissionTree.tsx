@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 import {
-  PERMISSION_ACTIONS,
+  PERMISSION_ACTIONS_SHOWN,
   PERMISSION_DOMAINS,
   PERMISSION_SOURCE_LABEL,
   SCOPE_LABEL,
@@ -95,7 +95,7 @@ export function PermissionTree({
   const setDomain = (domain: string, on: boolean) => {
     if (disabled) return;
     const next = new Set(value);
-    for (const [action] of PERMISSION_ACTIONS)
+    for (const [action] of PERMISSION_ACTIONS_SHOWN)
       for (const scope of ['own', 'all'] as const) {
         const code = `${domain}.${action}.${scope}`;
         if (on) next.add(code);
@@ -121,7 +121,7 @@ export function PermissionTree({
       aria-label="Cây quyền chi tiết theo nghiệp vụ"
     >
       {PERMISSION_DOMAINS.map(([domain, title]) => {
-        const codes = PERMISSION_ACTIONS.flatMap(([a]) =>
+        const codes = PERMISSION_ACTIONS_SHOWN.flatMap(([a]) =>
           (['own', 'all'] as const).map((s) => `${domain}.${a}.${s}`),
         );
         const ticked = codes.filter((c) => value.has(c)).length;
@@ -177,7 +177,7 @@ export function PermissionTree({
                   </tr>
                 </thead>
                 <tbody>
-                  {PERMISSION_ACTIONS.map(([action, label]) => (
+                  {PERMISSION_ACTIONS_SHOWN.map(([action, label]) => (
                     <tr key={action} className="border-t border-line">
                       <th scope="row" className="py-1 pr-2 text-left font-normal">
                         {label}
