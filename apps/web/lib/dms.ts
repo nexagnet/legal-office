@@ -258,7 +258,11 @@ export interface DmsBookColumn {
   readonly key: string;
   readonly group?: string;
   readonly tick?: boolean;
+  /** Cột "số, ngày": số là số hồ sơ tự cấp, người nhập chỉ điền ngày tháng năm. */
+  readonly autoNumber?: boolean;
 }
+
+import { withCaseNumber } from './dms-number';
 
 export interface DmsBookSpec {
   readonly code: string;
@@ -278,6 +282,8 @@ export interface DmsBookRow {
   readonly case_attributes: Record<string, unknown>;
   readonly doc_kind: string | null;
   readonly doc_attributes: Record<string, unknown> | null;
+  /** Số hồ sơ tự cấp (API gắn vào); thiếu thì cột `autoNumber` chỉ hiện phần ngày. */
+  readonly case_number?: string | null;
 }
 
 /** Sổ nghiệp vụ; `withVanThu` thêm ba sổ Văn thư (để dựng form nhập ở trang chi tiết). */
@@ -318,7 +324,8 @@ export function bookCell(spec: DmsBookSpec, col: DmsBookColumn, row: DmsBookRow)
   if (col.key === 'stt') return String(row.stt);
   if (col.key === 'title') return strOf(row.case_title);
   const attrs = spec.source === 'document' ? (row.doc_attributes ?? {}) : row.case_attributes;
-  const v = strOf(attrs[col.key]) || (col.key === 'loai_van_ban' ? strOf(row.doc_kind) : '');
+  const raw = strOf(attrs[col.key]) || (col.key === 'loai_van_ban' ? strOf(row.doc_kind) : '');
+  const v = col.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
   return col.tick ? (v === '' ? '' : '✓') : v;
 }
 

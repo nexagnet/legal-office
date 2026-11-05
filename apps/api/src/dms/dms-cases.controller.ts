@@ -28,7 +28,7 @@ import type { RawBody } from '../storage/upload';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { BOOK_CODES, VANTHU_CODES, bookOf, toCsv, type BookRowRaw } from './books';
 import { BOOK_PDF_MIME, buildBookPdf } from './book-pdf';
-import { mergeCaseExtras } from './dms-extras';
+import { mergeBookCaseNumbers, mergeCaseExtras } from './dms-extras';
 import { domain, parse, respond, uuid } from './dms-http';
 import { attributePhoneCheck } from './dms-phone';
 
@@ -163,15 +163,19 @@ export class DmsCasesController {
       });
       return new StreamableFile(pdf);
     }
-    const rows = await this.repo.rows<BookRowRaw>(a.tenantId, 'dms_book_rows', [
-      a.tenantId,
-      a.userId,
-      q.officeId,
-      spec.code,
-      q.year,
-      q.limit,
-      q.offset,
-    ]);
+    const rows = await mergeBookCaseNumbers(
+      this.repo,
+      a,
+      await this.repo.rows<BookRowRaw & { case_id: string }>(a.tenantId, 'dms_book_rows', [
+        a.tenantId,
+        a.userId,
+        q.officeId,
+        spec.code,
+        q.year,
+        q.limit,
+        q.offset,
+      ]),
+    );
     if (q.format === 'csv') {
       res.set({
         'content-type': 'text/csv; charset=utf-8',
@@ -188,15 +192,19 @@ export class DmsCasesController {
     const batch = 2000;
     const out: BookRowRaw[] = [];
     for (let offset = 0; offset < MAX_PDF_ROWS; offset += batch) {
-      const rows = await this.repo.rows<BookRowRaw>(a.tenantId, 'dms_book_rows', [
-        a.tenantId,
-        a.userId,
-        officeId,
-        code,
-        year,
-        batch,
-        offset,
-      ]);
+      const rows = await mergeBookCaseNumbers(
+        this.repo,
+        a,
+        await this.repo.rows<BookRowRaw & { case_id: string }>(a.tenantId, 'dms_book_rows', [
+          a.tenantId,
+          a.userId,
+          officeId,
+          code,
+          year,
+          batch,
+          offset,
+        ]),
+      );
       out.push(...rows);
       if (rows.length < batch) return out;
     }

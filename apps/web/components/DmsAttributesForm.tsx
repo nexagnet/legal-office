@@ -3,8 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import type { DmsBookColumn } from '../lib/dms';
+import { dateOnly, numberPrefix } from '../lib/dms-number';
 import { Button } from './ui/button';
 import { Input } from './ui/field';
+import { NumberDateInput } from './NumberDateInput';
 import { messageFor } from '../lib/messages';
 
 /**
@@ -17,6 +19,8 @@ export function DmsAttributesForm({
   current,
   fixed,
   legend,
+  domain,
+  caseNumber,
 }: {
   readonly url: string;
   readonly columns: readonly DmsBookColumn[];
@@ -24,6 +28,9 @@ export function DmsAttributesForm({
   /** Phần thân cố định của yêu cầu (vd title hoặc kind/title/isOfficial). */
   readonly fixed: Record<string, unknown>;
   readonly legend: string;
+  /** Mã nghiệp vụ và số hồ sơ (nếu đã cấp): dùng làm chữ mờ trước ô "số, ngày" của cột tự cấp số. */
+  readonly domain?: string;
+  readonly caseNumber?: string | null;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -67,12 +74,20 @@ export function DmsAttributesForm({
               {c.group ? `${c.group} · ` : ''}
               {c.heading}
             </span>
-            <Input
-              name={c.key}
-              defaultValue={String(current[c.key] ?? '')}
-              maxLength={2000}
-              placeholder={c.tick ? 'Gõ x nếu có' : undefined}
-            />
+            {c.autoNumber && domain ? (
+              <NumberDateInput
+                name={c.key}
+                prefix={numberPrefix(domain, new Date().getFullYear(), caseNumber)}
+                defaultValue={dateOnly(current[c.key])}
+              />
+            ) : (
+              <Input
+                name={c.key}
+                defaultValue={String(current[c.key] ?? '')}
+                maxLength={2000}
+                placeholder={c.tick ? 'Gõ x nếu có' : undefined}
+              />
+            )}
           </label>
         ))}
       </fieldset>

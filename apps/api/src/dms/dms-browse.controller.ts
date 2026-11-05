@@ -16,7 +16,7 @@ import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { bookOf, type BookRowRaw } from './books';
-import { mergeCaseExtras } from './dms-extras';
+import { mergeBookCaseNumbers, mergeCaseExtras } from './dms-extras';
 import { domain, parse, respond, uuid } from './dms-http';
 
 /** Bộ lọc chung của danh sách hồ sơ và facet. Mọi trường đều tuỳ chọn; quyền xem do DB quyết định, không do tham số. */
@@ -166,13 +166,15 @@ export class DmsBrowseController {
     );
     const spec = bookOf(q.book);
     if (!spec) return { book: null, rows: [] };
-    const rows = await this.repo.rows<BookRowRaw>(a.tenantId, 'dms_book_rows_for_cases', [
-      a.tenantId,
-      a.userId,
-      q.officeId,
-      spec.code,
-      q.cases,
-    ]);
+    const rows = await mergeBookCaseNumbers(
+      this.repo,
+      a,
+      await this.repo.rows<BookRowRaw & { case_id: string }>(
+        a.tenantId,
+        'dms_book_rows_for_cases',
+        [a.tenantId, a.userId, q.officeId, spec.code, q.cases],
+      ),
+    );
     return { book: spec, rows };
   }
 

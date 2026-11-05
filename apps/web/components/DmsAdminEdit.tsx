@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import type { DmsBookColumn } from '../lib/dms';
+import { dateOnly, numberPrefix } from '../lib/dms-number';
+import { NumberDateInput } from './NumberDateInput';
 import { messageFor } from '../lib/messages';
 import { Button } from './ui/button';
 import { Input, Textarea } from './ui/field';
@@ -23,6 +25,8 @@ export function DmsAdminEdit({
   currentTitle,
   withPhone = false,
   buttonLabel = 'Sửa hồ sơ (Admin)',
+  domain,
+  caseNumber,
 }: {
   readonly target: 'case' | 'document';
   readonly id: string;
@@ -33,6 +37,9 @@ export function DmsAdminEdit({
   /** Hồ sơ 4 nghiệp vụ có SĐT khách hàng (N1). */
   readonly withPhone?: boolean;
   readonly buttonLabel?: string;
+  /** Mã nghiệp vụ và số hồ sơ: chữ mờ trước ô "số, ngày" của cột tự cấp số. */
+  readonly domain?: string;
+  readonly caseNumber?: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -46,9 +53,11 @@ export function DmsAdminEdit({
     if (!reason) return setError('Cần nhập lý do sửa.');
     const keys = [...columns.map((c) => c.key), ...(withPhone ? ['so_dien_thoai'] : [])];
     const attributes: Record<string, string | null> = {};
+    const dateKeys = new Set(columns.filter((c) => c.autoNumber && domain).map((c) => c.key));
     for (const key of keys) {
       const next = String(f.get(key) ?? '').trim();
-      if (next !== str(current[key]).trim()) attributes[key] = next === '' ? null : next;
+      const before = dateKeys.has(key) ? dateOnly(current[key]) : str(current[key]).trim();
+      if (next !== before) attributes[key] = next === '' ? null : next;
     }
     const title = currentTitle !== undefined ? String(f.get('title') ?? '').trim() : '';
     const titleChanged = currentTitle !== undefined && title !== '' && title !== currentTitle;
@@ -119,7 +128,15 @@ export function DmsAdminEdit({
             <label key={c.key} className="grid gap-1 text-[13px] font-semibold">
               {c.group ? `${c.group} · ` : ''}
               {c.heading}
-              <Input name={c.key} defaultValue={str(current[c.key])} maxLength={2000} />
+              {c.autoNumber && domain ? (
+                <NumberDateInput
+                  name={c.key}
+                  prefix={numberPrefix(domain, new Date().getFullYear(), caseNumber)}
+                  defaultValue={dateOnly(current[c.key])}
+                />
+              ) : (
+                <Input name={c.key} defaultValue={str(current[c.key])} maxLength={2000} />
+              )}
             </label>
           ))}
           <label className="grid gap-1 text-[13px] font-semibold">

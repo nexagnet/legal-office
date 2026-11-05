@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import type { DmsBookColumn } from '../lib/dms';
+import { numberPrefix } from '../lib/dms-number';
+import { NumberDateInput } from './NumberDateInput';
 import { messageFor } from '../lib/messages';
 import { Button } from './ui/button';
 import { Input } from './ui/field';
@@ -147,11 +149,18 @@ export function NewDmsCasePage({
                 Cột {c.no}: {c.group ? `${c.group} · ` : ''}
                 {c.heading}
               </span>
-              <Input
-                name={c.key}
-                maxLength={2000}
-                placeholder={c.tick ? 'Gõ x nếu có' : undefined}
-              />
+              {c.autoNumber ? (
+                <NumberDateInput
+                  name={c.key}
+                  prefix={numberPrefix(domainCode, new Date().getFullYear())}
+                />
+              ) : (
+                <Input
+                  name={c.key}
+                  maxLength={2000}
+                  placeholder={c.tick ? 'Gõ x nếu có' : undefined}
+                />
+              )}
             </label>
           ))}
           <label className="flex flex-col gap-1 text-[13px] font-semibold sm:col-span-2">
