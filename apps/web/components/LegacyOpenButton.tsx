@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { legacyDownloadHref } from '../lib/dms-legacy';
+
+// Không nhập từ lib/dms-legacy: module đó kéo theo mã chỉ chạy ở máy chủ (next/headers), không dùng được trong thành phần client.
+const legacyDownloadHref = (id: string): string => `/api/dms/legacy/files/${id}/download`;
 
 /**
  * Mở một tệp tài liệu cũ trong tab mới. Kho R2 trả liên kết ngắn hạn (JSON `{url}`), kho đĩa trả thẳng nội dung.
