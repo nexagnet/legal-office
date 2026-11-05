@@ -3016,3 +3016,19 @@ button.btn-link:not(.primary):focus-visible,
 .tab-chip {
   white-space: nowrap;
 }
+
+/* Nút "Xóa scan" cùng kiểu với Xem / Tải trong hàng thao tác của bảng tệp */
+.file-actions button {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.file-actions button:hover:not(:disabled) {
+  background: #fdecec;
+  border-color: var(--danger);
+}
