@@ -136,6 +136,15 @@ export const NAV: readonly NavItem[] = [
     summary: 'File scan đã xóa trong 30 ngày: chỉ Admin xem và tải, không khôi phục.',
   },
   {
+    slug: 'dms-tai-lieu-cu',
+    label: 'Tài liệu cũ',
+    group: 'work',
+    roles: ALL,
+    href: '/dms/tai-lieu-cu',
+    summary:
+      'Danh sách tài liệu cũ đã nạp từ kho cũ của văn phòng: chỉ xem và tải. Cần quyền xem tài liệu cũ.',
+  },
+  {
     slug: 'dms-lich-su',
     label: 'Lịch sử hoạt động',
     group: 'work',
