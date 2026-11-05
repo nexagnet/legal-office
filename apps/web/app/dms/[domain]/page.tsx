@@ -38,6 +38,7 @@ import {
   TOTAL_CAP,
   viewToSavedParams,
 } from '../../../lib/dms-browse';
+import { dmsDateRange } from '../../../lib/dms-date-range';
 import { listLayoutFor, vanThuLayout } from '../../../lib/dms-list-layout';
 import { currentSession, requestCookie } from '../../../lib/server';
 
@@ -107,6 +108,8 @@ export default async function DmsDomainPage({
     nt?: string;
     lt?: string;
     dv?: string;
+    tu?: string;
+    den?: string;
   }>;
 }) {
   const domain = domainBySlug((await params).domain);
@@ -148,7 +151,12 @@ export default async function DmsDomainPage({
   const year = activeYear(sp.year);
   const cookie = await requestCookie();
   const pageNo = Math.max(1, Math.floor(Number(sp.p)) || 1);
+  // Khoảng ngày giờ chính xác (giờ Việt Nam, đến phút); có khoảng thì không lọc theo năm.
+  const range = dmsDateRange(sp.tu, sp.den);
+  const hasRange = Boolean(range.from || range.to);
   const search = {
+    from: range.from,
+    to: range.to,
     officeId,
     domain: domain.code,
     filter,
@@ -244,7 +252,7 @@ export default async function DmsDomainPage({
     },
     { label: 'Đã hủy', value: nCancelled ?? '—', tone: 'warn' },
   ];
-  const href = (f: DmsFilter) => {
+  const href = (f: DmsFilter, keepRange = true) => {
     const p = new URLSearchParams();
     if (f !== 'chinh-thuc') p.set('loc', f);
     if (q) p.set('q', q);
@@ -252,6 +260,8 @@ export default async function DmsDomainPage({
     if (sp.nt) p.set('nt', sp.nt);
     if (sp.lt) p.set('lt', sp.lt);
     if (sp.dv) p.set('dv', sp.dv);
+    if (keepRange && range.tu) p.set('tu', range.tu);
+    if (keepRange && range.den) p.set('den', range.den);
     const s = p.toString();
     return s ? `${base}?${s}` : base;
   };
@@ -263,6 +273,8 @@ export default async function DmsDomainPage({
     if (sp.nt) p.set('nt', sp.nt);
     if (sp.lt) p.set('lt', sp.lt);
     if (sp.dv) p.set('dv', sp.dv);
+    if (range.tu) p.set('tu', range.tu);
+    if (range.den) p.set('den', range.den);
     if (n > 1) p.set('p', String(n));
     const s = p.toString();
     return s ? `${base}?${s}` : base;
@@ -555,6 +567,30 @@ export default async function DmsDomainPage({
                 </select>
               </label>
             ) : null}
+            <label className="dms-datetime">
+              <span>Từ</span>
+              <input
+                type="datetime-local"
+                name="tu"
+                defaultValue={range.tu ?? ''}
+                min="2000-01-01T00:00"
+                max="2100-12-31T23:59"
+                aria-label="Từ ngày giờ"
+                title="Từ ngày giờ ghi sổ (giờ Việt Nam)"
+              />
+            </label>
+            <label className="dms-datetime">
+              <span>Đến</span>
+              <input
+                type="datetime-local"
+                name="den"
+                defaultValue={range.den ?? ''}
+                min="2000-01-01T00:00"
+                max="2100-12-31T23:59"
+                aria-label="Đến ngày giờ"
+                title="Đến hết phút này, theo giờ ghi sổ (giờ Việt Nam)"
+              />
+            </label>
             <DmsSavedFilters
               officeId={officeId}
               domain={domain.code}
@@ -571,9 +607,26 @@ export default async function DmsDomainPage({
             <Button type="submit" variant="secondary" className="dms-find">
               Tìm
             </Button>
+            {hasRange ? (
+              <Link className="dms-scan-link" href={href(filter, false)}>
+                Bỏ lọc ngày giờ
+              </Link>
+            ) : null}
           </>
         )}
       </form>
+      {range.inverted ? (
+        <p className="dms-range-note" role="alert">
+          “Từ” đang muộn hơn “Đến” nên không có hồ sơ nào. Hãy đổi lại hai mốc thời gian.
+        </p>
+      ) : hasRange ? (
+        <p className="dms-range-note" role="status">
+          Đang lọc theo thời điểm ghi sổ (nháp: giờ tạo), giờ Việt Nam
+          {range.tu ? `, từ ${range.tu.replace('T', ' ')}` : ''}
+          {range.den ? `, đến hết ${range.den.replace('T', ' ')}` : ''}. Ô “Năm” không áp dụng khi
+          đã chọn khoảng này.
+        </p>
+      ) : null}
       <div className="dms-card">
         {/* Liên kết nằm đè lên ô trống của đầu bảng; khi không vẽ bảng (trạng thái trống) phải xếp theo dòng, kẻo đè thông báo. */}
         <Link
@@ -631,7 +684,9 @@ export default async function DmsDomainPage({
               : `Hiển thị ${pageRows.length} / ${formatTotal(total, result.totalCapped)} hồ sơ ${
                   isDraftView
                     ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase()
-                    : `chính thức năm ${year}`
+                    : hasRange
+                      ? 'chính thức trong khoảng đã chọn'
+                      : `chính thức năm ${year}`
                 }. Nháp và nháp đã hủy không có ${sttLabel}, không vào xuất sổ, không tính thống kê chính thức.`}
           </p>
           {pageCount > 1 ? (
