@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AdminBanner } from '../../../components/admin-banner';
+import { HighlightedText } from '../../../components/HighlightedText';
 import { Button } from '../../../components/ui/button';
 import { DataTable } from '../../../components/ui/data-table';
 import { Input } from '../../../components/ui/field';
@@ -198,7 +199,9 @@ export default async function DmsSearchPage({
                         )}
                       </th>
                       <td>{d?.label ?? r.domain}</td>
-                      <td className="min-w-64 whitespace-normal!">{r.snippet}</td>
+                      <td className="min-w-64 whitespace-normal!">
+                        <HighlightedText text={r.snippet} query={q} />
+                      </td>
                       <td>
                         {r.document_title}
                         <span className="muted block text-xs">{r.file_label}</span>

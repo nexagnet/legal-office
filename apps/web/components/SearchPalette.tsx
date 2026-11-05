@@ -5,14 +5,43 @@ import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type { NavItem } from '../app/nav';
+import { dmsCaseDocsHref } from '../lib/dms-domain-slugs';
 import { searchEntries, type SearchCase } from '../lib/search-entries';
+import { HighlightedText } from './HighlightedText';
 
-/** Ô tìm kiếm trên đầu trang: tìm trang và hồ sơ Vi bằng bạn được xem. Mở bằng bấm hoặc Ctrl/⌘+K. */
-export function SearchPalette({ items }: { readonly items: readonly NavItem[] }) {
+/** Một kết quả tìm trong nội dung (chữ OCR của bản scan), đúng dạng `GET /dms/search` trả về. */
+interface ContentHit {
+  readonly case_id: string;
+  readonly case_title: string;
+  readonly domain: string;
+  readonly document_title: string;
+  readonly file_id: string;
+  readonly file_label: string;
+  readonly snippet: string;
+}
+
+/** Hộp thả chỉ hiện vài dòng đầu; xem hết ở trang "Kết quả tìm kiếm". */
+const CONTENT_LIMIT = 5;
+/** Chờ người dùng ngừng gõ rồi mới gọi máy chủ. */
+const CONTENT_DEBOUNCE_MS = 300;
+
+/**
+ * Ô tìm kiếm trên đầu trang: tìm trang, hồ sơ Vi bằng bạn được xem và nội dung (chữ OCR) trong tài liệu scan.
+ * Mở bằng bấm hoặc Ctrl/⌘+K. Tìm nội dung cần `officeId`; không có thì bỏ nhóm đó.
+ */
+export function SearchPalette({
+  items,
+  officeId = null,
+}: {
+  readonly items: readonly NavItem[];
+  readonly officeId?: string | null;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [cases, setCases] = useState<readonly SearchCase[] | null>(null);
+  const [content, setContent] = useState<readonly ContentHit[] | 'error' | null>(null);
+  const q = query.trim();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -37,7 +66,32 @@ export function SearchPalette({ items }: { readonly items: readonly NavItem[] })
     };
   }, [open, cases]);
 
+  // Tìm trong nội dung tài liệu: chờ 300 ms sau lần gõ cuối, huỷ yêu cầu cũ khi gõ tiếp.
+  const canSearchContent = open && Boolean(officeId) && q.length >= 2;
+  useEffect(() => {
+    if (!canSearchContent || !officeId) {
+      setContent(null);
+      return;
+    }
+    setContent(null);
+    const ctl = new AbortController();
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams({ officeId, q, limit: String(CONTENT_LIMIT) });
+      fetch(`/api/dms/search?${params}`, { signal: ctl.signal })
+        .then((r) => (r.ok ? (r.json() as Promise<{ rows: ContentHit[] }>) : Promise.reject()))
+        .then((b) => setContent(b.rows))
+        .catch(() => {
+          if (!ctl.signal.aborted) setContent('error');
+        });
+    }, CONTENT_DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timer);
+      ctl.abort();
+    };
+  }, [canSearchContent, officeId, q]);
+
   const hits = useMemo(() => searchEntries(query, items, cases ?? []), [query, items, cases]);
+  const allHref = `/dms/tim-kiem?q=${encodeURIComponent(q)}`;
 
   const go = (href: string) => {
     setOpen(false);
@@ -65,7 +119,9 @@ export function SearchPalette({ items }: { readonly items: readonly NavItem[] })
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && hits[0]) go(hits[0].href);
+              if (e.key !== 'Enter') return;
+              if (hits[0]) go(hits[0].href);
+              else if (canSearchContent) go(allHref);
             }}
           />
           <ul className="search-results" aria-label="Kết quả">
@@ -78,10 +134,50 @@ export function SearchPalette({ items }: { readonly items: readonly NavItem[] })
               </li>
             ))}
           </ul>
-          {query.trim() && hits.length === 0 ? (
+          {q && hits.length === 0 && !canSearchContent ? (
             <p className="search-empty">
               {cases === null ? 'Đang tìm…' : 'Không có kết quả phù hợp.'}
             </p>
+          ) : null}
+          {canSearchContent ? (
+            <section className="search-content" aria-label="Trong nội dung tài liệu">
+              <h3 className="search-group">Trong nội dung tài liệu</h3>
+              {content === null ? (
+                <p className="search-empty" role="status">
+                  Đang tìm trong nội dung…
+                </p>
+              ) : content === 'error' ? (
+                <p className="search-empty" role="alert">
+                  Không tìm được trong nội dung. Thử lại sau.
+                </p>
+              ) : content.length === 0 ? (
+                <p className="search-empty" role="status">
+                  Không có tài liệu nào có chữ “{q}”.
+                </p>
+              ) : (
+                <ul className="search-results" aria-label="Kết quả trong nội dung">
+                  {content.map((r) => {
+                    const href = dmsCaseDocsHref(r.domain, r.case_id);
+                    return (
+                      <li key={r.file_id}>
+                        <button type="button" disabled={!href} onClick={() => href && go(href)}>
+                          <strong>{r.case_title}</strong>
+                          <small>
+                            {r.document_title} · {r.file_label}
+                          </small>
+                          <span className="search-snippet">
+                            <HighlightedText text={r.snippet} query={q} />
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <button type="button" className="search-all" onClick={() => go(allHref)}>
+                Xem tất cả kết quả
+              </button>
+            </section>
           ) : null}
         </Dialog.Content>
       </Dialog.Portal>
