@@ -14,7 +14,7 @@ import {
   type PersonRow,
 } from '../../lib/permission-model';
 import type { Member } from '../../lib/admin-api';
-import { NoteBox, Pill, type PillTone } from './Pill';
+import { Pill, type PillTone } from './Pill';
 
 const PAGE_SIZE = 10;
 const STATE_TONE: Record<AccountState, PillTone> = {
@@ -176,12 +176,6 @@ export function UsersTab({
           </span>
         </div>
       </DataTable>
-      <NoteBox title="Cách đọc quyền hiệu lực">
-        Nhóm quyền cho biết phần mềm cho phép những hành động nào. Một người có thể thuộc nhiều
-        nhóm; quyền hiệu lực là tập hợp quyền của từng nhóm. Admin mặc nhiên có toàn quyền quản trị
-        nhưng vẫn không xóa, không ghi đè, không sửa trực tiếp hồ sơ đã lưu. Tư cách hành nghề Thừa
-        hành viên quản lý riêng ở Thẻ THV, không đến từ nhóm quyền.
-      </NoteBox>
     </>
   );
 }

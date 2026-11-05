@@ -6,7 +6,7 @@ import { useState, type FormEvent } from 'react';
 import { cn } from '../lib/cn';
 import { formatDay } from '../lib/deadlines';
 import { messageFor } from '../lib/messages';
-import { NoteBox, Pill, type PillTone } from './permissions/Pill';
+import { Pill, type PillTone } from './permissions/Pill';
 import { Button } from './ui/button';
 import { Modal } from './ui/dialog';
 import { Field, Input } from './ui/field';
@@ -467,11 +467,6 @@ export function ThvCardsForm({
         </form>
       ) : null}
 
-      <NoteBox tone="warn" title="Nhóm quyền khác tư cách hành nghề">
-        Thành viên thuộc nhóm quyền Thừa hành viên nhưng chưa có thẻ hợp lệ thì hệ thống không coi
-        là thừa hành viên có tư cách. Nhóm quyền không tự tạo ra tư cách hành nghề; thẻ chỉ có hiệu
-        lực theo quyết định đã nhập kèm bản scan. Admin nhập trực tiếp, không cần ai xác nhận.
-      </NoteBox>
 
       <Modal
         open={confirmSuspend}

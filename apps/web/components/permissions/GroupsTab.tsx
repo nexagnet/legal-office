@@ -13,7 +13,7 @@ import {
   type PermissionRequest,
 } from '../../lib/permission-model';
 import { CopyGroupButton } from './CopyGroupButton';
-import { NoteBox, Pill } from './Pill';
+import { Pill } from './Pill';
 
 type Loc = 'dang-dung' | 'cho-duyet' | 'ngung-dung';
 
@@ -194,10 +194,6 @@ export function GroupsTab({
           </tbody>
         </table>
       </DataTable>
-      <NoteBox tone="warn" title="Quyền quản trị phân quyền do Admin giữ">
-        Chỉ Admin tạo, sửa và xóa nhóm quyền. Tư cách hành nghề không phải là quyền: không nhóm nào
-        cấp được. Nhóm mới tạo là nhóm trống; thêm quyền và thành viên ở trang chi tiết nhóm.
-      </NoteBox>
     </>
   );
 }

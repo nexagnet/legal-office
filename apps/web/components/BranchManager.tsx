@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
 import type { Branch } from '../app/session';
-import { NoteBox, Pill } from './permissions/Pill';
+import { Pill } from './permissions/Pill';
 
 function BranchRow({
   officeId,
@@ -195,10 +195,6 @@ export function BranchManager({
           </tbody>
         </table>
       </DataTable>
-      <NoteBox tone="warn" title="Địa điểm không phải là quyền">
-        Cấp hoặc thu hồi địa điểm cho một người là việc phân quyền, không phải đổi tên địa điểm. Đổi
-        tên hoặc thêm địa điểm có hiệu lực ngay, được ghi nhật ký và không tự cấp quyền cho ai.
-      </NoteBox>
       <dialog ref={dialog} className="branch-dialog" aria-labelledby="branch-add-t">
         <form className="form" onSubmit={add}>
           <h2 id="branch-add-t">Thêm địa điểm</h2>
