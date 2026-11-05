@@ -39,6 +39,9 @@ export interface DmsCaseSearchParams {
   readonly creator?: string;
   readonly kind?: string;
   readonly branch?: string;
+  /** Khoảng ngày giờ ghi sổ (ISO): `from` tính cả mốc, `to` không tính mốc. Có một trong hai thì bỏ lọc theo năm. */
+  readonly from?: string;
+  readonly to?: string;
   readonly limit?: number;
   readonly offset?: number;
   readonly total?: boolean;
@@ -62,6 +65,12 @@ function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
   if (p.creator) q.set('creator', p.creator);
   if (p.kind) q.set('kind', p.kind);
   if (p.branch) q.set('branch', p.branch);
+  if (p.from || p.to) {
+    // Khoảng ngày giờ có thể trải qua nhiều năm nên thay cho ô "Năm", không chồng lên nhau.
+    q.delete('year');
+    if (p.from) q.set('from', p.from);
+    if (p.to) q.set('to', p.to);
+  }
   return q;
 }
 

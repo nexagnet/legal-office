@@ -3166,3 +3166,141 @@ td mark {
   font-size: 14px;
   font-weight: 600;
 }
+
+/* Lọc theo ngày giờ chính xác: hai ô datetime-local dạng viên thuốc cùng hàng với các ô lọc. */
+.dms-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 12px/1 var(--font);
+  color: var(--muted);
+}
+.dms-datetime input[type='datetime-local'] {
+  min-height: 27px;
+  padding: 0 10px;
+  font: 500 12px/1 var(--font);
+  color: var(--ink, #14213d);
+  background: #eceff4;
+  border: 0;
+  border-radius: 999px;
+}
+.dms-datetime input[type='datetime-local']:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.dms-range-note {
+  margin: -6px 0 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.dms-range-note[role='alert'] {
+  color: #b42318;
+  font-weight: 600;
+}
+
+/* Ô chọn Thừa hành viên ở hồ sơ nháp: nhãn nhỏ phía trên, ô chọn bo tròn có mũi tên, nút Lưu xanh cùng chiều cao. */
+.thv-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  background: #f4f7fc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.thv-picker > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 280px;
+  max-width: 420px;
+}
+.thv-picker > label > span {
+  font: 700 12px/1.2 var(--font);
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.thv-picker select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 38px 0 14px;
+  font: 500 14px/1.2 var(--font);
+  color: var(--ink, #14213d);
+  appearance: none;
+  background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%235b6b82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 12 8'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E")
+    no-repeat right 14px center;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgb(20 33 61 / 6%);
+  cursor: pointer;
+}
+.thv-picker select:hover {
+  border-color: #9fb0c8;
+}
+.thv-picker select:focus {
+  outline: none;
+  border-color: var(--accent, #1e4fa8);
+  box-shadow: 0 0 0 3px rgb(30 79 168 / 18%);
+}
+.thv-picker button[type='submit'] {
+  min-height: 42px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent, #1e4fa8);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.thv-picker button[type='submit']:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.thv-picker button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.thv-picker [role='alert'] {
+  flex-basis: 100%;
+  margin: 0;
+  color: #b42318;
+  font-size: 13px;
+}
+.thv-picker > label.thv-picker-text {
+  flex: 2 1 340px;
+  max-width: 560px;
+}
+.thv-picker-text input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 14px;
+  font: 500 14px/1.2 var(--font);
+  color: var(--ink, #14213d);
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgb(20 33 61 / 6%);
+}
+.thv-picker-text input::placeholder {
+  color: #8a97ab;
+  font-weight: 400;
+}
+.thv-picker-text input:hover {
+  border-color: #9fb0c8;
+}
+.thv-picker-text input:focus {
+  outline: none;
+  border-color: var(--accent, #1e4fa8);
+  box-shadow: 0 0 0 3px rgb(30 79 168 / 18%);
+}
+.thv-picker-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
