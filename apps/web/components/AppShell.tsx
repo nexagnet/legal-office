@@ -5,6 +5,7 @@ import { AdminBannerContext, type BannerOverride } from './admin-banner';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
+  Archive,
   Bell,
   BookOpen,
   Building2,
@@ -277,6 +278,7 @@ const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
   'dms-trinh-duyet': FileText,
   'dms-scan-da-xoa': Trash2,
   'dms-lich-su': History,
+  'dms-tai-lieu-cu': Archive,
   'dms-van-thu': Mail,
   'dms-xuat-so': BookOpen,
   'dms-bao-cao': ChartColumn,

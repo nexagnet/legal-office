@@ -32,13 +32,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       ? (session.branches[0]?.officeId ?? session.memberships[0]?.officeId)
       : undefined;
   // "Mọi hồ sơ của văn phòng" chỉ hiện với tài khoản có quyền xem toàn bộ (`*.read.all`); lỗi tải quyền thì ẩn mục này.
-  const showOfficeCases =
-    officeId && allItems.some((i) => i.slug === 'dms-van-phong')
-      ? (await loadMyDmsPermissions(await requestCookie(), officeId)).some((p) =>
-          p.endsWith('.read.all'),
-        )
-      : false;
-  const items = allItems.filter((i) => i.slug !== 'dms-van-phong' || showOfficeCases);
+  // "Tài liệu cũ" chỉ hiện với tài khoản có quyền xem tài liệu cũ (`dms.legacy.read`; Admin có sẵn).
+  const needsPermissions =
+    officeId && allItems.some((i) => i.slug === 'dms-van-phong' || i.slug === 'dms-tai-lieu-cu');
+  const myPermissions = needsPermissions
+    ? await loadMyDmsPermissions(await requestCookie(), officeId)
+    : [];
+  const showOfficeCases = myPermissions.some((p) => p.endsWith('.read.all'));
+  const showLegacy = myPermissions.includes('dms.legacy.read');
+  const items = allItems.filter(
+    (i) =>
+      (i.slug !== 'dms-van-phong' || showOfficeCases) &&
+      (i.slug !== 'dms-tai-lieu-cu' || showLegacy),
+  );
   // Huy hiệu "Trình / Duyệt" chỉ có nghĩa với Admin (người duyệt); lỗi tải thì coi như 0, không làm hỏng khung trang.
   const pendingSubmissions =
     officeId && session.status === 'authenticated' && session.roles.includes('ADMIN')

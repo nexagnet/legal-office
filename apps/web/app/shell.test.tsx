@@ -294,6 +294,9 @@ describe('menu DMS', () => {
     expect(hrefs['dms-scan-da-xoa']).toBe('/dms/scan-da-xoa');
     expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-scan-da-xoa');
     expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-scan-da-xoa');
+    // Tài liệu cũ: mục riêng; việc hiện hay ẩn theo quyền xem tài liệu cũ do khung trang quyết định.
+    expect(hrefs['dms-tai-lieu-cu']).toBe('/dms/tai-lieu-cu');
+    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-tai-lieu-cu');
     // Lịch sử hoạt động: cũng chỉ Admin.
     expect(hrefs['dms-lich-su']).toBe('/dms/lich-su');
     expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-lich-su');
