@@ -1,9 +1,9 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from '../components/AppShell';
 import { ModuleState } from '../components/ModuleState';
-import { NAV, OVERVIEW, findNav, visibleNav } from './nav';
+import { NAV, OVERVIEW, findNav, hrefOf, visibleNav } from './nav';
 import { loadSession } from './session';
 
 vi.mock('next/link', () => ({
@@ -12,6 +12,7 @@ vi.mock('next/link', () => ({
       {children}
     </a>
   ),
+  useLinkStatus: () => ({ pending: false }),
 }));
 const path = vi.hoisted(() => ({ current: '/vi-bang' }));
 vi.mock('next/navigation', () => ({
@@ -24,25 +25,33 @@ afterEach(() => {
   path.current = '/vi-bang';
 });
 
+// Menu bên không còn mục quy trình cũ (đã ẩn), nhưng vỏ trang vẫn phải xử lý đúng các đường dẫn đó.
+// Bốn mục nghiệp vụ DMS trùng nhãn với mục cũ cùng tên nên bị loại khỏi bộ mẫu này; chúng có ca kiểm riêng ở "menu DMS".
+const DMS_DOMAIN_SLUGS = ['dms-vi-bang', 'dms-tong-dat', 'dms-xac-minh', 'dms-to-chuc-tha'];
+const ALL_ITEMS = [OVERVIEW, ...NAV.filter((n) => !DMS_DOMAIN_SLUGS.includes(n.slug))];
+
 describe('navigation', () => {
-  it('shows all four domains to every role and hides admin from non-admins', () => {
-    for (const role of ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU'] as const) {
-      const labels = visibleNav([role]).map((n) => n.label);
-      for (const d of ['Vi bằng', 'Tống đạt', 'Xác minh điều kiện THA', 'Tổ chức thi hành án'])
-        expect(labels).toContain(d);
+  it('hides the legacy workflow items from every role (owner 2026-10-31) but keeps the pages defined', () => {
+    const legacy = [
+      'vi-bang',
+      'tong-dat',
+      'xac-minh',
+      'to-chuc-tha',
+      'viec-cua-toi',
+      'hop-duyet',
+      'hop-dong',
+      'so-sach',
+      'cong-van',
+      'bao-cao',
+    ];
+    for (const role of ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU', 'KE_TOAN'] as const) {
+      const slugs = visibleNav([role]).map((n) => n.slug);
+      for (const l of legacy) expect(slugs).not.toContain(l);
     }
-    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Nhân sự & chi nhánh');
-    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Nhân sự & chi nhánh');
+    for (const l of legacy) expect(findNav(l)?.hidden).toBe(true);
+    expect(visibleNav(['THV']).map((n) => n.label)).not.toContain('Quản trị');
+    expect(visibleNav(['ADMIN']).map((n) => n.label)).toContain('Quản trị');
     expect(visibleNav([])).toEqual([]);
-  });
-
-  it('gives the accountant only the overview and Vi bằng, where MISA is confirmed', () => {
-    expect(visibleNav(['KE_TOAN']).map((n) => n.label)).toEqual(['Tổng quan', 'Vi bằng']);
-  });
-
-  it('keeps the approval inbox reachable but out of the sidebar', () => {
-    expect(findNav('hop-duyet')).toBeDefined();
-    expect(visibleNav(['ADMIN']).map((n) => n.slug)).not.toContain('hop-duyet');
   });
 
   it('has no accounting menu and unique slugs', () => {
@@ -94,9 +103,25 @@ describe('session', () => {
 });
 
 describe('AppShell', () => {
+  it('Văn bản đi / nội bộ sáng mục Văn thư và dùng đầu trang Văn thư (Figma 352:2163)', () => {
+    for (const p of ['/dms/van-ban-di', '/dms/van-ban-noi-bo']) {
+      path.current = p;
+      render(
+        <AppShell items={ALL_ITEMS} tenantName={null}>
+          <p>nội dung</p>
+        </AppShell>,
+      );
+      expect(document.querySelector('.topbar-h')?.textContent).toBe('Văn thư');
+      expect(document.querySelector('nav a[aria-current="page"]')?.textContent).toContain(
+        'Văn thư',
+      );
+      cleanup();
+    }
+  });
+
   it('renders landmarks, a neutral logo slot and a toggleable menu with the current page', () => {
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
@@ -104,7 +129,11 @@ describe('AppShell', () => {
     expect(screen.getByRole('main')).toBeTruthy();
     expect(screen.getByTestId('tenant-logo-slot')).toBeTruthy();
     expect(document.querySelector('img')).toBeNull();
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
+        .getByRole('link', { name: 'Vi bằng' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
     const btn = screen.getByRole('button', { name: 'Menu' });
     expect(btn.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(btn);
@@ -115,18 +144,14 @@ describe('AppShell', () => {
 });
 
 describe('AppShell subpage head', () => {
-  it('shows the intake header from Figma 3:54 while keeping Vi bằng as the current menu item', () => {
-    path.current = '/vi-bang/tao-moi';
+  it('đầu trang Hồ sơ do tôi tạo lấy tiêu đề riêng và sáng đúng mục menu', () => {
+    path.current = '/dms/cua-toi';
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
-    expect(document.querySelector('.topbar-h')?.textContent).toBe('Tạo hồ sơ Vi bằng');
-    expect(document.querySelector('.topbar-sub')?.textContent).toBe(
-      'Tiếp nhận yêu cầu lập Vi bằng',
-    );
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(document.querySelector('.topbar-h')?.textContent).toBe('Hồ sơ do tôi tạo');
   });
 });
 
@@ -134,12 +159,16 @@ describe('AppShell case detail head', () => {
   it('shows the detail header from Figma 3:80 for a case page', () => {
     path.current = '/vi-bang/00000000-0000-4000-8000-000000000000';
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
-    expect(document.querySelector('.topbar-h')?.textContent).toBe('Chi tiết và tiến độ Vi bằng');
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(document.querySelector('#case-banner')).not.toBeNull();
+    expect(
+      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
+        .getByRole('link', { name: 'Vi bằng' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
   });
 });
 
@@ -158,12 +187,16 @@ describe('AppShell stage heads', () => {
   ])('shows the Figma header for /vi-bang/<id>/%s', (stage, title) => {
     path.current = `/vi-bang/abc/${stage}`;
     render(
-      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+      <AppShell items={ALL_ITEMS} tenantName={null}>
         <p>nội dung</p>
       </AppShell>,
     );
     expect(document.querySelector('.topbar-h')?.textContent).toBe(title);
-    expect(screen.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      within(screen.getByRole('navigation', { name: 'Điều hướng chính' }))
+        .getByRole('link', { name: 'Vi bằng' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
   });
 });
 
@@ -203,5 +236,125 @@ describe('ModuleState', () => {
       />,
     );
     expect(screen.getByRole('status').textContent).toContain('Chưa có dữ liệu');
+  });
+});
+
+describe('AppShell v2', () => {
+  const items = ALL_ITEMS;
+
+  it('có thanh điều hướng dưới với hồ sơ do tôi tạo, Trình / Duyệt và nút Thêm', () => {
+    render(
+      <AppShell items={items} tenantName={null} signedIn>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const quick = within(screen.getByRole('navigation', { name: 'Truy cập nhanh' }));
+    for (const name of ['Hồ sơ do tôi tạo', 'Trình / Duyệt', 'Thêm'])
+      expect(quick.getByRole(name === 'Thêm' ? 'button' : 'link', { name })).toBeTruthy();
+  });
+
+  it('màn đăng nhập không có thanh bên, chỉ panel thương hiệu và nội dung', () => {
+    path.current = '/login';
+    render(
+      <AppShell items={[]} tenantName={null}>
+        <p>form đăng nhập</p>
+      </AppShell>,
+    );
+    expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.getByText('form đăng nhập')).toBeTruthy();
+    expect(screen.getByRole('main')).toBeTruthy();
+  });
+  it('hiện huy hiệu số chờ duyệt cạnh Trình / Duyệt, ẩn khi bằng 0', () => {
+    const items = ALL_ITEMS;
+    const { rerender } = render(
+      <AppShell items={items} tenantName={null} badges={{ 'dms-trinh-duyet': 12 }}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(nav.getByRole('link', { name: /Trình \/ Duyệt/ }).textContent).toContain('12');
+    rerender(
+      <AppShell items={items} tenantName={null} badges={{ 'dms-trinh-duyet': 0 }}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    expect(nav.getByRole('link', { name: 'Trình / Duyệt' }).textContent).toBe('Trình / Duyệt');
+  });
+});
+
+describe('menu DMS', () => {
+  it('đưa Văn thư, xuất sổ, sửa đổi, chờ xác nhận và báo cáo tổng hợp vào menu với đường dẫn /dms', () => {
+    const items = ALL_ITEMS;
+    const hrefs = Object.fromEntries(items.map((n) => [n.slug, hrefOf(n)]));
+    expect(hrefs['dms-van-thu']).toBe('/dms/van-ban-den');
+    expect(hrefs['dms-xuat-so']).toBe('/dms/so');
+    expect(hrefs['dms-trinh-duyet']).toBe('/dms/trinh-duyet');
+    expect(hrefs['dms-sua-doi']).toBeUndefined();
+    // Scan đã xóa 30 ngày: chỉ Admin thấy mục này.
+    expect(hrefs['dms-scan-da-xoa']).toBe('/dms/scan-da-xoa');
+    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-scan-da-xoa');
+    expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-scan-da-xoa');
+    // Tài liệu cũ: mục riêng; việc hiện hay ẩn theo quyền xem tài liệu cũ do khung trang quyết định.
+    expect(hrefs['dms-tai-lieu-cu']).toBe('/dms/tai-lieu-cu');
+    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-tai-lieu-cu');
+    // Lịch sử hoạt động: cũng chỉ Admin.
+    expect(hrefs['dms-lich-su']).toBe('/dms/lich-su');
+    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-lich-su');
+    expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-lich-su');
+    expect(hrefs['dms-thv']).toBe('/dms/thv');
+    expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
+    expect(hrefs['vi-bang']).toBe('/vi-bang');
+  });
+
+  it('đưa bốn nghiệp vụ vào nhóm "Nghiệp vụ" của menu, trỏ tới /dms/<nghiệp vụ>', () => {
+    const shown = visibleNav(['THV']).filter((n) => n.group === 'domain');
+    expect(shown.map((n) => [n.label, hrefOf(n)])).toEqual([
+      ['Vi bằng', '/dms/vi-bang'],
+      ['Tống đạt', '/dms/tong-dat'],
+      ['Xác minh điều kiện THA', '/dms/xac-minh'],
+      ['Tổ chức thi hành án', '/dms/to-chuc-tha'],
+    ]);
+  });
+
+  it('đánh dấu mục nghiệp vụ đang mở và đặt màu miền khi ở /dms/vi-bang', () => {
+    path.current = '/dms/vi-bang';
+    const { container } = render(
+      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(nav.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
+    expect(
+      nav.getByRole('link', { name: 'Hồ sơ do tôi tạo' }).getAttribute('aria-current'),
+    ).toBeNull();
+    expect(container.querySelector('.shell')?.getAttribute('data-domain')).toBe('vi-bang');
+  });
+
+  it('trang chỉ Admin mở bởi vai khác: tiêu đề đúng trang, không sáng nhầm "Hồ sơ do tôi tạo"', () => {
+    path.current = '/dms/lich-su';
+    render(
+      <AppShell items={visibleNav(['THV'])} tenantName={null}>
+        <p>Chỉ Admin được xem mục này</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(
+      nav.getByRole('link', { name: 'Hồ sơ do tôi tạo' }).getAttribute('aria-current'),
+    ).toBeNull();
+    expect(document.querySelector('.topbar-h')?.textContent).toBe('Lịch sử hoạt động');
+  });
+
+  it('Admin ở /dms/lich-su: mục Lịch sử hoạt động sáng', () => {
+    path.current = '/dms/lich-su';
+    render(
+      <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
+        <p>nội dung</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
+    expect(nav.getByRole('link', { name: 'Lịch sử hoạt động' }).getAttribute('aria-current')).toBe(
+      'page',
+    );
   });
 });

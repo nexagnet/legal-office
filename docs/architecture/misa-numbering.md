@@ -1,5 +1,7 @@
 # Xác nhận MISA thủ công, đánh số Vi bằng, cổng thu hồi (#7)
 
+> **Tài liệu lịch sử.** Viết trước các thay đổi ngày 30/10 đến 04/11/2026 (DMS, nhóm quyền, bỏ luồng đề xuất/duyệt, tài khoản CCCD). Chỉ để tham khảo; nguồn hiện hành là `docs/handoff/NGHIEP-VU-TOAN-DU-AN.md` (mục 2.4A).
+
 Dữ liệu giả lập. **Không có số tiền, thanh toán từng phần, công nợ, VAT, hoá đơn; không gọi MISA.** MISA là sổ kế toán duy nhất; ở đây chỉ là cổng quy trình.
 
 ## Đã chốt (theo #1, #7)

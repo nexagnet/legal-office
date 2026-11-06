@@ -1,0 +1,851 @@
+{
+ "role": "admin",
+ "title": "Hướng dẫn dành cho Admin",
+ "sections": [
+  {
+   "title": "DMS · Tổng quan của Admin",
+   "intro": "Tổng quan cho biết nhanh tình hình năm hiện tại: số hồ sơ, tài liệu, hồ sơ thiếu scan, số hồ sơ đã trả kết quả và các bản trình đang chờ bạn duyệt.",
+   "rules": [
+    "Số liệu chỉ tính hồ sơ đã lưu chính thức, không tính bản nháp và hồ sơ đã hủy."
+   ],
+   "problems": [
+    [
+     "Không thấy khối \"Bản trình chờ duyệt\"",
+     "Khối này chỉ hiện khi đang có bản trình chờ duyệt. Hết bản trình chờ thì khối tự ẩn."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Trang Tổng quan",
+     "note": "Bốn thẻ số liệu ở trên, bên dưới là biểu đồ hồ sơ theo nghiệp vụ và danh sách hồ sơ cần bổ sung scan.",
+     "detail": [
+      "Hồ sơ năm: số hồ sơ chính thức của năm hiện tại.",
+      "Tài liệu hiện hành: số tài liệu đang có hiệu lực (không tính các bản đã được thay bằng phiên bản mới).",
+      "Hồ sơ thiếu scan: có tài liệu nhưng chưa có bản scan, cần bổ sung.",
+      "Đã trả kết quả: số hồ sơ đã được tích Đã trả kết quả.",
+      "Cần bổ sung scan: bấm Mở để vào thẳng hồ sơ thiếu scan."
+     ],
+     "img": "admin/30.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Số hồ sơ theo từng nghiệp vụ: bấm tên để mở danh sách"
+      },
+      {
+       "n": 2,
+       "text": "Hồ sơ còn thiếu bản scan"
+      },
+      {
+       "n": 3,
+       "text": "Mở hàng chờ duyệt bản trình (chỉ hiện khi có bản đang chờ)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Trình / Duyệt bản trình",
+   "intro": "Bản trình là cách nhân viên (Thừa hành viên, Văn thư) gửi tiêu đề, mô tả và bản scan lên để Admin duyệt hoặc từ chối. Bản trình KHÔNG phải hồ sơ nghiệp vụ và không tạo số hồ sơ.",
+   "rules": [
+    "\"Duyệt\" trong phần mềm là xác nhận nội bộ, không phải chữ ký pháp lý.",
+    "Từ chối bắt buộc nhập ghi chú. Duyệt thì ghi chú không bắt buộc.",
+    "Bản trình không bao giờ bị xóa; chỉ file scan xóa được, với người có quyền xóa scan.",
+    "Người gửi chỉ thấy bản trình của mình. Admin thấy bản trình của cả văn phòng."
+   ],
+   "problems": [
+    [
+     "Bấm Từ chối nhưng không có gì xảy ra",
+     "Chưa nhập Ghi chú. Từ chối bắt buộc có ghi chú để người gửi biết lý do."
+    ],
+    [
+     "Muốn duyệt lại bản đã duyệt hoặc đã từ chối",
+     "Không được. Mỗi bản trình chỉ duyệt hoặc từ chối một lần; nếu cần, người gửi gửi bản trình mới."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Hàng chờ duyệt của Admin",
+     "note": "Admin thấy bản trình của mọi người. Huy hiệu đỏ trên thanh bên cho biết số bản đang chờ.",
+     "detail": [],
+     "img": "admin/31.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thanh bên: số bản trình đang chờ duyệt"
+      },
+      {
+       "n": 2,
+       "text": "Bản trình cần xem"
+      }
+     ]
+    },
+    {
+     "title": "Xem bản trình và quyết định",
+     "note": "Xem thông tin người gửi và bản scan ngay trong trang. Nhập ghi chú rồi bấm Duyệt hoặc Từ chối.",
+     "detail": [
+      "Ghi chú: bắt buộc khi từ chối, tùy chọn khi duyệt.",
+      "Thêm scan: bổ sung bản scan cho bản trình nếu còn thiếu.",
+      "Xóa scan: chỉ người có quyền xóa scan mới thấy nút này."
+     ],
+     "img": "admin/32.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Ghi chú (bắt buộc khi từ chối)"
+      },
+      {
+       "n": 2,
+       "text": "Duyệt bản trình"
+      },
+      {
+       "n": 3,
+       "text": "Từ chối bản trình (phải có ghi chú)"
+      },
+      {
+       "n": 4,
+       "text": "Xem bản scan của bản trình"
+      }
+     ]
+    },
+    {
+     "title": "Bản trình đã duyệt",
+     "note": "Trạng thái chuyển sang Đã duyệt, kèm người duyệt, thời điểm và ghi chú. Bản trình đã quyết định không duyệt lại được.",
+     "detail": [],
+     "img": "admin/33.png",
+     "marks": []
+    }
+   ]
+  },
+  {
+   "title": "DMS · Admin sửa hồ sơ đã ghi sổ",
+   "intro": "Hồ sơ đã lưu chính thức không sửa trực tiếp. Chỉ Admin sửa được nội dung, bắt buộc nêu lý do; mỗi lần sửa tạo một phiên bản mới, bản gốc khi ghi sổ vẫn được giữ.",
+   "rules": [
+    "Số hồ sơ (STT) giữ nguyên khi sửa. Hồ sơ không bao giờ bị xóa.",
+    "Mọi lần sửa đều ghi người sửa, thời điểm, lý do trong Lịch sử hoạt động.",
+    "Nhân viên khác chỉ tải thêm scan, không sửa được."
+   ],
+   "problems": [
+    [
+     "Bấm Lưu thay đổi nhưng báo thiếu lý do",
+     "Ô Lý do sửa là bắt buộc. Nêu rõ chỗ sửa và vì sao."
+    ],
+    [
+     "Cần xem nội dung trước khi sửa",
+     "Mở tab Phiên bản cũ để xem bản gốc và các bản sửa trước đó."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Nút \"Sửa hồ sơ (Admin)\"",
+     "note": "Chỉ Admin thấy nút này trên hồ sơ đã ghi sổ. Bấm để mở hộp thoại sửa.",
+     "detail": [],
+     "img": "admin/34.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Sửa hồ sơ (chỉ Admin)"
+      }
+     ]
+    },
+    {
+     "title": "Hộp thoại Sửa hồ sơ (Admin)",
+     "note": "Sửa các ô cần thiết, bắt buộc nhập Lý do sửa, rồi bấm Lưu thay đổi. Hệ thống lưu thành phiên bản mới.",
+     "detail": [],
+     "img": "admin/35.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tên hồ sơ"
+      },
+      {
+       "n": 2,
+       "text": "Ô cần sửa (ví dụ Ghi chú)"
+      },
+      {
+       "n": 3,
+       "text": "Lý do sửa (bắt buộc)"
+      },
+      {
+       "n": 4,
+       "text": "Lưu thành phiên bản mới"
+      }
+     ]
+    },
+    {
+     "title": "Tab Phiên bản cũ: bản gốc và bản sửa",
+     "note": "Mỗi lần Admin sửa tạo thêm một dòng: bản gốc khi ghi sổ và các bản sửa kèm người sửa, thời điểm và lý do.",
+     "detail": [],
+     "img": "admin/36.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tab Phiên bản cũ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Xóa scan và mục Scan đã xóa",
+   "intro": "Chỉ file scan xóa được; hồ sơ, số hồ sơ và dòng sổ vẫn còn nguyên. File bị xóa chuyển vào mục \"Scan đã xóa 30 ngày\", chỉ Admin xem và tải được.",
+   "rules": [
+    "Cần quyền riêng \"xóa scan\" do Admin cấp. Quyền này không nằm trong nhóm quyền mặc định.",
+    "Bắt buộc nêu lý do xóa. Sau 30 ngày file bị xóa hẳn khỏi kho và không khôi phục được.",
+    "Nếu cần giữ lại, Admin tải file về từ mục Scan đã xóa trong vòng 30 ngày."
+   ],
+   "problems": [
+    [
+     "Không thấy nút Xóa scan",
+     "Bạn chưa được cấp quyền xóa scan. Nhờ Admin cấp quyền riêng cho đúng người, đúng thời gian cần."
+    ],
+    [
+     "Xóa nhầm file",
+     "Vào Scan đã xóa, tải file về (còn trong 30 ngày) rồi tải lên lại ở tab Tài liệu."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Hộp thoại Xóa file scan",
+     "note": "Đọc kỹ ba lưu ý trong hộp thoại, nhập lý do rồi bấm Xóa scan. Hồ sơ và dòng sổ không bị ảnh hưởng.",
+     "detail": [],
+     "img": "admin/37.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lý do xóa (bắt buộc)"
+      },
+      {
+       "n": 2,
+       "text": "Hủy: không xóa"
+      },
+      {
+       "n": 3,
+       "text": "Xóa scan: file chuyển vào Scan đã xóa 30 ngày"
+      }
+     ]
+    },
+    {
+     "title": "Mục Scan đã xóa 30 ngày",
+     "note": "Liệt kê file đã xóa kèm hồ sơ gốc, người xóa, ngày xóa, lý do và số ngày còn lại. Bấm Tải để lấy lại file trong thời hạn.",
+     "detail": [
+      "Cột Còn lại: số ngày đến khi file bị xóa hẳn khỏi kho.",
+      "Cột Tải: tải file về máy (chỉ Admin)."
+     ],
+     "img": "admin/38.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "File vừa xóa: xem lý do, người xóa, còn bao nhiêu ngày"
+      },
+      {
+       "n": 2,
+       "text": "Tải file về máy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Lịch sử hoạt động",
+   "intro": "Nhật ký mọi thay đổi quan trọng trên hồ sơ, tài liệu, tệp scan, bản trình và phân quyền: ai làm, lúc nào, làm gì. Chỉ Admin xem được.",
+   "rules": [
+    "Nhật ký chỉ ghi thêm, không sửa, không xóa."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Lịch sử hoạt động",
+     "note": "Chọn nhóm bằng các nút phía trên, hoặc gõ số hồ sơ, tên người, từ khóa vào ô tìm. Bấm vào tên đối tượng để mở thẳng hồ sơ.",
+     "detail": [
+      "Thời gian, Người làm, Hoạt động, Đối tượng, Chi tiết: mỗi dòng là một thao tác.",
+      "Nhóm: Hồ sơ, Tài liệu, Tệp & scan, Trình / Duyệt, Phân quyền."
+     ],
+     "img": "admin/39.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lọc theo nhóm hoạt động"
+      },
+      {
+       "n": 2,
+       "text": "Tìm theo số hồ sơ, người làm hoặc từ khóa"
+      },
+      {
+       "n": 3,
+       "text": "Một thao tác: người làm, hoạt động, đối tượng, chi tiết"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Tài khoản",
+   "intro": "Admin tạo tài khoản cho thành viên văn phòng: họ tên, email, số CCCD (không bắt buộc) và mật khẩu ban đầu. Quyền không nằm ở đây mà ở mục Nhóm quyền. Mọi màn quản trị nằm trong nhóm QUẢN TRỊ của thanh bên (Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng).",
+   "rules": [
+    "Mỗi người một tài khoản riêng. Đăng nhập bằng email hoặc số CCCD cùng mật khẩu; quên mật khẩu thì dùng liên kết \"Quên mật khẩu\" ở màn đăng nhập (link đặt lại gửi qua email).",
+    "Mật khẩu ban đầu tối thiểu 12 ký tự; người dùng phải đổi mật khẩu ngay ở lần đăng nhập đầu.",
+    "Tài khoản vừa tạo chưa có quyền gì cho tới khi được xếp vào nhóm quyền."
+   ],
+   "problems": [
+    [
+     "Người mới đăng nhập được nhưng không thấy gì",
+     "Chưa được xếp vào nhóm quyền: mở Nhóm quyền rồi bấm Gán nhóm quyền (thẻ Chưa có quyền lọc ra những người này)."
+    ],
+    [
+     "Cần đổi họ tên hiển thị",
+     "Bấm Sửa tên ở dòng thành viên."
+    ],
+    [
+     "Người dùng quên mật khẩu",
+     "Họ tự bấm Quên mật khẩu ở màn đăng nhập; Admin cũng có thể đặt lại mật khẩu cho họ, khi đó họ phải đổi mật khẩu ở lần đăng nhập kế tiếp."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Tài khoản: danh sách thành viên",
+     "note": "Các thẻ Tất cả, Chưa có quyền, Tạm khóa lọc nhanh theo trạng thái; số đếm hiện bên cạnh.",
+     "detail": [
+      "Dãy mục bên trái (Tài khoản, Nhóm quyền, Chi nhánh, Cài đặt văn phòng) là các màn quản trị.",
+      "+ Thêm thành viên: tạo tài khoản mới.",
+      "Xem quyền hiệu lực: mở chi tiết quyền thực sự của người đó.",
+      "Sửa tên: đổi họ tên hiển thị."
+     ],
+     "img": "admin/40.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Các mục quản trị khác (Nhóm quyền, Chi nhánh, Cài đặt văn phòng)"
+      },
+      {
+       "n": 2,
+       "text": "Lọc: thành viên chưa được xếp vào nhóm quyền"
+      },
+      {
+       "n": 3,
+       "text": "Tìm theo tên hoặc email"
+      },
+      {
+       "n": 4,
+       "text": "Thêm thành viên mới"
+      },
+      {
+       "n": 5,
+       "text": "Xem quyền hiệu lực của người này"
+      },
+      {
+       "n": 6,
+       "text": "Đổi họ tên hiển thị"
+      }
+     ]
+    },
+    {
+     "title": "Thêm thành viên mới",
+     "note": "Điền họ tên, email, CCCD (nếu có), mật khẩu ban đầu và nhập lại; chọn nhóm quyền và quyền chi tiết (tùy chọn) rồi bấm tạo. Tài khoản có hiệu lực ngay, không cần ai duyệt.",
+     "detail": [
+      "Số CCCD: 12 chữ số, không trùng tài khoản khác. Có CCCD thì đăng nhập được bằng CCCD.",
+      "Mật khẩu ban đầu: tối thiểu 12 ký tự; người dùng đổi ở lần đăng nhập đầu.",
+      "Nhóm quyền: tích nhóm cần xếp người này vào. Quyền chi tiết (tùy chọn) thêm hoặc bỏ riêng từng quyền."
+     ],
+     "img": "admin/41.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Họ và tên"
+      },
+      {
+       "n": 2,
+       "text": "Email đăng nhập (cũng là nơi nhận link đặt lại mật khẩu)"
+      },
+      {
+       "n": 3,
+       "text": "Số CCCD 12 chữ số (không bắt buộc)"
+      },
+      {
+       "n": 4,
+       "text": "Mật khẩu ban đầu, tối thiểu 12 ký tự"
+      },
+      {
+       "n": 5,
+       "text": "Nhập lại mật khẩu"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Chi nhánh",
+   "intro": "Chi nhánh (địa điểm hoạt động) quyết định hồ sơ của ai hiện ở đâu. Thành viên chỉ thấy hồ sơ thuộc chi nhánh được cấp.",
+   "rules": [
+    "Hồ sơ chưa gắn chi nhánh chỉ Admin thấy; gắn chi nhánh để đúng người thấy."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Chi nhánh và hồ sơ chưa gắn chi nhánh",
+     "note": "Phần trên là danh sách địa điểm; phần dưới liệt kê hồ sơ chưa gắn chi nhánh để bạn chọn nhiều hồ sơ rồi gắn một lần.",
+     "detail": [
+      "+ Thêm địa điểm: tạo chi nhánh mới.",
+      "Đổi tên: sửa tên chi nhánh.",
+      "Xem người được cấp: những ai được xem hồ sơ của chi nhánh này.",
+      "Gắn chi nhánh: tích các hồ sơ, chọn chi nhánh đích rồi bấm nút."
+     ],
+     "img": "admin/42.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thêm địa điểm (chi nhánh) mới"
+      },
+      {
+       "n": 2,
+       "text": "Đổi tên chi nhánh"
+      },
+      {
+       "n": 3,
+       "text": "Xem ai được cấp chi nhánh này"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Nhóm quyền và phân quyền",
+   "intro": "Quyền của mỗi người = các nhóm quyền người đó thuộc + quyền thêm hoặc bỏ riêng. Chỉ Admin tạo nhóm, đổi quyền của nhóm, xếp người vào nhóm và đặt quyền riêng. Mọi thay đổi có hiệu lực ngay (không còn đề xuất và duyệt) và được ghi vào Lịch sử hoạt động, nhóm Phân quyền.",
+   "rules": [
+    "Nhóm \"Admin\" là nhóm hệ thống: không xóa, không ngừng dùng, không đổi quyền; người thuộc nhóm Admin và tài khoản Admin không đặt được quyền riêng.",
+    "Mỗi thay đổi cần ghi lý do ngắn (bắt buộc, trừ khi Admin tự đổi quyền riêng của chính mình thì không cần).",
+    "Quyền \"xóa scan\" chỉ cấp riêng cho từng người, không nằm trong nhóm quyền."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Nhóm quyền: danh sách nhóm",
+     "note": "Mỗi nhóm cho biết số quyền, số thành viên và trạng thái. Bấm tên nhóm để xem và sửa; bấm \"+ Tạo nhóm quyền\" để tạo nhóm mới hoặc sao chép từ nhóm mẫu.",
+     "detail": [],
+     "img": "admin/43.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tạo nhóm quyền mới hoặc sao chép nhóm mẫu"
+      },
+      {
+       "n": 2,
+       "text": "Nhật ký phân quyền (mở Lịch sử hoạt động)"
+      }
+     ]
+    },
+    {
+     "title": "Người dùng và quyền hiệu lực",
+     "note": "Mỗi dòng là một thành viên với nhóm quyền, phạm vi và tình trạng tài khoản. Bấm Xem để mở chi tiết; \"Gán nhóm quyền\" xếp người vào nhóm.",
+     "detail": [],
+     "img": "admin/44.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Xếp thành viên vào một nhóm quyền"
+      },
+      {
+       "n": 2,
+       "text": "Tìm thành viên"
+      },
+      {
+       "n": 3,
+       "text": "Mở chi tiết quyền của người này"
+      }
+     ]
+    },
+    {
+     "title": "Chi tiết một tài khoản: Quyền",
+     "note": "Ba thẻ: Quyền, Thẻ thừa hành viên, Hồ sơ lao động. Thẻ Quyền cho thấy nhóm đang áp dụng, quyền hiệu lực theo nghiệp vụ và chi nhánh được xem.",
+     "detail": [
+      "Nhóm quyền đang áp dụng: các nhóm người này thuộc.",
+      "Đổi nhóm quyền: xếp vào hoặc gỡ khỏi nhóm, có hiệu lực ngay.",
+      "Tạm khóa tài khoản: chặn đăng nhập mà không xóa dữ liệu.",
+      "Cấp chi nhánh: người này chỉ thấy hồ sơ của chi nhánh được cấp (hồ sơ do chính họ tạo luôn thấy)."
+     ],
+     "img": "admin/45.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tạm khóa tài khoản"
+      },
+      {
+       "n": 2,
+       "text": "Đổi nhóm quyền của người này (áp dụng ngay)"
+      },
+      {
+       "n": 3,
+       "text": "Thẻ thừa hành viên của người này"
+      },
+      {
+       "n": 4,
+       "text": "Hồ sơ lao động của người này"
+      }
+     ]
+    },
+    {
+     "title": "Đổi nhóm hoặc quyền",
+     "note": "Chọn loại thay đổi (gán nhóm, gỡ khỏi nhóm, thêm quyền vào nhóm, thu hồi quyền khỏi nhóm), chọn nhóm, chọn thành viên, xem trước rồi ghi lý do và áp dụng. Không còn bước chờ người thứ hai duyệt.",
+     "detail": [],
+     "img": "admin/46.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Loại thay đổi"
+      }
+     ]
+    },
+    {
+     "title": "Quyền riêng của người này",
+     "note": "Bảng 7 nghiệp vụ x 6 hành động (phạm vi: của tôi tạo hoặc toàn văn phòng) cộng 8 quyền đặc biệt. Tích để thêm riêng, bỏ tích để bỏ riêng một quyền mà không đổi nhóm.",
+     "detail": [
+      "Lưu quyền riêng: ghi lại quyền thêm hoặc bỏ riêng, kèm lý do, ghi vào nhật ký.",
+      "Quay về đúng theo nhóm: xóa mọi quyền riêng."
+     ],
+     "img": "admin/47.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lưu quyền riêng của người này"
+      },
+      {
+       "n": 2,
+       "text": "Bỏ hết quyền riêng, quay về đúng theo nhóm"
+      }
+     ]
+    },
+    {
+     "title": "Nhật ký phân quyền trong Lịch sử hoạt động",
+     "note": "Mọi lần đổi nhóm, quyền, quyền riêng, chi nhánh được ghi tại Lịch sử hoạt động, thẻ Phân quyền. Ai có quyền xuất nhật ký thấy nút \"Xuất bản sao\".",
+     "detail": [],
+     "img": "admin/48.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Xuất bản sao nhật ký phân quyền"
+      },
+      {
+       "n": 2,
+       "text": "Thẻ lọc nhóm hoạt động Phân quyền"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Thẻ thừa hành viên",
+   "intro": "Mỗi thừa hành viên có số thẻ riêng; số thẻ được ghi vào các sổ và biểu mẫu ở cột Thừa hành viên.",
+   "rules": [
+    "Thiếu thẻ hoặc thẻ ngừng hiệu lực thì không ghi tên thừa hành viên đó được vào sổ."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Thẻ THV: danh sách và tình trạng",
+     "note": "Thẻ chia theo tình trạng: Còn hiệu lực, Chờ bổ sung, Ngừng hiệu lực. Bấm \"Nhập thẻ\" để nhập số thẻ cho từng người.",
+     "detail": [],
+     "img": "admin/49.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lọc thẻ còn thiếu thông tin"
+      },
+      {
+       "n": 2,
+       "text": "Tìm thừa hành viên"
+      },
+      {
+       "n": 3,
+       "text": "Nhập thông tin thẻ cho người này"
+      }
+     ]
+    },
+    {
+     "title": "Nhập thông tin thẻ",
+     "note": "Thẻ chỉ có hiệu lực khi có quyết định hoặc giấy tờ kèm bản scan. Lưu xong thẻ có hiệu lực ngay, không cần ai xác nhận; ngừng hiệu lực không xóa thẻ hay lịch sử.",
+     "detail": [
+      "Họ tên trên sổ: tên in ở cột Thừa hành viên của các sổ.",
+      "Số thẻ: số thẻ thừa hành viên.",
+      "Số quyết định / giấy tờ và Ngày ban hành quyết định: căn cứ cấp thẻ.",
+      "Ngày hiệu lực: ngày thẻ bắt đầu có hiệu lực.",
+      "Bản scan quyết định (bắt buộc): PDF, JPEG hoặc PNG, tối đa 25 MB."
+     ],
+     "img": "admin/50.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Họ tên in trên sổ"
+      },
+      {
+       "n": 2,
+       "text": "Số thẻ thừa hành viên"
+      },
+      {
+       "n": 3,
+       "text": "Số quyết định hoặc giấy tờ làm căn cứ"
+      },
+      {
+       "n": 4,
+       "text": "Ngày ban hành quyết định"
+      },
+      {
+       "n": 5,
+       "text": "Ngày thẻ bắt đầu có hiệu lực"
+      },
+      {
+       "n": 6,
+       "text": "Bản scan quyết định (bắt buộc)"
+      },
+      {
+       "n": 7,
+       "text": "Lưu thẻ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Email gửi thư (SMTP)",
+   "intro": "Cấu hình hộp thư hệ thống dùng để gửi liên kết đặt lại mật khẩu và nhắc hạn cho nhân viên.",
+   "rules": [
+    "Mật khẩu SMTP được mã hóa khi lưu và không bao giờ hiện lại trên màn hình.",
+    "Sau khi lưu nên bấm \"Gửi thư thử\" để chắc thư gửi được."
+   ],
+   "problems": [
+    [
+     "Thư thử không đến",
+     "Kiểm tra máy chủ, cổng, TLS/SSL đúng nhà cung cấp; với Gmail dùng mật khẩu ứng dụng, không dùng mật khẩu đăng nhập."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Máy chủ gửi thư (SMTP)",
+     "note": "Điền thông tin do nhà cung cấp email cung cấp. Có thể gửi thư thử tới chính bạn để kiểm tra.",
+     "detail": [
+      "Máy chủ và Cổng: ví dụ smtp.gmail.com, cổng 465.",
+      "Kết nối mã hóa TLS/SSL: tích khi dùng cổng 465.",
+      "Tài khoản và Mật khẩu SMTP: tài khoản gửi thư.",
+      "Địa chỉ người gửi: địa chỉ hiện ở thư gửi đi."
+     ],
+     "img": "admin/51.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Máy chủ gửi thư"
+      },
+      {
+       "n": 2,
+       "text": "Cổng"
+      },
+      {
+       "n": 3,
+       "text": "Tài khoản SMTP"
+      },
+      {
+       "n": 4,
+       "text": "Mật khẩu SMTP (không hiển thị lại)"
+      },
+      {
+       "n": 5,
+       "text": "Địa chỉ người gửi"
+      },
+      {
+       "n": 6,
+       "text": "Lưu cấu hình"
+      },
+      {
+       "n": 7,
+       "text": "Gửi thư thử để kiểm tra"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Lịch làm việc và ngày nghỉ",
+   "intro": "Lịch quyết định cách tính hạn theo ngày làm việc: ngày làm việc trong tuần và các ngày nghỉ, lễ.",
+   "rules": [
+    "Hạn pháp định và nhắc hạn đều tính theo lịch này. Nhập ngày lễ của năm trước khi dùng."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Lịch làm việc",
+     "note": "Chọn các thứ trong tuần là ngày làm việc, thêm ngày nghỉ lễ, rồi Lưu lịch. Có công cụ Tính hạn để thử.",
+     "detail": [
+      "Thứ 2 đến CN: bấm để bật/tắt ngày làm việc.",
+      "+ Thêm ngày nghỉ: nhập ngày lễ hoặc nghỉ bù.",
+      "Tính hạn: nhập Từ ngày và Số ngày làm việc để xem ngày hết hạn."
+     ],
+     "img": "admin/52.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bật/tắt ngày làm việc trong tuần"
+      },
+      {
+       "n": 2,
+       "text": "Thêm ngày nghỉ, lễ"
+      },
+      {
+       "n": 3,
+       "text": "Lưu lịch"
+      },
+      {
+       "n": 4,
+       "text": "Công cụ Tính hạn: từ ngày"
+      },
+      {
+       "n": 5,
+       "text": "Số ngày làm việc"
+      },
+      {
+       "n": 6,
+       "text": "Tính ngày hết hạn"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Hồ sơ lao động",
+   "intro": "Hồ sơ lao động của nhân sự văn phòng (dùng cho sổ sử dụng lao động).",
+   "rules": [
+    "Chỉ Admin và Trưởng văn phòng xem được. Không lưu số tiền bảo hiểm, chỉ tình trạng và ghi chú."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Hồ sơ lao động",
+     "note": "Các thẻ lọc theo tình trạng làm việc. Bấm \"+ Thêm hồ sơ\" để thêm hồ sơ cho nhân sự.",
+     "detail": [],
+     "img": "admin/53.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thêm hồ sơ lao động"
+      },
+      {
+       "n": 2,
+       "text": "Lọc theo tình trạng"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Cấu hình văn phòng",
+   "intro": "Thông tin pháp lý của văn phòng in lên biểu mẫu và sổ, cùng quy tắc đánh số hồ sơ.",
+   "rules": [
+    "Đúng tên pháp lý và địa chỉ là bắt buộc vì in lên biểu mẫu chính thức.",
+    "Số cuối của sổ chỉ nhập một lần và chỉ được tăng, để số tiếp theo nối tiếp sổ giấy."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Cấu hình văn phòng",
+     "note": "Điền đúng thông tin pháp lý, bấm Lưu thay đổi. Phần Quy tắc số cho biết cách đánh số hồ sơ; nút \"Nhập số cuối\" dùng khi chuyển từ sổ giấy sang phần mềm.",
+     "detail": [],
+     "img": "admin/54.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Đơn vị pháp lý (tên đầy đủ)"
+      },
+      {
+       "n": 2,
+       "text": "Tên hiển thị trên văn bản"
+      },
+      {
+       "n": 3,
+       "text": "Nhập số cuối của sổ giấy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Báo cáo",
+   "intro": "Báo cáo tổng hợp cho số liệu theo mẫu N-09, N-10.",
+   "rules": [
+    "Mỗi đơn vị tính riêng, không cộng chéo giữa các nghiệp vụ."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Báo cáo tổng hợp (N-09, N-10)",
+     "note": "Số liệu tổng hợp theo hai mẫu báo cáo. Nút Sao chép ở từng chỉ tiêu giúp chép con số sang văn bản báo cáo.",
+     "detail": [],
+     "img": "admin/55.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chuyển giữa mẫu N-09 và N-10"
+      },
+      {
+       "n": 2,
+       "text": "Sao chép số liệu"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị · Vật tư văn phòng",
+   "intro": "Theo dõi tồn kho văn phòng phẩm: nhập, xuất, kiểm kê và ngưỡng cảnh báo sắp hết.",
+   "rules": [
+    "Xuất vượt tồn bị chặn. Điều chỉnh sau kiểm kê cần Trưởng văn phòng duyệt."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Vật tư: tồn kho",
+     "note": "Thẻ Tồn kho cho thấy số lượng hiện có của từng mặt hàng. \"Đặt ngưỡng\" để hệ thống báo Sắp hết khi dưới mức đặt.",
+     "detail": [],
+     "img": "admin/56.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thêm tác vụ vật tư"
+      },
+      {
+       "n": 2,
+       "text": "Tìm theo tên vật tư"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Admin: soạn nháp và chọn Thừa hành viên ghi tên",
+   "intro": "Khi Admin soạn bản nháp, chọn thừa hành viên được ghi tên rồi Lưu. Hồ sơ sẽ hiện ở mục \"Hồ sơ nháp chờ tôi lưu\" của thừa hành viên đó để họ xem lại và xác nhận lưu chính thức.",
+   "rules": [
+    "Chỉ người có quyền xem danh sách thừa hành viên mới chọn được. Chọn \"Không ghi tên\" nếu chưa biết.",
+    "Admin chỉ thấy bản nháp do chính mình soạn, không thấy bản nháp của người khác."
+   ],
+   "problems": [
+    [
+     "Thừa hành viên không thấy hồ sơ trong \"Hồ sơ nháp chờ tôi lưu\"",
+     "Chưa chọn đúng thừa hành viên ở ô \"Thừa hành viên được ghi tên\" hoặc chưa bấm Lưu."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Chọn thừa hành viên được ghi tên",
+     "note": "Ở đầu bản nháp, chọn thừa hành viên rồi bấm Lưu. Hồ sơ sẽ hiện ở \"Hồ sơ nháp chờ tôi lưu\" của thừa hành viên đó.",
+     "detail": [],
+     "img": "admin/29.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thừa hành viên được ghi tên"
+      },
+      {
+       "n": 2,
+       "text": "Lưu để giao cho thừa hành viên"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

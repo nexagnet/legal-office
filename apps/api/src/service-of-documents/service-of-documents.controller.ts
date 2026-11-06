@@ -84,6 +84,7 @@ export class ServiceOfDocumentsController {
       handler_user_id: string | null;
       attempts: number;
       last_attempt_at: Date | null;
+      document_title: string | null;
     }>(a.tenantId, 'td_list_documents', [a.tenantId, a.userId, 100]);
     return {
       items: rows.map((r) => ({
@@ -100,6 +101,30 @@ export class ServiceOfDocumentsController {
         handlerUserId: r.handler_user_id,
         attempts: r.attempts,
         lastAttemptAt: r.last_attempt_at,
+        documentTitle: r.document_title,
+      })),
+    };
+  }
+
+  /** Các lần tống đạt của một văn bản, cũ đến mới. Cùng phạm vi quyền với `GET documents`; ngoài phạm vi thì rỗng. */
+  @Get('documents/:id/attempts')
+  async attempts(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{
+      seq: number;
+      outcome: string;
+      late: boolean;
+      at: Date;
+      actor_user_id: string;
+      has_evidence: boolean;
+    }>(a.tenantId, 'td_list_attempts', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        seq: r.seq,
+        outcome: r.outcome,
+        late: r.late,
+        at: r.at,
+        actorUserId: r.actor_user_id,
+        hasEvidence: r.has_evidence,
       })),
     };
   }
@@ -127,11 +152,18 @@ export class ServiceOfDocumentsController {
           recipientName: z.string().max(300),
           address: z.string().max(500),
           deadlineAt: iso,
+          title: z.string().max(300).nullish(),
         })
         .strict(),
       body,
     );
-    return this.run(a, 'td_add_document', [id, b.recipientName, b.address, b.deadlineAt]);
+    return this.run(a, 'td_add_document', [
+      id,
+      b.recipientName,
+      b.address,
+      b.deadlineAt,
+      b.title ?? null,
+    ]);
   }
 
   @Put('documents/:id/handler')
@@ -213,5 +245,43 @@ export class ServiceOfDocumentsController {
   @HttpCode(HttpStatus.OK)
   close(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
     return this.run(a, 'td_close_request', [id]);
+  }
+
+  /** Ghi việc ĐÃ báo kết quả tống đạt cho cơ quan yêu cầu (Điều 25.2). Chỉ khi mọi văn bản đã có kết cục cuối. */
+  @Post('requests/:id/result-notices')
+  @HttpCode(HttpStatus.OK)
+  reportResult(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ agency: z.string().max(300), note: z.string().max(2000) }).strict(),
+      body,
+    );
+    return this.run(a, 'td_report_result', [id, b.agency, b.note]);
+  }
+
+  @Get('requests/:id/result-notices')
+  async resultNotices(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const rows = await this.repo.rows<{
+      id: string;
+      agency: string;
+      note: string;
+      sent_by: string;
+      sent_at: Date;
+    }>(a.tenantId, 'td_list_result_notices', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        agency: r.agency,
+        note: r.note,
+        sentBy: r.sent_by,
+        sentAt: r.sent_at,
+      })),
+    };
   }
 }

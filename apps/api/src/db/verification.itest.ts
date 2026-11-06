@@ -323,6 +323,61 @@ describe.skipIf(!ADMIN_URL)('verification (Xác minh N-05/N-06) on PostgreSQL', 
     expect(await auditCount('vx.source.access', 'PURPOSE_REQUIRED')).toBeGreaterThanOrEqual(1);
   });
 
+  it('lists sources with an access log, delegations with steps, and records the N-06 decision once', async () => {
+    const cs = await newCase();
+    const round = (await fn('vx_start_round', U.thvA, cs, 'Bên N06')).label!;
+    const src = (await source(round, U.thvA, 'CONFIDENTIAL', 'vx/n06', sha('d'))).label!;
+    expect(await fn('vx_access_source', U.thvA, src, ' ')).toMatchObject({
+      ok: false,
+      code: 'PURPOSE_REQUIRED',
+    });
+    expect(await fn('vx_access_source', U.thvA, src, 'Đối chiếu hồ sơ')).toMatchObject({
+      ok: true,
+    });
+    const read = async (sql: string, who: string) => {
+      const cl = await app.connect();
+      try {
+        await cl.query('BEGIN');
+        await cl.query(`SELECT set_config('app.tenant_id', $1, true)`, [T]);
+        const r = await cl.query(sql, [T, who, cs]);
+        await cl.query('COMMIT');
+        return r.rows;
+      } finally {
+        cl.release();
+      }
+    };
+    const sources = await read(`SELECT * FROM vx_list_sources($1,$2,$3)`, U.thvA);
+    expect(sources).toHaveLength(1);
+    expect(sources[0].accesses).toHaveLength(1);
+    expect(JSON.stringify(sources)).not.toContain('vx/n06');
+    expect(await read(`SELECT * FROM vx_list_sources($1,$2,$3)`, U.thvB)).toHaveLength(0);
+
+    const d = (await fn('vx_delegation_request', U.thvA, cs, U.thvC)).label!;
+    expect(await fn('vx_delegation_step', U.thvA, d, 'CONSENT', 'vx/dc', sha('e'))).toMatchObject({
+      ok: true,
+    });
+    const dels = await read(`SELECT * FROM vx_list_delegations($1,$2,$3)`, U.thvA);
+    expect(dels).toHaveLength(1);
+    expect(dels[0].steps.map((s: { step: string }) => s.step)).toEqual(['CONSENT']);
+
+    const decide = (who: string, no = 'QĐ-06/2026', on = '2026-01-05') =>
+      fn('vx_record_decision', who, cs, no, on, 'vx/n06dec', sha('f'));
+    expect(await decide(U.thvA)).toMatchObject({ ok: false, code: 'ADMIN_OR_HEAD_ONLY' });
+    expect(await decide(U.headNoSign)).toMatchObject({
+      ok: false,
+      code: 'SIGNING_AUTHORITY_NOT_GRANTED',
+    });
+    expect(await decide(U.head, ' ')).toMatchObject({ ok: false, code: 'INVALID_DECISION' });
+    expect(await decide(U.head, 'QĐ-06/2026', '2999-01-01')).toMatchObject({
+      ok: false,
+      code: 'INVALID_DATE',
+    });
+    expect(await decide(U.head)).toMatchObject({ ok: true });
+    expect(await decide(U.head)).toMatchObject({ ok: false, code: 'ALREADY_DONE' });
+    const got = await read(`SELECT * FROM vx_get_decision($1,$2,$3)`, U.thvA);
+    expect(got[0]).toMatchObject({ decision_no: 'QĐ-06/2026' });
+  });
+
   it('activates a delegation only with consent, app approval, legal signature and handover', async () => {
     const cs = await newCase();
     expect(await fn('vx_delegation_request', U.thvA, cs, U.clerk)).toMatchObject({

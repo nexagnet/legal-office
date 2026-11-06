@@ -172,7 +172,7 @@ describe.skipIf(!ADMIN_URL)('Stocktake sessions and item categories (HTTP + Post
     return { item, b1 };
   };
 
-  it('counts, requires reason on variance, and applies adjustments only on head approval', async () => {
+  it('counts, requires reason on variance, and applies adjustment immediately with mandatory reason, no approval', async () => {
     const { b1 } = await setup();
     const st = (
       await api('POST', `${O}/stocktakes`, U.clerk1, {
@@ -207,11 +207,11 @@ describe.skipIf(!ADMIN_URL)('Stocktake sessions and item categories (HTTP + Post
         })
       ).status,
     ).toBe(200);
-    // chưa duyệt: số còn của lô chưa đổi
-    expect(await rem(b1)).toBe(10);
-    // người không phải Admin/Trưởng VP không duyệt được
+    // áp dụng ngay, không cần duyệt
+    expect(await rem(b1)).toBe(8);
+    // người không có quyền kho không chốt được phiên
     expect(
-      (await api('POST', `${O}/stocktakes/${st}/decision`, U.secretary, { approve: true })).status,
+      (await api('POST', `${O}/stocktakes/${st}/decision`, U.thvA, { approve: true })).status,
     ).toBe(403);
     const lines = await api('GET', `${O}/stocktakes/${st}/lines?officeId=${OFF}`, U.clerk1);
     expect(lines.json).toEqual([
@@ -251,7 +251,7 @@ describe.skipIf(!ADMIN_URL)('Stocktake sessions and item categories (HTTP + Post
     ]);
   });
 
-  it('rejects stale counts and lets head reject a session without changing stock', async () => {
+  it('closing a session never re-adjusts stock; empty session and other-branch batch rejected', async () => {
     const { item, b1 } = await setup();
     const st = (await api('POST', `${O}/stocktakes`, U.clerk1, { officeId: OFF, branchId: BR1 }))
       .json.label as string;
@@ -264,7 +264,8 @@ describe.skipIf(!ADMIN_URL)('Stocktake sessions and item categories (HTTP + Post
         })
       ).status,
     ).toBe(200);
-    // xuất xen giữa lúc đếm và lúc duyệt
+    expect(await rem(b1)).toBe(9);
+    // xuất xen sau lúc đếm: chốt phiên không điều chỉnh lại
     expect(
       (
         await api('POST', `${O}/items/${item}/issues`, U.clerk1, {
@@ -274,14 +275,11 @@ describe.skipIf(!ADMIN_URL)('Stocktake sessions and item categories (HTTP + Post
         })
       ).status,
     ).toBe(200);
+    expect(await rem(b1)).toBe(8);
     expect(
-      (await api('POST', `${O}/stocktakes/${st}/decision`, U.head, { approve: true })).json.code,
-    ).toBe('STALE_COUNT');
-    expect(await rem(b1)).toBe(9);
-    expect(
-      (await api('POST', `${O}/stocktakes/${st}/decision`, U.head, { approve: false })).status,
+      (await api('POST', `${O}/stocktakes/${st}/decision`, U.head, { approve: true })).status,
     ).toBe(200);
-    expect(await rem(b1)).toBe(9);
+    expect(await rem(b1)).toBe(8);
     const empty = (await api('POST', `${O}/stocktakes`, U.clerk1, { officeId: OFF, branchId: BR1 }))
       .json.label as string;
     expect(
@@ -328,6 +326,28 @@ describe.skipIf(!ADMIN_URL)('Stocktake sessions and item categories (HTTP + Post
       (await api('PUT', `${O}/items/${item}/category`, U.admin, { category: '' })).status,
     ).toBe(200);
     const after = await api('GET', `${O}/item-categories?officeId=${OFF}`, U.clerk1);
+    expect((after.json as unknown as { itemId: string }[]).some((r) => r.itemId === item)).toBe(
+      false,
+    );
+  });
+
+  it('item thresholds: admin sets, others read, others cannot set, invalid rejected', async () => {
+    const { item } = await setup();
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.head, { lowStockQty: 5 })).status,
+    ).toBe(403);
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.admin, { lowStockQty: -1 })).status,
+    ).toBe(400);
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.admin, { lowStockQty: 5 })).status,
+    ).toBe(200);
+    const got = await api('GET', `${O}/item-thresholds?officeId=${OFF}`, U.clerk1);
+    expect(got.json).toEqual(expect.arrayContaining([{ itemId: item, lowStockQty: 5 }]));
+    expect(
+      (await api('POST', `${O}/items/${item}/threshold`, U.admin, { lowStockQty: null })).status,
+    ).toBe(200);
+    const after = await api('GET', `${O}/item-thresholds?officeId=${OFF}`, U.clerk1);
     expect((after.json as unknown as { itemId: string }[]).some((r) => r.itemId === item)).toBe(
       false,
     );

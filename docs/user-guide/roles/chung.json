@@ -1,0 +1,376 @@
+{
+ "role": "chung",
+ "title": "Phần chung cho mọi vai",
+ "sections": [
+  {
+   "title": "Đăng nhập",
+   "intro": "Mở địa chỉ hệ thống do Văn phòng cung cấp. Mỗi người dùng một tài khoản riêng, không dùng chung.",
+   "rules": [
+    "Sai mật khẩu quá 5 lần liên tiếp thì tài khoản bị khóa 15 phút. Đợi hết thời gian hoặc nhờ Admin hỗ trợ.",
+    "Không chia sẻ mật khẩu. Mọi thao tác trên hồ sơ đều ghi tên người đăng nhập.",
+    "Lần đăng nhập đầu (hoặc sau khi Admin đặt lại mật khẩu) hệ thống bắt đổi mật khẩu mới, tối thiểu 12 ký tự, rồi mới dùng tiếp."
+   ],
+   "problems": [
+    [
+     "Báo \"Email, số CCCD hoặc mật khẩu không đúng\"",
+     "Kiểm tra gõ đúng email hoặc số CCCD Văn phòng cấp, tắt Caps Lock. Mật khẩu phân biệt chữ hoa và chữ thường."
+    ],
+    [
+     "Quên mật khẩu",
+     "Bấm \"Quên mật khẩu\" ở màn đăng nhập, nhập email; hệ thống gửi link đặt lại vào email của tài khoản. Cũng có thể nhờ Admin đặt lại."
+    ],
+    [
+     "Báo tài khoản bị khóa tạm thời",
+     "Đã nhập sai quá 5 lần. Đợi 15 phút rồi thử lại, hoặc nhờ Admin."
+    ],
+    [
+     "Vào được nhưng thiếu mục trên thanh bên",
+     "Mỗi vai chỉ thấy mục thuộc vai của mình. Cần thêm quyền thì nhờ Admin."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Màn hình đăng nhập",
+     "note": "Đăng nhập bằng email hoặc số CCCD cùng mật khẩu. Quên mật khẩu thì dùng liên kết bên dưới để nhận link đặt lại qua email.",
+     "detail": [
+      "Email hoặc số CCCD: nhập địa chỉ email Văn phòng đã cấp, hoặc số CCCD 12 chữ số nếu đã được ghi vào tài khoản.",
+      "Mật khẩu: do Admin cấp lần đầu (tối thiểu 12 ký tự); phân biệt chữ hoa và chữ thường.",
+      "Quên mật khẩu: nhận link đặt lại qua email của tài khoản."
+     ],
+     "img": "chung/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập email hoặc số CCCD do Văn phòng cấp"
+      },
+      {
+       "n": 2,
+       "text": "Nhập Mật khẩu"
+      },
+      {
+       "n": 3,
+       "text": "Bấm Đăng nhập để vào hệ thống"
+      },
+      {
+       "n": 4,
+       "text": "Quên mật khẩu: nhận link đặt lại qua email"
+      }
+     ]
+    },
+    {
+     "title": "Khi nhập sai email hoặc mật khẩu",
+     "note": "Hệ thống báo lỗi ngay dưới ô nhập và không cho vào. Nhập lại cho đúng; sai quá 5 lần sẽ bị khóa 15 phút.",
+     "detail": [],
+     "img": "chung/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thông báo lỗi: kiểm tra lại email hoặc số CCCD và mật khẩu"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Làm quen với màn hình làm việc",
+   "intro": "Mọi màn đều có cùng bố cục: thanh bên trái để chuyển mục, thanh trên cùng để tìm kiếm, nhận thông báo và quản lý tài khoản, vùng giữa là nội dung.",
+   "rules": [
+    "Thanh bên chia nhóm Công việc, Nghiệp vụ, Văn phòng (Admin có thêm Quản trị). Mỗi người chỉ thấy mục thuộc vai của mình.",
+    "Hồ sơ đã lưu chính thức không sửa trực tiếp, không xóa. Mọi thay đổi quan trọng đều lưu người làm, thời điểm và lý do."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Thanh bên, ô tìm kiếm, chuông thông báo và tài khoản",
+     "note": "Đây là trang Hồ sơ do tôi tạo, điểm bắt đầu của hầu hết các vai.",
+     "detail": [
+      "Thanh bên: bấm tên mục để chuyển màn. Mục đang mở được tô sáng.",
+      "Ô Tìm kiếm (hoặc bấm Ctrl K ở bất kỳ màn nào): tìm nhanh hồ sơ và trang.",
+      "Chuông: mở danh sách thông báo (nhắc hạn, việc được giao).",
+      "Thẻ tài khoản: xem tên, vai, đăng xuất."
+     ],
+     "img": "chung/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thanh bên: bấm tên mục để chuyển màn"
+      },
+      {
+       "n": 2,
+       "text": "Ô tìm nhanh (phím tắt Ctrl K)"
+      },
+      {
+       "n": 3,
+       "text": "Chuông thông báo"
+      },
+      {
+       "n": 4,
+       "text": "Thẻ tài khoản: tên, vai, đăng xuất"
+      },
+      {
+       "n": 5,
+       "text": "Thu gọn thanh bên cho màn rộng hơn"
+      }
+     ]
+    },
+    {
+     "title": "Thanh bên đã thu gọn",
+     "note": "Thanh bên thu thành một cột biểu tượng để vùng làm việc rộng hơn. Di chuột vào biểu tượng để xem tên mục; bấm nút mũi tên để mở lại. Máy nhớ lựa chọn của bạn.",
+     "detail": [],
+     "img": "chung/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm lại để mở rộng thanh bên"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Đọc và lọc danh sách hồ sơ",
+   "intro": "Bốn nghiệp vụ (Vi bằng, Tống đạt, Xác minh điều kiện THA, Tổ chức thi hành án) dùng chung một kiểu danh sách. Học một lần dùng cho cả bốn.",
+   "rules": [
+    "Danh sách chỉ hiện hồ sơ trong phạm vi quyền của bạn.",
+    "Hồ sơ Nháp và Đã hủy nằm ở tab riêng, không lẫn vào Chính thức."
+   ],
+   "problems": [
+    [
+     "Không thấy hồ sơ cần tìm",
+     "Kiểm tra đang đứng ở tab nào (Chính thức, Nháp, Đã hủy), bỏ bớt bộ lọc, chọn đúng Năm. Hồ sơ ngoài phạm vi quyền sẽ không hiện."
+    ],
+    [
+     "Cột bị thiếu hoặc quá chật",
+     "Bấm Cột hiển thị để bật/tắt cột, hoặc bấm Hiển thị gọn để thu hàng."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Danh sách hồ sơ: tab, bộ lọc và ô tìm",
+     "note": "Mỗi dòng là một hồ sơ. Dòng trên cùng là các tab trạng thái; bên dưới là thanh bộ lọc.",
+     "detail": [
+      "Tab Chính thức: hồ sơ đã ghi sổ. Thiếu scan / Đủ scan: lọc theo tình trạng bản scan. Nháp và Đã hủy: có số hồ sơ đếm trong ngoặc.",
+      "Ô tìm: gõ số văn bản, tên người, trích yếu hoặc nội dung rồi bấm Tìm.",
+      "Năm: chọn năm ghi sổ cần xem. Loại tài liệu, Người tạo, Đơn vị, Tình trạng scan: thu hẹp danh sách."
+     ],
+     "img": "chung/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tab trạng thái: Chính thức, Thiếu scan, Đủ scan, Nháp, Đã hủy"
+      },
+      {
+       "n": 2,
+       "text": "Gõ từ khóa rồi bấm Tìm"
+      },
+      {
+       "n": 3,
+       "text": "Chọn Năm"
+      },
+      {
+       "n": 4,
+       "text": "Lọc theo Tình trạng scan"
+      },
+      {
+       "n": 5,
+       "text": "Lưu và mở lại cách lọc hay dùng"
+      }
+     ]
+    },
+    {
+     "title": "Bảng hồ sơ: số hồ sơ, SĐT, ô Đã trả kết quả",
+     "note": "Mỗi hồ sơ chính thức có số hồ sơ do hệ thống cấp. Ô tích Đã trả kết quả chỉ để theo dõi, không đổi trạng thái hồ sơ.",
+     "detail": [
+      "Bấm số hồ sơ để mở hồ sơ.",
+      "Ô tích Đã trả kết quả: tích khi đã trả kết quả cho khách; số lượng này hiện ở thẻ \"Đã trả kết quả\" trên Tổng quan.",
+      "Cột SĐT khách hàng chỉ để liên hệ, không in ra sổ."
+     ],
+     "img": "chung/06.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bật/tắt cột hiển thị"
+      },
+      {
+       "n": 2,
+       "text": "Thu gọn hàng để xem được nhiều dòng hơn"
+      },
+      {
+       "n": 3,
+       "text": "Tích khi đã trả kết quả cho khách"
+      },
+      {
+       "n": 4,
+       "text": "Bấm số hồ sơ để mở hồ sơ"
+      }
+     ]
+    },
+    {
+     "title": "Bộ lọc đã lưu",
+     "note": "Đặt tên cho cách lọc đang dùng rồi bấm Lưu; lần sau chỉ cần bấm tên bộ lọc. Tối đa 30 bộ lọc.",
+     "detail": [],
+     "img": "chung/07.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Đặt tên rồi bấm Lưu"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tìm trong nội dung bản scan",
+   "intro": "Hệ thống nhận dạng chữ (OCR) trong các tệp scan sau khi tải lên, thường trong 1 đến 2 phút, để bạn tìm hồ sơ theo nội dung bên trong.",
+   "rules": [
+    "Kết quả chỉ trỏ về hồ sơ gốc, không sửa gì. Chỉ hiện hồ sơ trong phạm vi quyền của bạn."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Tìm trong nội dung scan",
+     "note": "Gõ từ khóa, chọn bộ lọc nếu cần rồi bấm Tìm. Mỗi dòng kết quả là một tệp scan khớp, kèm đoạn trích.",
+     "detail": [
+      "Kết quả xếp theo độ khớp.",
+      "Số trong ngoặc ở các bộ lọc là số hồ sơ chính thức của từng lựa chọn.",
+      "Bấm Mở hồ sơ để vào đúng hồ sơ chứa tệp đó."
+     ],
+     "img": "chung/08.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Từ khóa trong chữ nhận dạng từ bản scan"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Tìm"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Thông báo",
+   "intro": "Chuông ở góc trên bên phải gom các thông báo của riêng bạn: nhắc hạn, việc được giao, kết quả duyệt.",
+   "rules": [],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Trang Thông báo",
+     "note": "Chuyển giữa các nhóm bằng các nút chữ phía trên danh sách. Bấm vào thông báo để mở đúng hồ sơ liên quan.",
+     "detail": [],
+     "img": "chung/09.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chuông thông báo trên thanh trên"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Xuất sổ nghiệp vụ",
+   "intro": "Các sổ S-01 (tống đạt), S-02 (lập vi bằng), S-04 (xác minh điều kiện thi hành án), S-05 (thi hành án) được dựng tự động từ hồ sơ đã lưu chính thức. Bạn xem trước rồi xuất PDF để in hoặc Excel.",
+   "rules": [
+    "Sổ chỉ gồm hồ sơ đã lưu chính thức của năm đang chọn. Bản nháp và hồ sơ đã hủy không vào sổ.",
+    "Cột SĐT khách hàng không in ra sổ.",
+    "Sổ điện tử hỗ trợ tra cứu và in; sổ giấy chính thức vẫn do văn phòng ký và đóng dấu giáp lai."
+   ],
+   "problems": [
+    [
+     "Sổ trống",
+     "Năm đang chọn chưa có hồ sơ chính thức. Đổi Năm hoặc lưu chính thức hồ sơ trước."
+    ],
+    [
+     "Bản xem trước hiện \"Đang dựng bản xem trước\"",
+     "Chờ vài giây để hệ thống dựng PDF; nếu lâu, bấm Xem lại."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Chọn sổ cần xuất",
+     "note": "Mỗi thẻ là một sổ. Bấm \"Xem trước và xuất ...\" để mở sổ.",
+     "detail": [],
+     "img": "chung/10.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Mở sổ S-02 (theo dõi việc lập vi bằng)"
+      },
+      {
+       "n": 2,
+       "text": "Các sổ khác: S-01, S-04, S-05"
+      }
+     ]
+    },
+    {
+     "title": "Xem trước và xuất sổ S-02",
+     "note": "Chọn Năm, bấm Xem để dựng bản xem trước. Dùng \"Xuất PDF để in\" hoặc \"Xuất Excel\" khi cần lưu hoặc in.",
+     "detail": [],
+     "img": "chung/11.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn Năm của sổ"
+      },
+      {
+       "n": 2,
+       "text": "Dựng bản xem trước"
+      },
+      {
+       "n": 3,
+       "text": "Xuất PDF để in"
+      },
+      {
+       "n": 4,
+       "text": "Xuất Excel"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Thư viện biểu mẫu",
+   "intro": "Nơi tra cứu và tải các biểu mẫu (phụ lục) của văn phòng.",
+   "rules": [
+    "Thư viện chỉ để tải và soạn; việc ký và ban hành vẫn do người có thẩm quyền làm ngoài đời."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Thư viện biểu mẫu",
+     "note": "Gõ tên vào ô tìm rồi bấm Tìm. Bấm \"Tải về\" để lấy biểu mẫu.",
+     "detail": [],
+     "img": "chung/12.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tìm biểu mẫu theo tên"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Dùng trên điện thoại",
+   "intro": "Trên màn nhỏ (dưới 600 px), mỗi hồ sơ hiện thành một thẻ có đủ nhãn thay cho bảng nhiều cột.",
+   "rules": [],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Danh sách hồ sơ trên điện thoại",
+     "note": "Mỗi thẻ là một hồ sơ, các thông tin ghi rõ tên trường. Bấm số hồ sơ để mở hồ sơ. Cuộn xuống để xem thẻ tiếp theo.",
+     "detail": [],
+     "img": "chung/13.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm số hồ sơ để mở hồ sơ"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

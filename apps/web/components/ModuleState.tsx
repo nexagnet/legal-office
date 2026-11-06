@@ -29,7 +29,7 @@ export function ModuleState({ item, session }: Props) {
   } else {
     body = {
       title: 'Chưa có dữ liệu',
-      text: 'Mô-đun này chưa được kết nối với máy chủ nên chưa hiển thị hồ sơ nào.',
+      text: 'Mục này hiện chưa có nội dung để hiển thị.',
       role: 'status',
     };
   }

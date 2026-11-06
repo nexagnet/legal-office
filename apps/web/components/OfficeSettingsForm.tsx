@@ -52,7 +52,7 @@ export function OfficeSettingsForm(p: Props) {
       <div className="page-head">
         <h2>Thiết lập Văn phòng</h2>
         {p.canEdit ? (
-          <button type="submit" className="primary" disabled={busy}>
+          <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
             Lưu thay đổi
           </button>
         ) : null}

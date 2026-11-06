@@ -25,7 +25,7 @@ import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { addWorkingDays } from '../deadlines/working-days';
-import { LEDGER_BY_CODE, shapeLedgerRow, withThvLabel } from './ledgers';
+import { LEDGER_BY_CODE, S06_LEDGER, shapeLedgerRow, shapeS06Rows, withThvLabel } from './ledgers';
 import { buildPdf, PDF_MIME } from './pdf-export';
 import { buildXlsx, XLSX_MIME, type SheetSpec } from './xlsx-export';
 import { recordWithUpload } from '../storage/evidence';
@@ -854,6 +854,7 @@ export class OfficeController {
       deadline_at: Date | null;
       created_at: Date;
       overdue: boolean;
+      created_by: string | null;
     }>(a, 'of_search_my_work', [officeId]);
     return {
       items: rows.map((r) => ({
@@ -864,6 +865,7 @@ export class OfficeController {
         deadlineAt: r.deadline_at,
         createdAt: r.created_at,
         overdue: r.overdue,
+        createdBy: r.created_by,
       })),
     };
   }
@@ -1069,6 +1071,7 @@ export class OfficeController {
       legal_signer: boolean;
       has_login: boolean;
       branches: string[];
+      suspended: boolean;
     }>(a, 'of_search_members', [officeId]);
     return rows.map((r) => ({
       userId: r.user_id,
@@ -1077,6 +1080,7 @@ export class OfficeController {
       legalSigner: r.legal_signer,
       hasLogin: r.has_login,
       branches: r.branches,
+      suspended: r.suspended,
     }));
   }
 
@@ -1335,17 +1339,61 @@ export class OfficeController {
     return this.run(a, 'of_set_item_category', [id, b.category]);
   }
 
+  @Get('item-thresholds')
+  async itemThresholds(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    const rows = await this.read<{ item_id: string; low_stock_qty: number }>(
+      a,
+      'of_search_item_thresholds',
+      [officeId],
+    );
+    return rows.map((r) => ({ itemId: r.item_id, lowStockQty: r.low_stock_qty }));
+  }
+
+  /** Đặt ngưỡng "Sắp hết" của vật tư (Admin); lowStockQty null = bỏ ngưỡng. */
+  @Post('items/:id/threshold')
+  @HttpCode(HttpStatus.OK)
+  setItemThreshold(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ lowStockQty: z.number().int().min(0).max(1_000_000).nullable() }).strict(),
+      body,
+    );
+    return this.run(a, 'of_set_item_threshold', [id, b.lowStockQty]);
+  }
+
   @Get('thv-cards')
   async thvCards(
     @CurrentActor() a: AuthenticatedActor,
     @Query('officeId', ParseUUIDPipe) officeId: string,
   ) {
-    const rows = await this.read<{ user_id: string; full_name: string; card_no: string }>(
-      a,
-      'of_search_thv_cards',
-      [officeId],
-    );
-    return rows.map((r) => ({ userId: r.user_id, fullName: r.full_name, cardNo: r.card_no }));
+    const rows = await this.read<{
+      user_id: string;
+      full_name: string;
+      card_no: string;
+      status: string;
+      decision_no: string | null;
+      decision_date: string | null;
+      effective_from: string | null;
+      effective_to: string | null;
+      has_scan: boolean;
+    }>(a, 'of_search_thv_cards', [officeId]);
+    return rows.map((r) => ({
+      userId: r.user_id,
+      fullName: r.full_name,
+      cardNo: r.card_no,
+      status: r.status,
+      decisionNo: r.decision_no,
+      decisionDate: r.decision_date,
+      effectiveFrom: r.effective_from,
+      effectiveTo: r.effective_to,
+      hasScan: r.has_scan,
+    }));
   }
 
   @Put('thv-cards')
@@ -1386,6 +1434,7 @@ export class OfficeController {
           contributionNote: z.string().max(500).nullish(),
           note: z.string().max(1000).nullish(),
           workStatus: z.string(),
+          userId: uuid.nullish(),
         })
         .strict(),
       body,
@@ -1408,15 +1457,100 @@ export class OfficeController {
       b.contributionNote ?? null,
       b.note ?? null,
       b.workStatus,
+      b.userId ?? null,
     ]);
   }
 
-  @Get('personnel')
-  readPersonnel(
+  /** Hồ sơ lao động (bản mới nhất) của một tài khoản; rỗng nếu chưa ghép. Chỉ Admin và Trưởng văn phòng. */
+  @Get('personnel/by-user')
+  async personnelByUser(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('userId', ParseUUIDPipe) userId: string,
+  ) {
+    const rows = await this.read(a, 'of_personnel_for_user', [officeId, userId]);
+    return rows[0] ?? null;
+  }
+
+  /** Hồ sơ lao động chưa gắn tài khoản, để ghép tay. */
+  @Get('personnel/unlinked')
+  personnelUnlinked(
     @CurrentActor() a: AuthenticatedActor,
     @Query('officeId', ParseUUIDPipe) officeId: string,
   ) {
-    return this.read(a, 'of_s06_read', [officeId]);
+    return this.read(a, 'of_personnel_unlinked', [officeId]);
+  }
+
+  /** Ghép hoặc gỡ (userId = null) hồ sơ lao động với tài khoản. */
+  @Put('personnel/:personId/link')
+  linkPersonnel(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('personId', ParseUUIDPipe) personId: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ officeId: uuid, userId: uuid.nullable() }).strict(), body);
+    return this.run(a, 'of_personnel_link', [b.officeId, personId, b.userId]);
+  }
+
+  /** Bản mới nhất của mỗi người; lọc tuỳ chọn theo chi nhánh và trạng thái làm việc (ACTIVE/LEFT). */
+  @Get('personnel')
+  async readPersonnel(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('branchId') branchId?: string,
+    @Query('workStatus') workStatus?: string,
+  ) {
+    const branch = branchId ? parse(uuid, branchId) : null;
+    const status = workStatus ? parse(z.enum(['ACTIVE', 'LEFT']), workStatus) : null;
+    const rows = await this.read<{ branch_id: string; work_status: string }>(a, 'of_s06_read', [
+      officeId,
+    ]);
+    return rows.filter(
+      (r) => (!branch || r.branch_id === branch) && (!status || r.work_status === status),
+    );
+  }
+
+  /** Số cuối đang dùng và trạng thái nhập số cuối sổ giấy của một năm (mặc định năm hiện tại, giờ Việt Nam). */
+  @Get('number-status')
+  async numberStatus(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('year') year?: string,
+  ) {
+    const y =
+      year === undefined || year === ''
+        ? Number(
+            new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Asia/Ho_Chi_Minh',
+              year: 'numeric',
+            }).format(new Date()),
+          )
+        : parse(z.coerce.number().int().min(2000).max(2100), year);
+    const [r] = await this.read<{
+      year: number;
+      last_seq: number;
+      paper_imported: boolean;
+      imported_seq: number | null;
+      imported_at: Date | null;
+    }>(a, 'of_search_number_status', [officeId, y]);
+    if (!r) throw new HttpException({ code: 'NOT_ALLOWED', label: null }, HttpStatus.FORBIDDEN);
+    return {
+      year: r.year,
+      lastSeq: r.last_seq,
+      paperImported: r.paper_imported,
+      importedSeq: r.imported_seq,
+      importedAt: r.imported_at,
+    };
+  }
+
+  /** Mọi phiên bản của một người, mới nhất trước (chỉ Admin và Trưởng văn phòng). */
+  @Get('personnel/:personId/versions')
+  readPersonnelVersions(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('personId', ParseUUIDPipe) personId: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    return this.read(a, 'of_s06_versions', [officeId, personId]);
   }
 
   /**
@@ -1439,6 +1573,43 @@ export class OfficeController {
       columns: def.columns.map((c) => ({ no: c.no, key: c.key, label: c.label })),
       rows,
     };
+  }
+
+  /** Các tháng đã đóng quyển của một sổ (có thể lọc theo năm): tháng, người đóng, thời điểm. */
+  @Get('ledgers/:code/periods')
+  async ledgerPeriods(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('code') code: string,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Query('year') year?: string,
+  ) {
+    const c = parse(z.enum(['S-01', 'S-02', 'S-04', 'S-05', 'S-06']), code.toUpperCase());
+    const y =
+      year === undefined || year === ''
+        ? null
+        : parse(z.coerce.number().int().min(2000).max(2200), year);
+    const rows = await this.read<{ period: string; sealed_by: string; sealed_at: Date }>(
+      a,
+      'of_search_ledger_periods',
+      [officeId, c, y],
+    );
+    return {
+      code: c,
+      items: rows.map((r) => ({ period: r.period, sealedBy: r.sealed_by, sealedAt: r.sealed_at })),
+    };
+  }
+
+  /** Đóng quyển một tháng (`YYYY-MM`) của sổ: chỉ Admin và Trưởng văn phòng, tháng đã qua, không mở lại. */
+  @Post('ledgers/:code/periods/:ym/seal')
+  @HttpCode(HttpStatus.OK)
+  sealLedgerPeriod(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('code') code: string,
+    @Param('ym') ym: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(z.object({ officeId: uuid }).strict(), body);
+    return this.run(a, 'of_ledger_seal', [b.officeId, code.toUpperCase(), ym]);
   }
 
   /** Xuất sổ ra Excel đúng thứ tự cột mẫu (chỉ các cột của mẫu, không cột truy vết). Cùng phạm vi quyền với `GET ledgers/:code`. */
@@ -1493,6 +1664,10 @@ export class OfficeController {
     year?: string,
     limit?: string,
   ) {
+    if (code.toLowerCase() === 's-06') {
+      const people = await this.read(a, S06_LEDGER.fn, [officeId]);
+      return { def: S06_LEDGER, rows: shapeS06Rows(people) };
+    }
     const def = LEDGER_BY_CODE.get(code.toLowerCase());
     if (!def) throw new HttpException({ code: 'LEDGER_NOT_FOUND', label: null }, 404);
     const y =

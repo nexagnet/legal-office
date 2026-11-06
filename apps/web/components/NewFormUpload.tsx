@@ -67,7 +67,7 @@ export function NewFormUpload({ officeId }: { readonly officeId: string }) {
       <p role="status" className="success" hidden={!done}>
         Đã đăng ký bản mới.
       </p>
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         {busy ? 'Đang tải…' : 'Đăng ký'}
       </button>
     </form>

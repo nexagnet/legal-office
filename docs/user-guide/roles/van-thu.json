@@ -1,0 +1,140 @@
+{
+ "role": "van-thu",
+ "title": "Hướng dẫn dành cho Văn thư",
+ "sections": [
+  {
+   "title": "DMS · Văn thư: sổ Văn bản đến, đi và nội bộ",
+   "intro": "Văn thư giữ ba sổ: Văn bản đến, Văn bản đi và Văn bản nội bộ. Mỗi văn bản là một hồ sơ có số thứ tự (STT) riêng theo năm, kèm bản scan.",
+   "rules": [
+    "Hồ sơ mới là bản nháp: chưa có STT, chưa vào sổ cho tới khi xác nhận lưu chính thức.",
+    "Sau khi lưu chính thức không sửa trực tiếp, không xóa; chỉ Admin sửa (có lý do) và nhân viên chỉ tải thêm scan.",
+    "Mỗi sổ đánh số riêng và về 01 vào ngày đầu năm mới."
+   ],
+   "problems": [
+    [
+     "Không thấy nút \"+ Thêm bản ghi\"",
+     "Tài khoản của bạn chưa được cấp quyền tạo hồ sơ cho sổ này. Nhờ Admin kiểm tra phân quyền."
+    ],
+    [
+     "Văn bản vừa tạo không thấy ở tab Chính thức",
+     "Văn bản còn là nháp nên nằm ở tab Nháp. Mở và bấm Xác nhận lưu chính thức để vào sổ."
+    ],
+    [
+     "Cần in sổ để lưu giấy",
+     "Bấm \"Xuất PDF để in\" hoặc \"Xuất Excel\" ở đầu danh sách."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Sổ Văn bản đến",
+     "note": "Ba nút chuyển giữa sổ Văn bản đến, Văn bản đi, Văn bản nội bộ nằm ngay dưới tiêu đề. Mỗi dòng của bảng là một văn bản đã vào sổ.",
+     "detail": [
+      "Chính thức: văn bản đã có STT. Nháp: chưa vào sổ. Đã hủy: nháp đã bỏ.",
+      "Xuất PDF để in: bản in sổ năm đang chọn. Xuất Excel: tải dữ liệu sổ dạng bảng tính.",
+      "Ô tìm và các bộ lọc dùng như danh sách hồ sơ nghiệp vụ."
+     ],
+     "img": "van-thu/11.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chuyển sang sổ Văn bản đi hoặc Văn bản nội bộ"
+      },
+      {
+       "n": 2,
+       "text": "Tab Chính thức, Nháp, Đã hủy"
+      },
+      {
+       "n": 3,
+       "text": "Xuất Excel"
+      },
+      {
+       "n": 4,
+       "text": "Xuất PDF để in sổ"
+      },
+      {
+       "n": 5,
+       "text": "Thêm một văn bản mới vào sổ"
+      }
+     ]
+    },
+    {
+     "title": "Tạo bản nháp văn bản mới",
+     "note": "Điền tên loại và trích yếu nội dung, ghi chú nếu cần rồi bấm \"+ Tạo nháp\". Hệ thống mở trang chi tiết của bản nháp.",
+     "detail": [
+      "Tên loại và trích yếu nội dung (bắt buộc): ghi loại văn bản và nội dung chính, ví dụ \"Công văn số 12/UBND về việc phối hợp xác minh\".",
+      "Ghi chú: thông tin thêm nếu có."
+     ],
+     "img": "van-thu/12.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tên loại và trích yếu nội dung (bắt buộc)"
+      },
+      {
+       "n": 2,
+       "text": "Ghi chú (không bắt buộc)"
+      },
+      {
+       "n": 3,
+       "text": "Tạo bản nháp"
+      }
+     ]
+    },
+    {
+     "title": "Bản nháp văn bản: thêm tài liệu rồi lưu chính thức",
+     "note": "Cũng như hồ sơ nghiệp vụ, bản nháp cho phép sửa, thêm tài liệu và tải bản scan. Khi đã đúng, bấm Xác nhận lưu chính thức để cấp STT và vào sổ.",
+     "detail": [],
+     "img": "van-thu/13.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thêm tài liệu và tải bản scan"
+      },
+      {
+       "n": 2,
+       "text": "Hủy bản nháp (cần nêu lý do)"
+      },
+      {
+       "n": 3,
+       "text": "Lưu chính thức: cấp STT và vào sổ"
+      }
+     ]
+    },
+    {
+     "title": "Sổ Văn bản đi và Văn bản nội bộ",
+     "note": "Hai sổ này dùng đúng cách như Văn bản đến: chuyển bằng nút phía trên, mỗi sổ có STT riêng.",
+     "detail": [],
+     "img": "van-thu/14.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chuyển sang sổ Văn bản nội bộ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Văn thư: gửi bản trình",
+   "intro": "Văn thư cũng gửi được bản trình (tiêu đề, mô tả, bản scan) để Admin duyệt. Cách làm giống Thừa hành viên.",
+   "rules": [
+    "Bạn chỉ thấy bản trình của mình; Admin duyệt hoặc từ chối kèm ghi chú."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Trình / Duyệt của Văn thư",
+     "note": "Bấm \"+ Trình mới\" để gửi bản trình, xem trạng thái ở danh sách bên dưới. Chi tiết từng ô xem phần Trình / Duyệt trong hướng dẫn dành cho Thừa hành viên.",
+     "detail": [],
+     "img": "van-thu/15.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Gửi bản trình mới"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

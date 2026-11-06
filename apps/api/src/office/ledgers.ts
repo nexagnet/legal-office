@@ -236,6 +236,61 @@ export const LEDGER_BY_CODE: ReadonlyMap<string, LedgerDef> = new Map(
   LEDGERS.map((l) => [l.code.toLowerCase(), l]),
 );
 
+/**
+ * S-06 Sổ theo dõi sử dụng lao động: dựng từ hồ sơ lao động (`of_s06_read`, bản mới nhất mỗi người), không theo năm.
+ * Giả định: các cột theo thông tin hồ sơ lao động (họ tên, quyết định bổ nhiệm, hợp đồng, tình trạng bảo hiểm);
+ * bảo hiểm chỉ ghi tình trạng và ghi chú, không có số tiền. Chỉ Admin và Trưởng văn phòng xem được.
+ */
+export const S06_LEDGER = {
+  code: 'S-06',
+  fn: 'of_s06_read',
+  title: 'Sổ theo dõi việc sử dụng lao động',
+  columns: [
+    { no: 1, key: 'stt', label: 'STT' },
+    { no: 2, key: 'hoTen', label: 'Họ và tên' },
+    { no: 3, key: 'gioiTinh', label: 'Giới tính' },
+    { no: 4, key: 'chuyenMon', label: 'Chuyên môn' },
+    { no: 5, key: 'quyetDinhThuaPhatLai', label: 'Quyết định bổ nhiệm Thừa phát lại (số, ngày)' },
+    { no: 6, key: 'quyetDinhThuaHanhVien', label: 'Quyết định bổ nhiệm Thừa hành viên (số, ngày)' },
+    { no: 7, key: 'chucVu', label: 'Chức vụ' },
+    { no: 8, key: 'hopDongLaoDong', label: 'Hợp đồng lao động (số, ngày)' },
+    { no: 9, key: 'baoHiem', label: 'Tình trạng bảo hiểm' },
+    { no: 10, key: 'trangThai', label: 'Tình trạng làm việc' },
+    { no: 11, key: 'ghiChu', label: 'Ghi chú' },
+  ],
+} as const;
+
+export function shapeS06Rows(rows: readonly Record<string, unknown>[]): Record<string, unknown>[] {
+  const text = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? v : null);
+  return rows.map((r, i) => {
+    const roles = [
+      r.is_office_head ? 'Trưởng văn phòng' : null,
+      r.is_partner ? 'Thành viên góp vốn' : null,
+    ]
+      .filter((x) => x !== null)
+      .join(', ');
+    const ins =
+      r.insurance_purchased === null ? 'Chưa ghi' : r.insurance_purchased ? 'Đã mua' : 'Chưa mua';
+    const insNote = text(r.insurance_note);
+    return {
+      stt: i + 1,
+      hoTen: text(r.full_name),
+      gioiTinh: r.gender === 'M' ? 'Nam' : r.gender === 'F' ? 'Nữ' : null,
+      chuyenMon: text(r.specialty),
+      quyetDinhThuaPhatLai: text(r.bailiff_decision_ref),
+      quyetDinhThuaHanhVien: text(r.executor_decision_ref),
+      chucVu: roles === '' ? null : roles,
+      hopDongLaoDong: text(r.labor_contract_ref),
+      baoHiem: insNote ? `${ins} (${insNote})` : ins,
+      trangThai: r.work_status === 'LEFT' ? 'Đã nghỉ' : 'Đang làm việc',
+      ghiChu: text(r.note),
+      personId: r.person_id ?? null,
+      version: r.version ?? null,
+      branchId: r.branch_id ?? null,
+    };
+  });
+}
+
 /** Chuyển một dòng SQL thành đối tượng JSON: cột mẫu theo thứ tự trước, rồi cột truy vết (kiểu bigint → số). */
 export function shapeLedgerRow(
   def: LedgerDef,

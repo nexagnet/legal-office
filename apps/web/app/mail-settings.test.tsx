@@ -25,6 +25,7 @@ const base: MailSettings = {
   mailFrom: 'Legal Office <no-reply@example.test>',
   updatedAt: null,
   testTo: 'admin@example.test',
+  loginLinkEnabled: true,
 };
 
 describe('MailSettingsForm', () => {
@@ -84,5 +85,38 @@ describe('MailSettingsForm', () => {
     expect(
       (screen.getByRole('button', { name: /Gửi thư thử/ }) as HTMLButtonElement).disabled,
     ).toBe(true);
+  });
+  it('hiện trạng thái cấu hình và công tắc đăng nhập bằng link email, bật/tắt gọi đúng API', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => reply(200, { code: 'LOGIN_LINK_DISABLED' }));
+    render(<MailSettingsForm officeId="o1" settings={base} />);
+    expect(screen.getByText('Đã cấu hình')).toBeTruthy();
+    const toggle = screen.getByRole('switch', {
+      name: /Cho phép đăng nhập bằng link email/,
+    }) as HTMLInputElement;
+    expect(toggle.checked).toBe(true);
+    fireEvent.click(toggle);
+    await screen.findByText(/người dùng chỉ đăng nhập bằng mật khẩu/);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe('/api/office/mail-settings/login-link');
+    expect(init?.method).toBe('PUT');
+    expect(JSON.parse(String(init?.body))).toEqual({ officeId: 'o1', enabled: false });
+    expect(toggle.checked).toBe(false);
+  });
+
+  it('chưa cấu hình hiện nhãn "Chưa cấu hình"; lỗi khi đổi công tắc giữ nguyên trạng thái cũ', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(403, { code: 'ADMIN_ONLY' }));
+    render(
+      <MailSettingsForm
+        officeId="o1"
+        settings={{ ...base, configured: false, hasPassword: false, host: null, port: null }}
+      />,
+    );
+    expect(screen.getByText('Chưa cấu hình')).toBeTruthy();
+    const toggle = screen.getByRole('switch') as HTMLInputElement;
+    fireEvent.click(toggle);
+    await screen.findByRole('alert');
+    expect(toggle.checked).toBe(true);
   });
 });

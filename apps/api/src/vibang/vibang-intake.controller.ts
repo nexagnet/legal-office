@@ -44,6 +44,18 @@ function parse<S extends z.ZodType>(schema: S, body: unknown): z.infer<S> {
   return result.data;
 }
 
+/** Trường hồ sơ và trường khách trong danh bạ có thể lập đề nghị thay đổi sau 48 giờ (DB kiểm lại). */
+const CHANGE_FIELDS = [
+  'title',
+  'description',
+  'customer_name',
+  'customer_phone',
+  'customer_id_number',
+  'customer_address',
+  'customer_tax_code',
+  'customer_representative',
+] as const;
+
 interface Reply {
   readonly code: string;
   readonly label: string | null;
@@ -195,6 +207,73 @@ export class VibangIntakeController {
       (f) => `t/${a.tenantId}/vb/contracts/${id}/${randomUUID()}.${f.extension}`,
       (key, f) => this.run(a, 'vb_add_contract_attachment', [id, q.name ?? '', key, f.sha256]),
     );
+  }
+
+  /**
+   * Thêm phụ lục hợp đồng kèm bản scan đã ký (bắt buộc). Máy chủ lưu tệp và ghi phụ lục trong một giao dịch.
+   * Giả định nghiệp vụ ở docs/architecture/contract-addenda.md; không có số tiền kế toán.
+   */
+  @Post('contracts/:id/addendum-files')
+  @HttpCode(HttpStatus.OK)
+  addContractAddendum(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z
+        .object({
+          kind: z.enum(['EXTEND', 'SCOPE', 'PARTIES', 'OTHER']),
+          effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+          summary: text(2000),
+          name: text(200).optional(),
+        })
+        .strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/vb/contracts/${id}/${randomUUID()}.${f.extension}`,
+      (key, f) =>
+        this.run(a, 'vb_add_contract_addendum', [
+          id,
+          q.kind,
+          q.summary,
+          q.effectiveFrom,
+          q.name ?? '',
+          key,
+          f.sha256,
+        ]),
+    );
+  }
+
+  @Get('contracts/:id/addenda')
+  async listContractAddenda(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const rows = await this.repo.rows<{
+      id: string;
+      seq: number;
+      kind: string;
+      summary: string;
+      effective_from: string;
+      attachment_id: string;
+      added_at: string;
+    }>(a.tenantId, 'vb_list_contract_addenda', [a.tenantId, a.userId, id]);
+    return rows.map((r) => ({
+      id: Number(r.id),
+      seq: r.seq,
+      kind: r.kind,
+      summary: r.summary,
+      effectiveFrom: r.effective_from,
+      attachmentId: Number(r.attachment_id),
+      addedAt: r.added_at,
+    }));
   }
 
   @Get('contracts/:id/attachments')
@@ -451,9 +530,7 @@ export class VibangIntakeController {
     @Body() body: unknown,
   ) {
     const b = parse(
-      z
-        .object({ field: z.enum(['title', 'description']), value: text(5000), reason: text(2000) })
-        .strict(),
+      z.object({ field: z.enum(CHANGE_FIELDS), value: text(5000), reason: text(2000) }).strict(),
       body,
     );
     return this.run(a, 'vb_request_change', [id, b.field, b.value, b.reason]);

@@ -67,7 +67,7 @@ export function NewItemForm({ officeId }: { readonly officeId: string }) {
         <input name="unit" required maxLength={50} />
       </label>
       <Alert error={error} />
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         Thêm
       </button>
     </form>
@@ -135,7 +135,7 @@ export function StockMovementForm({ items, branches }: MovementProps) {
         <input name="text" required maxLength={kind === 'receipts' ? 200 : 500} />
       </label>
       <Alert error={error} />
-      <button type="submit" className="primary" disabled={busy}>
+      <button type="submit" className="primary" disabled={busy} aria-busy={busy}>
         {kind === 'receipts' ? 'Nhập kho' : 'Xuất kho'}
       </button>
     </form>
@@ -180,8 +180,45 @@ export function AdjustBatchForm({
         <input name="reason" required maxLength={500} />
       </label>
       <Alert error={error} />
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy} aria-busy={busy}>
         Kiểm kê
+      </button>
+    </form>
+  );
+}
+
+/** Đặt ngưỡng "Sắp hết" cho một vật tư (Admin); để trống để bỏ ngưỡng. */
+export function ThresholdForm({
+  itemId,
+  current,
+}: {
+  readonly itemId: string;
+  readonly current: number | null;
+}) {
+  const { send, error, busy } = useCommand();
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const raw = String(new FormData(e.currentTarget).get('lowStockQty') ?? '').trim();
+    await send(`office/items/${itemId}/threshold`, {
+      lowStockQty: raw === '' ? null : Number(raw),
+    });
+  }
+  return (
+    <form className="form" onSubmit={submit}>
+      <label>
+        Cảnh báo khi tồn từ mức này trở xuống
+        <input
+          name="lowStockQty"
+          type="number"
+          min={0}
+          step={1}
+          defaultValue={current ?? ''}
+          placeholder="Để trống = không cảnh báo"
+        />
+      </label>
+      <Alert error={error} />
+      <button type="submit" disabled={busy} aria-busy={busy}>
+        Lưu ngưỡng
       </button>
     </form>
   );

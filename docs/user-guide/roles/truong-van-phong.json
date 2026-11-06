@@ -1,0 +1,62 @@
+{
+ "role": "truong-van-phong",
+ "title": "Hướng dẫn dành cho Trưởng văn phòng",
+ "sections": [
+  {
+   "title": "DMS · Trưởng văn phòng: những màn bạn dùng",
+   "intro": "Trưởng văn phòng theo dõi nghiệp vụ và xem báo cáo trong phạm vi quyền của nhóm quyền được cấp. Việc phân quyền do Admin làm trực tiếp, không còn bước đề xuất và duyệt.",
+   "rules": [
+    "\"Duyệt\" trong phần mềm là xác nhận nội bộ, không phải chữ ký pháp lý. Văn bản pháp lý vẫn do người có thẩm quyền ký và đóng dấu ngoài đời.",
+    "Quyền của bạn nằm ở nhóm quyền Admin xếp bạn vào; muốn thêm hoặc bớt quyền, nhờ Admin (mọi thay đổi có ghi nhật ký)."
+   ],
+   "problems": [
+    [
+     "Danh sách hồ sơ trống",
+     "Hồ sơ hiện theo chi nhánh bạn được cấp. Nhờ Admin kiểm tra phạm vi chi nhánh của tài khoản."
+    ],
+    [
+     "Không thấy nút tạo hồ sơ",
+     "Đúng thiết kế: Trưởng văn phòng theo dõi và duyệt, việc tạo hồ sơ do Thừa hành viên, Thư ký làm."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Tổng quan của Trưởng văn phòng",
+     "note": "Thanh bên hiện các mục theo nhóm quyền của bạn, ví dụ Báo cáo tổng hợp. Các thẻ số liệu cho biết tình hình toàn văn phòng trong năm.",
+     "detail": [],
+     "img": "truong-van-phong/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Báo cáo tổng hợp N-09, N-10"
+      },
+      {
+       "n": 2,
+       "text": "Hồ sơ do tôi tạo"
+      },
+      {
+       "n": 3,
+       "text": "Trình / Duyệt"
+      }
+     ]
+    },
+    {
+     "title": "Báo cáo tổng hợp N-09, N-10",
+     "note": "Chuyển giữa hai mẫu bằng thẻ phía trên. Nút Sao chép ở từng chỉ tiêu giúp chép con số sang văn bản báo cáo.",
+     "detail": [],
+     "img": "truong-van-phong/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chuyển sang mẫu N-10"
+      },
+      {
+       "n": 2,
+       "text": "Sao chép số liệu"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

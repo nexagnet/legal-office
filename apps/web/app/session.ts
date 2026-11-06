@@ -17,16 +17,31 @@ export type Session =
       readonly status: 'authenticated';
       readonly roles: readonly Role[];
       readonly tenantName: string;
+      readonly userId?: string;
+      readonly displayName?: string | null;
+      /** Mật khẩu do Admin đặt / tài khoản mới: phải đổi ngay trước khi dùng tiếp. */
+      readonly mustChangePassword?: boolean;
       readonly memberships: readonly Membership[];
       readonly branches: readonly Branch[];
     };
 
-const ROLES: readonly Role[] = ['ADMIN', 'TRUONG_VP', 'THU_KY', 'THV', 'VAN_THU', 'KE_TOAN'];
+const ROLES: readonly Role[] = [
+  'ADMIN',
+  'TRUONG_VP',
+  'THU_KY',
+  'THV',
+  'VAN_THU',
+  'KE_TOAN',
+  'THANH_VIEN',
+];
 const isRole = (r: unknown): r is Role => (ROLES as readonly unknown[]).includes(r);
 
 export type Fetcher = (url: string, init: { headers: Record<string, string> }) => Promise<Response>;
 
 interface MeBody {
+  readonly userId?: string;
+  readonly displayName?: string | null;
+  readonly mustChangePassword?: boolean;
   readonly memberships?: readonly { officeId: string; role: string; legalSigner: boolean }[];
   readonly branches?: readonly Branch[];
 }
@@ -70,6 +85,9 @@ export async function loadSession(
       status: 'authenticated',
       roles: [...new Set(memberships.map((m) => m.role))],
       tenantName,
+      userId: body.userId,
+      displayName: body.displayName ?? null,
+      mustChangePassword: body.mustChangePassword === true,
       memberships,
       branches: body.branches ?? [],
     };

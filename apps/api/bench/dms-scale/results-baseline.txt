@@ -1,0 +1,17 @@
+list admin vibang RECORDED* limit200           rows= 200  p50= 14126.3ms  p95= 14824.4ms  max= 14824.4ms
+list admin all RECORDED* limit200              ERROR canceling statement due to statement timeout
+list vanthu vibang RECORDED* limit200          rows= 200  p50=   13607ms  p95=   14377ms  max=   14377ms
+list vanthu all RECORDED* limit200             ERROR canceling statement due to statement timeout
+list thv vibang RECORDED* limit200             rows= 200  p50= 14284.9ms  p95= 14746.5ms  max= 14746.5ms
+list thv all RECORDED* limit200                ERROR canceling statement due to statement timeout
+list admin vibang offset 100000                rows=   0  p50= 16233.7ms  p95= 17255.7ms  max= 17255.7ms
+facets admin vibang                            rows=2000  p50= 15674.7ms  p95= 16207.2ms  max= 16207.2ms
+facets vanthu vibang                           rows=2000  p50= 14941.7ms  p95= 15338.1ms  max= 15338.1ms
+facets thv vibang                              rows= 212  p50=   13709ms  p95= 14108.9ms  max= 14108.9ms
+ocr-search admin common                        ERROR canceling statement due to statement timeout
+ocr-search admin rare                          ERROR canceling statement due to statement timeout
+ocr-search vanthu common                       ERROR canceling statement due to statement timeout
+ocr-search vanthu rare                         ERROR canceling statement due to statement timeout
+ocr-search thv common                          ERROR canceling statement due to statement timeout
+ocr-search thv rare                            ERROR canceling statement due to statement timeout
+finished

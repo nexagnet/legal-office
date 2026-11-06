@@ -6,5 +6,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     include: ['app/**/*.test.tsx'],
+    // Lần dựng đầu tiên của AppShell (nhiều biểu tượng, menu) có lúc quá 5 giây khi cả bộ test chạy song song.
+    testTimeout: 15_000,
   },
 });

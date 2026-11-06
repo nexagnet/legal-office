@@ -196,6 +196,42 @@ describe.skipIf(!ADMIN_URL)(
       expect((await api('GET', `/office/settings?${OF}`, null)).status).toBe(401);
     });
 
+    it('shows paper-ledger last number status: not imported, then imported by Admin; read scope is Admin, head, secretary', async () => {
+      const q = `officeId=${OFF}&year=2026`;
+      const before = await api('GET', `/office/number-status?${q}`, U.secretary);
+      expect(before.status).toBe(200);
+      expect(before.json).toMatchObject({ year: 2026, lastSeq: 0, paperImported: false });
+      expect((await api('GET', `/office/number-status?${q}`, U.clerk1)).status).toBe(403);
+      expect((await api('GET', `/office/number-status?${q}`, U.thvA)).status).toBe(403);
+      expect(
+        (await api('GET', `/office/number-status?officeId=${OFF}&year=1999`, U.admin)).status,
+      ).toBeGreaterThanOrEqual(400);
+      expect(
+        (
+          await api('POST', `/vibang/offices/${OFF}/number-imports`, U.head, {
+            year: 2026,
+            lastNumber: 120,
+          })
+        ).status,
+      ).toBeGreaterThanOrEqual(400);
+      expect(
+        (
+          await api('POST', `/vibang/offices/${OFF}/number-imports`, U.admin, {
+            year: 2026,
+            lastNumber: 120,
+          })
+        ).status,
+      ).toBe(200);
+      const after = await api('GET', `/office/number-status?${q}`, U.head);
+      expect(after.json).toMatchObject({
+        year: 2026,
+        lastSeq: 120,
+        paperImported: true,
+        importedSeq: 120,
+      });
+      expect(after.json.importedAt).toBeTruthy();
+    });
+
     it('lists THV receivers only to roles taking part in handover', async () => {
       const ok = await api('GET', `/office/receivers?${OF}`, U.thvA);
       expect((ok.json.items as Row[]).map((i) => i.userId).sort()).toEqual([U.thvA, U.thvB].sort());

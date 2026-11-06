@@ -255,6 +255,46 @@ describe.skipIf(!ADMIN_URL)(
       });
     });
 
+    it('lists assets with events, proposals and orders; hides sensitive labels and respects scope', async () => {
+      const cs = await newCase();
+      const normal = await newAsset(cs);
+      const secret = await newAsset(cs, 'SENSITIVE');
+      expect(await event(normal, U.thvA, 'DISCOVERY', 'list-1')).toMatchObject({ ok: true });
+      const p = await proposal(normal);
+      expect(
+        await fn('as_record_order', U.admin, p, 'Cơ quan giả lập', 'LỆNH-L1', 'as/ol', sha('f')),
+      ).toMatchObject({ ok: true });
+      const list = async (who: string) => {
+        const cl = await app.connect();
+        try {
+          await cl.query('BEGIN');
+          await cl.query(`SELECT set_config('app.tenant_id', $1, true)`, [T]);
+          const r = await cl.query(`SELECT * FROM as_list_assets($1,$2,$3)`, [T, who, cs]);
+          await cl.query('COMMIT');
+          return r.rows;
+        } finally {
+          cl.release();
+        }
+      };
+      const rows = await list(U.thvA);
+      expect(rows).toHaveLength(2);
+      const n = rows.find((r) => r.id === normal);
+      const s = rows.find((r) => r.id === secret);
+      expect(n.label).toBe('Tài sản giả lập');
+      expect(s.label).toBeNull();
+      expect(n.events.map((e: { kind: string }) => e.kind)).toEqual([
+        'DISCOVERY',
+        'ORDER_RECORDED',
+      ]);
+      expect(n.proposals[0]).toMatchObject({
+        status: 'APPLIED',
+        agencyName: 'Cơ quan giả lập',
+        orderRef: 'LỆNH-L1',
+      });
+      expect(JSON.stringify(rows)).not.toContain('as/ol');
+      expect(await list(U.thvB)).toHaveLength(0);
+    });
+
     it('never promotes a measure request to applied without a signed order from the agency', async () => {
       const cs = await newCase();
       const a = await newAsset(cs);

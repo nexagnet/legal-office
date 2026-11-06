@@ -406,6 +406,45 @@ describe.skipIf(!ADMIN_URL)('service of documents (Tống đạt) on PostgreSQL'
     expect(ev.rows.map((r) => r.event)).toEqual(['DOCUMENT_ADDED', 'ASSIGNED', 'REMINDER']);
   });
 
+  it('ghi việc báo kết quả cho cơ quan: chỉ khi mọi văn bản có kết cục cuối, sau khi đóng vẫn ghi được', async () => {
+    const req = await newRequest();
+    const d = await assigned(req);
+    const report = (who: string, agency: string, note: string) =>
+      fn('td_report_result', who, req, agency, note);
+    const deadline = () =>
+      row(`SELECT status FROM office_statutory_deadlines WHERE ref_id = $1`, [d]);
+    expect(await report(U.admin, 'Tòa án giả lập', 'Gửi bưu điện')).toMatchObject({
+      ok: false,
+      code: 'DOCUMENTS_NOT_FINAL',
+    });
+    await attempt(d, U.thvA, 'SERVED', { key: 'td/r', hash: sha('7') });
+    expect(await report(U.admin, ' ', 'x')).toMatchObject({ ok: false, code: 'AGENCY_REQUIRED' });
+    expect(await report(U.admin, 'Tòa án giả lập', ' ')).toMatchObject({
+      ok: false,
+      code: 'NOTE_REQUIRED',
+    });
+    expect(await report(U.outsider, 'Tòa án giả lập', 'x')).toMatchObject({
+      ok: false,
+      code: 'ROLE_LACKS_PERMISSION',
+    });
+    expect(await report(U.thvB, 'Tòa án giả lập', 'x')).toMatchObject({
+      ok: false,
+      code: 'NOT_ASSIGNED_HANDLER',
+    });
+    expect(await deadline()).toMatchObject({ status: 'OPEN' });
+    expect(await report(U.thvA, 'Tòa án giả lập', 'Gửi bưu điện')).toMatchObject({ ok: true });
+    expect(await deadline()).toMatchObject({ status: 'DONE' });
+    expect(await fn('td_close_request', U.admin, req)).toMatchObject({ ok: true });
+    expect(await report(U.head, 'Tòa án giả lập', 'Gửi lại bản sao')).toMatchObject({ ok: true });
+    const n = await row(`SELECT count(*)::int n FROM td_result_notices WHERE request_id = $1`, [
+      req,
+    ]);
+    expect(n.n).toBe(2);
+    await expect(
+      owner.query(`DELETE FROM td_result_notices WHERE request_id = $1`, [req]),
+    ).rejects.toThrow();
+  });
+
   it('freezes a closed request and never deletes', async () => {
     const req = await newRequest();
     const d = await assigned(req);

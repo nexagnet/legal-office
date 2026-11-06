@@ -4,6 +4,18 @@ const MESSAGES: Record<string, string> = {
   BRANCH_NOT_GRANTED: 'Bạn chưa được cấp quyền ở chi nhánh này.',
   NOT_ASSIGNED_HANDLER: 'Bạn không phải người phụ trách hồ sơ này.',
   ADMIN_ONLY: 'Chỉ Admin được thực hiện thao tác này.',
+  ALREADY_DELETED: 'File scan này đã được xóa trước đó.',
+  NOT_A_SCAN: 'Chỉ file scan mới xóa được.',
+  RETENTION_EXPIRED: 'File đã quá 30 ngày nên không còn tải được.',
+  SUBMISSION_NOT_FOUND: 'Không tìm thấy bản trình.',
+  SUBMISSION_NOT_PENDING: 'Bản trình này đã được xử lý.',
+  UPLOAD_NOT_FOUND: 'Không tìm thấy file đã tải lên. Hãy tải lại file.',
+  UPLOAD_ALREADY_USED: 'File này đã được dùng cho một bản trình khác. Hãy tải lại file.',
+  SELF_NOT_ALLOWED: 'Không tự đổi quyền riêng của chính mình. Hãy nhờ Admin khác.',
+  ADMIN_TARGET: 'Admin mặc nhiên có đủ quyền, không đặt quyền riêng cho Admin.',
+  OVERRIDES_APPLIED: 'Đã lưu quyền riêng, có hiệu lực ngay.',
+  WOULD_MOVE_BACKWARDS: 'Số cuối nhập vào nhỏ hơn số đang dùng. Số chỉ được tăng, không giảm.',
+  INVALID_NUMBER: 'Số cuối hoặc năm chưa hợp lệ.',
   MAIL_KEY_MISSING:
     'Máy chủ chưa có khoá mã hoá mật khẩu (MAIL_SETTINGS_KEY). Nhờ quản trị hạ tầng đặt khoá trước.',
   INVALID_MAIL_SETTINGS:
@@ -18,9 +30,20 @@ const MESSAGES: Record<string, string> = {
   CUSTOMER_NOT_FOUND: 'Không tìm thấy khách hàng.',
   CONTRACT_NOT_FOUND: 'Không tìm thấy hợp đồng của khách này.',
   BRANCH_NOT_FOUND: 'Không tìm thấy chi nhánh.',
+  BRANCH_REQUIRED: 'Hãy chọn chi nhánh của hồ sơ.',
+  CASE_NOT_UNASSIGNED:
+    'Có hồ sơ đã được gắn chi nhánh từ trước nên không đổi được. Tải lại trang để xem danh sách mới.',
   INVALID_CUSTOMER: 'Loại khách hàng không hợp lệ.',
-  INVALID_CREDENTIALS: 'Email hoặc mật khẩu không đúng.',
+  INVALID_CREDENTIALS: 'Email, số CCCD hoặc mật khẩu không đúng.',
+  WRONG_PASSWORD: 'Mật khẩu hiện tại chưa đúng.',
+  PASSWORD_UNCHANGED: 'Mật khẩu mới phải khác mật khẩu hiện tại.',
+  RESET_INVALID:
+    'Link đặt lại mật khẩu không hợp lệ, đã dùng hoặc đã hết hạn. Hãy yêu cầu link mới.',
+  CCCD_IN_USE: 'Số CCCD này đã gắn với một tài khoản khác.',
+  INVALID_CCCD: 'Số CCCD phải đủ 12 chữ số.',
   EDIT_WINDOW_CLOSED: 'Đã quá 48 giờ, hãy lập đề nghị thay đổi.',
+  CUSTOMER_LOCKED:
+    'Khách này đã có hồ sơ quá 48 giờ hoặc đã cấp số, hãy lập đề nghị thay đổi trong hồ sơ để Admin duyệt.',
   EDIT_WINDOW_OPEN: 'Còn trong 48 giờ, có thể sửa trực tiếp.',
   CASE_FINAL: 'Hồ sơ đã kết thúc, không thể thay đổi.',
   NOTHING_TO_CHANGE: 'Không có gì để thay đổi.',
@@ -46,18 +69,26 @@ const MESSAGES: Record<string, string> = {
   HANDLER_REQUIRED: 'Hồ sơ cần được giao THV phụ trách trước.',
   INVALID_PARTY: 'Cần nhập tên bên liên quan.',
   CONCLUSION_REQUIRED: 'Cần nhập nội dung kết luận.',
-  ROUNDS_INCOMPLETE: 'Còn vòng xác minh chưa hoàn thành.',
+  ROUNDS_INCOMPLETE: 'Còn lượt xác minh chưa hoàn thành.',
   ADMIN_OR_HEAD_ONLY: 'Chỉ Admin hoặc Trưởng văn phòng được thực hiện thao tác này.',
+  INVALID_LEDGER_PERIOD: 'Sổ hoặc tháng không hợp lệ.',
+  PERIOD_NOT_ENDED: 'Tháng này chưa kết thúc nên chưa đóng quyển được.',
+  PERIOD_ALREADY_SEALED: 'Tháng này đã đóng quyển, không đóng lại được.',
   INVALID_DECISION: 'Cần nhập số, loại, trích yếu và ngày ký của quyết định.',
   AGENCY_ONLY_FORM: 'Loại văn bản này chỉ dành cho cơ quan, không vào sổ tại Văn phòng.',
   DUPLICATE_DECISION_NO: 'Số quyết định này đã có trong sổ.',
   CASE_LINK_NOT_FOUND: 'Không tìm thấy hồ sơ được liên kết.',
   INVALID_ITEM: 'Cần nhập tên và đơn vị tính của vật tư.',
+  USER_ALREADY_LINKED: 'Tài khoản này đã gắn với một hồ sơ lao động khác.',
   DUPLICATE_ITEM: 'Vật tư này đã có trong danh mục.',
   ITEM_NOT_FOUND: 'Không tìm thấy vật tư.',
   INVALID_QUANTITY: 'Số lượng hoặc nội dung ghi kèm chưa hợp lệ.',
   INSUFFICIENT_STOCK: 'Tồn kho không đủ để xuất.',
   BATCH_NOT_FOUND: 'Không tìm thấy lô.',
+  STOCKTAKE_NOT_FOUND: 'Không tìm thấy phiên kiểm kê.',
+  STOCKTAKE_CLOSED: 'Phiên kiểm kê đã đóng, không sửa được nữa.',
+  STALE_COUNT: 'Tồn kho đã đổi sau khi đếm. Hãy đếm lại các lô rồi duyệt.',
+  NO_LINES: 'Phiên chưa có số đếm nào để duyệt.',
   NO_CHANGE: 'Số còn lại không thay đổi.',
   INVALID_FORM: 'Mã biểu mẫu hoặc tiêu đề chưa hợp lệ.',
   FORM_NOT_FOUND: 'Chưa có bản nào của biểu mẫu này.',
@@ -75,6 +106,10 @@ const MESSAGES: Record<string, string> = {
   REQUEST_FINAL: 'Đề xuất này đã được xử lý, không thay đổi thêm được.',
   ROLE_ALREADY_GRANTED: 'Người này đã có vai trò đó.',
   ROLE_NOT_HELD: 'Người này không có vai trò đó.',
+  EMAIL_IN_USE: 'Email này đã có tài khoản. Xếp nhóm quyền cho người đó ở mục Phân quyền.',
+  SELF_TARGET_NOT_ALLOWED:
+    'Bạn không được duyệt đề xuất về chính mình. Cần một Trưởng văn phòng khác duyệt.',
+  BRANCH_NAME_TAKEN: 'Đã có địa điểm trùng tên trong văn phòng.',
   LAST_ADMIN: 'Không thể gỡ Admin cuối cùng của văn phòng.',
   DUPLICATE_PENDING: 'Đã có đề xuất giống hệt đang chờ duyệt.',
   SIGNER_ROLE_INVALID: 'Quyền ký pháp lý chỉ dành cho Admin hoặc Trưởng văn phòng.',
@@ -90,11 +125,15 @@ const MESSAGES: Record<string, string> = {
   ALREADY_RECORDED: 'Nội dung này đã được ghi nhận trước đó.',
   INVALID_HANDOVER: 'Cần nhập tên người nhận và ngày bàn giao hợp lệ.',
   INVALID_DOCUMENT: 'Tệp không hợp lệ hoặc sai định dạng cho phép.',
+  INVALID_THV_CARD: 'Cần nhập cả họ tên và số thẻ.',
+  DECISION_REQUIRED: 'Cần nhập số quyết định, ngày ban hành và ngày hiệu lực.',
+  SCAN_REQUIRED: 'Cần tải bản scan quyết định (bắt buộc khi cấp mới hoặc đổi số quyết định).',
+  THV_CARD_NOT_FOUND: 'Chưa có thẻ để ngừng hiệu lực.',
   FILE_TOO_LARGE: 'Tệp quá lớn (tối đa 25 MB).',
   FILE_STORE_NOT_CONFIGURED: 'Hệ thống chưa cấu hình kho lưu tệp. Liên hệ quản trị.',
-  SOURCE_REQUIRED: 'Vòng này chưa có nguồn kèm tệp, chưa hoàn thành được.',
-  RESULT_REQUIRED: 'Cần nhập kết quả của vòng.',
-  ROUND_NOT_OPEN: 'Vòng xác minh này không còn đang thực hiện.',
+  SOURCE_REQUIRED: 'Lượt này chưa có nguồn kèm tệp, chưa hoàn thành được.',
+  RESULT_REQUIRED: 'Cần nhập kết quả của lượt.',
+  ROUND_NOT_OPEN: 'Lượt xác minh này không còn đang thực hiện.',
   INVALID_SOURCE: 'Thông tin nguồn chưa hợp lệ.',
   OBLIGATIONS_NOT_COMPLETE: 'Còn nghĩa vụ chưa hoàn tất, chưa hoàn tất hồ sơ được.',
   EVIDENCE_REQUIRED: 'Cần đính kèm tệp bằng chứng.',
@@ -115,10 +154,6 @@ const MESSAGES: Record<string, string> = {
   FIELDS_REQUIRED: 'Cần nhập đủ người yêu cầu, căn cứ và người nhận.',
   INVALID_COPIES: 'Số bản sao phải từ 1 đến 50.',
   FIELD_NOT_FOR_KIND: 'Trường này không áp dụng cho loại khách hàng đã chọn.',
-  VERIFICATION_MAIL_FAILED:
-    'Không gửi được email xác thực. Kiểm tra cấu hình email hoặc nhờ quản trị hệ thống tắt tạm bước này.',
-  VERIFICATION_UNAVAILABLE:
-    'Chưa thể xác thực qua email (thiếu địa chỉ web). Liên hệ quản trị hệ thống.',
   CHALLENGE_RATE_LIMITED: 'Đã yêu cầu xác thực quá nhiều lần. Vui lòng thử lại sau 15 phút.',
   LINK_INVALID:
     'Link xác thực không hợp lệ, đã dùng hoặc đã hết hạn. Hãy đăng nhập lại để nhận email mới.',
@@ -131,9 +166,55 @@ const MESSAGES: Record<string, string> = {
   INVALID_DATE: 'Ngày không hợp lệ (không được ở tương lai).',
   INVALID_DUE: 'Hạn thỏa thuận phải sau ngày bắt đầu tính hạn.',
   NOTE_REQUIRED: 'Cần ghi chú đã làm gì.',
+  AGENCY_REQUIRED: 'Cần nhập tên cơ quan yêu cầu đã nhận kết quả.',
   INVALID_ROLE: 'Vai trò không hợp lệ.',
   PARTY_NOT_FOUND: 'Không tìm thấy người tham gia này.',
+  DOCUMENTS_NOT_FINAL: 'Còn văn bản chưa có kết quả cuối nên chưa đóng hoặc báo kết quả được.',
+  INVALID_ASSET: 'Cần nhập loại và nhãn tài sản, mức nhạy cảm hợp lệ.',
+  PURPOSE_REQUIRED: 'Tài sản nhạy cảm cần nêu mục đích xem.',
+  INVALID_PROPOSAL: 'Cần nhập biện pháp và lý do đề xuất.',
+  INVALID_ORDER: 'Cần nhập cơ quan và số lệnh.',
+  SIGNED_ORDER_REQUIRED: 'Cần bản lệnh có chữ ký của cơ quan có thẩm quyền.',
+  PROPOSAL_FINAL: 'Đề xuất này đã có kết quả cuối.',
+  INVALID_EVENT: 'Cần chọn loại sự kiện và ghi nội dung.',
+  ASSET_NOT_FOUND: 'Không tìm thấy tài sản này.',
+  PROPOSAL_NOT_FOUND: 'Không tìm thấy đề xuất này.',
+  LINK_NOT_FOUND: 'Nghĩa vụ hoặc đương sự không thuộc hồ sơ này.',
+  IDEMPOTENCY_KEY_REQUIRED: 'Thiếu khoá chống trùng. Vui lòng tải lại trang.',
+  TRANSFER_NOT_PENDING: 'Đề nghị chuyển hồ sơ này không còn ở trạng thái chờ.',
+  APP_APPROVAL_MISSING: 'Chưa có bước duyệt trong ứng dụng.',
+  LEGAL_DECISION_MISSING: 'Chưa có quyết định pháp lý của người có quyền ký.',
+  HANDOVER_N08_MISSING: 'Chưa có biên bản bàn giao N-08.',
+  TRANSFER_NOT_FOUND: 'Không tìm thấy đề nghị chuyển hồ sơ này.',
+  INVALID_STEP: 'Bước không hợp lệ.',
+  STEP_ALREADY_RECORDED: 'Bước này đã được ghi.',
+  DELEGATION_NOT_PENDING: 'Ủy quyền này không còn ở trạng thái chờ.',
+  DELEGATION_NOT_FOUND: 'Không tìm thấy ủy quyền này.',
+  CONSENT_MISSING: 'Chưa có văn bản đồng ý của người yêu cầu.',
+  LEGAL_SIGNATURE_MISSING: 'Chưa có ủy quyền có chữ ký pháp lý.',
+  HANDOVER_MISSING: 'Chưa có biên bản bàn giao.',
+  SOURCE_NOT_FOUND: 'Không tìm thấy nguồn này.',
+  DISPLAY_NAME_REQUIRED: 'Cần nhập tên khách hàng khi nhập số điện thoại hoặc số định danh.',
+  INVALID_PLAN:
+    'Kế hoạch không hợp lệ: người tham gia cần có tên và vai trò, ghi chú tối đa 2.000 ký tự.',
+  OUTCOME_REQUIRED: 'Cần ghi kết quả thực tế của việc chấm dứt.',
   ALREADY_DONE: 'Việc này đã được ghi nhận xong.',
+  PERMISSION_DENIED: 'Nhóm quyền của bạn chưa cho phép thao tác này.',
+  CASE_NOT_DRAFT:
+    'Hồ sơ đã lưu chính thức nên không sửa trực tiếp được. Bạn chỉ tải thêm bản scan; việc sửa nội dung do Admin thực hiện.',
+  CASE_CANCELLED: 'Hồ sơ nháp này đã hủy.',
+  THV_CONFIRMATION_REQUIRED:
+    'Hồ sơ có ghi tên thừa hành viên. Chính thừa hành viên đó phải xác nhận nội dung trước khi lưu chính thức.',
+  THV_CONFIRMATION_STALE:
+    'Nội dung đã đổi sau khi thừa hành viên xác nhận. Thừa hành viên cần xác nhận lại.',
+  CASE_NOT_RECORDED:
+    'Thao tác này chỉ dùng cho hồ sơ đã lưu chính thức. Bản nháp thì sửa trực tiếp.',
+  OBJECT_KEY_IN_USE: 'Tệp này đã được dùng ở nơi khác. Hãy tải lên lại.',
+  DOCUMENT_NOT_DRAFT:
+    'Tài liệu đã lưu chính thức nên không sửa trực tiếp được. Bạn chỉ tải thêm bản scan.',
+  INVALID_DOMAIN: 'Nghiệp vụ không hợp lệ.',
+  INVALID_INPUT: 'Thông tin chưa hợp lệ. Kiểm tra lại các trường bắt buộc.',
+  SELF_APPROVAL_NOT_ALLOWED: 'Người đề xuất không được tự duyệt yêu cầu của mình.',
   ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
 };
 
@@ -174,6 +255,12 @@ export const ATTEMPT_OUTCOME_LABEL: Record<string, string> = {
   WRONG_ADDRESS: 'Sai địa chỉ',
   OTHER_FAILURE: 'Lý do khác',
 };
+/** Nhãn kết quả của một lần đã ghi (kể cả lần thành công và niêm yết, không có trong biểu mẫu ghi lần chưa thành công). */
+export const ATTEMPT_RESULT_LABEL: Record<string, string> = {
+  ...ATTEMPT_OUTCOME_LABEL,
+  SERVED: 'Đã tống đạt',
+  POSTED_NOTICE: 'Niêm yết (chưa phải tống đạt thành công)',
+};
 export const UNDELIVERABLE_LABEL: Record<string, string> = {
   NO_RECIPIENT: 'Không có người nhận',
   ADDRESS_NOT_FOUND: 'Không tìm thấy địa chỉ',
@@ -189,6 +276,41 @@ export const SOURCE_CONFIDENTIALITY_LABEL: Record<string, string> = {
   PUBLIC: 'Công khai',
   CONFIDENTIAL: 'Mật',
   PII: 'Có dữ liệu cá nhân',
+};
+export const ASSET_SENSITIVITY_LABEL: Record<string, string> = {
+  NORMAL: 'Thông thường',
+  SENSITIVE: 'Nhạy cảm',
+};
+export const ASSET_EVENT_KIND_LABEL: Record<string, string> = {
+  DISCOVERY: 'Phát hiện',
+  VERIFICATION: 'Xác minh',
+  DISPUTE: 'Tranh chấp',
+  HANDOVER: 'Bàn giao',
+  ORDER_RECORDED: 'Đã ghi lệnh cơ quan',
+};
+export const MEASURE_STATUS_LABEL: Record<string, string> = {
+  PROPOSED: 'Đã đề xuất, chờ lệnh cơ quan',
+  WITHDRAWN: 'Đã rút',
+  APPLIED: 'Đã áp dụng (có lệnh)',
+};
+export const TRANSFER_STATUS_LABEL: Record<string, string> = {
+  PROPOSED: 'Đang thực hiện',
+  COMPLETED: 'Đã hoàn tất',
+};
+export const TRANSFER_STEP_LABEL: Record<string, string> = {
+  APP_APPROVAL: 'Duyệt trong ứng dụng (Admin hoặc Trưởng VP)',
+  LEGAL_DECISION: 'Quyết định pháp lý (người có quyền ký)',
+  HANDOVER_N08: 'Biên bản bàn giao N-08',
+};
+export const DELEGATION_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Đang hoàn thiện hồ sơ ủy quyền',
+  ACTIVE: 'Đã kích hoạt',
+};
+export const DELEGATION_STEP_LABEL: Record<string, string> = {
+  CONSENT: 'Văn bản đồng ý của người yêu cầu',
+  APP_APPROVAL: 'Duyệt trong ứng dụng (Admin hoặc Trưởng VP)',
+  LEGAL_SIGNATURE: 'Ủy quyền có chữ ký pháp lý',
+  HANDOVER: 'Biên bản bàn giao',
 };
 export const RESULT_KIND_LABEL: Record<string, string> = {
   PARTIAL_RESULT: 'Kết quả một phần',
@@ -314,6 +436,7 @@ export const ROLE_LABEL: Record<string, string> = {
   THV: 'Thừa hành viên',
   VAN_THU: 'Văn thư',
   KE_TOAN: 'Kế toán',
+  THANH_VIEN: 'Thành viên',
 };
 
 export const ACCESS_KIND_LABEL: Record<string, string> = {
@@ -322,6 +445,7 @@ export const ACCESS_KIND_LABEL: Record<string, string> = {
   SET_LEGAL_SIGNER: 'Quyền ký pháp lý',
   GRANT_BRANCH: 'Cấp chi nhánh',
   REVOKE_BRANCH: 'Thu hồi chi nhánh',
+  ADD_MEMBER: 'Thêm thành viên',
 };
 export const ACCESS_STATUS_LABEL: Record<string, string> = {
   PENDING: 'Chờ duyệt',

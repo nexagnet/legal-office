@@ -20,7 +20,7 @@ ENV API_URL=$API_URL NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter @legal-office/web build
 
 FROM build AS api-prod
-RUN pnpm --filter @legal-office/api deploy --prod /out/api && cp -r apps/api/dist /out/api/dist && cp -r apps/api/drizzle /out/api/drizzle
+RUN pnpm --filter @legal-office/api deploy --prod /out/api && cp -r apps/api/dist /out/api/dist && cp -r apps/api/drizzle /out/api/drizzle && cp apps/api/docker-entrypoint.sh /out/api/docker-entrypoint.sh
 
 FROM node:22-bookworm-slim AS api
 ENV NODE_ENV=production
@@ -28,7 +28,18 @@ WORKDIR /app
 COPY --from=api-prod --chown=node:node /out/api ./
 USER node
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+CMD ["sh", "docker-entrypoint.sh"]
+
+# Đích thứ ba: worker OCR (dịch vụ lo-ocr), không mở cổng. Cùng mã API, thêm Tesseract (gói vie) và poppler.
+FROM node:22-bookworm-slim AS ocr
+ENV NODE_ENV=production
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-vie poppler-utils \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=api-prod --chown=node:node /out/api ./
+USER node
+CMD ["node", "dist/ocr/ocr.cli.js"]
 
 FROM build AS web-prod
 RUN pnpm --filter @legal-office/web deploy --prod /out/web && cp -r apps/web/.next /out/web/.next

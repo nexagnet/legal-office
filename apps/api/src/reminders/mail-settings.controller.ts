@@ -21,6 +21,7 @@ import { VibangRepo } from '../vibang/vibang.repo';
 import { createSmtpMailer } from './mailer';
 import { decryptSecret, encryptSecret, keyFromEnv } from './secret-box';
 import { isInternalHost } from './smtp-host';
+import { renderTestMail } from '../mail/test-mail';
 
 const uuid = z.string().uuid();
 
@@ -88,7 +89,13 @@ export class MailSettingsController {
   ) {
     const row = await this.load(a, officeId);
     if (!row) return fail(HttpStatus.FORBIDDEN, 'ADMIN_ONLY');
+    const [link] = await this.repo.rows<{ of_login_link_enabled: boolean }>(
+      a.tenantId,
+      'of_login_link_enabled',
+      [a.tenantId],
+    );
     return {
+      loginLinkEnabled: link?.of_login_link_enabled ?? true,
       keyReady: this.key() !== null,
       configured: row.configured,
       host: row.host,
@@ -146,6 +153,22 @@ export class MailSettingsController {
     return reply;
   }
 
+  /** Bật/tắt đăng nhập bằng link email cho cả tenant (công tắc sẵn có, mặc định bật). Chỉ Admin; có nhật ký. */
+  @Put('login-link')
+  async setLoginLink(@CurrentActor() a: AuthenticatedActor, @Body() body: unknown) {
+    const b = parse(z.object({ officeId: uuid, enabled: z.boolean() }).strict(), body);
+    const op = await this.repo.call(a.tenantId, 'ad_login_link_set', [
+      a.tenantId,
+      a.userId,
+      b.officeId,
+      b.enabled,
+    ]);
+    const status = statusFor(op);
+    const reply = { code: op.code, label: op.label };
+    if (status >= 400) throw new HttpException(reply, status);
+    return reply;
+  }
+
   /** Gửi một thư thử tới email đăng nhập của chính Admin để kiểm tra cấu hình đã lưu. Không trả chi tiết lỗi máy chủ SMTP. */
   @Post('test')
   @HttpCode(HttpStatus.OK)
@@ -172,8 +195,7 @@ export class MailSettingsController {
     try {
       await createSmtpMailer({ ...toConfig(stored), password }, stored.mail_from).send({
         to: row.actor_email,
-        subject: 'Legal Office: thư thử cấu hình email',
-        text: 'Đây là thư thử. Cấu hình SMTP đang hoạt động; email nhắc hạn sẽ gửi theo lịch đã cài.',
+        ...(await renderTestMail()),
       });
     } catch {
       return fail(HttpStatus.BAD_GATEWAY, 'MAIL_SEND_FAILED');

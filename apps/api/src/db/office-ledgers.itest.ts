@@ -235,7 +235,7 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     await admin.end();
   });
 
-  it('có đủ bốn sổ, số cột và thứ tự khoá khớp mẫu; sổ khác (S-03/S-06) không có', async () => {
+  it('có đủ bốn sổ, số cột và thứ tự khoá khớp mẫu; S-03 không có, S-06 dựng từ hồ sơ lao động', async () => {
     expect(LEDGERS.map((l) => [l.code, l.columns.length])).toEqual([
       ['S-01', 10],
       ['S-02', 7],
@@ -254,7 +254,10 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
       expect(res.json.notice).toMatch(/không phải biểu mẫu chính thức/);
     }
     expect((await ledger('s-03', U.admin)).status).toBe(404);
-    expect((await ledger('s-06', U.admin)).status).toBe(404);
+    const s06 = await ledger('s-06', U.admin);
+    expect(s06.status).toBe(200);
+    expect((s06.json.columns as unknown[]).length).toBe(11);
+    expect(await rowsOf('s-06', U.secretary)).toEqual([]);
   });
 
   it('S-01: dòng theo thứ tự, ngày tống đạt/hình thức/ghi chú có dữ liệu thật, cột thiếu nguồn là null', async () => {
@@ -415,8 +418,8 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     expect((await put(U.admin, { ...card, cardNo: '' })).status).toBe(422);
     expect((await put(U.admin, card)).status).toBe(200);
     const list = await get(`/office/thv-cards?officeId=${OFF}`, U.head);
-    expect(list.json).toEqual([
-      { userId: U.thv, fullName: 'Trần Văn B (giả lập)', cardNo: 'GL-001' },
+    expect(list.json).toMatchObject([
+      { userId: U.thv, fullName: 'Trần Văn B (giả lập)', cardNo: 'GL-001', status: 'ACTIVE' },
     ]);
     const expected = 'Trần Văn B (giả lập), số Thẻ GL-001';
     expect((await rowsOf('s-01', U.admin))[0]).toMatchObject({ thuaHanhVienThucHien: expected });
@@ -426,9 +429,52 @@ describe.skipIf(!ADMIN_URL)('sổ theo dõi S-01/S-02/S-04/S-05 (HTTP + PostgreS
     // THV khác chưa có thẻ thì giữ null
     const other = (await rowsOf('s-01', U.admin)).find((r) => r.thvUserId === U.thv2);
     expect(other?.thuaHanhVienThucHien).toBeNull();
-    // Người ngoài văn phòng nhận danh sách rỗng; xoá bằng cách để trống cả hai
+    // Người ngoài văn phòng nhận danh sách rỗng; để trống cả hai không còn xoá thẻ (0095)
     expect((await get(`/office/thv-cards?officeId=${OFF}`, U.foreign, T2)).json).toEqual([]);
-    expect((await put(U.admin, { ...card, fullName: '', cardNo: '' })).status).toBe(200);
-    expect((await get(`/office/thv-cards?officeId=${OFF}`, U.head)).json).toEqual([]);
+    expect((await put(U.admin, { ...card, fullName: '', cardNo: '' })).status).toBe(422);
+    expect(
+      ((await get(`/office/thv-cards?officeId=${OFF}`, U.head)).json as unknown[]).length,
+    ).toBe(1);
+  });
+
+  it('đóng quyển theo tháng: chỉ Admin/Trưởng VP, tháng đã qua, đóng rồi không đóng lại, có audit', async () => {
+    const seal = (user: string, code: string, ym: string) =>
+      fetch(`${base}/office/ledgers/${code}/periods/${ym}/seal`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-synthetic-user': user,
+          'x-synthetic-tenant': T,
+        },
+        body: JSON.stringify({ officeId: OFF }),
+      }).then(async (r) => ({ status: r.status, json: await r.json().catch(() => ({})) }));
+    const periods = (user: string, code: string, qs = '') =>
+      get(`/office/ledgers/${code}/periods?officeId=${OFF}${qs}`, user);
+    // Máy chủ tính "tháng hiện tại" theo giờ Việt Nam; dùng UTC thì sai trong 7 giờ cuối ngày cuối tháng.
+    const thisMonth = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    }).format(new Date());
+
+    expect((await seal(U.secretary, 'S-02', '2026-01')).status).toBe(403);
+    expect((await seal(U.admin, 'S-09', '2026-01')).status).toBe(422);
+    expect((await seal(U.admin, 'S-02', '2026-13')).status).toBe(422);
+    expect((await seal(U.admin, 'S-02', thisMonth)).status).toBe(409);
+    expect((await seal(U.head, 'S-02', '2026-01')).status).toBe(200);
+    expect((await seal(U.admin, 'S-02', '2026-01')).status).toBe(409);
+    expect((await seal(U.admin, 'S-06', '2026-01')).status).toBe(200);
+
+    const list = await periods(U.secretary, 'S-02');
+    expect(list.status).toBe(200);
+    expect(list.json.items).toHaveLength(1);
+    expect(list.json.items[0]).toMatchObject({ period: '2026-01', sealedBy: U.head });
+    expect((await periods(U.secretary, 'S-02', '&year=2025')).json.items).toEqual([]);
+    expect((await periods(U.clerk, 'S-02')).json.items).toEqual([]);
+    await expect(owner.query(`DELETE FROM of_ledger_periods`)).rejects.toThrow();
+    const audits = await owner.query(
+      `SELECT count(*)::int AS n FROM audit_log WHERE action = 'of.ledger.seal'`,
+    );
+    expect(audits.rows[0].n).toBeGreaterThanOrEqual(6);
   });
 });

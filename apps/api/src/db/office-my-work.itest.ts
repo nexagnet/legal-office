@@ -203,6 +203,19 @@ describe.skipIf(!ADMIN_URL)(
       );
       const a = await mine(U.thvA);
       expect(a.status).toBe(200);
+      // người tạo đi kèm để web hiện avatar và họ tên; hồ sơ Vi bằng cũ chưa ghi người tạo thì rỗng
+      const creators = Object.fromEntries(
+        (a.json.items as { domain: string; createdBy: string | null }[]).map((i) => [
+          i.domain,
+          i.createdBy,
+        ]),
+      );
+      expect(creators).toEqual({
+        TONG_DAT: U.admin,
+        XAC_MINH: U.admin,
+        THI_HANH: U.admin,
+        VIBANG: null,
+      });
       expect(items(a).map((i) => [i.domain, i.label, i.overdue])).toEqual([
         ['TONG_DAT', 'TĐ quá hạn của A', true],
         ...items(a)

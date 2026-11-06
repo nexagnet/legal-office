@@ -19,6 +19,8 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, readonly Action[]>> = {
   THU_KY: ['case.list', 'case.read', 'case.write'],
   VAN_THU: ['case.list', 'case.read', 'file.download'],
   KE_TOAN: ['case.list', 'case.read'],
+  /** Chỉ là tư cách thành viên: mọi quyền DMS đến từ nhóm quyền, không từ vai. */
+  THANH_VIEN: [],
 };
 
 /** Vai thấy mọi chi nhánh trong văn phòng của mình. Giả định chưa chốt. */

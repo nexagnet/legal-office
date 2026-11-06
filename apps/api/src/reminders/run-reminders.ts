@@ -1,5 +1,6 @@
 import type pg from 'pg';
 import { buildDigests, type PendingReminder } from './digest';
+import { renderReminderDigestMail } from '../mail/reminder-digest';
 import type { Mailer } from './mailer';
 
 export interface ReminderRunResult {
@@ -45,7 +46,12 @@ export async function runRemindersForTenant(
   let failed = 0;
   for (const d of buildDigests(pending)) {
     try {
-      await mailer.send({ to: d.email, subject: d.subject, text: d.text });
+      await mailer.send({
+        to: d.email,
+        subject: d.subject,
+        text: d.text,
+        html: await renderReminderDigestMail(d),
+      });
     } catch {
       failed += 1;
       continue;

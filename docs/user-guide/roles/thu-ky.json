@@ -1,0 +1,98 @@
+{
+ "role": "thu-ky",
+ "title": "Hướng dẫn dành cho Thư ký",
+ "sections": [
+  {
+   "title": "DMS · Thư ký: tạo hồ sơ và hỗ trợ nghiệp vụ",
+   "intro": "Thư ký tạo bản nháp hồ sơ cho bốn nghiệp vụ, thêm tài liệu và tải bản scan, hỗ trợ Thừa hành viên. Cách tạo và lưu chính thức giống phần Vi bằng của Thừa hành viên.",
+   "rules": [
+    "Hồ sơ mới là bản nháp: chưa có số hồ sơ, chưa vào sổ cho tới khi xác nhận lưu chính thức.",
+    "Sau khi lưu chính thức không sửa trực tiếp, không xóa. Chỉ Admin sửa (có lý do); bạn chỉ tải thêm scan."
+   ],
+   "problems": [
+    [
+     "Không thấy nút \"+ Tạo hồ sơ\" ở một nghiệp vụ",
+     "Tài khoản chưa được cấp quyền tạo hồ sơ nghiệp vụ đó. Nhờ Admin kiểm tra phân quyền."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Danh sách hồ sơ của Thư ký",
+     "note": "Bạn có nút \"+ Tạo hồ sơ\" ở các nghiệp vụ được cấp quyền. Cách điền biểu mẫu xem phần Vi bằng trong hướng dẫn Thừa hành viên.",
+     "detail": [],
+     "img": "thu-ky/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tạo hồ sơ mới (bản nháp)"
+      },
+      {
+       "n": 2,
+       "text": "Bản nháp của bạn nằm ở tab Nháp"
+      }
+     ]
+    },
+    {
+     "title": "Tổng quan của Thư ký",
+     "note": "Thanh bên của Thư ký gồm Hồ sơ nháp chờ tôi lưu, Trình / Duyệt, các nghiệp vụ, Văn thư, Xuất sổ và Báo cáo tổng hợp.",
+     "detail": [],
+     "img": "thu-ky/06.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Hồ sơ nháp đang chờ xác nhận"
+      },
+      {
+       "n": 2,
+       "text": "Báo cáo tổng hợp"
+      },
+      {
+       "n": 3,
+       "text": "Xuất sổ nghiệp vụ"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "DMS · Thư ký: soạn bản nháp",
+   "intro": "Thư ký soạn bản nháp: điền thông tin, thêm tài liệu, tải bản scan. Với vai Thư ký, bản nháp có Lưu, Lưu nháp và Hủy nháp; không có nút \"Xác nhận lưu chính thức\" và ô \"Thừa hành viên được ghi tên\" chỉ có lựa chọn \"Không ghi tên\".",
+   "rules": [
+    "Bản nháp chưa có số hồ sơ, chưa vào sổ. Bạn Hủy nháp được (phải nêu lý do).",
+    "Việc xác nhận lưu chính thức do người có quyền thực hiện; hỏi Trưởng văn phòng hoặc Admin quy trình của văn phòng."
+   ],
+   "problems": [
+    [
+     "Không thấy nút \"Xác nhận lưu chính thức\"",
+     "Đúng thiết kế của vai Thư ký. Báo người phụ trách xác nhận."
+    ],
+    [
+     "Ô \"Thừa hành viên được ghi tên\" chỉ có \"Không ghi tên\"",
+     "Vai Thư ký không có quyền chọn thừa hành viên."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Bản nháp do Thư ký soạn",
+     "note": "Thư ký có Lưu, Lưu nháp và Hủy nháp; không có \"Xác nhận lưu chính thức\". Ô thừa hành viên chỉ có \"Không ghi tên\" vì bạn không có quyền chọn.",
+     "detail": [],
+     "img": "thu-ky/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thừa hành viên được ghi tên (Admin sẽ chọn)"
+      },
+      {
+       "n": 2,
+       "text": "Lưu thay đổi"
+      },
+      {
+       "n": 3,
+       "text": "Hủy nháp (cần nêu lý do)"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

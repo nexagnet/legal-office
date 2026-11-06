@@ -269,6 +269,135 @@ export class VerificationController {
     return this.run(a, 'vx_delegation_step', [id, b.step, b.evidenceKey, b.evidenceSha256]);
   }
 
+  /** Như `delegations/:id/steps` nhưng tải thẳng tệp bằng chứng của bước; bước đi theo query. */
+  @Post('delegations/:id/step-files')
+  @HttpCode(HttpStatus.OK)
+  recordStepFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(z.object({ step: z.string() }).strict(), query);
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/vx/delegations/${id}/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'vx_delegation_step', [id, q.step, key, f.sha256]),
+    );
+  }
+
+  /** Nguồn của hồ sơ kèm nhật ký mở. Không trả khoá hay hash tệp. Ngoài phạm vi xem thì rỗng. */
+  @Get('cases/:id/sources')
+  async caseSources(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{
+      id: string;
+      round_id: string;
+      round_seq: number;
+      kind: string;
+      confidentiality: string;
+      purpose: string;
+      recorded_by: string;
+      at: Date;
+      accesses: unknown;
+    }>(a.tenantId, 'vx_list_sources', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        roundId: r.round_id,
+        roundSeq: r.round_seq,
+        kind: r.kind,
+        confidentiality: r.confidentiality,
+        purpose: r.purpose,
+        recordedBy: r.recorded_by,
+        at: r.at,
+        accesses: r.accesses,
+      })),
+    };
+  }
+
+  /** Ủy quyền của hồ sơ kèm các bước đã ghi. */
+  @Get('cases/:id/delegations')
+  async caseDelegations(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const rows = await this.repo.rows<{
+      id: string;
+      delegate_user_id: string;
+      status: string;
+      requested_by: string;
+      created_at: Date;
+      activated_at: Date | null;
+      steps: unknown;
+    }>(a.tenantId, 'vx_list_delegations', [a.tenantId, a.userId, id]);
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        delegateUserId: r.delegate_user_id,
+        status: r.status,
+        requestedBy: r.requested_by,
+        createdAt: r.created_at,
+        activatedAt: r.activated_at,
+        steps: r.steps,
+      })),
+    };
+  }
+
+  /** Quyết định N-06 của hồ sơ (số, ngày ký, người ký); chưa có thì `decision: null`. */
+  @Get('cases/:id/decision')
+  async caseDecision(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const [r] = await this.repo.rows<{
+      decision_no: string;
+      signed_on: string;
+      signer_user_id: string;
+      recorded_at: Date;
+    }>(a.tenantId, 'vx_get_decision', [a.tenantId, a.userId, id]);
+    return {
+      decision: r
+        ? {
+            decisionNo: r.decision_no,
+            signedOn: r.signed_on,
+            signerUserId: r.signer_user_id,
+            recordedAt: r.recorded_at,
+          }
+        : null,
+    };
+  }
+
+  /** Ghi quyết định N-06 kèm tệp quyết định đã ký; số và ngày ký đi theo query. Chỉ Trưởng VP/Admin có quyền ký pháp lý. */
+  @Post('cases/:id/decision-file')
+  @HttpCode(HttpStatus.OK)
+  recordDecisionFile(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const q = parse(
+      z
+        .object({
+          decisionNo: z.string().max(200),
+          signedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        })
+        .strict(),
+      query,
+    );
+    return recordWithUpload(
+      this.store,
+      { contentType, contentLength, body: req },
+      (f) => `t/${a.tenantId}/vx/cases/${id}/decision/${randomUUID()}.${f.extension}`,
+      (key, f) => this.run(a, 'vx_record_decision', [id, q.decisionNo, q.signedOn, key, f.sha256]),
+    );
+  }
+
   @Post('delegations/:id/activation')
   @HttpCode(HttpStatus.OK)
   activate(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {

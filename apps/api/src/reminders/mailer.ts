@@ -4,6 +4,8 @@ export interface MailMessage {
   readonly to: string;
   readonly subject: string;
   readonly text: string;
+  /** Bản HTML; luôn gửi kèm `text` làm bản thay thế. */
+  readonly html?: string;
 }
 
 export interface Mailer {
@@ -46,6 +48,7 @@ export function createSmtpMailer(config: SmtpConfig | string, from: string): Mai
         to: message.to,
         subject: message.subject,
         text: message.text,
+        ...(message.html ? { html: message.html } : {}),
       });
     },
   };

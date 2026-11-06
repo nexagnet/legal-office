@@ -1,4 +1,12 @@
-export const ROLES = ['ADMIN', 'TRUONG_VP', 'THV', 'THU_KY', 'VAN_THU', 'KE_TOAN'] as const;
+export const ROLES = [
+  'ADMIN',
+  'TRUONG_VP',
+  'THV',
+  'THU_KY',
+  'VAN_THU',
+  'KE_TOAN',
+  'THANH_VIEN',
+] as const;
 export type Role = (typeof ROLES)[number];
 
 export const ACTIONS = [

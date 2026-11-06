@@ -3,3 +3,7 @@ dist/
 .next/
 *.tsbuildinfo
 coverage/
+dist-package/
+
+# Mã tenant dùng cho script chụp hướng dẫn (không commit)
+scripts/user-guide/tenant.txt

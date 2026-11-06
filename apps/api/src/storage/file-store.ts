@@ -4,9 +4,11 @@ import { dirname, join, resolve, sep } from 'node:path';
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 /** Cổng lưu tệp: nghiệp vụ chỉ biết khoá đối tượng, không biết tệp nằm ở đâu (đĩa, R2, S3...). */
 export interface FileStore {
@@ -16,6 +18,38 @@ export interface FileStore {
 }
 
 export const FILE_STORE = Symbol('FILE_STORE');
+
+/** Liên kết tải lên có thời hạn: client gửi PUT thẳng tới kho với đúng các header này. */
+export interface PresignedUpload {
+  readonly url: string;
+  readonly headers: Readonly<Record<string, string>>;
+  readonly expiresAt: Date;
+}
+
+/**
+ * Kho cho phép client tải thẳng (không đi qua API): dùng cho tệp lớn/nhập hàng loạt. Kho trên đĩa không hỗ trợ.
+ * `sha256Hex` được ký vào yêu cầu để kho TỰ kiểm tra nội dung khi nhận; `size` được ký vào Content-Length.
+ */
+export interface DirectTransferStore extends FileStore {
+  presignPut(
+    key: string,
+    opts: { sha256Hex: string; size: number; mime: string; ttlSeconds: number },
+  ): Promise<PresignedUpload>;
+  presignGet(
+    key: string,
+    opts: { ttlSeconds: number; fileName: string; mime: string },
+  ): Promise<string>;
+  head(key: string): Promise<{ size: number } | null>;
+}
+
+export function isDirectTransferStore(store: FileStore | null): store is DirectTransferStore {
+  return (
+    store !== null &&
+    typeof (store as Partial<DirectTransferStore>).presignPut === 'function' &&
+    typeof (store as Partial<DirectTransferStore>).presignGet === 'function' &&
+    typeof (store as Partial<DirectTransferStore>).head === 'function'
+  );
+}
 
 /** Cùng quy tắc với CHECK `object_key` trong DB: không rỗng, không bắt đầu bằng `/`, không chứa `..`. */
 function assertSafeKey(key: string): void {
@@ -69,7 +103,7 @@ export interface S3Config {
 }
 
 /** Cloudflare R2 (hoặc bất kỳ kho tương thích S3) qua S3 API. */
-export class S3FileStore implements FileStore {
+export class S3FileStore implements DirectTransferStore {
   private readonly client: S3Client;
   constructor(private readonly cfg: S3Config) {
     this.client = new S3Client({
@@ -103,6 +137,67 @@ export class S3FileStore implements FileStore {
   async delete(key: string): Promise<void> {
     assertSafeKey(key);
     await this.client.send(new DeleteObjectCommand({ Bucket: this.cfg.bucket, Key: key }));
+  }
+
+  async head(key: string): Promise<{ size: number } | null> {
+    assertSafeKey(key);
+    try {
+      const out = await this.client.send(
+        new HeadObjectCommand({ Bucket: this.cfg.bucket, Key: key }),
+      );
+      return { size: out.ContentLength ?? 0 };
+    } catch (e) {
+      const err = e as { name?: string; $metadata?: { httpStatusCode?: number } };
+      if (err.name === 'NotFound' || err.$metadata?.httpStatusCode === 404) return null;
+      throw e;
+    }
+  }
+
+  async presignPut(
+    key: string,
+    opts: { sha256Hex: string; size: number; mime: string; ttlSeconds: number },
+  ): Promise<PresignedUpload> {
+    assertSafeKey(key);
+    const checksum = Buffer.from(opts.sha256Hex, 'hex').toString('base64');
+    const url = await getSignedUrl(
+      this.client,
+      new PutObjectCommand({
+        Bucket: this.cfg.bucket,
+        Key: key,
+        ContentType: opts.mime,
+        ContentLength: opts.size,
+        ChecksumSHA256: checksum,
+      }),
+      {
+        expiresIn: opts.ttlSeconds,
+        // Giữ checksum ở HEADER (không đẩy lên query) và ký cả content-type, content-length.
+        unhoistableHeaders: new Set(['x-amz-checksum-sha256']),
+        signableHeaders: new Set(['content-type', 'content-length', 'x-amz-checksum-sha256']),
+      },
+    );
+    return {
+      url,
+      headers: { 'content-type': opts.mime, 'x-amz-checksum-sha256': checksum },
+      expiresAt: new Date(Date.now() + opts.ttlSeconds * 1000),
+    };
+  }
+
+  presignGet(
+    key: string,
+    opts: { ttlSeconds: number; fileName: string; mime: string },
+  ): Promise<string> {
+    assertSafeKey(key);
+    const ascii = opts.fileName.replace(/[^A-Za-z0-9._-]/g, '_');
+    return getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.cfg.bucket,
+        Key: key,
+        ResponseContentType: opts.mime,
+        ResponseContentDisposition: `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(opts.fileName)}`,
+      }),
+      { expiresIn: opts.ttlSeconds },
+    );
   }
 }
 

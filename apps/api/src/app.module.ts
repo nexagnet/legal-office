@@ -2,6 +2,8 @@ import { type DynamicModule, Module } from '@nestjs/common';
 import type pg from 'pg';
 import { PG_POOL, PgService } from './db/pg.service';
 import { AccessController } from './admin/access.controller';
+import { MembersController } from './admin/members.controller';
+import { PeopleController } from './people/people.controller';
 import { ApprovalController } from './approval/approval.controller';
 import { AuthController } from './auth/auth.controller';
 import {
@@ -14,6 +16,17 @@ import {
 import { resolveTenantMailer } from './reminders/resolve-mailer';
 import { SessionResolver } from './auth/session.resolver';
 import { AssetsController } from './assets/assets.controller';
+import { DmsActivityController } from './dms/dms-activity.controller';
+import { DmsAmendmentsController } from './dms/dms-amendments.controller';
+import { DmsCasesController } from './dms/dms-cases.controller';
+import { DmsScansController } from './dms/dms-scans.controller';
+import { DmsSubmissionsController } from './dms/dms-submissions.controller';
+import { DmsLegacyController } from './dms/dms-legacy.controller';
+import { DmsBrowseController } from './dms/dms-browse.controller';
+import { DmsSearchController } from './dms/dms-search.controller';
+import { DmsPermissionsController } from './dms/dms-permissions.controller';
+import { DmsNumbersController } from './dms/dms-numbers.controller';
+import { DmsThvController } from './dms/dms-thv.controller';
 import { EnforcementCaseController } from './enforcement/enforcement-case.controller';
 import { FormsController } from './forms/forms.controller';
 import { HealthController } from './health.controller';
@@ -21,6 +34,7 @@ import { type ActorResolver } from './http/actor';
 import { ACTOR_RESOLVER, ActorGuard } from './http/actor.guard';
 import { ServiceOfDocumentsController } from './service-of-documents/service-of-documents.controller';
 import { OfficeController } from './office/office.controller';
+import { ThvCardsController } from './office/thv-cards.controller';
 import { MailSettingsController } from './reminders/mail-settings.controller';
 import { VerificationController } from './verification/verification.controller';
 import { VibangIntakeController } from './vibang/vibang-intake.controller';
@@ -62,9 +76,23 @@ export class AppModule {
         AssetsController,
         ApprovalController,
         AccessController,
+        MembersController,
+        PeopleController,
         OfficeController,
+        ThvCardsController,
         MailSettingsController,
         FormsController,
+        DmsAmendmentsController,
+        DmsActivityController,
+        DmsCasesController,
+        DmsSubmissionsController,
+        DmsScansController,
+        DmsLegacyController,
+        DmsBrowseController,
+        DmsSearchController,
+        DmsPermissionsController,
+        DmsNumbersController,
+        DmsThvController,
       ],
       providers: [
         { provide: PG_POOL, useValue: options.pool },

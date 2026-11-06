@@ -1,0 +1,46 @@
+{
+ "role": "ke-toan",
+ "title": "Hướng dẫn dành cho Kế toán",
+ "sections": [
+  {
+   "title": "DMS · Kế toán: Tổng quan và Vật tư văn phòng",
+   "intro": "Trong phần hồ sơ DMS, Kế toán chỉ có Tổng quan và Vật tư văn phòng. Phần mềm KHÔNG làm kế toán: MISA là sổ kế toán duy nhất, phần mềm không lưu số tiền.",
+   "rules": [
+    "Không nhập số tiền, công nợ hay bút toán vào phần mềm.",
+    "Xuất kho vượt số tồn bị chặn. Điều chỉnh sau kiểm kê cần Trưởng văn phòng duyệt."
+   ],
+   "problems": [
+    [
+     "Không thấy mục hồ sơ nghiệp vụ",
+     "Đúng thiết kế: Kế toán không thao tác hồ sơ nghiệp vụ trong DMS."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Tổng quan của Kế toán",
+     "note": "Thanh bên chỉ có hai mục: Tổng quan và Vật tư văn phòng.",
+     "detail": [],
+     "img": "ke-toan/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Vật tư văn phòng"
+      }
+     ]
+    },
+    {
+     "title": "Vật tư: tồn kho, nhập và xuất",
+     "note": "Thẻ Tồn kho cho thấy số lượng hiện có. \"Nhập / xuất\" để ghi nhập hoặc xuất kho; \"Đặt ngưỡng\" để hệ thống báo Sắp hết.",
+     "detail": [],
+     "img": "ke-toan/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tìm theo tên vật tư"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

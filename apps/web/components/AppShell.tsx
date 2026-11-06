@@ -1,18 +1,59 @@
 'use client';
 
 import Link from 'next/link';
+import { AdminBannerContext, type BannerOverride } from './admin-banner';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
-import type { NavItem } from '../app/nav';
+import { useEffect, useState, type ReactNode } from 'react';
+import {
+  Archive,
+  Bell,
+  BookOpen,
+  Building2,
+  ChartColumn,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheckBig,
+  FileText,
+  FolderOpen,
+  Gavel,
+  History,
+  House,
+  Mail,
+  Menu,
+  Package,
+  Scale,
+  Search,
+  Send,
+  Settings,
+  Trash2,
+  Users,
+  UserRound,
+  type LucideIcon,
+} from 'lucide-react';
+import { hrefOf, NAV, OVERVIEW, type NavItem } from '../app/nav';
+import { NavPending } from './NavPending';
+import { Avatar } from './ui/avatar';
+import { ProfileMenu } from './ProfileMenu';
+import { SearchPalette } from './SearchPalette';
 
 interface Props {
   readonly items: readonly NavItem[];
   readonly tenantName: string | null;
   readonly signedIn?: boolean;
+  /** Số hiện ở huy hiệu cạnh mục menu, theo `slug`; thiếu hoặc 0 thì không hiện. */
+  readonly badges?: Readonly<Record<string, number>>;
+  /** Có giá trị thì huy hiệu Hộp duyệt được nạp ở trình duyệt sau khi trang đã hiện, không chặn khung. */
   /** Vai hiển thị ở thẻ người dùng cuối thanh bên (không phải nguồn quyền). */
   readonly roleLabel?: string | null;
+  /** Họ tên và mã người đăng nhập, để hiện avatar và tên ở thẻ người dùng; thiếu thì hiện theo vai. */
+  readonly userName?: string | null;
+  readonly userId?: string | null;
+  /** Văn phòng của người đăng nhập, để hộp tìm kiếm tìm được trong nội dung tài liệu. */
+  readonly officeId?: string | null;
   readonly children: ReactNode;
 }
+
+const COLLAPSE_KEY = 'lo.side.collapsed';
 
 const initials = (label: string) =>
   label
@@ -24,28 +65,114 @@ const initials = (label: string) =>
 
 /** Trang con có đầu trang riêng trong Figma (3:54). */
 const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
-  '/': { title: 'Tổng quan hoạt động Văn phòng', sub: 'Một đơn vị pháp lý · ba địa điểm' },
-  '/quan-tri': { title: 'Nhân sự và phân quyền', sub: 'Vai trò, chi nhánh và quyền xử lý hồ sơ' },
-  '/cai-dat': {
-    title: 'Cấu hình văn phòng',
+  '/dms/cua-toi': {
+    title: 'Hồ sơ do tôi tạo',
+    sub: 'Mọi hồ sơ bạn đã tạo ở các nghiệp vụ, kể cả bản nháp. Mở hồ sơ để tải thêm tài liệu dần.',
+  },
+  '/dms/van-phong': {
+    title: 'Mọi hồ sơ của văn phòng',
+    sub: 'Hồ sơ của mọi người trong văn phòng, theo quyền xem toàn bộ và chi nhánh bạn được cấp.',
+  },
+  '/dms/xac-minh': {
+    title: 'Xác minh THA',
+    sub: 'Hồ sơ xác minh điều kiện thi hành án. Các cột còn lại của Sổ S-04 nằm trong chi tiết hồ sơ.',
+  },
+  '/dms/tim-kiem': {
+    title: 'Tìm trong nội dung scan',
+    sub: 'Tìm chữ trong bản scan đã nhận dạng của bốn nghiệp vụ, chỉ trong phạm vi quyền của bạn.',
+  },
+  '/dms/to-chuc-tha': {
+    title: 'Tổ chức THA',
+    sub: 'Hồ sơ tổ chức thi hành án. Các cột còn lại của Sổ S-05 nằm trong chi tiết hồ sơ.',
+  },
+  '/': { title: 'Tổng quan', sub: 'Tình hình hồ sơ, tài liệu, bản scan và yêu cầu chờ duyệt.' },
+  '/quan-tri/nhan-su': {
+    title: 'Tài khoản',
+    sub: 'Tài khoản của thành viên văn phòng: tên, email, số CCCD, mật khẩu. Quyền truy cập nằm ở mục Nhóm quyền.',
+  },
+  '/quan-tri/nhan-su/them': {
+    title: 'Thêm thành viên',
+    sub: 'Tạo tài khoản rồi xếp vào nhóm quyền. Quyền chỉ đến từ nhóm quyền, không có vai trò.',
+  },
+  '/quan-tri/chi-nhanh': {
+    title: 'Chi nhánh',
+    sub: 'Địa điểm hoạt động của văn phòng. Đổi tên hoặc thêm địa điểm không tự cấp quyền cho ai; địa điểm đã có hồ sơ không xóa được.',
+  },
+  '/quan-tri/phan-quyen': {
+    title: 'Nhóm quyền',
+    sub: 'Ai được làm gì, ở đâu. Quyền hiệu lực = nhóm quyền + phạm vi, rồi trừ đi các quy tắc bắt buộc của hồ sơ lưu trữ.',
+  },
+  '/quan-tri/phan-quyen/de-xuat': {
+    title: 'Đổi nhóm hoặc quyền',
+    sub: 'Chọn nhóm và loại thay đổi. Admin áp dụng ngay và mọi thay đổi được ghi vào nhật ký phân quyền.',
+  },
+  '/quan-tri/the-thv': {
+    title: 'Thẻ thừa hành viên',
+    sub: 'Tư cách hành nghề được ghi nhận theo căn cứ thực tế, có bản scan và lịch sử. Nhóm quyền Thừa hành viên không tự tạo ra tư cách này.',
+  },
+  '/quan-tri/email': {
+    title: 'Email gửi thư',
+    sub: 'Cấu hình máy chủ gửi thư để gửi link đặt lại mật khẩu và nhắc hạn. Gửi link đặt lại mật khẩu cho người quên mật khẩu.',
+  },
+  '/quan-tri/lich': {
+    title: 'Lịch làm việc',
+    sub: 'Ngày làm việc trong tuần và ngày nghỉ. Dùng để tính hạn pháp định và nhắc việc.',
+  },
+  '/vat-tu': {
+    title: 'Văn phòng phẩm',
+    sub: 'Danh mục, nhập, xuất, tồn kho và lịch sử điều chỉnh vật tư.',
+  },
+  '/dms/so/s-01': {
+    title: 'Xuất sổ S-01 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
+  '/dms/so/s-02': {
+    title: 'Xuất sổ S-02 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
+  '/dms/so/s-04': {
+    title: 'Xuất sổ S-04 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
+  '/dms/so/s-05': {
+    title: 'Xuất sổ S-05 · Preview',
+    sub: 'Xem trước sổ theo đúng mẫu để xuất in.',
+  },
+  '/quan-tri/cai-dat': {
+    title: 'Cài đặt văn phòng',
     sub: 'Thông tin pháp lý và thiết lập toàn văn phòng',
   },
-  '/so-sach/theo-doi-so': {
-    title: 'Sổ theo dõi S-03',
-    sub: 'Theo dõi thông tin cập nhật Sở Tư pháp',
-  },
-  '/hop-dong/n-03': {
-    title: 'Hợp đồng dịch vụ lập Vi bằng · N-03',
-    sub: 'Tạo từ dữ liệu, nhập DOCX/PDF, cho phép một hợp đồng gắn nhiều Vi bằng.',
-  },
-  '/bieu-mau/n-04': {
-    title: 'Biên soạn nội dung Vi bằng · N-04',
-    sub: 'THV trực tiếp chứng kiến, chịu trách nhiệm nội dung Vi bằng.',
-  },
-  '/vi-bang/tao-moi': { title: 'Tạo hồ sơ Vi bằng', sub: 'Tiếp nhận yêu cầu lập Vi bằng' },
 };
 
+/** Trang chi tiết của mục Phân quyền: tên nhóm/người nằm trong thân trang nên đầu trang dùng tên chung. */
+const PERMISSION_DETAIL_HEAD: readonly [RegExp, { title: string; sub: string }][] = [
+  [
+    /^\/quan-tri\/phan-quyen\/yeu-cau\/[^/]+$/,
+    {
+      title: 'Yêu cầu đổi quyền (cũ)',
+      sub: 'Yêu cầu đổi quyền lập theo cách cũ. Từ nay Admin đổi quyền trực tiếp và mọi thay đổi ghi vào nhật ký phân quyền.',
+    },
+  ],
+  [
+    /^\/quan-tri\/phan-quyen\/nhom\/[^/]+$/,
+    {
+      title: 'Nhóm quyền',
+      sub: 'Chỉ Admin đổi quyền và thành viên của nhóm; mỗi thay đổi có hiệu lực ngay và được ghi nhật ký.',
+    },
+  ],
+  [
+    /^\/quan-tri\/phan-quyen\/nguoi-dung\/[^/]+$/,
+    {
+      title: 'Quyền hiệu lực',
+      sub: 'Tổng hợp từ các nhóm quyền của người này. Muốn đổi, dùng nút Đổi nhóm quyền hoặc mục Quyền riêng; thay đổi có hiệu lực ngay và được ghi nhật ký.',
+    },
+  ],
+];
+
 const CASE_PATH = /^\/vi-bang\/(?!tao-moi$)[^/]+$/;
+/** Trang dùng khung hồ sơ: banner do trang đổ vào (`CaseBanner`), không lấy tên từ đường dẫn. */
+const CASE_FRAME_PATH =
+  /^\/(?:vi-bang\/(?!tao-moi(?:\/|$))[^/]+(?:\/[a-z0-9-]+)?|(?:tong-dat|xac-minh|to-chuc-tha|cong-van)\/[^/]+)$/;
 const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
   'duyet-sua': {
     title: 'Yêu cầu sửa hồ sơ sau 48 giờ',
@@ -103,13 +230,112 @@ const STAGE_HEAD: Record<string, { title: string; sub: string }> = {
 const STAGE_PATH = /^\/vi-bang\/[^/]+\/([a-z0-9-]+)$/;
 const CASE_HEAD = { title: 'Chi tiết và tiến độ Vi bằng', sub: 'Theo dõi tiến độ và xử lý hồ sơ' };
 
-const hrefOf = (i: NavItem) => `/${i.slug}`;
+/** Màn đăng nhập/xác thực: không thanh bên, nền một khối có panel thương hiệu. */
+const AUTH_PATHS: ReadonlySet<string> = new Set([
+  '/login',
+  '/quen-mat-khau',
+  '/dat-lai-mat-khau',
+  '/doi-mat-khau',
+]);
+/** Lối tắt trên thanh dưới (điện thoại): hồ sơ do tôi tạo, Trình / Duyệt, hai nghiệp vụ dùng nhiều nhất. */
+const QUICK_SLUGS = ['dms', 'dms-trinh-duyet', 'dms-vi-bang', 'dms-tong-dat'] as const;
+
+function AuthStage({ children }: { readonly children: ReactNode }) {
+  return (
+    <div className="auth-stage">
+      <aside className="auth-brand" aria-hidden="true">
+        <span className="auth-mark">
+          <Scale aria-hidden="true" />
+        </span>
+        <p className="auth-title">Quản lý văn phòng thừa hành viên</p>
+        <p className="auth-sub">Vi bằng · Tống đạt · Xác minh · Tổ chức thi hành án</p>
+      </aside>
+      <main id="main" className="auth-main" tabIndex={-1}>
+        {children}
+      </main>
+    </div>
+  );
+}
+
+const NAV_ICON: Readonly<Record<string, LucideIcon>> = {
+  '': House,
+  'viec-cua-toi': UserRound,
+  'hop-duyet': CircleCheckBig,
+  'vi-bang': FileText,
+  'tong-dat': Send,
+  'xac-minh': Search,
+  'to-chuc-tha': Gavel,
+  'hop-dong': Users,
+  'so-sach': BookOpen,
+  'bieu-mau': FolderOpen,
+  'cong-van': Mail,
+  'vat-tu': Package,
+  dms: FolderOpen,
+  'dms-van-phong': Building2,
+  'dms-vi-bang': FileText,
+  'dms-tong-dat': Send,
+  'dms-xac-minh': Search,
+  'dms-to-chuc-tha': Gavel,
+  'dms-thv': CircleCheckBig,
+  'dms-trinh-duyet': FileText,
+  'dms-scan-da-xoa': Trash2,
+  'dms-lich-su': History,
+  'dms-tai-lieu-cu': Archive,
+  'dms-van-thu': Mail,
+  'dms-xuat-so': BookOpen,
+  'dms-bao-cao': ChartColumn,
+  'bao-cao': ChartColumn,
+  'quan-tri': Building2,
+  'cai-dat': Settings,
+};
+
+/** Màu miền: banner đầu trang và thẻ đổi tông theo nghiệp vụ đang mở (CSS đọc `data-domain`). */
+const DOMAIN_SLUGS: ReadonlySet<string> = new Set([
+  'vi-bang',
+  'tong-dat',
+  'xac-minh',
+  'to-chuc-tha',
+]);
+
+function NavIcon({ slug }: { readonly slug: string }) {
+  const Icon = NAV_ICON[slug];
+  return Icon ? <Icon className="nav-icon" aria-hidden="true" /> : null;
+}
+
+const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
+  { group: 'work', title: 'Công việc' },
+  { group: 'domain', title: 'Nghiệp vụ' },
+  { group: 'office', title: 'Văn phòng' },
+  { group: 'admin', title: 'Quản trị' },
+];
 
 /** Mục đang mở: khớp chính xác, hoặc trang con (`/vi-bang/123`) của một mục không phải Tổng quan. */
+/** Ba sổ Văn thư dùng chung một mục menu: Văn bản đi / nội bộ cũng sáng mục Văn thư (menu chỉ trỏ vào Văn bản đến). */
+const VAN_THU_PATH = /^\/dms\/van-ban-(di|noi-bo)(\/|$)/;
+
 function currentItem(items: readonly NavItem[], pathname: string): NavItem | undefined {
-  return items.find(
+  if (VAN_THU_PATH.test(pathname)) {
+    const vanThu = items.find((i) => i.slug === 'dms-van-thu');
+    if (vanThu) return vanThu;
+  }
+  const hits = items.filter(
     (i) => pathname === hrefOf(i) || (i.slug !== '' && pathname.startsWith(`${hrefOf(i)}/`)),
   );
+  // Mục có đường dẫn dài nhất thắng (vd `/dms/sua-doi` thắng `/dms`).
+  return hits.sort((a, b) => hrefOf(b).length - hrefOf(a).length)[0];
+}
+
+/** Mục menu khớp đường dẫn nhưng vai hiện tại không có (và khớp sát hơn mục cha đang có), hoặc không có. */
+function hiddenFromRole(
+  items: readonly NavItem[],
+  pathname: string,
+  visible: NavItem | undefined,
+): NavItem | undefined {
+  const shown = new Set(items.map((i) => i.slug));
+  const all = [OVERVIEW, ...NAV].filter((n) => !n.hidden && !shown.has(n.slug));
+  const match = currentItem(all, pathname);
+  if (!match) return undefined;
+  return hrefOf(match).length > (visible ? hrefOf(visible).length : -1) ? match : undefined;
 }
 
 /**
@@ -120,94 +346,220 @@ export function AppShell({
   items,
   tenantName,
   signedIn = false,
+  badges: initialBadges = {},
   roleLabel = null,
+  userName = null,
+  userId = null,
+  officeId = null,
   children,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname() ?? '/';
   const [open, setOpen] = useState(false);
-  const current = currentItem(items, pathname);
+  const [collapsed, setCollapsed] = useState(false);
+  const [banner, setBanner] = useState<BannerOverride | undefined>();
+  useEffect(() => {
+    try {
+      setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === '1');
+    } catch {
+      /* không có localStorage thì giữ mặc định mở rộng */
+    }
+  }, []);
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      try {
+        window.localStorage.setItem(COLLAPSE_KEY, v ? '0' : '1');
+      } catch {
+        /* chỉ là tiện ích riêng của người xem */
+      }
+      return !v;
+    });
+  };
+  const badges = initialBadges;
+  const visibleCurrent = currentItem(items, pathname);
+  // Người không có mục này trong menu (vd. `/dms/lich-su` với THV): tiêu đề theo đúng trang, không sáng nhầm mục cha.
+  const hiddenMatch = hiddenFromRole(items, pathname, visibleCurrent);
+  const current = hiddenMatch ? undefined : visibleCurrent;
+  const titled = hiddenMatch ?? current;
+  if (AUTH_PATHS.has(pathname)) return <AuthStage>{children}</AuthStage>;
+  const quick = QUICK_SLUGS.map((slug) => items.find((i) => i.slug === slug)).filter(
+    (i): i is NavItem => i !== undefined,
+  );
+  const currentDomain = (current?.slug ?? '').replace(/^dms-/, '');
+  const domain = DOMAIN_SLUGS.has(currentDomain) ? currentDomain : undefined;
+  const caseFrame = CASE_FRAME_PATH.test(pathname);
   const head =
     SUBPAGE_HEAD[pathname] ??
+    PERMISSION_DETAIL_HEAD.find(([re]) => re.test(pathname))?.[1] ??
     STAGE_HEAD[STAGE_PATH.exec(pathname)?.[1] ?? ''] ??
     (CASE_PATH.test(pathname) ? CASE_HEAD : undefined);
   return (
-    <div className="shell">
-      <a className="skip" href="#main">
-        Bỏ qua điều hướng
-      </a>
-      <aside className="side" data-open={open}>
-        <div className="brand">
-          <div
-            data-testid="tenant-logo-slot"
-            className="logo-slot"
-            aria-label="Chỗ đặt logo văn phòng"
-          >
-            Vị trí logo của văn phòng
+    <AdminBannerContext.Provider value={setBanner}>
+      <div
+        className="shell"
+        data-domain={domain}
+        data-area={pathname.startsWith('/quan-tri') ? 'admin' : undefined}
+        data-collapsed={collapsed ? 'true' : undefined}
+      >
+        <a className="skip" href="#main">
+          Bỏ qua điều hướng
+        </a>
+        <aside className="side" data-open={open}>
+          <div className="brand">
+            <div data-testid="tenant-logo-slot" className="logo-slot" aria-hidden="true">
+              <Scale aria-hidden="true" />
+            </div>
+            <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
           </div>
-          <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
-        </div>
-        <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
-          <h2 className="nav-title">Không gian làm việc</h2>
-          <ul>
-            {items.map((i) => (
-              <li key={i.slug}>
-                <Link
-                  href={hrefOf(i)}
-                  aria-current={current === i ? 'page' : undefined}
-                  onClick={() => setOpen(false)}
-                >
-                  {i.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        {signedIn ? (
-          <div className="profile">
-            <span className="avatar" aria-hidden="true">
-              {initials(roleLabel ?? 'Nhân viên')}
-            </span>
-            <span className="profile-text">
-              <strong>{roleLabel ?? 'Nhân viên văn phòng'}</strong>
-              <small>Xem quyền theo tài khoản</small>
-            </span>
-            <button
-              type="button"
-              className="link-btn"
-              onClick={async () => {
-                await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
-                router.push('/login');
-                router.refresh();
-              }}
-            >
-              Đăng xuất
-            </button>
-          </div>
-        ) : null}
-      </aside>
-      <div className="content">
-        <header className="topbar">
+          <nav id="primary-nav" aria-label="Điều hướng chính" className="nav" data-open={open}>
+            {GROUPS.map(({ group, title }) => {
+              const inGroup = items.filter((i) => i.group === group);
+              if (inGroup.length === 0) return null;
+              return (
+                <div key={group} className="nav-group">
+                  <h2 className="nav-title">{title}</h2>
+                  <ul>
+                    {inGroup.map((i) => (
+                      <li key={i.slug}>
+                        <Link
+                          href={hrefOf(i)}
+                          aria-current={current === i ? 'page' : undefined}
+                          onClick={() => setOpen(false)}
+                        >
+                          <NavIcon slug={i.slug} />
+                          <span className="nav-label">{i.label}</span>
+                          {badges[i.slug] ? (
+                            <span className="nav-badge">
+                              <span className="sr-only">Đang chờ: </span>
+                              {badges[i.slug]}
+                            </span>
+                          ) : null}
+                          <NavPending />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </nav>
+          {signedIn ? (
+            <div className="profile">
+              {userName ? (
+                <Avatar name={userName} id={userId} size="lg" />
+              ) : (
+                <span className="avatar" aria-hidden="true">
+                  {initials(roleLabel ?? 'Nhân viên')}
+                </span>
+              )}
+              <span className="profile-text">
+                <strong>{userName ?? roleLabel ?? 'Nhân viên văn phòng'}</strong>
+                <small>
+                  {userName ? (roleLabel ?? 'Nhân viên văn phòng') : 'Xem quyền theo tài khoản'}
+                </small>
+              </span>
+              <button
+                type="button"
+                className="link-btn"
+                onClick={async () => {
+                  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
+                  router.push('/login');
+                  router.refresh();
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
+          ) : null}
           <button
             type="button"
-            className="menu-btn"
-            aria-expanded={open}
-            aria-controls="primary-nav"
-            onClick={() => setOpen((v) => !v)}
+            className="side-collapse"
+            aria-pressed={collapsed}
+            aria-label={collapsed ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'}
+            onClick={toggleCollapsed}
           >
-            {open ? 'Đóng menu' : 'Menu'}
+            {collapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
+            <span className="nav-label">Thu gọn</span>
           </button>
-          <div className="topbar-title">
-            <p className="topbar-h">
-              {head?.title ?? current?.label ?? tenantName ?? 'Quản lý văn phòng'}
-            </p>
-            {head || current ? <p className="topbar-sub">{head?.sub ?? current?.summary}</p> : null}
-          </div>
-        </header>
-        <main id="main" className="main" tabIndex={-1}>
-          {children}
-        </main>
+        </aside>
+        <div className="content">
+          {signedIn ? (
+            <div className="appbar">
+              <SearchPalette items={items} officeId={officeId} />
+              <span className="appbar-gap" />
+              <Link
+                href="/thong-bao"
+                className="appbar-icon"
+                aria-label={badges['dms-trinh-duyet'] ? 'Thông báo: có việc đang chờ' : 'Thông báo'}
+              >
+                <Bell aria-hidden="true" />
+                {badges['dms-trinh-duyet'] ? (
+                  <span className="appbar-dot" aria-hidden="true" />
+                ) : null}
+              </Link>
+              <span className="appbar-divider" aria-hidden="true" />
+              <ProfileMenu
+                initials={initials(roleLabel ?? 'Nhân viên')}
+                roleLabel={roleLabel ?? 'Nhân viên văn phòng'}
+                userName={userName}
+                userId={userId}
+              />
+            </div>
+          ) : null}
+          <header className="topbar">
+            <button
+              type="button"
+              className="menu-btn"
+              aria-expanded={open}
+              aria-controls="primary-nav"
+              onClick={() => setOpen((v) => !v)}
+            >
+              {open ? 'Đóng menu' : 'Menu'}
+            </button>
+            <div className="topbar-title" data-case={caseFrame ? 'true' : undefined}>
+              {caseFrame ? <div id="case-banner" className="case-banner" /> : null}
+              {!caseFrame && banner?.crumb ? (
+                <nav className="topbar-crumb" aria-label="Đường dẫn">
+                  {banner.crumb.map(([label, href], i, all) => (
+                    <span key={label}>
+                      {i > 0 ? ' › ' : ''}
+                      {href && i < all.length - 1 ? <Link href={href}>{label}</Link> : label}
+                    </span>
+                  ))}
+                </nav>
+              ) : null}
+              <p className="topbar-h" hidden={caseFrame}>
+                {banner?.title ?? head?.title ?? titled?.label ?? tenantName ?? 'Quản lý văn phòng'}
+              </p>
+              {!caseFrame && (head || titled) ? (
+                <p className="topbar-sub">{banner?.sub ?? head?.sub ?? titled?.summary}</p>
+              ) : null}
+            </div>
+          </header>
+          <main id="main" className="main" tabIndex={-1}>
+            {children}
+          </main>
+        </div>
+        {quick.length > 0 ? (
+          <nav className="bottom-nav" aria-label="Truy cập nhanh">
+            {quick.map((i) => (
+              <Link key={i.slug} href={hrefOf(i)} aria-current={current === i ? 'page' : undefined}>
+                <NavIcon slug={i.slug} />
+                <span>{i.label}</span>
+              </Link>
+            ))}
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls="primary-nav"
+              onClick={() => setOpen((v) => !v)}
+            >
+              <Menu className="nav-icon" aria-hidden="true" />
+              <span>Thêm</span>
+            </button>
+          </nav>
+        ) : null}
       </div>
-    </div>
+    </AdminBannerContext.Provider>
   );
 }
