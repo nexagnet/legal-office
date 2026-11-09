@@ -154,10 +154,7 @@ export default async function DmsReportPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Báo cáo · Số liệu tổng hợp</h1>
-      <p className="muted">
-        Số liệu tổng hợp để tự điền báo cáo, không tự lập hay gửi báo cáo. Chỉ tính hồ sơ đã lưu
-        chính thức mà bạn được quyền đọc; nháp và nháp đã hủy không tính.
-      </p>
+      <p className="muted">Chỉ tính hồ sơ đã lưu chính thức trong phạm vi quyền của bạn.</p>
       <TabNav
         label="Chọn báo cáo"
         active={bc}
@@ -175,9 +172,8 @@ export default async function DmsReportPage({
         }
       />
       <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
-        Chỉ là số tham khảo để bạn tự điền vào mẫu TP-THV-N-09/N-10 ngoài đời. Hệ thống không tự
-        lập, điền, ký, phát hành hay gửi báo cáo. Kỳ báo cáo là 12 tháng (01/01–31/12); số liệu chốt
-        hết ngày cuối kỳ (Điều 36 TT 08/2026/TT-BTP).
+        Số tham khảo để tự điền mẫu TP-THV-N-09/N-10; hệ thống không lập hay gửi báo cáo. Kỳ báo cáo
+        12 tháng (01/01–31/12), chốt hết ngày cuối kỳ (Điều 36 TT 08/2026/TT-BTP).
       </p>
       {rows === 'error' ? (
         <ErrorRetry
@@ -223,10 +219,7 @@ export default async function DmsReportPage({
           </table>
         </DataTable>
       )}
-      <p className="muted mt-3">
-        Chỉ tiêu "Chưa đủ dữ liệu" sẽ tính được khi hồ sơ có đủ trường tương ứng. Báo cáo đã lập và
-        gửi ngoài đời: đăng ký vào Sổ văn bản đi kèm bản scan.
-      </p>
+      <p className="muted mt-3">Báo cáo đã gửi: đăng ký vào Sổ văn bản đi kèm bản scan.</p>
     </section>
   );
 }

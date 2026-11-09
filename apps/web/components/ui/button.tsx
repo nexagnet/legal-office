@@ -21,7 +21,7 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   readonly asChild?: boolean;
-  /** Đang gửi: khoá nút (chống bấm đúp) và hiện vòng quay. */
+  /** Đang gửi: khóa nút (chống bấm đúp) và hiện vòng quay. */
   readonly loading?: boolean;
 }
 

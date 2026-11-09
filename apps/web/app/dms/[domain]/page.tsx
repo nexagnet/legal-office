@@ -314,7 +314,7 @@ export default async function DmsDomainPage({
       {draftKind && !vanThu ? (
         <AdminBanner
           title={`${domain.label} · ${draftKind === 'nhap' ? 'Nháp' : 'Đã hủy'}`}
-          sub={`${draftKind === 'nhap' ? 'Nháp' : 'Nháp đã hủy'} chưa ghi sổ ${bookCode} và chưa có STT. Bạn chỉ thấy nháp của mình và nháp được cấp quyền xem (draft.view.granted).`}
+          sub={`${draftKind === 'nhap' ? 'Nháp' : 'Nháp đã hủy'} chưa ghi sổ ${bookCode}, chưa có STT. Chỉ hiện nháp của bạn hoặc nháp được cấp quyền xem.`}
         />
       ) : null}
       {vanThu ? (
@@ -568,10 +568,9 @@ export default async function DmsDomainPage({
         </p>
       ) : hasRange && vanThu ? (
         <p className="dms-range-note" role="status">
-          Đang lọc theo thời điểm ghi sổ (nháp: giờ tạo), giờ Việt Nam
+          Lọc theo thời điểm ghi sổ (giờ Việt Nam)
           {range.tu ? `, từ ${range.tu.replace('T', ' ')}` : ''}
-          {range.den ? `, đến hết ${range.den.replace('T', ' ')}` : ''}. Ô “Năm” không áp dụng khi
-          đã chọn khoảng này.
+          {range.den ? `, đến hết ${range.den.replace('T', ' ')}` : ''}.
         </p>
       ) : null}
       <div className="dms-card">
@@ -627,14 +626,14 @@ export default async function DmsDomainPage({
         <div className="dms-foot">
           <p>
             {vanThu && !isDraftView
-              ? `Sổ năm ${year} · ${formatTotal(total, result.totalCapped)} bản ghi chính thức · Nháp và nháp đã hủy không có ${sttLabel}, không vào xuất sổ · bấm dòng để xem chi tiết (không có nút xóa)`
+              ? `Sổ năm ${year} · ${formatTotal(total, result.totalCapped)} bản ghi chính thức`
               : `Hiển thị ${pageRows.length} / ${formatTotal(total, result.totalCapped)} hồ sơ ${
                   isDraftView
                     ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase()
                     : hasRange
                       ? 'chính thức trong khoảng đã chọn'
                       : `chính thức năm ${year}`
-                }. Nháp và nháp đã hủy không có ${sttLabel}, không vào xuất sổ, không tính thống kê chính thức.`}
+                }.`}
           </p>
           {pageCount > 1 ? (
             <nav aria-label="Phân trang" className="dms-pager">

@@ -64,7 +64,7 @@ describe('LoginForm', () => {
     spy.mockImplementationOnce(() => reply(429, { code: 'ACCOUNT_LOCKED' }));
     fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
     await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toContain('tạm khoá 15 phút'),
+      expect(screen.getByRole('alert').textContent).toContain('tạm khóa 15 phút'),
     );
     expect(push).not.toHaveBeenCalled();
   });

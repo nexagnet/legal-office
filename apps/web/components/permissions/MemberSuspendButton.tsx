@@ -7,7 +7,7 @@ import { permissionMessage } from '../../lib/permission-model';
 
 /**
  * Tạm khóa / mở khóa tài khoản (Figma Q1, Q2). Người có quyền duyệt phân quyền thực hiện, áp dụng ngay, lý do bắt buộc.
- * Tạm khóa không xoá gì: nhóm, hồ sơ và lịch sử vẫn còn, chỉ thu hồi phiên đăng nhập và quyền hiệu lực.
+ * Tạm khóa không xóa gì: nhóm, hồ sơ và lịch sử vẫn còn, chỉ thu hồi phiên đăng nhập và quyền hiệu lực.
  */
 export function MemberSuspendButton({
   userId,
@@ -63,7 +63,7 @@ export function MemberSuspendButton({
           <p className="muted">
             {suspended
               ? 'Người này đăng nhập lại được và có lại quyền theo các nhóm quyền hiện có.'
-              : 'Đăng xuất người này ngay và thu hồi mọi quyền hiệu lực. Không xoá gì: nhóm quyền, hồ sơ và lịch sử vẫn còn, có thể mở khóa sau.'}
+              : 'Đăng xuất người này ngay và thu hồi mọi quyền hiệu lực. Không xóa gì: nhóm quyền, hồ sơ và lịch sử vẫn còn, có thể mở khóa sau.'}
           </p>
           <label>
             Lý do

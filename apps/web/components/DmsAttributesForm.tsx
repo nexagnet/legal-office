@@ -11,7 +11,7 @@ import { messageFor } from '../lib/messages';
 
 /**
  * Nhập các cột của sổ cho BẢN NHÁP (hồ sơ hoặc giấy tờ). `method`/`url`/`extra` do trang quyết định;
- * thuộc tính khác (vd ghi chú) được giữ nguyên, chỉ ghi đè các khoá của cột sổ. Máy chủ vẫn từ chối nếu đã ghi sổ.
+ * thuộc tính khác (vd ghi chú) được giữ nguyên, chỉ ghi đè các khóa của cột sổ. Máy chủ vẫn từ chối nếu đã ghi sổ.
  */
 export function DmsAttributesForm({
   url,

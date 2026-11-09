@@ -74,8 +74,7 @@ export default async function ProposePage({
           <section className="grid gap-2 rounded-2xl bg-surface p-5 shadow-sm">
             <h2 className="font-serif text-base">Mỗi thay đổi ghi một dòng nhật ký</h2>
             <p className="text-sm text-muted">
-              Chọn nhiều thành viên hoặc nhiều quyền thì hệ thống ghi từng thay đổi riêng cùng một
-              lý do. Thay đổi có hiệu lực ngay.
+              Chọn nhiều thành viên hoặc quyền thì ghi từng thay đổi riêng, cùng một lý do.
             </p>
           </section>
         </aside>

@@ -20,7 +20,7 @@ export interface ListColumn {
   readonly special?: 'stt' | 'scan' | 'scanlite' | 'number' | 'actions' | 'phone' | 'returned';
   /** Một ô của hàng hồ sơ: `get` đọc dòng sổ đầu tiên, `all` là mọi dòng sổ của hồ sơ (Tống đạt: mỗi giấy tờ một dòng). */
   readonly cell?: (get: Getter, all: readonly Getter[]) => ListCellText;
-  /** Khoá cột đánh dấu: hàng hồ sơ hiện số giấy tờ có dấu, dòng sổ con hiện ✓. */
+  /** Khóa cột đánh dấu: hàng hồ sơ hiện số giấy tờ có dấu, dòng sổ con hiện ✓. */
   readonly tick?: string;
   /** Nhãn gộp trên đầu một nhóm cột liên tiếp (Tống đạt: "Cơ quan giao văn bản tống đạt"). */
   readonly group?: string;
@@ -323,7 +323,7 @@ export function vanThuLayout(spec: DmsBookSpec): readonly ListColumn[] {
   ];
 }
 
-/** Hàm lấy giá trị một cột sổ theo khoá, từ dòng sổ đầu tiên của hồ sơ (rỗng nếu không có). */
+/** Hàm lấy giá trị một cột sổ theo khóa, từ dòng sổ đầu tiên của hồ sơ (rỗng nếu không có). */
 export function bookGetter(
   spec: DmsBookSpec,
   row: DmsBookRow | undefined,

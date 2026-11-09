@@ -59,7 +59,7 @@ describe('MailSettingsForm', () => {
     render(<MailSettingsForm officeId="o1" settings={base} />);
     fireEvent.change(screen.getByLabelText('Mật khẩu SMTP'), { target: { value: 'moi-gia-lap' } });
     fireEvent.click(screen.getByRole('button', { name: 'Lưu cấu hình' }));
-    await screen.findByText(/chưa có khoá mã hoá/);
+    await screen.findByText(/chưa có khóa mã hóa/);
     expect(JSON.parse(String(fetchMock.mock.calls[0]![1]?.body))).toMatchObject({
       password: 'moi-gia-lap',
     });
@@ -67,7 +67,7 @@ describe('MailSettingsForm', () => {
     await screen.findByText('Đã gửi thư thử tới admin@example.test.');
   });
 
-  it('cảnh báo thiếu khoá mã hoá và khoá nút thử khi chưa cấu hình', () => {
+  it('cảnh báo thiếu khóa mã hóa và khóa nút thử khi chưa cấu hình', () => {
     render(
       <MailSettingsForm
         officeId="o1"

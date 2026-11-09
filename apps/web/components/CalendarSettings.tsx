@@ -118,7 +118,7 @@ export function CalendarSettings({
       if (!ok) return { error: messageFor(json.code as string | undefined) };
       setHolidays((cur) => cur.filter((h) => h.day !== day));
       router.refresh();
-      return { notice: 'Đã xoá ngày nghỉ.' };
+      return { notice: 'Đã xóa ngày nghỉ.' };
     });
 
   async function compute(e: FormEvent<HTMLFormElement>) {
@@ -206,10 +206,10 @@ export function CalendarSettings({
                     className="link-btn"
                     disabled={busy}
                     aria-busy={busy}
-                    aria-label={`Xoá ngày nghỉ ${h.label}`}
+                    aria-label={`Xóa ngày nghỉ ${h.label}`}
                     onClick={() => removeHoliday(h.day)}
                   >
-                    Xoá
+                    Xóa
                   </button>
                 ) : null}
               </li>

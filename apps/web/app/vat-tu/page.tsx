@@ -265,8 +265,7 @@ export default async function SuppliesPage({
     <section aria-labelledby="t">
       <div className="page-head">
         <div>
-          <h1 id="t">Văn phòng phẩm</h1>
-          <p className="muted">Danh mục, nhập, xuất, tồn kho và lịch sử điều chỉnh vật tư.</p>
+          <h1 id="t">Vật tư văn phòng</h1>
         </div>
         {officeId && canManage ? (
           <div className="flex flex-wrap gap-3">
@@ -428,11 +427,7 @@ export default async function SuppliesPage({
               </table>
             </DataTable>
           )}
-          <p className="muted mt-4">
-            Mọi giao dịch nhập/xuất được giữ lại. Điều chỉnh giao dịch đã ghi nhận phải qua ghi nhận
-            điều chỉnh có lưu vết, không xóa lịch sử. Nguyên tắc xuất kho: ưu tiên lô nhập trước
-            (FIFO), có lịch sử người nhập/xuất, thời gian và chi nhánh.
-          </p>
+          <p className="muted mt-4">Xuất kho trừ theo lô nhập trước (FIFO).</p>
         </>
       ) : tab === 'danh-muc' ? (
         <>
@@ -478,10 +473,7 @@ export default async function SuppliesPage({
       ) : tab === 'kiem-ke' ? (
         <>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="muted">
-              Kiểm kê theo phiên. Chênh lệch chỉ ghi vào sổ sau khi Trưởng văn phòng duyệt; mỗi
-              chênh lệch cần lý do; chỉ ghi số lượng.
-            </p>
+            <p className="muted">Chênh lệch chỉ ghi vào sổ sau khi Trưởng văn phòng duyệt.</p>
             {officeId ? <StocktakeOpen officeId={officeId} branches={session.branches} /> : null}
           </div>
           {stocktakes === 'error' ? (
@@ -580,8 +572,7 @@ export default async function SuppliesPage({
                     <div className="panel">
                       <h2>Trưởng văn phòng duyệt</h2>
                       <p className="muted">
-                        Duyệt thì mới ghi phiếu điều chỉnh cho các dòng lệch; sổ đổi giữa chừng thì
-                        phải đếm lại.
+                        Duyệt xong mới ghi phiếu điều chỉnh cho các dòng lệch.
                       </p>
                       <StocktakeDecision
                         stocktakeId={current.id}
@@ -673,10 +664,6 @@ export default async function SuppliesPage({
               </table>
             </DataTable>
           )}
-          <p className="muted mt-4">
-            Xuất kho trừ theo lô nhập trước (FIFO) và chặn khi vượt tồn; mọi biến động đều ghi người
-            thực hiện, thời gian và lô nguồn. Không ghi giá.
-          </p>
         </>
       ) : batchList.length === 0 ? (
         <div className="state" role="status">

@@ -117,9 +117,7 @@ export function DmsMultiUpload({ caseId }: { readonly caseId: string }) {
       <Button type="submit" variant="secondary" loading={busy}>
         Tải lên
       </Button>
-      <p className="m-0 w-full text-xs text-muted">
-        Chọn bao nhiêu tệp cũng được (PDF, JPEG, PNG), không cần chọn loại tài liệu.
-      </p>
+      <p className="m-0 w-full text-xs text-muted">PDF, JPEG hoặc PNG, chọn nhiều tệp được.</p>
       {note ? (
         <p role="status" className="m-0 w-full text-sm">
           {note}
@@ -241,7 +239,7 @@ export function UploadDmsFile({
       />
       <Input
         name="label"
-        placeholder="Tên tệp (tuỳ chọn)"
+        placeholder="Tên tệp (tùy chọn)"
         maxLength={200}
         className="min-w-48 flex-1"
       />
@@ -290,7 +288,7 @@ export function DmsDraftActions({
             open={cancelling}
             onOpenChange={setCancelling}
             title="Hủy bản nháp?"
-            description="Bản nháp chưa cấp số hồ sơ, chưa vào sổ. Hủy xong bản nháp biến khỏi danh sách nháp và chuyển sang mục Đã hủy."
+            description="Bản nháp sẽ chuyển sang mục Đã hủy."
           >
             <form
               aria-label="Hủy bản nháp"
@@ -339,7 +337,7 @@ export function DmsDraftActions({
             open={confirming}
             onOpenChange={setConfirming}
             title="Xác nhận lưu chính thức"
-            description="Sau khi xác nhận lưu chính thức, hồ sơ và tài liệu không thể sửa trực tiếp hay xoá. Chỉ Admin sửa được nội dung (có lý do, lưu thành phiên bản mới); nhân viên chỉ tải thêm scan."
+            description="Sau khi lưu chính thức, hồ sơ không thể sửa trực tiếp hay xóa. Chỉ Admin sửa được nội dung (có lý do); nhân viên chỉ tải thêm scan."
             confirmLabel="Lưu chính thức"
             busy={busy}
             onConfirm={() => {

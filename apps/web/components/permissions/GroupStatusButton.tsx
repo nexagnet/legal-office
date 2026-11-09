@@ -7,7 +7,7 @@ import { permissionMessage } from '../../lib/permission-model';
 
 /**
  * Ngừng dùng / dùng lại một nhóm quyền (người có quyền duyệt, áp dụng ngay, lý do bắt buộc).
- * Ngừng dùng không xoá gì: thành viên, quyền và lịch sử còn nguyên, chỉ không còn cấp quyền hiệu lực.
+ * Ngừng dùng không xóa gì: thành viên, quyền và lịch sử còn nguyên, chỉ không còn cấp quyền hiệu lực.
  */
 export function GroupStatusButton({
   groupId,
@@ -59,7 +59,7 @@ export function GroupStatusButton({
           <h2 id={`group-status-${groupId}`}>{verb}</h2>
           <p className="muted">
             {retire
-              ? 'Thành viên của nhóm mất quyền hiệu lực ngay. Không xoá gì: nhóm, quyền, thành viên và lịch sử vẫn còn, có thể dùng lại.'
+              ? 'Thành viên của nhóm mất quyền hiệu lực ngay. Không xóa gì: nhóm, quyền, thành viên và lịch sử vẫn còn, có thể dùng lại.'
               : 'Thành viên của nhóm có lại quyền hiệu lực ngay.'}
           </p>
           <label>

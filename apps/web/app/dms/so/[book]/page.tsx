@@ -95,10 +95,8 @@ export default async function DmsBookPage({
         </Button>
       </BookPdfViewer>
       <p className="print-hide mt-3 rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
-        Khung trên là chính file PDF sẽ in (A4 ngang, có bìa 1, bìa 2 và trang ruột) đúng mẫu Phụ
-        lục I Thông tư 08/2026/TT-BTP. Bấm &quot;Xuất PDF để in&quot; để mở hộp thoại in của trình
-        duyệt, hoặc &quot;Tải PDF&quot; để lưu file. STT trong sổ do hệ thống tự cấp theo sổ, văn
-        phòng và năm; ô chưa có dữ liệu để trống.
+        Khung trên là file PDF sẽ in (A4 ngang) đúng mẫu Phụ lục I Thông tư 08/2026/TT-BTP; ô chưa
+        có dữ liệu để trống.
       </p>
     </section>
   );

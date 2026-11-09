@@ -15,10 +15,6 @@ export default function DmsBooksIndex() {
   return (
     <section aria-labelledby="t">
       <h1 id="t">Xuất sổ nghiệp vụ</h1>
-      <p className="muted">
-        Xem trước sổ theo đúng mẫu để xuất in. STT do hệ thống cấp theo sổ, văn phòng và năm khi hồ
-        sơ được xác nhận lưu chính thức.
-      </p>
       <ul
         className="m-0 mt-4 grid list-none gap-4 p-0 sm:grid-cols-2"
         aria-label="Các sổ nghiệp vụ"

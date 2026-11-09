@@ -74,7 +74,7 @@ describe('LoginForm — email hoặc CCCD + mật khẩu', () => {
     fillLogin();
     await screen.findByText(/CCCD hoặc mật khẩu không đúng/);
     fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }));
-    await screen.findByText(/tạm khoá 15 phút/);
+    await screen.findByText(/tạm khóa 15 phút/);
     expect(push).not.toHaveBeenCalled();
   });
 });

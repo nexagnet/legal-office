@@ -187,7 +187,7 @@ export function LegacyUploader({
   return (
     <div className="card form">
       <label>
-        Thư mục lưu (tuỳ chọn, ví dụ 2019/Hợp đồng)
+        Thư mục lưu (tùy chọn, ví dụ 2019/Hợp đồng)
         <input
           value={folder}
           onChange={(e) => setFolder(e.target.value)}

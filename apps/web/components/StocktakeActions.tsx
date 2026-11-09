@@ -65,7 +65,7 @@ export function StocktakeOpen({
               ))}
             </Select>
           </Field>
-          <Field id="kk-note" label="Ghi chú (tuỳ chọn)">
+          <Field id="kk-note" label="Ghi chú (tùy chọn)">
             <Input
               id="kk-note"
               maxLength={500}
@@ -81,7 +81,7 @@ export function StocktakeOpen({
         </SheetBody>
         <SheetFooter>
           <Button variant="secondary" onClick={() => setOpen(false)}>
-            Huỷ
+            Hủy
           </Button>
           <Button
             loading={busy}

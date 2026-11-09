@@ -18,7 +18,7 @@ type Action =
 /**
  * Chi nhánh được xem (quyết định owner 2026-11-01): người dùng chỉ thấy hồ sơ và bản ghi của chi nhánh được cấp, kể cả Văn thư
  * xem sổ. Nhóm quyền nói "làm được gì", mục này nói "ở đâu". Người có quyền duyệt phân quyền cấp/thu hồi, áp dụng ngay, có lý do
- * và nhật ký; thu hồi không xoá gì. Cấp phát cũ theo vai (LEGACY) vẫn có hiệu lực nhưng chỉ hiển thị ở đây.
+ * và nhật ký; thu hồi không xóa gì. Cấp phát cũ theo vai (LEGACY) vẫn có hiệu lực nhưng chỉ hiển thị ở đây.
  */
 export function BranchAccessSection({
   officeId,
@@ -149,7 +149,7 @@ export function BranchAccessSection({
             </label>
           ) : (
             <p className="muted">
-              Có hiệu lực ngay: người này không còn thấy hồ sơ và bản ghi của chi nhánh. Không xoá
+              Có hiệu lực ngay: người này không còn thấy hồ sơ và bản ghi của chi nhánh. Không xóa
               gì, lịch sử cấp và thu hồi vẫn còn.
             </p>
           )}

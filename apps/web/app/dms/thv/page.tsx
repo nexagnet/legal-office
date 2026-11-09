@@ -28,10 +28,6 @@ export default async function DmsThvPending() {
   return (
     <section aria-labelledby="t">
       <h1 id="t">Hồ sơ nháp chờ tôi lưu</h1>
-      <p className="muted">
-        Hồ sơ nháp có ghi tên bạn là thừa hành viên. Hồ sơ chỉ được lưu chính thức sau khi chính bạn
-        xác nhận.
-      </p>
       {rows === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"

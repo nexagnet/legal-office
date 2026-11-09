@@ -153,9 +153,8 @@ export default async function DmsSearchPage({
         <Button type="submit">Tìm</Button>
       </form>
       <p className="muted mb-3">
-        Chữ trong tệp scan được nhận dạng tự động sau khi tải lên (thường trong 1 đến 2 phút). Chỉ
-        hiện hồ sơ trong phạm vi quyền của bạn. Kết quả xếp theo độ khớp; số trong ngoặc là số hồ sơ
-        chính thức của từng lựa chọn.
+        Chữ trong scan được nhận dạng sau khi tải lên (thường 1 đến 2 phút). Số trong ngoặc là số hồ
+        sơ chính thức của từng lựa chọn.
       </p>
       {result === null ? null : result === 'error' ? (
         <div className="state" role="alert">

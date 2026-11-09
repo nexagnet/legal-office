@@ -44,9 +44,6 @@ export default async function MyCreatedCasesPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Hồ sơ do tôi tạo</h1>
-      <p className="muted">
-        Mọi hồ sơ bạn đã tạo ở các nghiệp vụ, kể cả bản nháp. Mở hồ sơ để tải thêm tài liệu dần.
-      </p>
       {result === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"

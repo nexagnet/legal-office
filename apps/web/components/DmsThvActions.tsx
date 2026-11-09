@@ -21,7 +21,7 @@ async function send(method: string, url: string, body?: unknown): Promise<string
 }
 
 /** Ghi tên thừa hành viên trên BẢN NHÁP. Ghi tên chưa đủ: chính THV đó phải tự xác nhận trước khi ghi sổ. */
-/** Khoá của cột "Thừa hành viên thực hiện" trong cả 4 sổ (S-01, S-02, S-04, S-05). */
+/** Khóa của cột "Thừa hành viên thực hiện" trong cả 4 sổ (S-01, S-02, S-04, S-05). */
 const THV_TEXT_KEY = 'thua_hanh_vien';
 
 /** Nơi ghi chữ THV: thuộc tính của hồ sơ (S-02/04/05) hoặc của từng giấy tờ nháp (S-01 Tống đạt). */
@@ -141,7 +141,7 @@ export function DmsThvPicker({
         <p className="thv-picker-hint">
           {target.docs.length === 0
             ? 'Chưa có giấy tờ nào: thêm giấy tờ rồi mới ghi được chữ THV vào sổ.'
-            : `Chữ này áp dụng cho ${target.docs.length} giấy tờ nháp của hồ sơ; từng giấy tờ vẫn sửa riêng được bên dưới.`}
+            : `Chữ này áp dụng cho ${target.docs.length} giấy tờ nháp; từng giấy tờ vẫn sửa riêng được.`}
         </p>
       ) : null}
       {error ? <p role="alert">{error}</p> : null}

@@ -102,7 +102,7 @@ export default async function FormsPage({
       ) : shown === 'error' || shown.length === 0 ? (
         <div className="state" role="status">
           <h2>Không có biểu mẫu khớp</h2>
-          <p>Không có biểu mẫu nào khớp từ khoá tìm kiếm.</p>
+          <p>Không có biểu mẫu nào khớp từ khóa tìm kiếm.</p>
         </div>
       ) : (
         <>

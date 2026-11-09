@@ -1,4 +1,4 @@
-/** Gửi một tệp làm thân yêu cầu (máy chủ tự tính hash và khoá lưu). Trả `{ok, code}` như các lệnh gọi JSON khác. */
+/** Gửi một tệp làm thân yêu cầu (máy chủ tự tính hash và khóa lưu). Trả `{ok, code}` như các lệnh gọi JSON khác. */
 export async function postFile(
   path: string,
   file: File,
