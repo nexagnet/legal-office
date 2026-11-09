@@ -11,7 +11,7 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
       tone="danger"
       alert
       title="Đã xảy ra lỗi"
-      description="Trang chưa tải được. Dữ liệu của bạn không bị thay đổi. Thử tải lại; nếu vẫn lỗi hãy báo quản trị."
+      description="Trang chưa tải được. Thử tải lại; nếu vẫn lỗi hãy báo quản trị."
     >
       <Button variant="danger" onClick={() => reset()}>
         Tải lại

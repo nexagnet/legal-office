@@ -52,10 +52,7 @@ export function CopyGroupButton({ groups }: { readonly groups: readonly DmsGroup
       <dialog ref={dialog} className="branch-dialog" aria-labelledby="group-copy-t">
         <form className="form" onSubmit={submit}>
           <h2 id="group-copy-t">Sao chép nhóm quyền</h2>
-          <p className="muted">
-            Nhóm mới có cùng quyền nghiệp vụ nhưng không chép quyền quản trị phân quyền và chưa có
-            thành viên. Thêm thành viên ở trang chi tiết nhóm.
-          </p>
+          <p className="muted">Nhóm mới có cùng quyền nghiệp vụ, chưa có thành viên.</p>
           <label>
             Nhóm nguồn
             <select name="source" required defaultValue={groups[0]?.id}>

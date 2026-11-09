@@ -159,8 +159,7 @@ export function DmsFilterFields({
             </label>
           </div>
           <p className="dms-pop-hint">
-            Chọn mốc nhanh hoặc khoảng Từ/Đến thì ô “Năm” không áp dụng. Mốc nhanh lưu dạng tương
-            đối: bộ lọc đã lưu “Tháng này” mở tháng sau vẫn là tháng này. Tuần tính từ thứ Hai.
+            Chọn mốc nhanh hoặc khoảng Từ/Đến thì ô “Năm” không áp dụng. Tuần tính từ thứ Hai.
           </p>
           <div className="dms-pop-foot">
             <Button type="submit" variant="primary">

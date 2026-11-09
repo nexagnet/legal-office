@@ -62,7 +62,7 @@ function PdfPage({
       try {
         await task.promise;
       } catch {
-        // Huỷ do cuộn đi chỗ khác hoặc đổi sổ: không phải lỗi.
+        // Hủy do cuộn đi chỗ khác hoặc đổi sổ: không phải lỗi.
       }
     })();
     return () => {

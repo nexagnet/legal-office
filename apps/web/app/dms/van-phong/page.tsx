@@ -55,9 +55,6 @@ export default async function OfficeCasesPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Mọi hồ sơ của văn phòng</h1>
-      <p className="muted">
-        Hồ sơ của mọi người trong văn phòng, theo quyền xem toàn bộ và chi nhánh bạn được cấp.
-      </p>
       {result === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"

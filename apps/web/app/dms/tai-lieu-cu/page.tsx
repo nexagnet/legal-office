@@ -115,10 +115,6 @@ export default async function LegacyDocumentsPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Tài liệu cũ</h1>
-      <p className="muted">
-        Tài liệu được nạp từ kho cũ của văn phòng. Chỉ xem và tải, không sửa, không xóa. Mỗi lần mở
-        tệp đều được ghi nhật ký.
-      </p>
       {canUpload ? (
         <p>
           <Link href="/dms/tai-lieu-cu/tai-len" className="btn-link primary">

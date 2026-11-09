@@ -67,60 +67,60 @@ const initials = (label: string) =>
 const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
   '/dms/cua-toi': {
     title: 'Hồ sơ do tôi tạo',
-    sub: 'Mọi hồ sơ bạn đã tạo ở các nghiệp vụ, kể cả bản nháp. Mở hồ sơ để tải thêm tài liệu dần.',
+    sub: 'Hồ sơ bạn đã tạo, kể cả bản nháp.',
   },
   '/dms/van-phong': {
     title: 'Mọi hồ sơ của văn phòng',
-    sub: 'Hồ sơ của mọi người trong văn phòng, theo quyền xem toàn bộ và chi nhánh bạn được cấp.',
+    sub: 'Hồ sơ của cả văn phòng, trong phạm vi quyền của bạn.',
   },
   '/dms/xac-minh': {
     title: 'Xác minh THA',
-    sub: 'Hồ sơ xác minh điều kiện thi hành án. Các cột còn lại của Sổ S-04 nằm trong chi tiết hồ sơ.',
+    sub: 'Hồ sơ xác minh điều kiện thi hành án (Sổ S-04).',
   },
   '/dms/tim-kiem': {
     title: 'Tìm trong nội dung scan',
-    sub: 'Tìm chữ trong bản scan đã nhận dạng của bốn nghiệp vụ, chỉ trong phạm vi quyền của bạn.',
+    sub: 'Tìm chữ trong bản scan đã nhận dạng.',
   },
   '/dms/to-chuc-tha': {
     title: 'Tổ chức THA',
-    sub: 'Hồ sơ tổ chức thi hành án. Các cột còn lại của Sổ S-05 nằm trong chi tiết hồ sơ.',
+    sub: 'Hồ sơ tổ chức thi hành án (Sổ S-05).',
   },
-  '/': { title: 'Tổng quan', sub: 'Tình hình hồ sơ, tài liệu, bản scan và yêu cầu chờ duyệt.' },
+  '/': { title: 'Tổng quan', sub: 'Hồ sơ, tài liệu, bản scan và bản trình chờ duyệt.' },
   '/quan-tri/nhan-su': {
     title: 'Tài khoản',
-    sub: 'Tài khoản của thành viên văn phòng: tên, email, số CCCD, mật khẩu. Quyền truy cập nằm ở mục Nhóm quyền.',
+    sub: 'Tài khoản thành viên văn phòng. Quyền nằm ở mục Nhóm quyền.',
   },
   '/quan-tri/nhan-su/them': {
     title: 'Thêm thành viên',
-    sub: 'Tạo tài khoản rồi xếp vào nhóm quyền. Quyền chỉ đến từ nhóm quyền, không có vai trò.',
+    sub: 'Tạo tài khoản và xếp vào nhóm quyền.',
   },
   '/quan-tri/chi-nhanh': {
     title: 'Chi nhánh',
-    sub: 'Địa điểm hoạt động của văn phòng. Đổi tên hoặc thêm địa điểm không tự cấp quyền cho ai; địa điểm đã có hồ sơ không xóa được.',
+    sub: 'Địa điểm hoạt động của văn phòng.',
   },
   '/quan-tri/phan-quyen': {
     title: 'Nhóm quyền',
-    sub: 'Ai được làm gì, ở đâu. Quyền hiệu lực = nhóm quyền + phạm vi, rồi trừ đi các quy tắc bắt buộc của hồ sơ lưu trữ.',
+    sub: 'Ai được làm gì, ở đâu.',
   },
   '/quan-tri/phan-quyen/de-xuat': {
     title: 'Đổi nhóm hoặc quyền',
-    sub: 'Chọn nhóm và loại thay đổi. Admin áp dụng ngay và mọi thay đổi được ghi vào nhật ký phân quyền.',
+    sub: 'Chọn nhóm và loại thay đổi. Áp dụng ngay và ghi nhật ký.',
   },
   '/quan-tri/the-thv': {
     title: 'Thẻ thừa hành viên',
-    sub: 'Tư cách hành nghề được ghi nhận theo căn cứ thực tế, có bản scan và lịch sử. Nhóm quyền Thừa hành viên không tự tạo ra tư cách này.',
+    sub: 'Số thẻ, quyết định và bản scan của từng thừa hành viên.',
   },
   '/quan-tri/email': {
     title: 'Email gửi thư',
-    sub: 'Cấu hình máy chủ gửi thư để gửi link đặt lại mật khẩu và nhắc hạn. Gửi link đặt lại mật khẩu cho người quên mật khẩu.',
+    sub: 'Máy chủ gửi thư đặt lại mật khẩu và nhắc hạn.',
   },
   '/quan-tri/lich': {
     title: 'Lịch làm việc',
-    sub: 'Ngày làm việc trong tuần và ngày nghỉ. Dùng để tính hạn pháp định và nhắc việc.',
+    sub: 'Ngày làm việc và ngày nghỉ, dùng để tính hạn.',
   },
   '/vat-tu': {
-    title: 'Văn phòng phẩm',
-    sub: 'Danh mục, nhập, xuất, tồn kho và lịch sử điều chỉnh vật tư.',
+    title: 'Vật tư văn phòng',
+    sub: 'Tồn kho, nhập và xuất vật tư.',
   },
   '/dms/so/s-01': {
     title: 'Xuất sổ S-01 · Preview',
@@ -150,21 +150,21 @@ const PERMISSION_DETAIL_HEAD: readonly [RegExp, { title: string; sub: string }][
     /^\/quan-tri\/phan-quyen\/yeu-cau\/[^/]+$/,
     {
       title: 'Yêu cầu đổi quyền (cũ)',
-      sub: 'Yêu cầu đổi quyền lập theo cách cũ. Từ nay Admin đổi quyền trực tiếp và mọi thay đổi ghi vào nhật ký phân quyền.',
+      sub: 'Yêu cầu lập theo cách cũ. Nay Admin đổi quyền trực tiếp.',
     },
   ],
   [
     /^\/quan-tri\/phan-quyen\/nhom\/[^/]+$/,
     {
       title: 'Nhóm quyền',
-      sub: 'Chỉ Admin đổi quyền và thành viên của nhóm; mỗi thay đổi có hiệu lực ngay và được ghi nhật ký.',
+      sub: 'Thay đổi có hiệu lực ngay và được ghi nhật ký.',
     },
   ],
   [
     /^\/quan-tri\/phan-quyen\/nguoi-dung\/[^/]+$/,
     {
       title: 'Quyền hiệu lực',
-      sub: 'Tổng hợp từ các nhóm quyền của người này. Muốn đổi, dùng nút Đổi nhóm quyền hoặc mục Quyền riêng; thay đổi có hiệu lực ngay và được ghi nhật ký.',
+      sub: 'Tổng hợp từ các nhóm quyền của người này.',
     },
   ],
 ];

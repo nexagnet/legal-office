@@ -307,8 +307,7 @@ export default async function DmsCasePage({
       </p>
       {c.status === 'RECORDED' ? (
         <NoticeBar action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
-          Hồ sơ đã ghi sổ. Chỉ Admin được sửa nội dung (có lý do, lưu thành phiên bản mới); hồ sơ và
-          STT không bị xóa; nhân viên chỉ tải thêm scan. Mọi thao tác đều ghi lịch sử hoạt động.
+          Hồ sơ đã ghi sổ: chỉ Admin được sửa nội dung (có lý do), nhân viên chỉ tải thêm scan.
         </NoticeBar>
       ) : null}
       {c.status === 'CANCELLED' ? (
@@ -336,17 +335,15 @@ export default async function DmsCasePage({
       />
       {tab === 'tai-lieu' || tab === 'scan' || tab === 'phien-ban' ? (
         <p className="mb-4 text-xs text-muted">
-          Tài liệu = nhóm theo loại ({docs.length}) · Tệp đính kèm = số file ({fileCount}) · Phiên
-          bản cũ = bản thay thế đã lưu, không tính vào tài liệu hiện hành.
+          Tài liệu: {docs.length} nhóm · Tệp đính kèm: {fileCount} file.
         </p>
       ) : null}
 
       {tab === 'chung' && isDraft ? (
         <div className="grid gap-4">
           <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
-            <strong>Bản nháp</strong> · Bản nháp, chưa ghi {book?.code ?? 'sổ'} chính thức. Chỉnh
-            sửa tự do cho đến khi bấm "Xác nhận lưu chính thức"; chưa cấp{' '}
-            {domain.code === 'vtden' ? 'Số đến' : 'STT'}, chưa vào xuất sổ.
+            <strong>Bản nháp</strong> · Chưa ghi {book?.code ?? 'sổ'}; sửa tự do cho đến khi bấm
+            "Xác nhận lưu chính thức".
           </p>
           <section aria-labelledby="sec-a" className="rounded-2xl bg-surface p-5 shadow-sm">
             <h2 id="sec-a">
@@ -399,10 +396,6 @@ export default async function DmsCasePage({
                 ) : null}
               </>
             ) : null}
-            <p className="muted mt-2 text-xs">
-              Trước khi lưu còn sửa được; sau khi xác nhận lưu chính thức, chỉ Admin sửa được nội
-              dung (có lý do, lưu thành phiên bản mới); nhân viên chỉ tải thêm scan.
-            </p>
           </section>
           <section aria-labelledby="sec-b" className="rounded-2xl bg-surface p-5 shadow-sm">
             <h2 id="sec-b">B. Tài liệu đính kèm</h2>
@@ -593,7 +586,7 @@ export default async function DmsCasePage({
                 title={`Xem trước ${preview.label}`}
                 src={`/api/dms/files/${preview.id}/download?inline=1`}
                 caption={`Xem trước · ${preview.label}`}
-                note="Nhân viên chỉ tải thêm scan, không xóa hoặc thay file đã lưu. Cần sửa hồ sơ hoặc xóa scan: trao đổi trực tiếp với Admin."
+                note="Nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin."
                 actions={
                   <>
                     <Button asChild>
@@ -637,10 +630,7 @@ export default async function DmsCasePage({
       {tab === 'lich-su' ? (
         <section aria-labelledby="hist-title" className="mb-5 grid gap-3">
           <h2 id="hist-title">Lịch sử hồ sơ</h2>
-          <p className="muted text-sm">
-            Ai đã làm gì trên hồ sơ này, kể cả tài liệu và tệp của hồ sơ, mới nhất trước. Người tạo
-            hồ sơ: {creatorName ?? '—'}.
-          </p>
+          <p className="muted text-sm">Mới nhất trước. Người tạo hồ sơ: {creatorName ?? '—'}.</p>
           {history.length === 0 ? (
             <p className="muted">Chưa có hoạt động nào được ghi.</p>
           ) : (
@@ -675,10 +665,7 @@ export default async function DmsCasePage({
         <section aria-labelledby="rev-title" className="mb-5 grid gap-3">
           <h2 id="rev-title">Phiên bản dữ liệu</h2>
           {revisions.length <= 1 ? (
-            <p className="muted">
-              Hồ sơ chưa có bản sửa nào. Bản gốc giữ nguyên; mỗi lần Admin sửa sẽ thêm một phiên bản
-              và bản cũ vẫn được giữ.
-            </p>
+            <p className="muted">Hồ sơ chưa có bản sửa nào.</p>
           ) : (
             revisions.slice(1).map((r, i) => {
               const prev = revisions[i]!;
@@ -745,9 +732,7 @@ export default async function DmsCasePage({
       {tab === 'scan' || tab === 'phien-ban' ? (
         <>
           <p className="muted">
-            {tab === 'scan'
-              ? `Bản scan = ảnh/PDF của giấy tờ gốc (${scanFileCount} tệp).`
-              : `Mọi phiên bản tệp của hồ sơ (${fileCount}); bản cũ được giữ, không ghi đè.`}
+            {tab === 'scan' ? `${scanFileCount} tệp scan.` : `${fileCount} phiên bản tệp.`}
           </p>
           {(tab === 'scan' ? scanFileCount : fileCount) === 0 ? (
             <div className="state" role="status">

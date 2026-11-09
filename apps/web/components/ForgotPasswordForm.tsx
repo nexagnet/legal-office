@@ -34,12 +34,9 @@ export function ForgotPasswordForm({ tenantId }: { readonly tenantId: string }) 
       <section className="card form" aria-labelledby="forgot-title">
         <h1 id="forgot-title">Kiểm tra email của bạn</h1>
         <p role="status">
-          Nếu thông tin đúng là một tài khoản, bạn sẽ nhận thư có link đặt lại mật khẩu trong ít
-          phút. Link dùng một lần và hết hạn sau 30 phút.
+          Nếu tài khoản tồn tại, thư có link đặt lại sẽ đến trong ít phút (hết hạn sau 30 phút).
         </p>
-        <p className="muted">
-          Không nhận được thư? Kiểm tra thư rác, hoặc nhờ Admin đặt lại mật khẩu cho bạn.
-        </p>
+        <p className="muted">Không thấy thư? Kiểm tra thư rác hoặc nhờ Admin đặt lại mật khẩu.</p>
         <Link href="/login">Quay lại đăng nhập</Link>
       </section>
     );
@@ -48,10 +45,7 @@ export function ForgotPasswordForm({ tenantId }: { readonly tenantId: string }) 
   return (
     <form className="card form" onSubmit={submit} aria-labelledby="forgot-title">
       <h1 id="forgot-title">Quên mật khẩu</h1>
-      <p>
-        Nhập email hoặc số CCCD của tài khoản. Chúng tôi sẽ gửi link đặt lại vào email của tài
-        khoản.
-      </p>
+      <p>Nhập email hoặc số CCCD, link đặt lại sẽ được gửi vào email của tài khoản.</p>
       <label>
         Email hoặc số CCCD
         <input

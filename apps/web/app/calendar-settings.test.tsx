@@ -42,7 +42,7 @@ describe('CalendarSettings (Figma Q9)', () => {
     expect(bodyOf(spy)).toEqual({ officeId: 'o1', weekdays: [1, 3, 4, 5, 6] });
   });
 
-  it('liệt kê ngày nghỉ theo thứ tự ngày; thêm trong hộp thoại; xoá gọi đúng API', async () => {
+  it('liệt kê ngày nghỉ theo thứ tự ngày; thêm trong hộp thoại; xóa gọi đúng API', async () => {
     const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => reply(200, {}));
     render(<CalendarSettings officeId="o1" calendar={calendar} canEdit />);
     const rows = screen.getAllByRole('listitem').map((li) => li.textContent);
@@ -65,16 +65,16 @@ describe('CalendarSettings (Figma Q9)', () => {
       label: 'Ngày nghỉ của văn phòng',
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Xoá ngày nghỉ Quốc khánh' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa ngày nghỉ Quốc khánh' }));
     await waitFor(() => expect(spy.mock.calls[1]![0]).toBe('/api/office/calendar/holidays/remove'));
     expect(bodyOf(spy, 1)).toEqual({ officeId: 'o1', day: '2026-09-02' });
   });
 
-  it('không có quyền sửa: không có nút thêm, xoá và lưu', () => {
+  it('không có quyền sửa: không có nút thêm, xóa và lưu', () => {
     render(<CalendarSettings officeId="o1" calendar={calendar} canEdit={false} />);
     expect(screen.queryByRole('button', { name: '+ Thêm ngày nghỉ' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Lưu lịch' })).toBeNull();
-    expect(screen.queryByRole('button', { name: /Xoá ngày nghỉ/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Xóa ngày nghỉ/ })).toBeNull();
     expect(screen.getByText('Chỉ Admin được đổi ngày làm việc.')).toBeTruthy();
   });
 

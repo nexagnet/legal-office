@@ -74,9 +74,9 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
           [group.name],
         ]}
         title={group.name}
-        sub={`${isSystemGroup(group) ? 'Nhóm Admin hệ thống' : isTemplateGroup(group) ? 'Nhóm mẫu của hệ thống' : 'Nhóm tùy chỉnh'}. Phiên bản hiện hành v${version}${
-          pendingPerm > 0 ? `; có một đề xuất v${version + 1} đang chờ duyệt và chưa áp dụng` : ''
-        }.`}
+        sub={`${isSystemGroup(group) ? 'Nhóm Admin hệ thống' : isTemplateGroup(group) ? 'Nhóm mẫu' : 'Nhóm tùy chỉnh'} · v${version}${
+          pendingPerm > 0 ? ` · đề xuất v${version + 1} đang chờ duyệt` : ''
+        }`}
       />
       <section className="group-summary" aria-labelledby="grp-t">
         <h2 id="grp-t" className="sr-only">
@@ -125,14 +125,12 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
           ) : null}
         </dl>
         <p className="muted">
-          Chỉ Admin đổi quyền và thành viên; mỗi thay đổi có hiệu lực ngay và được ghi nhật ký.
+          Thay đổi có hiệu lực ngay và được ghi nhật ký.
           {isTemplateGroup(group)
-            ? ' Nhóm mẫu được bảo vệ: không đổi quyền trực tiếp, hãy sao chép thành nhóm tùy chỉnh.'
+            ? ' Nhóm mẫu không sửa trực tiếp: hãy sao chép thành nhóm tùy chỉnh.'
             : ''}
-          {isSystemGroup(group)
-            ? ' Nhóm Admin là nhóm hệ thống: không xóa, không đổi quyền, và thành viên của nhóm không chỉnh được quyền riêng.'
-            : ''}
-          {active ? '' : ' Nhóm đã ngừng dùng nên không cấp quyền hiệu lực cho ai.'}
+          {isSystemGroup(group) ? ' Nhóm Admin hệ thống: không xóa, không đổi quyền.' : ''}
+          {active ? '' : ' Nhóm đã ngừng dùng nên không cấp quyền cho ai.'}
         </p>
         <div className="flex flex-wrap gap-2.5">
           {active && !isTemplateGroup(group) && !isSystemGroup(group) ? (
@@ -278,8 +276,7 @@ export default async function GroupPage({ params }: { readonly params: Promise<{
         </section>
       ) : null}
       <NoteBox tone="warn" title="Sửa nhóm đang có người dùng">
-        Thêm hoặc thu hồi quyền ảnh hưởng tới cả {group.member_ids.length} thành viên của nhóm và có
-        hiệu lực ngay; mỗi thay đổi được ghi vào nhật ký phân quyền kèm lý do.
+        Thay đổi quyền ảnh hưởng cả {group.member_ids.length} thành viên của nhóm.
       </NoteBox>
     </>
   );

@@ -66,7 +66,7 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ALL,
     href: '/dms/cua-toi',
-    summary: 'Mọi hồ sơ bạn đã tạo ở các nghiệp vụ, kể cả bản nháp.',
+    summary: 'Hồ sơ bạn đã tạo, kể cả bản nháp.',
   },
   {
     // Chỉ hiện với tài khoản có quyền xem toàn bộ (`*.read.all`): layout lọc theo quyền.
@@ -75,7 +75,7 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ALL,
     href: '/dms/van-phong',
-    summary: 'Hồ sơ của mọi người trong văn phòng, theo quyền xem và chi nhánh được cấp.',
+    summary: 'Hồ sơ của cả văn phòng, trong phạm vi quyền của bạn.',
   },
   {
     slug: 'dms-vi-bang',
@@ -83,8 +83,7 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/vi-bang',
-    summary:
-      'Đủ 7 cột Sổ S-02 (STT, người yêu cầu, nội dung, số/ngày vi bằng, nơi lập, THV, ghi chú) cộng cột tài liệu và bản scan.',
+    summary: 'Hồ sơ Vi bằng theo Sổ S-02.',
   },
   {
     slug: 'dms-tong-dat',
@@ -92,7 +91,7 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/tong-dat',
-    summary: 'Đủ cột Sổ S-01; mỗi giấy tờ cần tống đạt là một dòng sổ.',
+    summary: 'Hồ sơ Tống đạt theo Sổ S-01.',
   },
   {
     slug: 'dms-xac-minh',
@@ -100,8 +99,7 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/xac-minh',
-    summary:
-      'Hồ sơ xác minh điều kiện thi hành án. Các cột còn lại của Sổ S-04 nằm trong chi tiết hồ sơ.',
+    summary: 'Hồ sơ xác minh điều kiện thi hành án (Sổ S-04).',
   },
   {
     slug: 'dms-to-chuc-tha',
@@ -109,7 +107,7 @@ export const NAV: readonly NavItem[] = [
     group: 'domain',
     roles: ALL,
     href: '/dms/to-chuc-tha',
-    summary: 'Hồ sơ tổ chức thi hành án. Các cột còn lại của Sổ S-05 nằm trong chi tiết hồ sơ.',
+    summary: 'Hồ sơ tổ chức thi hành án (Sổ S-05).',
   },
   {
     slug: 'dms-thv',
@@ -117,7 +115,7 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ALL,
     href: '/dms/thv',
-    summary: 'Bản nháp ghi tên bạn, chờ thừa hành viên xác nhận trước khi lưu chính thức.',
+    summary: 'Bản nháp ghi tên bạn, chờ bạn xác nhận.',
   },
   {
     slug: 'dms-trinh-duyet',
@@ -125,7 +123,7 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ALL,
     href: '/dms/trinh-duyet',
-    summary: 'Gửi tiêu đề, mô tả và bản scan để Admin duyệt. Bạn chỉ thấy bản trình của mình.',
+    summary: 'Gửi bản trình để Admin duyệt.',
   },
   {
     slug: 'dms-scan-da-xoa',
@@ -133,7 +131,7 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ['ADMIN'],
     href: '/dms/scan-da-xoa',
-    summary: 'File scan đã xóa trong 30 ngày: chỉ Admin xem và tải, không khôi phục.',
+    summary: 'Scan đã xóa trong 30 ngày qua; chỉ Admin xem và tải.',
   },
   {
     slug: 'dms-tai-lieu-cu',
@@ -141,8 +139,7 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ALL,
     href: '/dms/tai-lieu-cu',
-    summary:
-      'Danh sách tài liệu cũ đã nạp từ kho cũ của văn phòng: chỉ xem và tải. Cần quyền xem tài liệu cũ.',
+    summary: 'Tài liệu nạp từ kho cũ; chỉ xem và tải.',
   },
   {
     slug: 'dms-lich-su',
@@ -150,7 +147,7 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ['ADMIN'],
     href: '/dms/lich-su',
-    summary: 'Ai làm gì, lúc nào, trên hồ sơ, tài liệu, file hay bản trình nào. Chỉ Admin xem.',
+    summary: 'Ai làm gì, lúc nào. Chỉ Admin xem.',
   },
   {
     slug: 'viec-cua-toi',
@@ -189,7 +186,7 @@ export const NAV: readonly NavItem[] = [
     label: 'Thư viện biểu mẫu',
     group: 'office',
     roles: ALL,
-    summary: 'Biểu mẫu tải về; Phụ lục TT06 chỉ tải về.',
+    summary: 'Biểu mẫu để tải về.',
   },
   {
     slug: 'cong-van',
@@ -204,7 +201,7 @@ export const NAV: readonly NavItem[] = [
     label: 'Vật tư văn phòng',
     group: 'office',
     roles: [...MANAGE, 'VAN_THU', 'KE_TOAN'],
-    summary: 'Nhập, xuất, điều chỉnh vật tư theo lô (không có giá).',
+    summary: 'Tồn kho, nhập và xuất vật tư.',
   },
   {
     slug: 'dms-van-thu',
@@ -212,7 +209,7 @@ export const NAV: readonly NavItem[] = [
     group: 'office',
     roles: ALL,
     href: '/dms/van-ban-den',
-    summary: 'Ba sổ đăng ký văn bản, số đến và STT tự động, kèm bản scan từng văn bản.',
+    summary: 'Ba sổ đăng ký văn bản, kèm bản scan.',
   },
   {
     slug: 'dms-xuat-so',
@@ -228,7 +225,7 @@ export const NAV: readonly NavItem[] = [
     group: 'office',
     roles: MANAGE,
     href: '/dms/bao-cao',
-    summary: 'Số liệu tổng hợp theo miền và năm từ hồ sơ đã lưu chính thức.',
+    summary: 'Số liệu tổng hợp theo nghiệp vụ và năm.',
   },
   {
     slug: 'bao-cao',

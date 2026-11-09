@@ -71,7 +71,7 @@ const isPending = (v: View) => v === 'NONE' || v === 'MISSING';
 
 /**
  * Thẻ thừa hành viên (Figma Q7). Quyết định owner 2026-11-01: KHÔNG có bước xác nhận; Admin nhập thẻ kèm quyết định và bản scan,
- * có hiệu lực ngay, không ai duyệt Admin. "Ngừng hiệu lực" giữ thẻ và lịch sử, không xoá gì. Nhóm quyền không tự tạo tư cách
+ * có hiệu lực ngay, không ai duyệt Admin. "Ngừng hiệu lực" giữ thẻ và lịch sử, không xóa gì. Nhóm quyền không tự tạo tư cách
  * hành nghề: thẻ chỉ ghi nhận theo căn cứ có bản scan.
  */
 export function ThvCardsForm({
@@ -461,7 +461,7 @@ export function ThvCardsForm({
             </Button>
           </div>
           <p className="muted text-xs">
-            Lưu xong thẻ có hiệu lực ngay, không cần ai xác nhận. Ngừng hiệu lực không xoá thẻ hay
+            Lưu xong thẻ có hiệu lực ngay, không cần ai xác nhận. Ngừng hiệu lực không xóa thẻ hay
             lịch sử.
           </p>
         </form>

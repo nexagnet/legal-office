@@ -279,7 +279,7 @@ export default async function RequestPage({
         ) : (
           <p>
             {mine
-              ? 'Bạn là người đề xuất nên không có nút Duyệt. Admin khác có quyền duyệt thay đổi quyền sẽ xử lý trong Hộp duyệt.'
+              ? 'Bạn là người đề xuất nên không tự duyệt được.'
               : stale
                 ? 'Nhóm đã đổi sau khi đề xuất được gửi. Hãy gửi đề xuất mới.'
                 : 'Bạn chưa có quyền duyệt thay đổi quyền.'}

@@ -46,10 +46,8 @@ export default async function DmsStatFormsPage({
     <section aria-labelledby="t">
       <h1 id="t">Mẫu báo cáo N-09, N-10 năm {year}</h1>
       <p className="muted print-hide">
-        Bố cục theo Phụ lục III Thông tư 08/2026/TT-BTP, kỳ 12 tháng (01/01–31/12). Hệ thống chỉ
-        điền số hồ sơ đã lưu chính thức (tống đạt, vi bằng, xác minh). Doanh thu, số tiền, việc đã
-        xong và chia theo cơ quan để trống cho văn phòng tự điền vì hệ thống không giữ số tiền kế
-        toán.
+        Theo Phụ lục III Thông tư 08/2026/TT-BTP. Chỉ điền số hồ sơ đã lưu chính thức; doanh thu, số
+        tiền và các ô còn lại để trống cho văn phòng tự điền.
       </p>
       <p className="print-hide">
         <Link href={`/dms/bao-cao/mau?year=${year - 1}`}>← {year - 1}</Link>{' '}

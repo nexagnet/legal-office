@@ -70,7 +70,7 @@ export function NewSubmissionButton({ officeId }: { readonly officeId: string })
         open={open}
         onOpenChange={setOpen}
         title="Trình mới"
-        description="Gửi tiêu đề, mô tả và các bản scan để Admin duyệt. Bản trình không cần chọn loại hay từ khóa."
+        description="Gửi tiêu đề, mô tả và bản scan để Admin duyệt."
       >
         <form onSubmit={submit} className="grid gap-3" aria-label="Trình mới">
           <label className="grid gap-1 text-[13px] font-semibold">

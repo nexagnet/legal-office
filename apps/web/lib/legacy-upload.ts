@@ -27,7 +27,7 @@ export function legacyMimeOf(name: string, type: string): string {
   return EXT_MIME[ext] ?? 'application/octet-stream';
 }
 
-/** Đường dẫn trong kho: thư mục tuỳ chọn + tên tệp; bỏ ký tự máy chủ từ chối. */
+/** Đường dẫn trong kho: thư mục tùy chọn + tên tệp; bỏ ký tự máy chủ từ chối. */
 export function legacyRelPath(folder: string, fileName: string): string {
   const clean = (s: string) =>
     s

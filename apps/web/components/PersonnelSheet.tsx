@@ -302,7 +302,7 @@ export function PersonnelSheet({
         </SheetBody>
         <SheetFooter>
           <Button variant="secondary" onClick={() => change(false)}>
-            Huỷ
+            Hủy
           </Button>
           <Button loading={busy} onClick={() => void submit()}>
             Lưu phiên bản mới
