@@ -294,6 +294,8 @@ describe('menu DMS', () => {
     expect(hrefs['dms-scan-da-xoa']).toBe('/dms/scan-da-xoa');
     expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-scan-da-xoa');
     expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-scan-da-xoa');
+    // Tài khoản tạo theo Nhóm quyền có vai THANH_VIEN vẫn phải thấy mục này (nếu là THV được ghi tên).
+    expect(visibleNav(['THANH_VIEN']).map((n) => n.slug)).toContain('dms-thv');
     // Tài liệu cũ: mục riêng; việc hiện hay ẩn theo quyền xem tài liệu cũ do khung trang quyết định.
     expect(hrefs['dms-tai-lieu-cu']).toBe('/dms/tai-lieu-cu');
     expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-tai-lieu-cu');

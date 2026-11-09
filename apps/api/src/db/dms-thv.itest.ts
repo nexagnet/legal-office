@@ -237,4 +237,43 @@ describe.skipIf(!ADMIN_URL)('DMS THV tự xác nhận (PostgreSQL)', () => {
       [],
     );
   });
+
+  it('danh sách THV để ghi tên: người soạn không phải Admin vẫn thấy; gồm vai THV và người có Thẻ THV còn hiệu lực', async () => {
+    const cardOnly = id();
+    const expired = id();
+    const plain = id();
+    for (const uid of [cardOnly, expired, plain])
+      await owner.query(`INSERT INTO users (id, tenant_id, external_ref) VALUES ($1,$2,$3)`, [
+        uid,
+        T,
+        uid,
+      ]);
+    for (const [uid, role] of [
+      [U.creator, 'THANH_VIEN'],
+      [U.thv, 'THV'],
+      [cardOnly, 'THANH_VIEN'],
+      [expired, 'THANH_VIEN'],
+      [plain, 'THANH_VIEN'],
+    ])
+      await owner.query(
+        `INSERT INTO memberships (tenant_id, user_id, office_id, role, legal_signer) VALUES ($1,$2,$3,$4,false)`,
+        [T, uid, OFF, role],
+      );
+    for (const [uid, to] of [
+      [cardOnly, null],
+      [expired, '2000-01-01'],
+    ])
+      await owner.query(
+        `INSERT INTO of_thv_cards (tenant_id, office_id, user_id, full_name, card_no, updated_by, effective_to) VALUES ($1,$2,$3,'X','1',$4,$5)`,
+        [T, OFF, uid, U.creator, to],
+      );
+    const ids = (await call(T, 'SELECT * FROM dms_list_thv_options($1,$2)', [T, U.creator]))
+      .map((r) => r.user_id as string)
+      .sort();
+    expect(ids).toEqual([U.thv, cardOnly].sort());
+    expect(await call(T, 'SELECT * FROM dms_list_thv_options($1,$2)', [T, U.foreign])).toEqual([]);
+    expect(await call(T2, 'SELECT * FROM dms_list_thv_options($1,$2)', [T2, U.foreign])).toEqual(
+      [],
+    );
+  });
 });
