@@ -7,8 +7,12 @@ import {
   LEGACY_PAGE_SIZE,
   legacyFolderOf,
   legacySizeLabel,
+  loadLegacyFeatures,
   loadLegacyFiles,
+  loadLegacyOcrStatus,
+  searchLegacy,
 } from '../../../lib/dms-legacy';
+import { legacyOcrLabel } from '../../../lib/legacy-upload';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -34,7 +38,7 @@ const hrefOf = (prefix: string, page: number) => {
 export default async function LegacyDocumentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ prefix?: string; p?: string }>;
+  searchParams: Promise<{ prefix?: string; p?: string; q?: string }>;
 }) {
   const sp = await searchParams;
   const session = await currentSession();
@@ -75,6 +79,9 @@ export default async function LegacyDocumentsPage({
       </section>
     );
   }
+  const features = await loadLegacyFeatures(cookie);
+  const canUpload = permissions.includes('dms.legacy.import');
+  const q = features.search ? (sp.q ?? '').trim().slice(0, 200) : '';
   const prefix = (sp.prefix ?? '').trim().slice(0, 1000);
   const page = Math.max(1, Math.floor(Number(sp.p)) || 1);
   // Lấy dư một dòng để biết còn trang sau hay không (máy chủ không trả tổng số).
@@ -95,6 +102,14 @@ export default async function LegacyDocumentsPage({
       </section>
     );
   }
+  const found = q ? await searchLegacy(cookie, { officeId, q }) : null;
+  const ocrStatus = features.ocr
+    ? await loadLegacyOcrStatus(
+        cookie,
+        officeId,
+        list.rows.slice(0, LEGACY_PAGE_SIZE).map((r) => r.id),
+      )
+    : new Map<string, string>();
   const hasMore = list.rows.length > LEGACY_PAGE_SIZE;
   const rows = list.rows.slice(0, LEGACY_PAGE_SIZE);
   return (
@@ -104,6 +119,65 @@ export default async function LegacyDocumentsPage({
         Tài liệu được nạp từ kho cũ của văn phòng. Chỉ xem và tải, không sửa, không xóa. Mỗi lần mở
         tệp đều được ghi nhật ký.
       </p>
+      {canUpload ? (
+        <p>
+          <Link href="/dms/tai-lieu-cu/tai-len" className="btn-link primary">
+            Tải tài liệu cũ lên
+          </Link>
+        </p>
+      ) : null}
+      {features.search ? (
+        <form
+          method="get"
+          role="search"
+          className="toolbar search-bar"
+          aria-label="Tìm theo nội dung"
+        >
+          <label className="sr-only" htmlFor="legacy-q">
+            Tìm trong nội dung tài liệu (OCR)
+          </label>
+          <input
+            id="legacy-q"
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Tìm trong nội dung tài liệu (đã OCR)…"
+            maxLength={200}
+            className="input"
+          />
+          <button type="submit" className="btn-link primary">
+            Tìm nội dung
+          </button>
+        </form>
+      ) : null}
+      {q ? (
+        found === 'error' || found === 404 || found === null ? (
+          <div className="state" role="alert">
+            <h2>Không tìm được theo nội dung</h2>
+            <p>Thử lại sau.</p>
+          </div>
+        ) : (
+          <div className="state" role="status" aria-label="Kết quả tìm theo nội dung">
+            <h2>
+              {found.rows.length === 0
+                ? 'Không có tài liệu nào khớp'
+                : `Khớp ${found.rows.length} tệp`}
+            </h2>
+            <ul>
+              {found.rows.map((h) => (
+                <li key={h.id}>
+                  <strong>{h.rel_path}</strong> <LegacyOpenButton id={h.id} name={h.file_name} />
+                  <br />
+                  <small>{h.snippet}</small>
+                </li>
+              ))}
+            </ul>
+            <p className="muted">
+              Chỉ tìm được tệp PDF/ảnh đã OCR; chữ viết tay có thể không đọc được.
+            </p>
+          </div>
+        )
+      ) : null}
       <form method="get" role="search" className="toolbar search-bar">
         <label className="sr-only" htmlFor="legacy-prefix">
           Thư mục hoặc đường dẫn bắt đầu bằng
@@ -142,6 +216,7 @@ export default async function LegacyDocumentsPage({
                 <th scope="col">Dung lượng</th>
                 <th scope="col">Ngày sửa gốc</th>
                 <th scope="col">Ngày nạp</th>
+                {features.ocr ? <th scope="col">OCR</th> : null}
                 <th scope="col">Thao tác</th>
               </tr>
             </thead>
@@ -161,6 +236,7 @@ export default async function LegacyDocumentsPage({
                     <td>{legacySizeLabel(r.size_bytes)}</td>
                     <td>{r.source_mtime ? fmt.format(new Date(r.source_mtime)) : '—'}</td>
                     <td>{fmt.format(new Date(r.created_at))}</td>
+                    {features.ocr ? <td>{legacyOcrLabel(ocrStatus.get(r.id) ?? 'NONE')}</td> : null}
                     <td>
                       <LegacyOpenButton id={r.id} name={r.file_name} />
                     </td>

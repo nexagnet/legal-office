@@ -43,3 +43,7 @@ Mẫu tổng hợp dùng phông in sạch nên chỉ cho thấy engine đọc đ
 
 - Nút "chạy lại OCR" cho Admin và ô tìm kiếm trên giao diện web.
 - Ghi `dms_audit_records` cho từng lần OCR (hiện lịch sử nằm ngay trong `dms_ocr_results`: số lần thử, thời điểm, lỗi).
+
+## OCR tài liệu cũ (tải từ giao diện)
+
+Worker `lo-ocr` còn nhận việc OCR cho tài liệu cũ tải từ giao diện, **chỉ khi `LEGACY_OCR_ENABLED=1`** (mặc định tắt). Việc của hồ sơ luôn làm trước và không phụ thuộc biến này. Tìm kiếm tài liệu cũ bật bằng `LEGACY_SEARCH_ENABLED` ở API. Chi tiết: [legacy-import.md](../architecture/legacy-import.md).

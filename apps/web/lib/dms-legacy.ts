@@ -57,3 +57,44 @@ export function legacySizeLabel(n: number | string): string {
   if (b >= 1024 ** 2) return `${(b / 1024 ** 2).toFixed(1)} MB`;
   return `${Math.max(1, Math.round(b / 1024))} KB`;
 }
+
+/** Hai công tắc của máy chủ (độc lập): chạy OCR tài liệu cũ và tìm kiếm tài liệu cũ. Lỗi thì coi như tắt. */
+export async function loadLegacyFeatures(
+  cookie: string | null,
+): Promise<{ readonly ocr: boolean; readonly search: boolean }> {
+  const r = await getJson<{ ocr: boolean; search: boolean }>('/dms/legacy/features', cookie);
+  return r === 404 || r === 'error' ? { ocr: false, search: false } : r;
+}
+
+export interface LegacySearchHit {
+  readonly id: string;
+  readonly rel_path: string;
+  readonly file_name: string;
+  readonly size_bytes: number | string;
+  readonly snippet: string;
+  readonly page_count: number | null;
+}
+
+/** Tìm theo nội dung OCR của tài liệu cũ. Tìm kiếm tắt thì máy chủ trả 404 (LEGACY_SEARCH_DISABLED). */
+export function searchLegacy(
+  cookie: string | null,
+  p: { readonly officeId: string; readonly q: string },
+): Promise<{ readonly rows: readonly LegacySearchHit[] } | 404 | 'error'> {
+  const q = new URLSearchParams({ officeId: p.officeId, q: p.q, limit: '20' });
+  return getJson(`/dms/legacy/search?${q}`, cookie);
+}
+
+/** Trạng thái OCR của các tệp (khi OCR bật). Lỗi thì trả bảng rỗng. */
+export async function loadLegacyOcrStatus(
+  cookie: string | null,
+  officeId: string,
+  ids: readonly string[],
+): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const q = new URLSearchParams({ officeId, ids: ids.join(',') });
+  const r = await getJson<{ rows: { file_id: string; status: string }[] }>(
+    `/dms/legacy/ocr-status?${q}`,
+    cookie,
+  );
+  return r === 404 || r === 'error' ? new Map() : new Map(r.rows.map((x) => [x.file_id, x.status]));
+}

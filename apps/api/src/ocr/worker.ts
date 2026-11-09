@@ -1,6 +1,7 @@
 import type pg from 'pg';
 import type { FileStore } from '../storage/file-store';
 import type { OcrEngine } from './engine';
+import { legacyOcrEnabled } from '../dms/legacy';
 import { toSearchText } from './text';
 
 export interface WorkerLog {
@@ -10,7 +11,6 @@ export interface WorkerLog {
 
 interface Claimed {
   readonly id: string;
-  readonly version_id: string;
   readonly object_key: string;
   readonly mime: string;
 }
@@ -43,7 +43,29 @@ function errorCode(e: unknown): string {
   return typeof code === 'string' ? `ENGINE_${code}`.slice(0, 60) : 'ENGINE_ERROR';
 }
 
-/** Xử lý tối đa `limit` việc của một tenant; trả số việc đã xử lý. Mỗi việc độc lập, một việc lỗi không dừng các việc khác. */
+interface Source {
+  readonly claim: string;
+  readonly complete: string;
+  readonly fail: string;
+  readonly label: string;
+}
+const CASE_SOURCE: Source = {
+  claim: 'dms_ocr_claim',
+  complete: 'dms_ocr_complete',
+  fail: 'dms_ocr_fail',
+  label: 'ocr',
+};
+const LEGACY_SOURCE: Source = {
+  claim: 'dms_legacy_ocr_claim',
+  complete: 'dms_legacy_ocr_complete',
+  fail: 'dms_legacy_ocr_fail',
+  label: 'ocr tài liệu cũ',
+};
+
+/**
+ * Xử lý tối đa `limit` việc của một tenant; trả số việc đã xử lý. Mỗi việc độc lập, một việc lỗi không dừng các việc khác.
+ * Việc của hồ sơ làm trước; tài liệu cũ chỉ được nhận khi `legacy` bật (biến LEGACY_OCR_ENABLED).
+ */
 export async function processTenant(
   pool: pg.Pool,
   tenant: string,
@@ -51,20 +73,23 @@ export async function processTenant(
   engine: OcrEngine,
   log: WorkerLog,
   limit = 20,
+  legacy = legacyOcrEnabled(),
 ): Promise<number> {
   let done = 0;
   for (let i = 0; i < limit; i += 1) {
-    const job = await inTenant(pool, tenant, async (c) => {
-      const res = await c.query<Claimed>('SELECT * FROM dms_ocr_claim($1)', [tenant]);
-      return res.rows[0] ?? null;
-    });
+    let src = CASE_SOURCE;
+    let job = await claimFrom(pool, tenant, src);
+    if (!job && legacy) {
+      src = LEGACY_SOURCE;
+      job = await claimFrom(pool, tenant, src);
+    }
     if (!job) break;
     try {
       const bytes = await store.get(job.object_key);
       if (!bytes) throw new Error('FILE_MISSING');
       const out = await engine.recognize(bytes, job.mime);
       await inTenant(pool, tenant, (c) =>
-        c.query('SELECT dms_ocr_complete($1,$2,$3,$4,$5,$6,$7,$8)', [
+        c.query(`SELECT ${src.complete}($1,$2,$3,$4,$5,$6,$7,$8)`, [
           tenant,
           job.id,
           out.engine,
@@ -75,17 +100,24 @@ export async function processTenant(
           toSearchText(out.text),
         ]),
       );
-      log.info(`ocr: xong ${job.id} (${out.pages} trang, ${out.text.length} ký tự)`);
+      log.info(`${src.label}: xong ${job.id} (${out.pages} trang, ${out.text.length} ký tự)`);
     } catch (e) {
       const code = errorCode(e);
-      log.error(`ocr: lỗi ${job.id}: ${code}`);
+      log.error(`${src.label}: lỗi ${job.id}: ${code}`);
       await inTenant(pool, tenant, (c) =>
-        c.query('SELECT dms_ocr_fail($1,$2,$3)', [tenant, job.id, code]),
+        c.query(`SELECT ${src.fail}($1,$2,$3)`, [tenant, job.id, code]),
       );
     }
     done += 1;
   }
   return done;
+}
+
+async function claimFrom(pool: pg.Pool, tenant: string, src: Source): Promise<Claimed | null> {
+  return inTenant(pool, tenant, async (c) => {
+    const res = await c.query<Claimed>(`SELECT * FROM ${src.claim}($1)`, [tenant]);
+    return res.rows[0] ?? null;
+  });
 }
 
 export function tenantIdsFromEnv(env: NodeJS.ProcessEnv): string[] {
