@@ -77,7 +77,7 @@ lo-import close  --batch <mã đợt>
 
 Ngoài công cụ `lo-import`, người có quyền `dms.legacy.import` tải tài liệu cũ **từng tệp (chọn nhiều tệp)** tại `/dms/tai-lieu-cu/tai-len`.
 
-- **Luồng:** trình duyệt băm sha256, gọi `prepare` (nội dung đã có thì đăng ký ngay, không tải lại), PUT thẳng lên R2/S3 bằng liên kết ký sẵn (máy chủ nhỏ không chịu tải), rồi `complete`. Hiện tiến độ từng tệp, tệp lỗi bấm Thử lại (gọi lại an toàn). Mỗi lần dùng mở một đợt riêng, bấm "Hoàn tất đợt tải" để đóng.
+- **Luồng:** trình duyệt băm sha256, gọi `prepare` (nội dung đã có thì đăng ký ngay, không tải lại), PUT thẳng lên R2/S3 bằng liên kết ký sẵn (máy chủ nhỏ không chịu tải), rồi `complete`. Hiện tiến độ từng tệp, tệp lỗi bấm Thử lại (gọi lại an toàn). Web tải từng tệp một; mỗi tệp một đợt riêng, tự đóng khi xong (lo-import vẫn tải hàng loạt).
 - **Giới hạn:** tệp tối đa 200 MB qua trình duyệt (phải đọc vào bộ nhớ để băm); lớn hơn dùng `lo-import`. Cần `FILE_STORE=r2` (hoặc S3) và **CORS của bucket cho phép PUT từ tên miền web** (header `content-type`, `x-amz-checksum-sha256`). Chưa thử R2 thật.
 - **Bất biến giữ nguyên:** bảng `dms_legacy_files` không đổi. Kết quả OCR nằm ở bảng riêng `dms_legacy_ocr`, khoá theo (văn phòng, sha256): nhiều tệp trùng nội dung chỉ OCR một lần.
 - **Chỉ đợt tải từ giao diện** (cờ `ocr` của đợt) vào hàng đợi OCR. Đợt `lo-import` mặc định không OCR (OCR 200 GB chạy riêng trên máy mạnh, xem kế hoạch).
