@@ -73,7 +73,8 @@ export function LegacyUploader({
       }),
     }).catch(() => null);
     const json = (await res?.json().catch(() => ({}))) as
-      { ok?: boolean; label?: string; code?: string } | undefined;
+      | { ok?: boolean; label?: string; code?: string }
+      | undefined;
     if (!res || !res.ok || json?.ok === false || !json?.label) {
       setBatchErr(legacyUploadMessage(json?.code ?? 'NETWORK'));
       return null;
@@ -187,11 +188,7 @@ export function LegacyUploader({
     <div className="card form">
       <label>
         Thư mục lưu (tuỳ chọn, ví dụ 2019/Hợp đồng)
-        <input
-          value={folder}
-          onChange={(e) => setFolder(e.target.value)}
-          maxLength={300}
-        />
+        <input value={folder} onChange={(e) => setFolder(e.target.value)} maxLength={300} />
       </label>
       <label>
         Chọn tệp (tối đa {LEGACY_BROWSER_MAX_BYTES / 1024 ** 2} MB)
