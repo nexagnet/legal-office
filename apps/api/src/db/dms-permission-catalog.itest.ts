@@ -137,8 +137,14 @@ describe.skipIf(!ADMIN_URL)('Danh mục quyền và nhóm mẫu (PostgreSQL)', (
     expect(secretary).toContain('vibang.amend_request.own');
 
     const clerk = await perms((await template(OFF, 'Văn thư')).id);
-    expect(clerk).toHaveLength(15);
-    expect(clerk.every((p) => /^vt(den|di|nb)\..*\.all$/.test(p))).toBe(true);
+    expect(clerk).toHaveLength(19);
+    expect(clerk.filter((p) => /^vt(den|di|nb)\..*\.all$/.test(p))).toHaveLength(15);
+    expect(clerk.filter((p) => !/^vt/.test(p)).sort()).toEqual([
+      'tochuc.read.all',
+      'tongdat.read.all',
+      'vibang.read.all',
+      'xacminh.read.all',
+    ]);
     expect(clerk.some((p) => p.includes('.download.'))).toBe(false);
 
     expect(await perms((await template(OFF, 'Kế toán')).id)).toEqual(['dms.stock.write']);

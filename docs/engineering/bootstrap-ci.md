@@ -143,3 +143,48 @@ canary values, credentials or model/tool transcripts.
 Keep central #42/#43 in Draft and unmerged. This experiment does not activate their
 candidate production changes or close broader security acceptance. Stop dispatches
 to roll back; retain sanitized evidence and leave main callers and secrets intact.
+
+## Reviewer gate diagnostics rollout (#424)
+
+The Reviewer caller pins central `29090cc1aef417ac4578acdb394b198cd95c1fa1`,
+the merged [central PR46](https://github.com/nexagnet/.github/pull/46).
+[Central exact-main CI](https://github.com/nexagnet/.github/actions/runs/42171561553)
+passed on that SHA. This pin updates gate diagnostics only; the caller's triggers,
+permissions, explicit OAuth mapping, five required CI jobs and Builder/Repair pins
+are preserved. The bootstrap tests assert the immutable Reviewer pin.
+
+A blocked gate reports `REVIEWER_GATE_BLOCKED` with a fixed reason and recovery
+guidance in the Actions log and step summary. No AI verdict is produced when the
+gate blocks. For example, `ISSUE_REFERENCE_MISSING` means the PR description needs
+exactly one canonical reference (`Refs #N`, `Closes #N` or `Relates to #N`);
+`OWNER_ATTESTATION` requires the exact owner-authored current-SHA request. Do not
+treat missing authorization as a code review finding or bypass it to obtain PASS.
+
+Rollout requires an independently reviewed R3 consumer PR, owner-controlled merge
+and successful CI on the exact consumer merge SHA. Only then verify a disposable
+docs-only Draft PR on `claude/*` with a separate R0/R1 Task Contract. Keep the smoke
+PR unmerged, with no customer data, product code or production changes.
+
+1. With no Issue reference, verify the deployed gate reports
+   `ISSUE_REFERENCE_MISSING` and skips AI/reporter jobs.
+2. Add exactly one canonical Task Contract reference; without an owner request,
+   verify `OWNER_ATTESTATION` and skipped AI/reporter jobs.
+3. The owner must explicitly authorize and post the following request at the
+   actual current PR SHA; an agent must not manufacture this consent:
+
+   ```text
+   NEXAGNET_REVIEW_REQUEST HEAD_SHA=<current 40-character PR HEAD SHA>
+   ```
+
+4. Re-run CI for that SHA. Record the CI run and all five successful jobs,
+   Reviewer run, central referenced SHA, verdict/comment and trusted
+   `nexagnet-review-evidence` artifact. Check `diff_inspected=true` and matching
+   current PR SHA. CI alone or the model's summary is not runtime proof.
+5. A new commit requires a fresh owner request. Old-SHA CI/review must not
+   authorize the new HEAD. Record any blocked result accurately.
+
+Owner-authored smoke PRs do not qualify for the existing Repair caller's
+Publisher-bot provenance lane. Reviewer proof does not establish Repair, Figma
+image comparison, merge enforcement or general tool isolation. Roll back the
+Reviewer pin through a reviewed R3 PR if runtime acceptance fails; keep existing
+fallbacks and unrelated workflow pins intact.
