@@ -40,6 +40,19 @@ export class DmsThvController {
       .then(respond);
   }
 
+  /** Thừa hành viên có thể ghi tên (vai THV hoặc có Thẻ THV còn hiệu lực), cho mọi thành viên cùng văn phòng. */
+  @Get('thv/options')
+  async options(@CurrentActor() a: AuthenticatedActor) {
+    const rows = await this.repo.rows<{ user_id: string; office_id: string; label: string }>(
+      a.tenantId,
+      'dms_list_thv_options',
+      [a.tenantId, a.userId],
+    );
+    return {
+      items: rows.map((r) => ({ userId: r.user_id, officeId: r.office_id, label: r.label })),
+    };
+  }
+
   /** Các bản nháp đang chờ chính người gọi xác nhận. */
   @Get('thv/pending')
   pending(@CurrentActor() a: AuthenticatedActor) {

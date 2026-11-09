@@ -349,9 +349,9 @@ export interface DmsThvOption {
   readonly label: string;
 }
 
-/** Danh sách thừa hành viên để chọn ghi tên (dùng chung với nghiệp vụ Vi bằng). */
+/** Danh sách thừa hành viên để chọn ghi tên trên bản nháp (vai THV hoặc có Thẻ THV còn hiệu lực). */
 export async function loadThvOptions(cookie: string | null): Promise<DmsThvOption[]> {
-  const body = await getJson<{ items: DmsThvOption[] }>('/vibang/thv', cookie);
+  const body = await getJson<{ items: DmsThvOption[] }>('/dms/thv/options', cookie);
   return body === 'error' ? [] : body.items;
 }
 
