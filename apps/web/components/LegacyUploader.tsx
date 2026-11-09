@@ -33,8 +33,8 @@ const PHASE_LABEL: Record<Phase, string> = {
 };
 
 /**
- * Tải tài liệu cũ lên từng tệp (chọn nhiều tệp được): tệp đi thẳng từ trình duyệt lên kho R2/S3, không qua máy chủ.
- * Mỗi lần dùng mở một đợt riêng; tệp lỗi bấm Thử lại. `ocrOn` = máy chủ đang chạy OCR tài liệu cũ (hiện cột trạng thái OCR).
+ * Tải tài liệu cũ lên từng tệp một: tệp đi thẳng từ trình duyệt lên kho R2/S3, không qua máy chủ.
+ * Mỗi tệp một đợt riêng, tự đóng khi xong; tệp lỗi bấm Thử lại. `ocrOn` = máy chủ đang chạy OCR tài liệu cũ (hiện cột trạng thái OCR).
  */
 export function LegacyUploader({
   officeId,
@@ -48,7 +48,6 @@ export function LegacyUploader({
   const [items, setItems] = useState<Item[]>([]);
   const [folder, setFolder] = useState('');
   const [batchErr, setBatchErr] = useState<string | null>(null);
-  const [closed, setClosed] = useState(false);
   const batch = useRef<string | null>(null);
   const seq = useRef(0);
   const running = useRef(false);
@@ -83,6 +82,17 @@ export function LegacyUploader({
     return json.label;
   }
 
+  // Mỗi tệp một đợt riêng: đóng ngay khi tệp xong, tệp sau mở đợt mới.
+  async function closeBatch() {
+    const label = batch.current;
+    batch.current = null;
+    if (!label) return;
+    await fetch(`/api/dms/legacy/batches/${label}/close`, {
+      method: 'POST',
+      credentials: 'same-origin',
+    }).catch(() => null);
+  }
+
   async function pump() {
     if (running.current) return;
     running.current = true;
@@ -106,6 +116,7 @@ export function LegacyUploader({
           },
           deps,
         );
+        await closeBatch();
         patch(
           key,
           r.ok
@@ -126,7 +137,7 @@ export function LegacyUploader({
 
   function add(files: FileList | null) {
     if (!files?.length) return;
-    const fresh: Item[] = [...files].map((file) => {
+    const fresh: Item[] = [...files].slice(0, 1).map((file) => {
       seq.current += 1;
       folderAt.current.set(seq.current, folder);
       return { key: seq.current, file, phase: 'queued', progress: 0 };
@@ -172,35 +183,16 @@ export function LegacyUploader({
     return () => clearInterval(t);
   }, [ocrOn, officeId]);
 
-  async function finish() {
-    if (!batch.current) return;
-    const res = await fetch(`/api/dms/legacy/batches/${batch.current}/close`, {
-      method: 'POST',
-      credentials: 'same-origin',
-    }).catch(() => null);
-    if (res?.ok) setClosed(true);
-  }
-
-  const busy = items.some((i) =>
-    ['queued', 'hash', 'prepare', 'put', 'complete'].includes(i.phase),
-  );
   return (
     <div className="card form">
       <label>
         Thư mục lưu (tùy chọn, ví dụ 2019/Hợp đồng)
-        <input
-          value={folder}
-          onChange={(e) => setFolder(e.target.value)}
-          maxLength={300}
-          disabled={closed}
-        />
+        <input value={folder} onChange={(e) => setFolder(e.target.value)} maxLength={300} />
       </label>
       <label>
-        Chọn tệp (nhiều tệp được, mỗi tệp tối đa {LEGACY_BROWSER_MAX_BYTES / 1024 ** 2} MB)
+        Chọn tệp (tối đa {LEGACY_BROWSER_MAX_BYTES / 1024 ** 2} MB)
         <input
           type="file"
-          multiple
-          disabled={closed}
           onChange={(e) => {
             add(e.target.files);
             e.target.value = '';
@@ -253,14 +245,6 @@ export function LegacyUploader({
           </tbody>
         </table>
       ) : null}
-      <button
-        type="button"
-        className="primary"
-        onClick={finish}
-        disabled={busy || closed || !batch.current}
-      >
-        {closed ? 'Đã đóng đợt' : 'Hoàn tất đợt tải'}
-      </button>
       <p className="muted">
         Tệp đã lưu không xóa, không sửa được. Tệp trùng nội dung chỉ lưu một lần.
         {ocrOn ? ' PDF và ảnh được OCR để tìm theo nội dung.' : ''}
