@@ -69,7 +69,27 @@ lo-import close  --batch <mã đợt>
 - **`FILE_STORE=local` không hỗ trợ** đường nhập này (trả 501 `DIRECT_UPLOAD_NOT_SUPPORTED`); cần `FILE_STORE=r2` hoặc kho S3 khác.
 - **Gói Windows chưa được chạy thử trên một máy Windows thật.** Đã kiểm: build, đóng gói, sha256 của `node.exe`, chạy mã trong gói bằng Node trên Linux. Phải chạy `scan` và một thư mục nhỏ trên máy khách trước khi nhập cả kho.
 - **Đăng nhập bằng cookie dán tay** (chưa có token riêng cho công cụ).
-- **Giao diện web** để duyệt thư mục tài liệu cũ và gán hai quyền mới vào Nhóm quyền chưa làm (hiện qua API và DB).
 - Chưa có giới hạn tốc độ băng thông và khung giờ chạy; tạm dùng `--concurrency` thấp.
 - Quét virus tệp nhập chưa làm.
 - Dữ liệu thật chỉ nhập sau khi khách đồng ý bằng văn bản về nơi lưu và người có chuyên môn xác nhận thủ tục theo Luật BVDLCN 91/2025/QH15.
+
+## Tải từng tệp từ giao diện + OCR + tìm kiếm (migration 0121)
+
+Ngoài công cụ `lo-import`, người có quyền `dms.legacy.import` tải tài liệu cũ **từng tệp (chọn nhiều tệp)** tại `/dms/tai-lieu-cu/tai-len`.
+
+- **Luồng:** trình duyệt băm sha256, gọi `prepare` (nội dung đã có thì đăng ký ngay, không tải lại), PUT thẳng lên R2/S3 bằng liên kết ký sẵn (máy chủ nhỏ không chịu tải), rồi `complete`. Hiện tiến độ từng tệp, tệp lỗi bấm Thử lại (gọi lại an toàn). Mỗi lần dùng mở một đợt riêng, bấm "Hoàn tất đợt tải" để đóng.
+- **Giới hạn:** tệp tối đa 200 MB qua trình duyệt (phải đọc vào bộ nhớ để băm); lớn hơn dùng `lo-import`. Cần `FILE_STORE=r2` (hoặc S3) và **CORS của bucket cho phép PUT từ tên miền web** (header `content-type`, `x-amz-checksum-sha256`). Chưa thử R2 thật.
+- **Bất biến giữ nguyên:** bảng `dms_legacy_files` không đổi. Kết quả OCR nằm ở bảng riêng `dms_legacy_ocr`, khoá theo (văn phòng, sha256): nhiều tệp trùng nội dung chỉ OCR một lần.
+- **Chỉ đợt tải từ giao diện** (cờ `ocr` của đợt) vào hàng đợi OCR. Đợt `lo-import` mặc định không OCR (OCR 200 GB chạy riêng trên máy mạnh, xem kế hoạch).
+- **Độc lập với tài liệu mới:** hàng đợi, hàm, bảng và tìm kiếm riêng (`dms_legacy_ocr_*`, `dms_legacy_search`). Worker `lo-ocr` làm việc của hồ sơ trước, tài liệu cũ sau.
+
+### Hai biến môi trường (mặc định TẮT, `1` hoặc `true` để bật)
+
+| Biến | Đặt ở | Tác dụng khi tắt |
+|---|---|---|
+| `LEGACY_OCR_ENABLED` | worker `lo-ocr` **và** API | Worker không nhận việc OCR tài liệu cũ (việc tồn vẫn chờ, bật lại thì xử lý tiếp); ẩn cột trạng thái OCR; `GET /dms/legacy/ocr-status` trả 404 `LEGACY_OCR_DISABLED` |
+| `LEGACY_SEARCH_ENABLED` | API | Ẩn ô "Tìm nội dung"; `GET /dms/legacy/search` trả 404 `LEGACY_SEARCH_DISABLED` |
+
+Hai biến độc lập nhau (có thể OCR mà chưa cho tìm, hoặc cho tìm phần đã OCR mà dừng OCR) và chỉ tác động tài liệu cũ: OCR và `/dms/search` của hồ sơ mới không đổi. Tải lên và lưu tài liệu cũ không phụ thuộc hai biến. Repo chưa có `.env.example`; đặt biến ở môi trường chạy (Northflank) như các biến khác.
+
+Kiểm chứng: `apps/api/src/db/dms-legacy-ocr.itest.ts` (PostgreSQL thật), `apps/web/app/dms-legacy-upload.test.tsx`.
