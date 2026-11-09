@@ -59,6 +59,17 @@ và không tạo bản ghi mới, nhưng tệp của lần gửi lặp đó bị
 
 Tệp lớn/nhập hàng loạt không đi qua API: xem `legacy-import.md` (liên kết PUT ký sẵn, chỉ kho S3/R2).
 
+## Bucket Lock của R2 (chặn xóa/ghi đè ở tầng kho)
+
+Bucket Lock là cài đặt Cloudflare trên bucket `lo-files`, không phải code của app: mỗi luật có prefix và thời hạn giữ, object trong prefix không xóa/ghi đè được tới khi hết hạn (lệnh xóa/PUT trả 409, kể cả khóa API đủ quyền). R2 tính hạn **từ lúc object được ghi** và không gia hạn riêng từng object, nên không thể "khóa thêm 30 ngày khi xóa mềm".
+
+| Prefix | Luật | Ghi chú |
+|---|---|---|
+| `t/<tenant>/legacy/` | giữ vô thời hạn (luật `legacy-bf8b912a` cho tenant đầu tiên) | App không có đường xóa nào ở đây; `dms_legacy_files` bất biến. Khóa theo sha256 nên không ghi đè cũng không hại. `prepare` kiểm `head(key)`: tệp đã có đúng kích thước thì trả `UPLOADED` (không cấp liên kết PUT), client gọi thẳng `complete`. |
+| `t/<tenant>/dms/` (đề xuất, **chưa bật**) | giữ 30 ngày kể từ lúc tải lên | Cron dọn scan (`scan-purge`) xóa sau xóa mềm + 30 ngày, luôn muộn hơn upload + 30 ngày nên không gặp 409. Việc xóa tệp mồ côi ngay sau khi DB từ chối (`evidence.ts`, vibang) sẽ bị 409 nuốt trong 30 ngày đầu, tệp ở lại như tệp mồ côi. Bảo vệ chỉ trong 30 ngày đầu của mỗi tệp. |
+
+Các prefix còn lại (`th/`, `vx/`, `vb/`, `of/`...) chưa có luật. Thêm luật mới phải kiểm mọi đường `store.delete`/`put` đụng prefix đó (grep `delete(` trong `apps/api/src`).
+
 ## Giới hạn đã biết (chưa làm)
 
 - **Chưa có tải xuống/xem tệp**: cần hàm đọc có kiểm tra quyền theo phạm vi ghi trước, không mở đường đọc không có kiểm soát.
