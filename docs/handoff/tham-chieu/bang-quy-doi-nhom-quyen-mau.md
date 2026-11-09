@@ -28,7 +28,7 @@ Mã nghiệp vụ có dạng `<nghiệp vụ>.<hành động>.<own|all>`; nghi�
 |---|---|---|
 | Thừa hành viên | 4 NV: read, draft, confirm, add_document, download đều `.own`; `amend_request.own` | |
 | Thư ký / Trợ lý hồ sơ | 4 NV: read, draft, add_document đều `.own`; `amend_request.own`; không confirm, không download | Chỉ nháp, xem không tải |
-| Văn thư | 3 VT: read, draft, confirm, add_document `.all` trong phạm vi chi nhánh; `amend_request.all` | Xuất sổ theo read |
+| Văn thư | 3 VT: read, draft, confirm, add_document `.all` trong phạm vi chi nhánh; `amend_request.all`. Từ 09/11/2026 thêm 4 NV: chỉ `read.all` (migration 0120) | Xuất sổ theo read |
 | Kế toán | `dms.stock.write` | Xuất báo cáo theo quyền xem |
 | Báo cáo tổng hợp | 4 NV + 3 VT: chỉ `read.all` | Báo cáo chỉ đếm hồ sơ người xem được |
 | Admin hệ thống | `dms.permission.approve`, `dms.amendment.approve`, `dms.permission.propose` (+ mặc nhiên mọi quyền nghiệp vụ) | |
