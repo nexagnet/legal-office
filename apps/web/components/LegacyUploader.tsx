@@ -73,8 +73,7 @@ export function LegacyUploader({
       }),
     }).catch(() => null);
     const json = (await res?.json().catch(() => ({}))) as
-      | { ok?: boolean; label?: string; code?: string }
-      | undefined;
+      { ok?: boolean; label?: string; code?: string } | undefined;
     if (!res || !res.ok || json?.ok === false || !json?.label) {
       setBatchErr(legacyUploadMessage(json?.code ?? 'NETWORK'));
       return null;
