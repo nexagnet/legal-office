@@ -20,6 +20,8 @@ export interface FileMeta {
 
 export type PrepareResult =
   | { status: 'REGISTERED'; deduplicated: true; fileId: string | null; code: string }
+  /** Đối tượng đã nằm trong kho đúng kích thước: bỏ qua PUT, gọi thẳng `complete`. */
+  | { status: 'UPLOADED'; deduplicated: false }
   | {
       status: 'UPLOAD';
       deduplicated: false;

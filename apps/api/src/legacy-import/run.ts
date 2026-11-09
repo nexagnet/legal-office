@@ -85,22 +85,24 @@ async function transfer(
 ): Promise<string> {
   const { api, ledger, batchId } = o;
   let prep = await api.prepare(batchId, meta);
-  if (prep.status === 'UPLOAD') {
-    for (let tries = 0; ; tries++) {
-      try {
-        await api.upload(f.absPath, f.size, prep);
-        break;
-      } catch (e) {
-        if (e instanceof ApiError && e.status === 403 && tries < MAX_REPREPARE) {
-          prep = await api.prepare(batchId, meta);
-          if (prep.status === 'UPLOAD') continue;
+  if (prep.status === 'UPLOAD' || prep.status === 'UPLOADED') {
+    if (prep.status === 'UPLOAD') {
+      for (let tries = 0; ; tries++) {
+        try {
+          await api.upload(f.absPath, f.size, prep);
           break;
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 403 && tries < MAX_REPREPARE) {
+            prep = await api.prepare(batchId, meta);
+            if (prep.status === 'UPLOAD') continue;
+            break;
+          }
+          throw e;
         }
-        throw e;
       }
     }
-    if (prep.status === 'UPLOAD') {
-      sum.bytesUploaded += f.size;
+    if (prep.status === 'UPLOAD' || prep.status === 'UPLOADED') {
+      if (prep.status === 'UPLOAD') sum.bytesUploaded += f.size;
       const done = await api.complete(batchId, meta);
       await ledger.record({
         relPath: f.relPath,

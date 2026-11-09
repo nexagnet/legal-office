@@ -170,6 +170,10 @@ export class DmsLegacyController {
     if (!isDirectTransferStore(this.store))
       return fail(HttpStatus.NOT_IMPLEMENTED, 'DIRECT_UPLOAD_NOT_SUPPORTED');
     if (f.size > LEGACY_MAX_BYTES) return fail(HttpStatus.PAYLOAD_TOO_LARGE, 'FILE_TOO_LARGE');
+    // Khóa đã có đúng kích thước (lần nhập trước đã PUT xong nhưng chưa đăng ký): không cấp liên kết PUT nữa,
+    // vì kho có Bucket Lock sẽ từ chối ghi đè (409). Client gọi thẳng `complete`.
+    const existing = await this.store.head(key);
+    if (existing && existing.size === f.size) return { status: 'UPLOADED', deduplicated: false };
     const up = await this.store.presignPut(key, {
       sha256Hex: f.sha256,
       size: f.size,

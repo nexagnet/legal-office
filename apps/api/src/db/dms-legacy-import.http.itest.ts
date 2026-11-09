@@ -374,6 +374,22 @@ describe.skipIf(!ADMIN_URL)('Nhập tài liệu cũ đầu-cuối (công cụ nh
     await expect(api.close(batch)).rejects.toMatchObject({ status: 409 });
   });
 
+  it('prepare không cấp liên kết PUT khi tệp đã nằm trong kho đúng kích thước (kho có khóa không ghi đè)', async () => {
+    const b5 = (await apiFor(U.imp).openBatch(OFF, 'Kho 5')).label;
+    const api = apiFor(U.imp);
+    const meta = { relPath: 'da-co.pdf', size: 5, sha256: sha('da-co'), mime: 'application/pdf' };
+    const key = `t/${T}/legacy/${OFF}/${meta.sha256.slice(0, 2)}/${meta.sha256}`;
+    await store.put(key, Buffer.from('da-co'));
+    // Đúng kích thước: bỏ qua PUT, đi thẳng complete.
+    await expect(api.prepare(b5, meta)).resolves.toMatchObject({ status: 'UPLOADED' });
+    await expect(api.complete(b5, meta)).resolves.toMatchObject({ code: 'LEGACY_FILE_REGISTERED' });
+    // Sai kích thước: vẫn cấp liên kết PUT (kho sẽ tự từ chối nếu bị khóa, cần xử lý tay).
+    const other = { ...meta, relPath: 'sai.pdf', size: 9, sha256: sha('sai-kich-thuoc') };
+    const k2 = `t/${T}/legacy/${OFF}/${other.sha256.slice(0, 2)}/${other.sha256}`;
+    await store.put(k2, Buffer.from('abc'));
+    await expect(api.prepare(b5, other)).resolves.toMatchObject({ status: 'UPLOAD' });
+  });
+
   it('complete từ chối khi tệp chưa tới kho hoặc sai kích thước', async () => {
     const b4 = (await apiFor(U.imp).openBatch(OFF, 'Kho 4')).label;
     const api = apiFor(U.imp);
