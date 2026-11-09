@@ -132,6 +132,12 @@ then checks a fresh candidate environment for zero starts and zero discovered MC
 servers. Its exact-control Read guard bounds unrelated tool access; it is not
 evidence of native Read denial or MCP startup suppression.
 
+Execution failure diagnostics are observational only: bounded SDK error enums,
+HTTP status enums and counts never alter strict acceptance. Unknown causes stay
+unknown; raw error messages, model/tool content and paths remain runner-local.
+A skipped MCP candidate is NOT_EXECUTED, not startup-suppression evidence.
+Malformed diagnostic sidecars cannot mask an existing FAIL verdict.
+
 Record the trusted per-job verdicts and sanitized `read-isolation-proof` and
 `mcp-isolation-audit` artifacts on #175 and the corresponding central issues.
 Validate artifact structure and evidence independently. CI, model prose and an
