@@ -18,7 +18,7 @@ export function creds() {
 }
 export async function browser() {
   return chromium.launch({
-    executablePath: 'C:/Users/phung/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe',
+    executablePath: process.env.GUIDE_CHROME ?? 'C:/Users/phung/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe',
     args: ['--no-sandbox'],
   });
 }

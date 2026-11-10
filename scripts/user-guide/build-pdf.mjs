@@ -37,7 +37,7 @@ const body = (parts, base) => { let n = 0; return parts.map((p) => `${p.title ? 
 const page = (title, parts, base) => `<!doctype html><html lang="vi"><meta charset="utf-8"><title>${esc(title)}</title><style>${css}</style><body>${cover(title)}${tocHtml(parts)}${body(parts, base)}</body></html>`;
 const read = (f) => JSON.parse(fs.readFileSync(path.join(ROLES, f), 'utf8'));
 const only = process.argv[2];
-const b = await chromium.launch({ executablePath: 'C:/Users/phung/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe' });
+const b = await chromium.launch({ executablePath: process.env.GUIDE_CHROME ?? 'C:/Users/phung/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe' });
 const base = ROLES.split(path.sep).join('/');
 const chung = read('chung.json');
 const out = async (name, title, parts) => {

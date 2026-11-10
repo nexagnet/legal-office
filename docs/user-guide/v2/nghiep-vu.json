@@ -1,0 +1,429 @@
+{
+ "role": "nghiep-vu",
+ "title": "Đăng nhập và bốn nghiệp vụ",
+ "sections": [
+  {
+   "title": "Đăng nhập và làm quen màn hình",
+   "intro": "Mở địa chỉ hệ thống do Văn phòng cấp, đăng nhập bằng tài khoản của riêng bạn. Menu bên trái chỉ hiện những mục thuộc quyền của bạn.",
+   "rules": [
+    "Mỗi người một tài khoản, không dùng chung. Mọi thao tác trên hồ sơ đều ghi tên người đăng nhập.",
+    "Lần đăng nhập đầu hệ thống bắt đổi mật khẩu mới (tối thiểu 12 ký tự).",
+    "Sai mật khẩu quá 5 lần thì tài khoản bị khóa 15 phút; nhờ Admin hỗ trợ nếu cần."
+   ],
+   "problems": [
+    [
+     "Quên mật khẩu",
+     "Bấm \"Quên mật khẩu?\" ở màn đăng nhập để nhận liên kết đặt lại qua email, hoặc nhờ Admin đặt lại."
+    ],
+    [
+     "Thiếu mục trên menu",
+     "Mỗi người chỉ thấy mục thuộc quyền của mình. Cần thêm quyền thì nhờ Admin."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Màn hình đăng nhập",
+     "note": "Nhập email (hoặc số CCCD) và mật khẩu rồi bấm Đăng nhập.",
+     "detail": [],
+     "img": "nghiep-vu/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Nhập email hoặc số CCCD Văn phòng đã cấp"
+      },
+      {
+       "n": 2,
+       "text": "Nhập mật khẩu"
+      },
+      {
+       "n": 3,
+       "text": "Bấm Đăng nhập"
+      },
+      {
+       "n": 4,
+       "text": "Quên mật khẩu: nhận liên kết đặt lại qua email"
+      }
+     ]
+    },
+    {
+     "title": "Màn hình làm việc",
+     "note": "Menu bên trái để chuyển mục, ô tìm kiếm phía trên (hoặc phím Ctrl K), chuông thông báo và tên tài khoản ở góc phải.",
+     "detail": [],
+     "img": "nghiep-vu/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Menu: chọn nghiệp vụ hoặc mục cần làm"
+      },
+      {
+       "n": 2,
+       "text": "Tìm hồ sơ, trang (Ctrl K)"
+      },
+      {
+       "n": 3,
+       "text": "Chuông thông báo"
+      },
+      {
+       "n": 4,
+       "text": "Tài khoản: đổi mật khẩu, đăng xuất"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Vi bằng",
+   "intro": "Mọi hồ sơ mới bắt đầu là bản nháp. Điền Sổ S-02 (phần A), đính kèm bản scan (phần B), thông tin khác (phần C), rồi xác nhận lưu chính thức để được cấp số hồ sơ.",
+   "rules": [
+    "Bản nháp chưa có số và chưa vào sổ; sửa, hủy tự do.",
+    "Sau khi lưu chính thức, chỉ Admin sửa được nội dung (có lý do, lưu lịch sử); nhân viên chỉ tải thêm scan.",
+    "Phần A chỉ gồm các cột của Sổ S-02. Tên, SĐT, ghi chú nằm ở phần C và không in ra sổ."
+   ],
+   "problems": [
+    [
+     "Bấm Lưu nháp báo SĐT sai",
+     "SĐT phải là số Việt Nam, 10 số, bắt đầu bằng 0."
+    ],
+    [
+     "Không thấy bản nháp ở tab Chính thức",
+     "Bản nháp nằm ở tab Nháp; chỉ hồ sơ đã lưu chính thức mới ở tab Chính thức."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Danh sách Vi bằng",
+     "note": "Chọn tab Chính thức, Nháp hoặc Đã hủy; tìm theo từ khóa; bấm + Tạo hồ sơ để lập hồ sơ mới.",
+     "detail": [],
+     "img": "nghiep-vu/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tab: Chính thức, Nháp, Đã hủy"
+      },
+      {
+       "n": 2,
+       "text": "Bấm + Tạo hồ sơ"
+      },
+      {
+       "n": 3,
+       "text": "Xuất Sổ S-02 ra tệp"
+      },
+      {
+       "n": 4,
+       "text": "Tìm theo từ khóa"
+      }
+     ]
+    },
+    {
+     "title": "Biểu mẫu tạo hồ sơ Vi bằng",
+     "note": "Phần A là các cột của Sổ S-02, phần B là tệp scan đính kèm, phần C là thông tin khác không vào sổ.",
+     "detail": [],
+     "img": "nghiep-vu/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Cột 2: người yêu cầu lập vi bằng (họ tên, địa chỉ)"
+      },
+      {
+       "n": 2,
+       "text": "Cột 6: thừa hành viên lập vi bằng (họ tên, số thẻ)"
+      },
+      {
+       "n": 3,
+       "text": "Phần B: chọn tệp scan (PDF, JPEG, PNG)"
+      },
+      {
+       "n": 4,
+       "text": "Phần C: SĐT khách hàng (không in ra sổ)"
+      },
+      {
+       "n": 5,
+       "text": "Bấm Lưu nháp"
+      }
+     ]
+    },
+    {
+     "title": "Điền thông tin, chọn tệp scan rồi Lưu nháp",
+     "note": "Ô chưa biết có thể để trống và bổ sung sau khi còn là nháp. Tệp scan được tải lên ngay sau khi lưu nháp.",
+     "detail": [],
+     "img": "nghiep-vu/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Điền các cột của Sổ S-02"
+      },
+      {
+       "n": 2,
+       "text": "Đã chọn tệp scan"
+      },
+      {
+       "n": 3,
+       "text": "Tên hồ sơ (bỏ trống thì hệ thống tự đặt)"
+      },
+      {
+       "n": 4,
+       "text": "Bấm Lưu nháp"
+      }
+     ]
+    },
+    {
+     "title": "Bản nháp vừa tạo",
+     "note": "Hệ thống mở trang bản nháp. Sửa tiếp được; xong thì Xác nhận lưu chính thức, hoặc Hủy nháp nếu không cần nữa.",
+     "detail": [],
+     "img": "nghiep-vu/06.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Hủy nháp (phải nêu lý do)"
+      },
+      {
+       "n": 2,
+       "text": "Xác nhận lưu chính thức: cấp số và ghi sổ"
+      }
+     ]
+    },
+    {
+     "title": "Hủy bản nháp",
+     "note": "Nhập lý do rồi bấm Xác nhận hủy; muốn giữ lại thì bấm Giữ bản nháp. Bản nháp hủy chuyển sang tab Đã hủy.",
+     "detail": [],
+     "img": "nghiep-vu/07.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lý do hủy (bắt buộc)"
+      },
+      {
+       "n": 2,
+       "text": "Giữ bản nháp, không hủy"
+      },
+      {
+       "n": 3,
+       "text": "Xác nhận hủy"
+      }
+     ]
+    },
+    {
+     "title": "Xác nhận lưu chính thức",
+     "note": "Sau bước này hồ sơ được cấp số, vào sổ và không sửa trực tiếp được nữa. Kiểm tra kỹ rồi bấm Lưu chính thức.",
+     "detail": [],
+     "img": "nghiep-vu/08.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Quay lại để kiểm tra thêm"
+      },
+      {
+       "n": 2,
+       "text": "Lưu chính thức"
+      }
+     ]
+    },
+    {
+     "title": "Hồ sơ đã ghi sổ",
+     "note": "Tiêu đề hiện số hồ sơ vừa cấp. Các tab: Thông tin chung, Tài liệu, Tệp đính kèm, Phiên bản cũ, Sổ liên quan, Lịch sử hồ sơ.",
+     "detail": [],
+     "img": "nghiep-vu/09.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tab Tài liệu: xem bản scan"
+      },
+      {
+       "n": 2,
+       "text": "Tab Phiên bản cũ: các bản trước khi Admin sửa"
+      },
+      {
+       "n": 3,
+       "text": "Tab Lịch sử hồ sơ: ai làm gì, lúc nào"
+      }
+     ]
+    },
+    {
+     "title": "Xem bản scan trong hồ sơ",
+     "note": "Bản scan hiện ngay trong trang; có nút tải về và in.",
+     "detail": [],
+     "img": "nghiep-vu/10.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Khung xem trước bản scan"
+      },
+      {
+       "n": 2,
+       "text": "Tải bản scan chính về máy"
+      }
+     ]
+    },
+    {
+     "title": "Đánh dấu Đã trả kết quả",
+     "note": "Khi đã trả kết quả cho khách, tích ô trên dòng hồ sơ. Ô này chỉ để theo dõi, không đổi trạng thái hồ sơ.",
+     "detail": [],
+     "img": "nghiep-vu/11.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Tích khi đã trả kết quả cho khách"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tống đạt",
+   "intro": "Tống đạt: mỗi hồ sơ có thể gồm nhiều dòng của Sổ S-01, thêm sau khi lưu nháp. Quy trình giống Vi bằng: nháp, scan, lưu chính thức.",
+   "rules": [
+    "Cách làm giống Vi bằng: bản nháp, đính kèm scan, Xác nhận lưu chính thức để được cấp số.",
+    "Phần A của biểu mẫu chỉ gồm các cột của Sổ S-01."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Danh sách Tống đạt",
+     "note": "Các thẻ phía trên cho biết số hồ sơ cần chú ý. Bấm + Tạo hồ sơ để lập hồ sơ mới, Xuất S-01 để tải sổ.",
+     "detail": [],
+     "img": "nghiep-vu/12.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo hồ sơ"
+      },
+      {
+       "n": 2,
+       "text": "Xuất Sổ S-01"
+      },
+      {
+       "n": 3,
+       "text": "Tab Nháp: hồ sơ chưa lưu chính thức"
+      }
+     ]
+    },
+    {
+     "title": "Biểu mẫu tạo hồ sơ Tống đạt",
+     "note": "Phần A là các cột của Sổ S-01, phần B là tệp scan, phần C là thông tin khác không vào sổ.",
+     "detail": [],
+     "img": "nghiep-vu/13.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn tệp scan đính kèm"
+      },
+      {
+       "n": 2,
+       "text": "Bấm Lưu nháp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Xác minh điều kiện thi hành án",
+   "intro": "Xác minh THA: ghi hợp đồng dịch vụ, quyết định thi hành án, người yêu cầu, người phải thi hành, nội dung và kết quả xác minh vào Sổ S-04.",
+   "rules": [
+    "Cách làm giống Vi bằng: bản nháp, đính kèm scan, Xác nhận lưu chính thức để được cấp số.",
+    "Phần A của biểu mẫu chỉ gồm các cột của Sổ S-04."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Danh sách Xác minh điều kiện thi hành án",
+     "note": "Các thẻ phía trên cho biết số hồ sơ cần chú ý. Bấm + Tạo hồ sơ để lập hồ sơ mới, Xuất S-04 để tải sổ.",
+     "detail": [],
+     "img": "nghiep-vu/14.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo hồ sơ"
+      },
+      {
+       "n": 2,
+       "text": "Xuất Sổ S-04"
+      },
+      {
+       "n": 3,
+       "text": "Tab Nháp: hồ sơ chưa lưu chính thức"
+      }
+     ]
+    },
+    {
+     "title": "Biểu mẫu tạo hồ sơ Xác minh điều kiện thi hành án",
+     "note": "Phần A là các cột của Sổ S-04, phần B là tệp scan, phần C là thông tin khác không vào sổ.",
+     "detail": [],
+     "img": "nghiep-vu/15.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Điền các cột của sổ"
+      },
+      {
+       "n": 2,
+       "text": "Cột kế tiếp của sổ"
+      },
+      {
+       "n": 3,
+       "text": "Chọn tệp scan đính kèm"
+      },
+      {
+       "n": 4,
+       "text": "Bấm Lưu nháp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Tổ chức thi hành án",
+   "intro": "Tổ chức THA: ghi hợp đồng, quyết định, bên phải thi hành, bên được thi hành, khoản phải thi hành và kết quả vào Sổ S-05.",
+   "rules": [
+    "Cách làm giống Vi bằng: bản nháp, đính kèm scan, Xác nhận lưu chính thức để được cấp số.",
+    "Phần A của biểu mẫu chỉ gồm các cột của Sổ S-05."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Danh sách Tổ chức thi hành án",
+     "note": "Các thẻ phía trên cho biết số hồ sơ cần chú ý. Bấm + Tạo hồ sơ để lập hồ sơ mới, Xuất S-05 để tải sổ.",
+     "detail": [],
+     "img": "nghiep-vu/16.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Bấm + Tạo hồ sơ"
+      },
+      {
+       "n": 2,
+       "text": "Xuất Sổ S-05"
+      },
+      {
+       "n": 3,
+       "text": "Tab Nháp: hồ sơ chưa lưu chính thức"
+      }
+     ]
+    },
+    {
+     "title": "Biểu mẫu tạo hồ sơ Tổ chức thi hành án",
+     "note": "Phần A là các cột của Sổ S-05, phần B là tệp scan, phần C là thông tin khác không vào sổ.",
+     "detail": [],
+     "img": "nghiep-vu/17.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Điền các cột của sổ"
+      },
+      {
+       "n": 2,
+       "text": "Cột kế tiếp của sổ"
+      },
+      {
+       "n": 3,
+       "text": "Chọn tệp scan đính kèm"
+      },
+      {
+       "n": 4,
+       "text": "Bấm Lưu nháp"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

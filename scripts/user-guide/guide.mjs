@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-export const OUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../docs/user-guide/roles');
+export const OUT = process.env.GUIDE_OUT ? path.resolve(process.env.GUIDE_OUT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../docs/user-guide/roles');
 const overlay = (marks) => {
   const old = document.getElementById('__guide'); if (old) old.remove();
   const root = document.createElement('div'); root.id = '__guide';
@@ -47,7 +47,7 @@ export class Guide {
     await page.waitForTimeout(250);
     for (const m of marks) {
       const bb = await m.loc.first().boundingBox({ timeout: 5000 }).catch(() => null);
-      if (!bb) { if (m.optional) { console.log('BỎ QUA (tùy chọn): ' + m.text); continue; } throw new Error(`Không tìm thấy phần tử để khoanh: "${m.text}" (bước "${title}")`); }
+      if (!bb) { if (m.optional) { console.log('BỎ QUA (tùy chọn): ' + m.text); continue; } { const names = await page.evaluate(() => [...document.querySelectorAll('button,a,[role=tab]')].map((e) => (e.innerText || e.getAttribute('aria-label') || '').trim()).filter(Boolean).slice(0, 60).join(' | ')); console.log('CÓ TRÊN TRANG: ' + names); await page.screenshot({ path: '/tmp/work/fail.png' }); } throw new Error(`Không tìm thấy phần tử để khoanh: "${m.text}" (bước "${title}")`); }
       boxes.push({ n: boxes.length + 1, x: bb.x, y: bb.y, w: bb.width, h: bb.height }); kept.push(m);
     }
     await page.evaluate(overlay, boxes);

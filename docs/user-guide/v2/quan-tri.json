@@ -1,0 +1,299 @@
+{
+ "role": "quan-tri",
+ "title": "Duyệt, tra cứu và quản trị",
+ "sections": [
+  {
+   "title": "Trình / Duyệt",
+   "intro": "Nhân viên gửi bản trình (giấy tờ cần người có thẩm quyền xem), Admin hoặc người được giao duyệt hoặc từ chối. \"Duyệt\" trong phần mềm chỉ là xác nhận nội bộ, không phải chữ ký pháp lý.",
+   "rules": [
+    "Người gửi không tự duyệt bản trình của mình.",
+    "Bản trình đã duyệt hoặc từ chối được giữ lại, không xóa."
+   ],
+   "problems": [
+    [
+     "Không thấy nút Duyệt",
+     "Bản trình do chính bạn gửi, hoặc bạn chưa được cấp quyền duyệt. Nhờ người khác duyệt hoặc nhờ Admin cấp quyền."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Danh sách bản trình",
+     "note": "Lọc theo Chờ duyệt, Đã duyệt, Từ chối. Bấm tiêu đề một bản trình để xem chi tiết và quyết định.",
+     "detail": [],
+     "img": "quan-tri/01.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lọc các bản trình đang chờ duyệt"
+      },
+      {
+       "n": 2,
+       "text": "Gửi bản trình mới"
+      },
+      {
+       "n": 3,
+       "text": "Bấm tiêu đề để mở bản trình"
+      }
+     ]
+    },
+    {
+     "title": "Xem bản trình và quyết định",
+     "note": "Xem nội dung, tệp đính kèm rồi bấm Duyệt hoặc Từ chối. Từ chối cần nêu lý do.",
+     "detail": [],
+     "img": "quan-tri/02.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Duyệt bản trình"
+      },
+      {
+       "n": 2,
+       "text": "Từ chối (nêu lý do)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Sổ và báo cáo",
+   "intro": "Xuất sổ nghiệp vụ theo mẫu và xem số liệu báo cáo trong phạm vi quyền của bạn.",
+   "rules": [
+    "Báo cáo N-09, N-10 chỉ là số tham khảo để tự điền mẫu; hệ thống không lập hay gửi báo cáo."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Mọi hồ sơ của văn phòng",
+     "note": "Admin và người có quyền xem toàn văn phòng thấy hồ sơ của cả bốn nghiệp vụ. Bấm mã hồ sơ để mở.",
+     "detail": [],
+     "img": "quan-tri/03.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chọn cột cần xem"
+      },
+      {
+       "n": 2,
+       "text": "Bấm mã hồ sơ để mở chi tiết"
+      }
+     ]
+    },
+    {
+     "title": "Xuất sổ nghiệp vụ",
+     "note": "Mỗi nghiệp vụ có một sổ (S-01, S-02, S-04, S-05). Bấm Xem trước và xuất để xem sổ rồi tải về.",
+     "detail": [],
+     "img": "quan-tri/04.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Xem trước và xuất sổ S-02"
+      }
+     ]
+    },
+    {
+     "title": "Báo cáo tổng hợp",
+     "note": "Chọn năm, xem số liệu mẫu N-09 và N-10 để tự điền báo cáo; bấm Sao chép để lấy từng số.",
+     "detail": [],
+     "img": "quan-tri/05.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Chuyển sang mẫu N-10"
+      },
+      {
+       "n": 2,
+       "text": "Sao chép số liệu"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Sửa hồ sơ đã ghi sổ (Admin)",
+   "intro": "Chỉ Admin sửa được nội dung hồ sơ đã ghi sổ. Mỗi lần sửa phải nêu lý do và được lưu thành phiên bản mới; bản gốc vẫn xem được ở tab Phiên bản cũ.",
+   "rules": [
+    "Không xóa hồ sơ đã ghi sổ.",
+    "Mọi thay đổi ghi người làm, thời điểm, lý do trong Lịch sử hoạt động."
+   ],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Nút Sửa hồ sơ (Admin)",
+     "note": "Mở hồ sơ đã ghi sổ, bấm Sửa hồ sơ (Admin).",
+     "detail": [],
+     "img": "quan-tri/06.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Sửa hồ sơ (Admin)"
+      },
+      {
+       "n": 2,
+       "text": "Tab Phiên bản cũ: bản gốc và các bản sửa"
+      }
+     ]
+    },
+    {
+     "title": "Hộp thoại sửa hồ sơ",
+     "note": "Sửa ô cần đổi, nhập lý do rồi lưu. Hệ thống ghi thành phiên bản mới.",
+     "detail": [],
+     "img": "quan-tri/07.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Sửa nội dung và nhập lý do sửa"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Lịch sử hoạt động",
+   "intro": "Ghi lại ai làm gì, lúc nào trên hồ sơ, tài liệu, tệp, bản trình và phân quyền. Không sửa hay xóa được.",
+   "rules": [],
+   "problems": [],
+   "steps": [
+    {
+     "title": "Lịch sử hoạt động",
+     "note": "Lọc theo loại hoạt động hoặc tìm theo từ khóa; mới nhất ở trên, giờ Việt Nam.",
+     "detail": [],
+     "img": "quan-tri/08.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Lọc: hoạt động về phân quyền"
+      },
+      {
+       "n": 2,
+       "text": "Tìm hoạt động theo từ khóa"
+      }
+     ]
+    },
+    {
+     "title": "Scan đã xóa",
+     "note": "Tệp scan bị xóa được giữ 30 ngày ở đây rồi bị xóa hẳn; không khôi phục được.",
+     "detail": [],
+     "img": "quan-tri/09.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Danh sách scan đang chờ xóa hẳn"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Quản trị: tài khoản, quyền, chi nhánh, cài đặt",
+   "intro": "Admin tạo tài khoản, gán nhóm quyền, quản lý địa điểm (chi nhánh) và cấu hình văn phòng. Quyền chỉ đến từ nhóm quyền.",
+   "rules": [
+    "Tài khoản mới dùng mật khẩu ban đầu do Admin đặt (tối thiểu 12 ký tự) và phải đổi ở lần đăng nhập đầu.",
+    "Mỗi người nên thuộc đúng nhóm quyền của vai mình và chỉ được cấp chi nhánh cần dùng."
+   ],
+   "problems": [
+    [
+     "Người dùng đăng nhập được nhưng không thấy hồ sơ",
+     "Kiểm tra họ đã được cấp chi nhánh chưa (mục Chi nhánh hoặc Xem quyền hiệu lực)."
+    ]
+   ],
+   "steps": [
+    {
+     "title": "Tài khoản",
+     "note": "Danh sách thành viên, trạng thái và nhóm quyền. Bấm + Thêm thành viên để tạo tài khoản mới.",
+     "detail": [],
+     "img": "quan-tri/10.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thêm thành viên mới"
+      },
+      {
+       "n": 2,
+       "text": "Xem quyền hiệu lực của người này"
+      },
+      {
+       "n": 3,
+       "text": "Chuyển sang mục Nhóm quyền"
+      }
+     ]
+    },
+    {
+     "title": "Thêm thành viên",
+     "note": "Điền thông tin cơ bản, kéo xuống chọn nhóm quyền và chi nhánh, rồi bấm Tạo tài khoản và áp dụng quyền ở cuối trang.",
+     "detail": [],
+     "img": "quan-tri/11.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Họ và tên"
+      },
+      {
+       "n": 2,
+       "text": "Email đăng nhập"
+      },
+      {
+       "n": 3,
+       "text": "Mật khẩu ban đầu (tối thiểu 12 ký tự)"
+      },
+      {
+       "n": 4,
+       "text": "Số CCCD (không bắt buộc)"
+      }
+     ]
+    },
+    {
+     "title": "Nhóm quyền: người dùng và quyền hiệu lực",
+     "note": "Xem mỗi người thuộc nhóm nào, phạm vi chi nhánh nào. Bấm Gán nhóm quyền để đổi.",
+     "detail": [],
+     "img": "quan-tri/12.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Gán nhóm quyền cho người dùng"
+      },
+      {
+       "n": 2,
+       "text": "Mục Nhóm quyền: xem và sửa từng nhóm"
+      },
+      {
+       "n": 3,
+       "text": "Nhật ký mọi thay đổi quyền"
+      }
+     ]
+    },
+    {
+     "title": "Chi nhánh (địa điểm hoạt động)",
+     "note": "Mỗi địa điểm có danh sách người được cấp. Hồ sơ chỉ hiện với người được cấp chi nhánh đó.",
+     "detail": [],
+     "img": "quan-tri/13.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Thêm địa điểm mới"
+      },
+      {
+       "n": 2,
+       "text": "Xem người được cấp chi nhánh này"
+      }
+     ]
+    },
+    {
+     "title": "Cài đặt văn phòng",
+     "note": "Thông tin pháp lý, quy tắc đánh số hồ sơ, email gửi thư và lịch làm việc.",
+     "detail": [],
+     "img": "quan-tri/14.png",
+     "marks": [
+      {
+       "n": 1,
+       "text": "Cấu hình email gửi thư (đặt lại mật khẩu)"
+      },
+      {
+       "n": 2,
+       "text": "Thông tin pháp lý của văn phòng"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
