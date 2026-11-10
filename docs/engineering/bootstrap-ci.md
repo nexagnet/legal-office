@@ -84,7 +84,7 @@ change existing application callers, secrets or V4 fallback as part of rollback.
 
 ## Reviewer gate diagnostics rollout (#424)
 
-The Reviewer caller pins central `29090cc1aef417ac4578acdb394b198cd95c1fa1`,
+Rollout #424 introduced central pin `29090cc1aef417ac4578acdb394b198cd95c1fa1`,
 the merged [central PR46](https://github.com/nexagnet/.github/pull/46).
 [Central exact-main CI](https://github.com/nexagnet/.github/actions/runs/42171561553)
 passed on that SHA. This pin updates gate diagnostics only; the caller's triggers,
@@ -126,3 +126,36 @@ Publisher-bot provenance lane. Reviewer proof does not establish Repair, Figma
 image comparison, merge enforcement or general tool isolation. Roll back the
 Reviewer pin through a reviewed R3 PR if runtime acceptance fails; keep existing
 fallbacks and unrelated workflow pins intact.
+
+## Bounded Reviewer SDK failure hints (#430)
+
+The current Reviewer caller pins `128ed9e61ab4ee8c7ac604ca05a4e4511d168f10`,
+the merged [central PR48](https://github.com/nexagnet/.github/pull/48), verified by
+[exact-main CI42570343030](https://github.com/nexagnet/.github/actions/runs/42570343030).
+It adds only
+a trusted failure-only diagnostic after the Claude action. Permissions, model,
+Action version, hidden full output, verdict schema and Reporter gating are
+unchanged. The consumer diff changes the pin, its two assertions and this document.
+
+Live [smoke PR427](https://github.com/nexagnet/legal-office/pull/427) at
+`323c87720f1cee7714692cc766fc2e9d508f1108` proved the missing-reference and unsigned
+owner gates in Reviewer run `42569147517`, attempts 1 and 2. After approved owner
+request `6733243595`, attempts 3 and 5 passed the gate but the SDK returned
+`is_error: true` without structured output; Reporter skipped and no evidence
+artifact was produced. Attempt 4 independently failed during Bun download (504).
+These failures do not prove a provider authentication or quota cause.
+
+The new central step reads only bounded, validated runner-local SDK metadata and
+emits fixed advisory auth/rate/model/unknown/output-unavailable codes. It never
+prints raw errors, transcripts or paths, creates no verdict/artifact, and cannot
+turn a failed Claude action into a successful review. Unknown remains unknown;
+do not enable full output or Actions debug to investigate it.
+
+After exact-head CI, reviewed owner-directed merge and exact-main CI, re-run the
+successful smoke source CI at its unchanged approved SHA. This creates a fresh
+Reviewer run using the new default-branch caller. Rerunning an older Reviewer run
+keeps its old workflow context and cannot validate the new pin. Verify the fresh
+referenced central SHA, original CI/PR association, genuine owner request and
+actual fixed hint or trusted verdict/artifact. Keep PR427 Draft and unmerged. If
+an account/authentication step needs owner interaction, report that blocker and
+leave credentials unchanged.
