@@ -44,11 +44,8 @@ export function DmsNumberImport({
     <div>
       <p className="muted">
         Nhập số <strong>đã dùng cuối cùng</strong> trên sổ giấy (ví dụ 120 thì số kế tiếp là 121).
-        Chỉ tăng, không giảm; mỗi lần nhập được ghi lại.
+        Chỉ tăng, không giảm.
       </p>
-      <Notice tone="warn" title="Cần đối chiếu sổ giấy thật">
-        Chỉ nhập sau khi đã đối chiếu với sổ giấy của văn phòng.
-      </Notice>
       <ul className="mt-3">
         {sorted.map((r) => (
           <NumberRowForm key={r.kind} officeId={officeId} year={year} row={r} />

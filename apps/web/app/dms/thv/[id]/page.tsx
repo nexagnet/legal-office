@@ -62,8 +62,7 @@ export default async function DmsThvReviewPage({ params }: { params: Promise<{ i
       </p>
       <h1 id="t">{r.title}</h1>
       <p className="muted">
-        Hãy kiểm tra nội dung dưới đây. Nếu người nhập liệu sửa lại sau khi bạn xác nhận, bạn phải
-        xác nhận lại.
+        Nếu người nhập liệu sửa lại sau khi bạn xác nhận, bạn phải xác nhận lại.
       </p>
       <h2>Nội dung hồ sơ</h2>
       <dl>

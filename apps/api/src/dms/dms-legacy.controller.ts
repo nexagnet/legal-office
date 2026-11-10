@@ -20,7 +20,8 @@ import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { FILE_STORE, isDirectTransferStore, type FileStore } from '../storage/file-store';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { parse, respond, uuid } from './dms-http';
-import { LEGACY_MAX_BYTES, legacyObjectKey } from './legacy';
+import { LEGACY_MAX_BYTES, legacyObjectKey, legacyOcrEnabled, legacySearchEnabled } from './legacy';
+import { searchTerms, snippetAround, toTsQuery } from '../ocr/text';
 
 const MIME = /^[a-z0-9][a-z0-9!#$&^_.+-]{0,60}\/[a-z0-9][a-z0-9!#$&^_.+-]{0,60}$/i;
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -92,6 +93,8 @@ export class DmsLegacyController {
           officeId: uuid,
           label: z.string().trim().min(1).max(200),
           sourceRoot: z.string().max(300).optional(),
+          // Đợt tải từ giao diện xin OCR (vào hàng đợi); worker chỉ chạy khi LEGACY_OCR_ENABLED bật, bật sau vẫn xử lý phần tồn.
+          ocr: z.boolean().optional(),
         })
         .strict(),
       body,
@@ -103,8 +106,15 @@ export class DmsLegacyController {
         b.officeId,
         b.label,
         b.sourceRoot ?? null,
+        b.ocr ?? false,
       ])
       .then(respond);
+  }
+
+  /** Giao diện hỏi để biết có hiện cột trạng thái OCR (ocr) và ô tìm theo nội dung (search) hay không. Hai công tắc độc lập. */
+  @Get('features')
+  features() {
+    return { ocr: legacyOcrEnabled(), search: legacySearchEnabled() };
   }
 
   @Get('batches/:id')
@@ -160,6 +170,10 @@ export class DmsLegacyController {
     if (!isDirectTransferStore(this.store))
       return fail(HttpStatus.NOT_IMPLEMENTED, 'DIRECT_UPLOAD_NOT_SUPPORTED');
     if (f.size > LEGACY_MAX_BYTES) return fail(HttpStatus.PAYLOAD_TOO_LARGE, 'FILE_TOO_LARGE');
+    // Khóa đã có đúng kích thước (lần nhập trước đã PUT xong nhưng chưa đăng ký): không cấp liên kết PUT nữa,
+    // vì kho có Bucket Lock sẽ từ chối ghi đè (409). Client gọi thẳng `complete`.
+    const existing = await this.store.head(key);
+    if (existing && existing.size === f.size) return { status: 'UPLOADED', deduplicated: false };
     const up = await this.store.presignPut(key, {
       sha256Hex: f.sha256,
       size: f.size,
@@ -237,6 +251,69 @@ export class DmsLegacyController {
       q.offset,
     ]);
     return { rows, limit: q.limit, offset: q.offset };
+  }
+
+  /** Trạng thái OCR của một nhóm tệp (tối đa 200 mã, cách nhau bằng dấu phẩy). OCR tắt thì trả 404 LEGACY_OCR_DISABLED. */
+  @Get('ocr-status')
+  async ocrStatus(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    if (!legacyOcrEnabled()) return fail(HttpStatus.NOT_FOUND, 'LEGACY_OCR_DISABLED');
+    const q = parse(z.object({ officeId: uuid, ids: z.string().max(8000) }).strict(), query);
+    const ids = q.ids
+      .split(',')
+      .filter(Boolean)
+      .slice(0, 200)
+      .map((i) => parse(uuid, i));
+    const rows = await this.repo.rows(a.tenantId, 'dms_legacy_ocr_status', [
+      a.tenantId,
+      a.userId,
+      q.officeId,
+      ids,
+    ]);
+    return { rows };
+  }
+
+  /** Tìm toàn văn trong nội dung OCR của tài liệu cũ. Tìm kiếm tắt thì 404 LEGACY_SEARCH_DISABLED (không trả rỗng giả). */
+  @Get('search')
+  async search(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    if (!legacySearchEnabled()) return fail(HttpStatus.NOT_FOUND, 'LEGACY_SEARCH_DISABLED');
+    const q = parse(
+      z
+        .object({
+          officeId: uuid,
+          q: z.string().max(200),
+          limit: z.coerce.number().int().min(1).max(50).default(20),
+          offset: z.coerce.number().int().min(0).default(0),
+        })
+        .strict(),
+      query,
+    );
+    const rows = await this.repo.rows<{
+      id: string;
+      rel_path: string;
+      file_name: string;
+      size_bytes: string;
+      mime: string;
+      created_at: string;
+      rank: number;
+      page_count: number | null;
+      ocr_text: string | null;
+    }>(a.tenantId, 'dms_legacy_search', [
+      a.tenantId,
+      a.userId,
+      q.officeId,
+      toTsQuery(q.q),
+      q.limit,
+      q.offset,
+    ]);
+    const terms = searchTerms(q.q);
+    return {
+      rows: rows.map(({ ocr_text, ...r }) => ({
+        ...r,
+        snippet: snippetAround(ocr_text ?? '', terms),
+      })),
+      limit: q.limit,
+      offset: q.offset,
+    };
   }
 
   /** Mở/tải một tệp: DB kiểm quyền xem và ghi nhật ký. Kho S3/R2 trả liên kết ngắn hạn; kho đĩa trả thẳng nội dung. */

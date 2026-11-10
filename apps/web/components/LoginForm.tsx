@@ -78,8 +78,7 @@ export function LoginForm({ tenantId }: { readonly tenantId: string }) {
         {busy ? 'Đang đăng nhập…' : 'Đăng nhập'}
       </button>
       <p className="muted">
-        <Link href="/quen-mat-khau">Quên mật khẩu?</Link> Chúng tôi sẽ gửi link đặt lại vào email
-        của tài khoản.
+        <Link href="/quen-mat-khau">Quên mật khẩu?</Link>
       </p>
     </form>
   );

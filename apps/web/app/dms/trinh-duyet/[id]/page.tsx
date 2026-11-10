@@ -173,9 +173,6 @@ export default async function SubmissionPage({
           <AddSubmissionFiles submissionId={s.id} />
         </div>
       ) : null}
-      <p className="muted mt-4">
-        Bản trình không bao giờ bị xóa. Chỉ file scan xóa được, với người có quyền xóa scan.
-      </p>
     </section>
   );
 }

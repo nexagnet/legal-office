@@ -116,7 +116,7 @@ export async function DmsOverview({
         >
           <div>
             <h2 id="pending-sub" className="mb-1">
-              Bản trình chờ duyệt (Admin)
+              Bản trình chờ duyệt
             </h2>
             <p className="muted m-0 text-sm">
               {pendingSubmissions.toLocaleString('vi-VN')} bản trình đang chờ bạn duyệt.

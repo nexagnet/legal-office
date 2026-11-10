@@ -102,9 +102,7 @@ export default async function SubmissionsPage({
     <section aria-labelledby="t">
       <h1 id="t">Trình / Duyệt</h1>
       <p className="muted">
-        {isAdmin
-          ? 'Bản trình của cả văn phòng. Bạn duyệt hoặc từ chối từng bản.'
-          : 'Bạn chỉ thấy các bản trình do mình gửi. Admin sẽ duyệt hoặc từ chối.'}
+        {isAdmin ? 'Bạn duyệt hoặc từ chối từng bản trình.' : 'Bạn chỉ thấy bản trình do mình gửi.'}
       </p>
       <TabNav
         label="Trạng thái bản trình"
@@ -181,8 +179,7 @@ export default async function SubmissionsPage({
       )}
       <div className="dms-foot">
         <p>
-          Hiển thị {list.rows.length} / {list.total} bản trình. Bản trình không bao giờ bị xóa; chỉ
-          file scan mới xóa được.
+          Hiển thị {list.rows.length} / {list.total} bản trình.
         </p>
         {pageCount > 1 ? (
           <nav aria-label="Phân trang" className="dms-pager">

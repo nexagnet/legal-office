@@ -17,7 +17,7 @@ const MESSAGES: Record<string, string> = {
   WOULD_MOVE_BACKWARDS: 'Số cuối nhập vào nhỏ hơn số đang dùng. Số chỉ được tăng, không giảm.',
   INVALID_NUMBER: 'Số cuối hoặc năm chưa hợp lệ.',
   MAIL_KEY_MISSING:
-    'Máy chủ chưa có khoá mã hoá mật khẩu (MAIL_SETTINGS_KEY). Nhờ quản trị hạ tầng đặt khoá trước.',
+    'Máy chủ chưa có khóa mã hóa mật khẩu (MAIL_SETTINGS_KEY). Nhờ quản trị hạ tầng đặt khóa trước.',
   INVALID_MAIL_SETTINGS:
     'Cấu hình email chưa hợp lệ. Kiểm tra máy chủ (không dùng địa chỉ nội bộ), cổng và địa chỉ gửi.',
   MAIL_SETTINGS_NOT_FOUND: 'Chưa lưu cấu hình email.',
@@ -50,7 +50,7 @@ const MESSAGES: Record<string, string> = {
   REASON_REQUIRED: 'Cần nhập lý do.',
   INVALID_VALUE: 'Giá trị mới không hợp lệ.',
   REQUEST_NOT_PENDING: 'Đề nghị này đã được xử lý.',
-  CANCEL_NOT_ALLOWED: 'Hồ sơ đã qua bước pháp lý, không huỷ được ở đây.',
+  CANCEL_NOT_ALLOWED: 'Hồ sơ đã qua bước pháp lý, không hủy được ở đây.',
   CASE_NOT_FOUND: 'Không tìm thấy hồ sơ.',
   INVALID_HANDLER: 'Người này không phải THV hợp lệ.',
   ALREADY_ASSIGNED: 'Hồ sơ đã giao cho THV này.',
@@ -161,7 +161,7 @@ const MESSAGES: Record<string, string> = {
   CODE_NOT_ISSUED: 'Chưa có mã. Hãy bấm link trong email để nhận mã trước.',
   CHALLENGE_INVALID: 'Phiên xác thực không còn hiệu lực. Vui lòng đăng nhập lại.',
   CHALLENGE_EXPIRED: 'Phiên xác thực đã hết hạn. Vui lòng đăng nhập lại.',
-  CHALLENGE_LOCKED: 'Nhập sai mã quá 5 lần nên phiên xác thực đã bị huỷ. Vui lòng đăng nhập lại.',
+  CHALLENGE_LOCKED: 'Nhập sai mã quá 5 lần nên phiên xác thực đã bị hủy. Vui lòng đăng nhập lại.',
   DEADLINE_NOT_FOUND: 'Không tìm thấy hạn này.',
   INVALID_DATE: 'Ngày không hợp lệ (không được ở tương lai).',
   INVALID_DUE: 'Hạn thỏa thuận phải sau ngày bắt đầu tính hạn.',
@@ -180,7 +180,7 @@ const MESSAGES: Record<string, string> = {
   ASSET_NOT_FOUND: 'Không tìm thấy tài sản này.',
   PROPOSAL_NOT_FOUND: 'Không tìm thấy đề xuất này.',
   LINK_NOT_FOUND: 'Nghĩa vụ hoặc đương sự không thuộc hồ sơ này.',
-  IDEMPOTENCY_KEY_REQUIRED: 'Thiếu khoá chống trùng. Vui lòng tải lại trang.',
+  IDEMPOTENCY_KEY_REQUIRED: 'Thiếu khóa chống trùng. Vui lòng tải lại trang.',
   TRANSFER_NOT_PENDING: 'Đề nghị chuyển hồ sơ này không còn ở trạng thái chờ.',
   APP_APPROVAL_MISSING: 'Chưa có bước duyệt trong ứng dụng.',
   LEGAL_DECISION_MISSING: 'Chưa có quyết định pháp lý của người có quyền ký.',
@@ -215,7 +215,7 @@ const MESSAGES: Record<string, string> = {
   INVALID_DOMAIN: 'Nghiệp vụ không hợp lệ.',
   INVALID_INPUT: 'Thông tin chưa hợp lệ. Kiểm tra lại các trường bắt buộc.',
   SELF_APPROVAL_NOT_ALLOWED: 'Người đề xuất không được tự duyệt yêu cầu của mình.',
-  ACCOUNT_LOCKED: 'Tài khoản tạm khoá 15 phút do đăng nhập sai nhiều lần.',
+  ACCOUNT_LOCKED: 'Tài khoản tạm khóa 15 phút do đăng nhập sai nhiều lần.',
 };
 
 export function messageFor(code: string | undefined): string {
@@ -239,7 +239,7 @@ export const CASE_STATUS_LABEL: Record<string, string> = {
   SIGNED: 'Đã ký',
   STAMPED: 'Đã đóng dấu',
   RETURNED: 'Đã trả khách',
-  CANCELLED: 'Đã huỷ',
+  CANCELLED: 'Đã hủy',
 };
 
 export const SERVICE_STATUS_LABEL: Record<string, string> = {
@@ -476,7 +476,7 @@ export const HISTORY_KIND_LABEL: Record<string, string> = {
   CONTACT_RESULT: 'Báo kết quả cho khách',
   N11_PROPOSED: 'Đề nghị sửa lỗi kỹ thuật N-11',
   N11_APPLIED: 'Áp dụng sửa lỗi N-11',
-  CANCELLED: 'Huỷ hồ sơ',
+  CANCELLED: 'Hủy hồ sơ',
 };
 
 export const MISA_STATUS_LABEL: Record<string, string> = {

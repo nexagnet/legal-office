@@ -110,7 +110,7 @@ function BranchRow({
   );
 }
 
-/** Admin thêm / đổi tên địa điểm hoạt động (chi nhánh) của văn phòng. Không xoá: hồ sơ và sổ tham chiếu chi nhánh. */
+/** Admin thêm / đổi tên địa điểm hoạt động (chi nhánh) của văn phòng. Không xóa: hồ sơ và sổ tham chiếu chi nhánh. */
 export function BranchManager({
   officeId,
   branches,
@@ -198,9 +198,6 @@ export function BranchManager({
       <dialog ref={dialog} className="branch-dialog" aria-labelledby="branch-add-t">
         <form className="form" onSubmit={add}>
           <h2 id="branch-add-t">Thêm địa điểm</h2>
-          <p className="muted">
-            Địa điểm mới xuất hiện ngay trong danh sách chọn khi cấp quyền và lập hồ sơ.
-          </p>
           <label>
             Tên địa điểm
             <input name="name" required maxLength={100} autoComplete="off" />

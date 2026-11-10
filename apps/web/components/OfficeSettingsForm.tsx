@@ -82,14 +82,6 @@ export function OfficeSettingsForm(p: Props) {
             Quy tắc số Vi bằng
             <input value={p.numberRule} readOnly />
           </label>
-          <label>
-            Người xác nhận hồ sơ
-            <input value="Thừa hành viên phụ trách / Văn thư" readOnly />
-          </label>
-          <p className="notice-amber">
-            Cloud lưu bản scan quản lý; dữ liệu thật chỉ vận hành sau khi hoàn tất điều kiện pháp lý
-            và được phê duyệt.
-          </p>
           <p role="alert" className="error" hidden={!error}>
             {error}
           </p>
@@ -103,7 +95,6 @@ export function OfficeSettingsForm(p: Props) {
             {p.branches.map((b) => (
               <li key={b.id}>
                 <strong>{b.name}</strong>
-                <span>Cùng một đơn vị pháp lý</span>
               </li>
             ))}
           </ul>

@@ -166,9 +166,7 @@ export function GroupWizard({
                 autoComplete="off"
               />
             </label>
-            <p className="muted">
-              Tên hiển thị cho người dùng. Không dùng để suy ra quyền ký pháp lý.
-            </p>
+            <p className="muted">Tên hiển thị cho người dùng.</p>
           </section>
           <section className="wizard-card">
             <h2>Bắt đầu từ đâu</h2>
@@ -220,8 +218,8 @@ export function GroupWizard({
                 ) : null}
               </div>
               <p className="muted">
-                Quyền dành riêng (duyệt đổi quyền, quản trị người dùng và nhóm quyền) không bao giờ
-                được sao chép sang nhóm tùy chỉnh. Nhóm mới chưa có thành viên.
+                Quyền dành riêng (duyệt đổi quyền, quản trị người dùng và nhóm quyền) không được sao
+                chép.
               </p>
             </section>
           ) : null}
@@ -349,10 +347,7 @@ export function GroupWizard({
             ) : null}
             <div className="wizard-note">
               <strong>Không thể chọn</strong>
-              <span>
-                Duyệt đổi quyền, quản trị người dùng và nhóm quyền: quyền dành riêng. Tư cách hành
-                nghề không phải quyền.
-              </span>
+              <span>Duyệt đổi quyền, quản trị người dùng và nhóm quyền: quyền dành riêng.</span>
             </div>
           </aside>
         </div>

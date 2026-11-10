@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { messageFor } from '../lib/messages';
-import { NoteBox, Pill } from './permissions/Pill';
+import { Pill } from './permissions/Pill';
 import { Button } from './ui/button';
 import { Field, Input } from './ui/field';
 
@@ -115,7 +115,7 @@ export function MailSettingsForm({
         <div className="state" role="alert">
           <h3>Chưa bật được lưu mật khẩu</h3>
           <p>
-            Máy chủ chưa có khoá mã hoá <code>MAIL_SETTINGS_KEY</code>. Nhờ người quản trị hạ tầng
+            Máy chủ chưa có khóa mã hóa <code>MAIL_SETTINGS_KEY</code>. Nhờ người quản trị hạ tầng
             đặt biến này trước khi lưu mật khẩu SMTP.
           </p>
         </div>
@@ -159,7 +159,7 @@ export function MailSettingsForm({
         </div>
         <label className="flex items-center gap-2 text-sm">
           <input name="secure" type="checkbox" defaultChecked={settings.secure ?? true} />
-          Kết nối mã hoá ngay từ đầu (TLS/SSL, thường là cổng 465; bỏ chọn nếu dùng cổng 587)
+          Kết nối mã hóa ngay từ đầu (TLS/SSL, thường là cổng 465; bỏ chọn nếu dùng cổng 587)
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="mail-user" label="Tài khoản">
@@ -185,7 +185,7 @@ export function MailSettingsForm({
         {settings.hasPassword ? (
           <label className="flex items-center gap-2 text-sm">
             <input name="clearPassword" type="checkbox" />
-            Xoá mật khẩu đã lưu (chỉ có tác dụng khi ô mật khẩu để trống)
+            Xóa mật khẩu đã lưu (chỉ có tác dụng khi ô mật khẩu để trống)
           </label>
         ) : null}
         <Field id="mail-from" label="Địa chỉ người gửi">
@@ -212,8 +212,7 @@ export function MailSettingsForm({
             <span className="grid gap-0.5">
               <strong>Cho phép đăng nhập bằng link email</strong>
               <span className="text-xs text-muted">
-                Áp dụng cho mọi người dùng. Link dùng một lần, hết hạn sau 15 phút. Chỉ có hiệu lực
-                khi đã cấu hình máy chủ gửi thư.
+                Link dùng một lần, hết hạn sau 15 phút; cần đã cấu hình máy chủ gửi thư.
               </span>
             </span>
           </label>
@@ -234,9 +233,6 @@ export function MailSettingsForm({
         {error ? <p role="alert">{error}</p> : null}
         {notice ? <p role="status">{notice}</p> : null}
       </form>
-      <NoteBox title="Mật khẩu SMTP được mã hoá">
-        Sau khi lưu không hiển thị lại. Để trống ô mật khẩu khi sửa nghĩa là giữ nguyên mật khẩu cũ.
-      </NoteBox>
     </section>
   );
 }

@@ -36,10 +36,7 @@ export default async function NotificationsPage({
   const all = officeId ? await loadNotifications(await requestCookie(), officeId) : [];
   return (
     <section aria-labelledby="t">
-      <AdminBanner
-        title="Thông báo"
-        sub="Nhắc hạn trong ứng dụng, sinh từ các hạn bạn được xem. Nhắc không đồng nghĩa chuyển trạng thái hồ sơ hay phê duyệt."
-      />
+      <AdminBanner title="Thông báo" sub="Nhắc hạn từ các hồ sơ bạn được xem." />
       <h1 id="t" className="sr-only">
         Thông báo
       </h1>

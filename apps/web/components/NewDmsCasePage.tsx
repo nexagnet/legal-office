@@ -114,8 +114,8 @@ export function NewDmsCasePage({
   return (
     <form onSubmit={submit} aria-label={`Tạo hồ sơ ${domainLabel}`} className="grid gap-4">
       <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
-        <strong>Bản nháp</strong> · Chưa ghi Sổ {bookCode} chính thức. Chỉnh sửa tự do cho đến khi
-        bấm "Xác nhận lưu chính thức"; chưa cấp số hồ sơ, chưa vào xuất sổ.
+        <strong>Bản nháp</strong> · Chưa ghi Sổ {bookCode}; sửa tự do cho đến khi bấm "Xác nhận lưu
+        chính thức".
       </p>
 
       <section aria-labelledby="new-a" className="rounded-2xl bg-surface p-5 shadow-sm">
@@ -161,7 +161,7 @@ export function NewDmsCasePage({
         </div>
         <p className="mt-3 rounded-lg bg-[#eef3fb] px-3 py-2 text-[13px]">
           Số hồ sơ tự cấp khi xác nhận lưu chính thức, trùng phần đầu với STT (STT 30 →
-          030/2026/VB-THV). STT và số về 01 vào ngày đầu năm mới.
+          030/2026/VB-THV).
         </p>
       </section>
 
@@ -178,8 +178,7 @@ export function NewDmsCasePage({
           className="mt-3 min-w-0 max-w-full text-[13px] file:mr-3 file:cursor-pointer file:rounded-[10px] file:border-0 file:bg-accent-soft file:px-4 file:py-2 file:text-[13px] file:font-semibold file:text-accent"
         />
         <p className="mt-2 text-xs text-muted">
-          Chọn bao nhiêu tệp cũng được (PDF, JPEG, PNG), không cần chọn loại tài liệu. Tệp được tải
-          lên ngay sau khi lưu nháp; sau đó vẫn tải thêm được ở trang chi tiết.
+          PDF, JPEG hoặc PNG, chọn nhiều tệp được. Tệp tải lên ngay sau khi lưu nháp.
         </p>
       </section>
 

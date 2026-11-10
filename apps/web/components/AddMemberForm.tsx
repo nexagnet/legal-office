@@ -17,21 +17,13 @@ import { PermissionTree } from './permissions/PermissionTree';
 import { Pill } from './permissions/Pill';
 
 const STEPS: readonly [string, string, string][] = [
-  [
-    '1 · Đã tạo tài khoản',
-    'warn',
-    'Ngay khi bấm gửi. Tài khoản chưa có quyền nào, chỉ có tư cách thành viên văn phòng.',
-  ],
+  ['1 · Đã tạo tài khoản', 'warn', 'Ngay khi bấm gửi, chưa có quyền nào.'],
   [
     '2 · Đã áp dụng',
     'ok',
-    'Admin áp dụng ngay các nhóm quyền đã chọn cùng quyền chi tiết đã tick, không cần ai duyệt. Mọi thay đổi ghi vào nhật ký phân quyền.',
+    'Nhóm quyền và quyền chi tiết đã chọn có hiệu lực ngay, không cần duyệt.',
   ],
-  [
-    '3 · Hoạt động',
-    'ok',
-    'Đăng nhập bằng email hoặc CCCD cùng mật khẩu ban đầu, rồi đổi mật khẩu ngay. Quyền hiệu lực = quyền của các nhóm + quyền thêm riêng − quyền bỏ riêng.',
-  ],
+  ['3 · Hoạt động', 'ok', 'Đăng nhập bằng email hoặc CCCD và mật khẩu ban đầu, rồi đổi mật khẩu.'],
 ];
 
 /** Hiệu lực dự kiến của việc xếp nhóm: tổng số quyền sau khi gộp, có quyền nhạy cảm không, có phạm vi rộng không. */
@@ -243,8 +235,8 @@ export function AddMemberForm({
         <section className="mf-main" aria-labelledby="mf-tree">
           <h2 id="mf-tree">3 · Quyền chi tiết (tùy chọn)</h2>
           <p className="muted">
-            Quyền của các nhóm đã chọn được tick sẵn. Tick thêm hoặc bỏ tick từng quyền để chỉ áp
-            dụng cho riêng tài khoản này; nhóm quyền không bị đổi.
+            Quyền của nhóm đã chọn được tick sẵn. Tick thêm hoặc bỏ tick để chỉ áp dụng cho riêng
+            tài khoản này.
           </p>
           <PermissionTree
             baseline={baseline}
@@ -273,10 +265,7 @@ export function AddMemberForm({
         {branches.length > 0 ? (
           <section className="mf-main" aria-labelledby="mf-branches">
             <h2 id="mf-branches">4 · Chi nhánh được xem</h2>
-            <p className="muted">
-              Người này chỉ thấy hồ sơ và sổ của các chi nhánh được chọn. Không chọn thì chưa thấy
-              hồ sơ chi nhánh nào; có thể cấp sau ở trang quyền hiệu lực của người đó.
-            </p>
+            <p className="muted">Chỉ thấy hồ sơ và sổ của các chi nhánh được chọn.</p>
             <ul className="mf-groups">
               {branches.map((b) => (
                 <li key={b.id}>

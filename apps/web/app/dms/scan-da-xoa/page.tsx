@@ -92,10 +92,7 @@ export default async function DeletedScansPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Scan đã xóa 30 ngày</h1>
-      <p className="muted">
-        Chỉ Admin xem và tải. Không khôi phục được. Sau 30 ngày file bị xóa hẳn khỏi kho. Hồ sơ, STT
-        và dòng sổ không bị ảnh hưởng.
-      </p>
+      <p className="muted">Không khôi phục được. Sau 30 ngày file bị xóa hẳn.</p>
       {list.rows.length === 0 ? (
         <div className="state" role="status">
           <h2>Không có scan nào đang chờ xóa hẳn</h2>

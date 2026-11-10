@@ -18,7 +18,7 @@ interface Saved {
 
 /**
  * Bộ lọc đã lưu của riêng từng người, theo miền: lưu cách lọc hiện tại với một tên, mở lại bằng một cú bấm.
- * Đây là tuỳ chọn giao diện, không phải hồ sơ nghiệp vụ, nên xoá được và không cần xác nhận.
+ * Đây là tùy chọn giao diện, không phải hồ sơ nghiệp vụ, nên xóa được và không cần xác nhận.
  */
 export function DmsSavedFilters({
   officeId,
@@ -85,7 +85,7 @@ export function DmsSavedFilters({
         const json = (await res.json().catch(() => ({}))) as { code?: string };
         setError(
           json.code === 'INVALID_ITEM'
-            ? 'Mỗi miền lưu tối đa 30 bộ lọc. Hãy xóa bớt một bộ lọc cũ.'
+            ? 'Mỗi nghiệp vụ lưu tối đa 30 bộ lọc. Hãy xóa bớt bộ lọc cũ.'
             : messageFor(json.code),
         );
         return false;

@@ -64,8 +64,8 @@ export function DeleteScanButton({
         <form onSubmit={submit} className="grid gap-3" aria-label="Xóa file scan">
           <ul className="m-0 grid gap-1 pl-5 text-sm text-muted">
             <li>Chỉ file scan này bị xóa; hồ sơ, STT và dòng sổ vẫn còn nguyên.</li>
-            <li>File chuyển vào mục "Scan đã xóa 30 ngày", chỉ Admin xem và tải được.</li>
-            <li>Không khôi phục được. Sau 30 ngày file bị xóa hẳn khỏi kho.</li>
+            <li>File chuyển vào mục "Scan đã xóa 30 ngày", chỉ Admin xem và tải.</li>
+            <li>Không khôi phục được. Sau 30 ngày file bị xóa hẳn.</li>
           </ul>
           <label className="grid gap-1 text-[13px] font-semibold">
             Lý do xóa

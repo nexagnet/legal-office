@@ -238,8 +238,8 @@ export default async function EffectivePage({
       {person.suspended ? (
         <p role="status" className="callout">
           <strong>Tài khoản đang tạm khóa</strong>
-          Người này không đăng nhập được và không có quyền hiệu lực nào. Nhóm quyền, hồ sơ và lịch
-          sử giữ nguyên; mở khóa thì quyền theo các nhóm dưới đây có hiệu lực trở lại.
+          Người này không đăng nhập được và không có quyền hiệu lực. Mở khóa thì quyền theo các nhóm
+          dưới đây có hiệu lực trở lại.
         </p>
       ) : null}
 
@@ -253,8 +253,7 @@ export default async function EffectivePage({
           </h2>
           {person.isAdmin ? (
             <p className="text-sm">
-              <strong>Admin (mặc nhiên)</strong> · toàn quyền quản trị, vẫn không xóa, ghi đè hay
-              sửa trực tiếp hồ sơ đã lưu.
+              <strong>Admin (mặc nhiên)</strong> · toàn quyền quản trị.
             </p>
           ) : null}
           {person.groups.map((g) => (
@@ -340,8 +339,7 @@ export default async function EffectivePage({
         </h2>
         {person.isAdmin || groupsOfUser(ctx.groups, id).some(isSystemGroup) ? (
           <p className="text-sm">
-            Tài khoản Admin hoặc thuộc nhóm Admin mặc nhiên có mọi quyền nên không đặt quyền riêng.
-            Quyền quản trị phân quyền chỉ theo nhóm.
+            Tài khoản Admin hoặc thuộc nhóm Admin có mọi quyền nên không đặt quyền riêng.
           </p>
         ) : (
           <UserOverridesEditor

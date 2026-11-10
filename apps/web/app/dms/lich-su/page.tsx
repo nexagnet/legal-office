@@ -125,9 +125,7 @@ export default async function ActivityPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Lịch sử hoạt động</h1>
-      <p className="muted">
-        Chỉ đọc. Nhật ký không sửa hay xóa được. Mới nhất ở trên, giờ Việt Nam.
-      </p>
+      <p className="muted">Mới nhất ở trên, giờ Việt Nam.</p>
       <TabNav
         label="Nhóm hoạt động"
         soft

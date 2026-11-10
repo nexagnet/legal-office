@@ -6,7 +6,7 @@ export default function NotFound() {
     <StateCard
       mark="404"
       title="Không tìm thấy"
-      description="Trang bạn tìm không tồn tại hoặc đã được chuyển. Kiểm tra lại đường dẫn hoặc quay về Tổng quan."
+      description="Trang không tồn tại hoặc đã được chuyển."
     >
       <Link
         href="/"
