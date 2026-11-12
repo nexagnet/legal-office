@@ -2,7 +2,7 @@
 
 ## API (`apps/api/src/http/hardening.ts`, gắn trong `main.ts`)
 - Header cho API chỉ trả JSON: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, CSP `default-src 'none'`; bỏ `X-Powered-By`.
-- Giới hạn tần suất theo địa chỉ: `/auth/login` 20 lần/phút, còn lại 600 lần/phút; vượt thì `429 {code:"RATE_LIMITED"}` kèm `Retry-After`. Khoá tài khoản sau 5 lần sai (15 phút) vẫn do DB quyết định, lớp này chỉ chặn dò hàng loạt.
+- Giới hạn tần suất theo địa chỉ: `/auth/login` và `/auth/verify-link` 20 lần/phút, GET/HEAD/OPTIONS 3000 lần/phút, các phương thức ghi còn lại 600 lần/phút (đặt được bằng `RATE_LIMIT_AUTH_PER_MIN`, `RATE_LIMIT_READ_PER_MIN`, `RATE_LIMIT_WRITE_PER_MIN`; cả văn phòng thường chung một địa chỉ IP nên mức đọc cần đủ cho vài chục người); vượt thì `429 {code:"RATE_LIMITED"}` kèm `Retry-After`. Khoá tài khoản sau 5 lần sai (15 phút) vẫn do DB quyết định, lớp này chỉ chặn dò hàng loạt.
 - `TRUST_PROXY` (số tầng proxy hoặc giá trị Express như `loopback`) cần đặt khi chạy sau proxy, nếu không mọi người dùng chung một địa chỉ.
 
 ## Web (`apps/web/next.config.mjs`)

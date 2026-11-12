@@ -6,7 +6,7 @@ import { resolverFromEnv } from './http/actor';
 import { fileStoreFromEnv } from './storage/file-store';
 import { startReminderSchedule } from './reminders/reminder-schedule';
 import { startScanPurgeSchedule } from './dms/scan-purge';
-import { DEFAULT_RATE_RULES, rateLimit, securityHeaders } from './http/hardening';
+import { rateLimit, rateRulesFromEnv, securityHeaders } from './http/hardening';
 
 async function bootstrap(): Promise<void> {
   const url = process.env.DATABASE_URL;
@@ -37,7 +37,7 @@ async function bootstrap(): Promise<void> {
       .getInstance()
       .set('trust proxy', /^\d+$/.test(proxy) ? Number(proxy) : proxy);
   }
-  app.use(securityHeaders(), rateLimit(DEFAULT_RATE_RULES));
+  app.use(securityHeaders(), rateLimit(rateRulesFromEnv()));
   app.enableShutdownHooks();
   if (process.env.REMINDERS_SCHEDULE === 'on') {
     const stop = startReminderSchedule(pool, process.env, console);

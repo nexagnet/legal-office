@@ -1,6 +1,7 @@
 /** Phần tối thiểu của Express mà các middleware này dùng (tránh phụ thuộc kiểu của Express). */
 interface Req {
   readonly path: string;
+  readonly method?: string;
   readonly ip?: string;
 }
 interface Res {
@@ -29,6 +30,8 @@ export interface RateLimitRule {
   readonly prefix: string;
   readonly limit: number;
   readonly windowMs: number;
+  /** Chỉ áp cho các phương thức HTTP này (viết hoa). Bỏ trống = mọi phương thức. */
+  readonly methods?: readonly string[];
 }
 
 interface Bucket {
@@ -47,13 +50,17 @@ export function rateLimit(
 ): (req: Req, res: Res, next: Next) => void {
   const buckets = new Map<string, Bucket>();
   return (req, res, next) => {
-    const rule = rules.find((r) => req.path.startsWith(r.prefix));
+    const rule = rules.find(
+      (r) =>
+        req.path.startsWith(r.prefix) &&
+        (!r.methods || r.methods.includes((req.method ?? '').toUpperCase())),
+    );
     if (!rule) return next();
     const t = now();
     if (buckets.size > 10_000) {
       for (const [k, b] of buckets) if (b.resetAt <= t) buckets.delete(k);
     }
-    const key = `${rule.prefix}|${req.ip ?? 'unknown'}`;
+    const key = `${rule.prefix}|${rule.methods?.join(',') ?? '*'}|${req.ip ?? 'unknown'}`;
     let b = buckets.get(key);
     if (!b || b.resetAt <= t) {
       b = { count: 0, resetAt: t + rule.windowMs };
@@ -69,8 +76,33 @@ export function rateLimit(
   };
 }
 
-export const DEFAULT_RATE_RULES: readonly RateLimitRule[] = [
-  { prefix: '/auth/login', limit: 20, windowMs: 60_000 },
-  { prefix: '/auth/verify-link', limit: 20, windowMs: 60_000 },
-  { prefix: '', limit: 600, windowMs: 60_000 },
-];
+const READ_METHODS = ['GET', 'HEAD', 'OPTIONS'] as const;
+
+function positiveInt(raw: string | undefined, fallback: number): number {
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : fallback;
+}
+
+/**
+ * Quy tắc mặc định, đặt được bằng biến môi trường (số lần mỗi phút mỗi địa chỉ):
+ * - `RATE_LIMIT_AUTH_PER_MIN` (mặc định 20): đăng nhập và liên kết xác thực, chống dò mật khẩu.
+ * - `RATE_LIMIT_READ_PER_MIN` (mặc định 3000): GET/HEAD/OPTIONS. Cả văn phòng thường ra Internet chung MỘT địa chỉ
+ *   (NAT), nên mức đọc phải đủ cho khoảng 20-50 người; đo thật: 20 người dùng nặng ~30 yêu cầu/giây = 1800/phút.
+ * - `RATE_LIMIT_WRITE_PER_MIN` (mặc định 600): các phương thức ghi còn lại.
+ */
+export function rateRulesFromEnv(env: NodeJS.ProcessEnv = process.env): readonly RateLimitRule[] {
+  const auth = positiveInt(env.RATE_LIMIT_AUTH_PER_MIN, 20);
+  return [
+    { prefix: '/auth/login', limit: auth, windowMs: 60_000 },
+    { prefix: '/auth/verify-link', limit: auth, windowMs: 60_000 },
+    {
+      prefix: '',
+      limit: positiveInt(env.RATE_LIMIT_READ_PER_MIN, 3000),
+      windowMs: 60_000,
+      methods: READ_METHODS,
+    },
+    { prefix: '', limit: positiveInt(env.RATE_LIMIT_WRITE_PER_MIN, 600), windowMs: 60_000 },
+  ];
+}
+
+export const DEFAULT_RATE_RULES: readonly RateLimitRule[] = rateRulesFromEnv({});

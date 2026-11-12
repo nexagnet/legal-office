@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { rateLimit, securityHeaders } from './hardening';
+import { rateLimit, rateRulesFromEnv, securityHeaders } from './hardening';
 
 const res = () => {
   const headers: Record<string, string> = {};
@@ -20,7 +20,7 @@ const res = () => {
   };
   return r;
 };
-const req = (path: string, ip = '1.1.1.1') => ({ path, ip }) as never;
+const req = (path: string, ip = '1.1.1.1', method = 'GET') => ({ path, ip, method }) as never;
 
 describe('securityHeaders', () => {
   it('sets restrictive headers and continues', () => {
@@ -65,5 +65,44 @@ describe('rateLimit', () => {
     mw(req('/auth/login', 'b'), res() as never, next);
     mw(req('/vibang/cases', 'a'), res() as never, next);
     expect(next).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe('rateRulesFromEnv', () => {
+  it('uses higher default for reads than writes and keeps auth strict', () => {
+    const rules = rateRulesFromEnv({});
+    const read = rules.find((r) => r.methods?.includes('GET'));
+    const write = rules.find((r) => r.prefix === '' && !r.methods);
+    expect(read?.limit).toBe(3000);
+    expect(write?.limit).toBe(600);
+    expect(rules.find((r) => r.prefix === '/auth/login')?.limit).toBe(20);
+  });
+
+  it('reads overrides from env and ignores invalid values', () => {
+    const rules = rateRulesFromEnv({
+      RATE_LIMIT_READ_PER_MIN: '5000',
+      RATE_LIMIT_WRITE_PER_MIN: 'abc',
+      RATE_LIMIT_AUTH_PER_MIN: '-1',
+    });
+    expect(rules.find((r) => r.methods?.includes('GET'))?.limit).toBe(5000);
+    expect(rules.find((r) => r.prefix === '' && !r.methods)?.limit).toBe(600);
+    expect(rules.find((r) => r.prefix === '/auth/login')?.limit).toBe(20);
+  });
+
+  it('counts reads and writes in separate buckets per address', () => {
+    const mw = rateLimit(
+      rateRulesFromEnv({ RATE_LIMIT_READ_PER_MIN: '3', RATE_LIMIT_WRITE_PER_MIN: '1' }),
+      () => 0,
+    );
+    const next = vi.fn();
+    for (let i = 0; i < 3; i++) mw(req('/dms/cases', '2.2.2.2', 'GET'), res() as never, next);
+    mw(req('/dms/cases', '2.2.2.2', 'POST'), res() as never, next);
+    expect(next).toHaveBeenCalledTimes(4);
+    const blockedRead = res();
+    mw(req('/dms/cases', '2.2.2.2', 'GET'), blockedRead as never, next);
+    expect(blockedRead.statusCode).toBe(429);
+    const blockedWrite = res();
+    mw(req('/dms/cases', '2.2.2.2', 'POST'), blockedWrite as never, next);
+    expect(blockedWrite.statusCode).toBe(429);
   });
 });
