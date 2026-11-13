@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { N09Form, N10Form } from '../../../../components/DmsStatForms';
-import { loadDmsReport } from '../../../../lib/dms';
+import { loadDmsReport, loadThvOptions } from '../../../../lib/dms';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -9,9 +9,11 @@ export const dynamic = 'force-dynamic';
 export default async function DmsStatFormsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<{ year?: string; branch?: string; half?: string }>;
 }) {
-  const rawYear = Number((await searchParams).year);
+  const sp = await searchParams;
+  const rawYear = Number(sp.year);
+  const firstHalf = sp.half === '1';
   const year =
     Number.isInteger(rawYear) && rawYear >= 2000 && rawYear <= 2100
       ? rawYear
@@ -41,18 +43,28 @@ export default async function DmsStatFormsPage({
       </section>
     );
   }
-  const rows = await loadDmsReport(await requestCookie(), officeId, year);
+  const cookie = await requestCookie();
+  const branch = session.branches.find((b) => b.officeId === officeId && b.id === sp.branch)?.id;
+  const [rows, thv] = await Promise.all([
+    loadDmsReport(cookie, officeId, year, branch, firstHalf),
+    loadThvOptions(cookie),
+  ]);
+  const thvCount = thv.filter((t) => !t.officeId || t.officeId === officeId).length;
+  const keep = `${branch ? `&branch=${branch}` : ''}${firstHalf ? '&half=1' : ''}`;
   return (
     <section aria-labelledby="t">
-      <h1 id="t">Mẫu báo cáo N-09, N-10 năm {year}</h1>
+      <h1 id="t">
+        Mẫu báo cáo N-09, N-10 năm {year}
+        {firstHalf ? ' (6 tháng)' : ''}
+      </h1>
       <p className="muted print-hide">
         Theo Phụ lục III Thông tư 08/2026/TT-BTP. Chỉ điền số hồ sơ đã lưu chính thức; doanh thu, số
         tiền và các ô còn lại để trống cho văn phòng tự điền.
       </p>
       <p className="print-hide">
-        <Link href={`/dms/bao-cao/mau?year=${year - 1}`}>← {year - 1}</Link>{' '}
-        <Link href={`/dms/bao-cao/mau?year=${year + 1}`}>{year + 1} →</Link>{' '}
-        <Link href={`/dms/bao-cao?year=${year}`}>Số liệu tổng hợp</Link>
+        <Link href={`/dms/bao-cao/mau?year=${year - 1}${keep}`}>← {year - 1}</Link>{' '}
+        <Link href={`/dms/bao-cao/mau?year=${year + 1}${keep}`}>{year + 1} →</Link>{' '}
+        <Link href={`/dms/bao-cao?year=${year}${keep}`}>Số liệu tổng hợp</Link>
       </p>
       {rows === 'error' ? (
         <ErrorRetry
@@ -61,7 +73,13 @@ export default async function DmsStatFormsPage({
         />
       ) : (
         <>
-          <N09Form unit={session.tenantName} year={year} rows={rows} />
+          <N09Form
+            unit={session.tenantName}
+            year={year}
+            rows={rows}
+            firstHalf={firstHalf}
+            thvCount={thvCount}
+          />
           <N10Form unit={session.tenantName} year={year} />
         </>
       )}

@@ -51,15 +51,21 @@ export function N09Form({
   unit,
   year,
   rows,
+  firstHalf = false,
+  thvCount = null,
 }: {
   readonly unit: string;
   readonly year: number;
   readonly rows: readonly DmsReportRow[];
+  /** Kỳ 6 tháng (01/01–30/06); mặc định kỳ 12 tháng. */
+  readonly firstHalf?: boolean;
+  /** Số Thừa hành viên của văn phòng; null = chưa biết, để trống. */
+  readonly thvCount?: number | null;
 }) {
   const served = pick(rows, 'tongdat');
   const row = [
     unit,
-    '',
+    cell(thvCount),
     cell(served),
     '',
     '',
@@ -81,7 +87,8 @@ export function N09Form({
       <p>ĐƠN VỊ BÁO CÁO (Sở Tư pháp/văn phòng THADS): {unit}</p>
       <h2 id="n09">KẾT QUẢ TỔ CHỨC VÀ HOẠT ĐỘNG CỦA VĂN PHÒNG THI HÀNH ÁN DÂN SỰ</h2>
       <p>
-        Từ ngày 01 tháng 01 năm {year} đến ngày 31 tháng 12 năm {year}
+        Từ ngày 01 tháng 01 năm {year} đến ngày {firstHalf ? '30 tháng 6' : '31 tháng 12'} năm{' '}
+        {year}
       </p>
       <DataTable tableKey="DmsStatForms-1">
         <table>

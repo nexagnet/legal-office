@@ -232,7 +232,14 @@ export class DmsCasesController {
   @Get('report')
   async report(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
     const q = parse(
-      z.object({ officeId: uuid, year: z.coerce.number().int().min(2000).max(2100) }).strict(),
+      z
+        .object({
+          officeId: uuid,
+          year: z.coerce.number().int().min(2000).max(2100),
+          branchId: uuid.optional(),
+          half: z.enum(['1']).optional(),
+        })
+        .strict(),
       query,
     );
     const rows = await this.repo.rows(a.tenantId, 'dms_report_summary', [
@@ -240,6 +247,8 @@ export class DmsCasesController {
       a.userId,
       q.officeId,
       q.year,
+      q.branchId ?? null,
+      q.half === '1',
     ]);
     // Thẻ số "việc còn dở" của Tống đạt, Xác minh, Tổ chức (Figma DMS v2): domain -> số còn dở.
     // Thiếu hàm này (chưa chạy migration 0102) thì không được làm hỏng cả báo cáo.

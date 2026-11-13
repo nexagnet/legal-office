@@ -7,7 +7,9 @@ const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta
 const guard = readFileSync(new URL('../scripts/check-tracked-file-safety.mjs', import.meta.url), 'utf8');
 const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
 
-const JOBS = ['bootstrap-verify', 'bootstrap-safety', 'app-verify', 'audit', 'db-integration'];
+const JOBS = ['bootstrap-verify', 'bootstrap-safety', 'app-verify', 'audit', 'db-integration', 'e2e-smoke'];
+// Reviewer chỉ chờ các job bắt buộc; e2e-smoke chưa là check bắt buộc (nâng lên là bước ruleset R3 riêng).
+const REVIEW_JOBS = JOBS.filter((j) => j !== 'e2e-smoke');
 
 describe('manual sandbox negative probe caller (R3 #172)', () => {
   const centralPin = '3a68dd94b9fd927ffd97457020a197ed0423172a';
@@ -89,7 +91,7 @@ describe('legal-office R3 application CI contract', () => {
   });
 
   it('pins every checkout to the exact PR HEAD (pull_request) or pushed SHA (push)', () => {
-    const jobs = workflow.split(/^jobs:\n/m)[1].split(/^  (?=[a-z-]+:\n    name: )/m).filter(Boolean);
+    const jobs = workflow.split(/^jobs:\n/m)[1].split(/^  (?=[a-z0-9-]+:\n    name: )/m).filter(Boolean);
     assert.equal(jobs.length, JOBS.length);
     for (const job of jobs) {
       assert.match(job, /EXPECTED_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
@@ -127,7 +129,7 @@ describe('legal-office R3 application CI contract', () => {
 
   it('runs the application, audit and PostgreSQL jobs from the frozen lockfile with pinned inputs', () => {
     assert.match(workflow, /uses: actions\/setup-node@[a-f0-9]{40}/);
-    assert.equal((workflow.match(/pnpm install --frozen-lockfile/g) ?? []).length, 3);
+    assert.equal((workflow.match(/pnpm install --frozen-lockfile/g) ?? []).length, 4);
     for (const cmd of ['pnpm -r run lint', 'pnpm -r run typecheck', 'pnpm -r run test', 'pnpm -r run build', 'pnpm audit --audit-level high']) {
       assert.ok(workflow.includes(`run: ${cmd}`), cmd);
     }
@@ -187,7 +189,7 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
     assert.match(reviewerCaller, /github\.event\.workflow_run\.pull_requests\[0\]\.number != null/);
     assert.match(reviewerCaller, /expected_head_sha: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
     assert.match(reviewerCaller, /ci_run_id: \$\{\{ github\.event\.workflow_run\.id \}\}/);
-    assert.match(reviewerCaller, new RegExp(`required_jobs_csv: ${JOBS.join(',')}\\n`));
+    assert.match(reviewerCaller, new RegExp(`required_jobs_csv: ${REVIEW_JOBS.join(',')}\\n`));
     assert.match(reviewerCaller, /permissions:\n  contents: read\n  actions: read\n  checks: read\n  issues: read\n(?:  # [^\n]+\n)*  pull-requests: write/);
     assert.match(reviewerCaller, /CLAUDE_CODE_OAUTH_TOKEN: \$\{\{ secrets\.CLAUDE_CODE_OAUTH_TOKEN \}\}/);
     assert.doesNotMatch(reviewerCaller, /BUILDER_PUBLISHER_APP_|secrets:\s*inherit|contents: write|pull_request_target/);
