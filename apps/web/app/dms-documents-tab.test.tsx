@@ -71,6 +71,21 @@ describe('Tab Tài liệu (thiết kế mới)', () => {
     expect(screen.getAllByText('Bản scan chính').length).toBeGreaterThan(0);
   });
 
+  it('tên tệp rất dài (không khoảng trắng) bị cắt bằng dấu ba chấm, có tooltip, không kéo giãn cột', () => {
+    const long = `t_${'a'.repeat(40)}_dms_${'b'.repeat(80)}.pdf`;
+    const g: DocGroup[] = [{ ...groups[1]!, files: [file('f9', long)] }];
+    const { container } = render(<DmsDocumentsTab {...base} groups={g} canDeleteScan={false} />);
+    const link = screen.getByRole('link', { name: long });
+    expect(link.getAttribute('title')).toBe(long);
+    expect(link.className).toContain('truncate');
+    // jsdom không dàn trang: kiểm các lớp giữ cột trái không giãn quá ô lưới (min-w-0 + cột minmax(0,1fr)).
+    const column = container.querySelector('section')!.parentElement!;
+    expect(column.className).toContain('min-w-0');
+    expect(column.className).toContain('grid-cols-[minmax(0,1fr)]');
+    expect(container.querySelector('section')!.className).toContain('min-w-0');
+    expect(screen.getByLabelText('Xem trước tệp').className).toContain('min-w-0');
+  });
+
   it('chọn tệp khác thì khung xem trước đổi theo', () => {
     render(<DmsDocumentsTab {...base} groups={groups} previewId="f3" canDeleteScan={false} />);
     expect(screen.getByTitle('Xem trước bien-ban.pdf').getAttribute('src')).toContain('/f3/');
