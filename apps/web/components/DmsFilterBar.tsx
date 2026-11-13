@@ -397,6 +397,12 @@ export function DmsActiveChips({
       text: `Việc còn dở: ${view.open ? OPEN_LABEL[domain] : 'Đã xong'}`,
       href: without({ open: undefined }),
     });
+  if (recordedView && view.overdue !== undefined)
+    chips.push({
+      key: 'overdue',
+      text: view.overdue ? 'Quá hạn báo kết quả' : 'Chưa quá hạn',
+      href: without({ overdue: undefined }),
+    });
   if (recordedView && view.returned !== undefined)
     chips.push({
       key: 'returned',
@@ -481,9 +487,16 @@ export function DmsWorkChips({ base, view, facets, domain, userId }: DmsWorkChip
       active:
         view.open === undefined &&
         view.returned === undefined &&
+        view.overdue === undefined &&
         view.filter === 'chinh-thuc' &&
         !mine,
-      href: go({ open: undefined, returned: undefined, filter: 'chinh-thuc', thv: undefined }),
+      href: go({
+        open: undefined,
+        returned: undefined,
+        overdue: undefined,
+        filter: 'chinh-thuc',
+        thv: undefined,
+      }),
     },
   ];
   if (labels?.open)
@@ -502,6 +515,14 @@ export function DmsWorkChips({ base, view, facets, domain, userId }: DmsWorkChip
       active: view.open === false,
       href: go({ open: false, filter: 'chinh-thuc' }),
     });
+  if (domain === 'tongdat')
+    items.push({
+      key: 'overdue',
+      label: 'Quá hạn báo kết quả',
+      n: countOf(facets.overdue, 'true'),
+      active: view.overdue === true,
+      href: go({ overdue: true, returned: undefined, filter: 'chinh-thuc' }),
+    });
   items.push(
     {
       key: 'unreturned',
@@ -515,7 +536,7 @@ export function DmsWorkChips({ base, view, facets, domain, userId }: DmsWorkChip
       label: 'Đã trả kết quả',
       n: countOf(facets.returned, 'true'),
       active: view.returned === true,
-      href: go({ returned: true, filter: 'chinh-thuc' }),
+      href: go({ returned: true, overdue: undefined, filter: 'chinh-thuc' }),
     },
     {
       key: 'missing',

@@ -54,6 +54,8 @@ const filterShape = {
   open: bool.optional(),
   /** Ô "Đã trả kết quả". */
   returned: bool.optional(),
+  /** Quá hạn báo kết quả tống đạt (0128): true = quá hạn, false = không quá hạn. Chỉ Tống đạt có hạn. */
+  overdue: bool.optional(),
   /** Bộ lọc nghiệp vụ (0126): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   fa: z.string().min(1).max(200).optional(),
   fb: z.string().min(1).max(200).optional(),
@@ -82,6 +84,7 @@ export const extraArg = (f: CaseFilters): string | null => {
   if (f.thv) e.thv = f.thv;
   if (f.open !== undefined) e.open = f.open;
   if (f.returned !== undefined) e.returned = f.returned;
+  if (f.overdue !== undefined) e.overdue = f.overdue;
   if (f.fa) e.fa = f.fa;
   if (f.fb) e.fb = f.fb;
   return Object.keys(e).length > 0 ? JSON.stringify(e) : null;
@@ -246,6 +249,7 @@ export class DmsBrowseController {
       q.from || q.to ? `ghi sổ ${q.from ?? '…'} → ${q.to ?? '…'}` : null,
       q.open !== undefined ? (q.open ? 'việc còn dở' : 'đã xong') : null,
       q.returned !== undefined ? (q.returned ? 'đã trả kết quả' : 'chưa trả kết quả') : null,
+      q.overdue !== undefined ? (q.overdue ? 'quá hạn' : 'chưa quá hạn') : null,
       q.scan ? `scan: ${q.scan}` : null,
       q.thv ? `${q.thv.length} Thừa hành viên` : null,
       q.fa ? `lọc 1: ${q.fa}` : null,
@@ -314,6 +318,7 @@ export class DmsBrowseController {
       thv: [],
       open: [],
       returned: [],
+      overdue: [],
       fa: [],
       fb: [],
     };
