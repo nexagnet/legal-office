@@ -296,7 +296,7 @@ export function FileActions({
           download
           aria-label={`Tải ${file.label}`}
           title="Tải về"
-          className="grid size-9 place-items-center rounded-lg text-muted hover:bg-accent-soft hover:text-accent"
+          className="grid size-9 place-items-center rounded-lg text-muted outline-none hover:bg-accent-soft hover:text-accent focus-visible:bg-accent-soft"
         >
           <Download size={18} aria-hidden="true" />
         </a>
@@ -305,7 +305,7 @@ export function FileActions({
         <Menu.Root>
           <Menu.Trigger
             aria-label={`Thêm hành động cho ${file.label}`}
-            className="grid size-9 place-items-center rounded-lg text-muted hover:bg-accent-soft hover:text-accent data-[state=open]:bg-accent-soft"
+            className="grid size-9 place-items-center rounded-lg text-muted outline-none hover:bg-accent-soft hover:text-accent focus-visible:bg-accent-soft data-[state=open]:bg-accent-soft"
           >
             <MoreHorizontal size={18} aria-hidden="true" />
           </Menu.Trigger>
