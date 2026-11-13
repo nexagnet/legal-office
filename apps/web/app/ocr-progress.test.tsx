@@ -15,7 +15,7 @@ describe('tiến độ OCR (tài liệu mới)', () => {
     expect(ocrPercent(row('RUNNING', 0, null))).toBeNull();
     expect(ocrPercent(row('RUNNING', 9, 4))).toBe(100);
     expect(ocrPercent(row('DONE', null, null))).toBe(100);
-    expect(ocrLabel(row('RUNNING', 2, 4))).toBe('Đang OCR 50% (2/4 trang)');
+    expect(ocrLabel(row('RUNNING', 2, 4))).toBe('Đang OCR 2/4 trang');
     expect(ocrLabel(row('RUNNING', null, null))).toBe('Đang OCR…');
     expect(ocrLabel(row('PENDING', null, null))).toBe('Chờ OCR');
     expect(ocrLabel(row(null, null, null))).toBe('Chờ OCR');
@@ -62,7 +62,7 @@ describe('OcrProgress', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3_000);
     });
-    expect(screen.getByText('Đang OCR 25% (1/4 trang)')).toBeTruthy();
+    expect(screen.getByText('Đang OCR 1/4 trang')).toBeTruthy();
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('25');
     expect(String(fetchMock.mock.calls[0]![0])).toContain('/api/dms/files/ocr-status?ids=f1');
 
@@ -120,7 +120,7 @@ describe('OcrProgress', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3_000);
     });
-    expect(screen.getByText('Đang OCR 25% (1/4 trang)')).toBeTruthy();
+    expect(screen.getByText('Đang OCR 1/4 trang')).toBeTruthy();
   });
 
   it('OCR lỗi nhưng không có quyền thì không có nút; máy chủ từ chối thì báo lỗi và giữ trạng thái lỗi', async () => {

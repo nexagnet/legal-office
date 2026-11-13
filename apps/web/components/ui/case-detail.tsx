@@ -1,3 +1,4 @@
+import { Lock } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
@@ -6,10 +7,13 @@ export function NoticeBar({
   children,
   action,
   tone = 'warn',
+  lock = false,
 }: {
   readonly children: ReactNode;
   readonly action?: ReactNode;
   readonly tone?: 'warn' | 'info';
+  /** Biểu tượng khóa đầu dòng (Figma T2: thông báo quyền của hồ sơ đã ghi sổ). */
+  readonly lock?: boolean;
 }) {
   return (
     <div
@@ -19,6 +23,7 @@ export function NoticeBar({
         tone === 'warn' ? 'bg-[#fdf0d5] text-[#5a3d00]' : 'bg-accent-soft text-accent',
       )}
     >
+      {lock ? <Lock size={16} aria-hidden="true" className="shrink-0" /> : null}
       <p className="m-0 min-w-0 flex-1">{children}</p>
       {action ? <div className="shrink-0 font-semibold">{action}</div> : null}
     </div>
