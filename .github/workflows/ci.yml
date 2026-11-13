@@ -237,12 +237,12 @@ jobs:
         run: pnpm --filter @legal-office/e2e run test:e2e
       - name: Show stack logs on failure
         if: failure()
-        run: tail -n 60 e2e/.tmp/api.log e2e/.tmp/web.log || true
+        run: tail -n 60 e2e/.tmp/api.log e2e/.tmp/web.log
       - name: Stop stack
         if: always()
         env:
           DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres
-        run: bash e2e/stop-stack.sh || true
+        run: bash e2e/stop-stack.sh
 
 # Proves lint/typecheck/test/build/audit, DB integration and a browser smoke (login to record) on the exact head. It does not prove
 # deployment, preview runtime, or the Claude pipeline. Required-check ruleset changes are a separate R3 step.
