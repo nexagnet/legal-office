@@ -23,6 +23,7 @@ Gói miễn phí hết chỗ cho service, nên `lo-ocr` chạy như **Job theo l
 | `FILE_STORE*` | Giống `lo-api`. Production dùng `FILE_STORE=r2` nên Job đọc cùng bucket, không cần chia sẻ volume. (`FILE_STORE=local` chỉ để thử và cần gắn cùng volume) |
 | `OCR_TENANT_IDS` | Danh sách tenant id, cách nhau dấu phẩy |
 | Tuỳ chọn | `OCR_LANG` (mặc định `vie`) |
+| Tuỳ chọn | `OCR_PAGE_TIMEOUT_SECONDS` (mặc định 240): hết giờ cho từng trang (dựng ảnh hoặc nhận dạng); quá giờ ghi lỗi `OCR_TIMEOUT`. `OCR_PDF_DPI` (mặc định 200): độ phân giải dựng ảnh từ PDF scan. Hết RAM bị hệ điều hành kill ghi `OCR_KILLED` |
 
 Không cần biến mới trong secret group đang có; chỉ thêm `OCR_ONCE` và `OCR_TENANT_IDS` (không bí mật). Migration 0084 tự áp khi `lo-api` khởi động và phải áp trước lượt Job đầu tiên. Không đặt `OCR_ONCE` thì image chạy vòng lặp nền (dùng khi có chỗ cho service thường trực).
 

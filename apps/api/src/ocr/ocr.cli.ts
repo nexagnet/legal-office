@@ -17,7 +17,10 @@ async function main(): Promise<void> {
   const store = fileStoreFromEnv();
   if (!store) throw new Error('FILE_STORE is required');
   const pool = new pg.Pool({ connectionString: url, max: 2 });
-  const engine = new TesseractEngine(process.env.OCR_LANG || 'vie');
+  const engine = new TesseractEngine(process.env.OCR_LANG || 'vie', {
+    pageTimeoutMs: Number(process.env.OCR_PAGE_TIMEOUT_SECONDS) * 1000,
+    dpi: Number(process.env.OCR_PDF_DPI),
+  });
   const idleMs = Number(process.env.OCR_POLL_SECONDS ?? 30) * 1000;
   if (process.env.OCR_ONCE === '1') {
     const r = await runOnce(pool, tenants, store, engine, console);

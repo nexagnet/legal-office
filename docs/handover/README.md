@@ -14,6 +14,7 @@ Thư mục này gom mọi thứ đã biết về dự án vào một chỗ, đ�
 | [06-viec-dang-do.md](06-viec-dang-do.md) | Việc còn dang dở, ai chịu trách nhiệm |
 | [07-quy-uoc-lam-viec.md](07-quy-uoc-lam-viec.md) | Quy ước làm việc với chủ dự án, PR, giao diện |
 | [08-lich-su-va-nguon.md](08-lich-su-va-nguon.md) | Dòng thời gian, danh sách PR, các luồng làm việc, nơi tìm thêm |
+| [09-ngu-canh-dieu-phoi.md](09-ngu-canh-dieu-phoi.md) | Quy tắc chủ dự án, trạng thái PR 13/11, việc cần chủ dự án quyết, lỗi smoke E2E đang mở, ghi chú vận hành |
 | [reports/](reports/) | Bản sao các báo cáo gốc (đã lược bí mật) |
 
 AI đọc repo: bắt đầu từ [`AGENTS.md`](../../AGENTS.md) ở gốc, rồi tệp này.
