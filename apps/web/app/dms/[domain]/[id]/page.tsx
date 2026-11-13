@@ -224,18 +224,27 @@ export default async function DmsCasePage({
     : c.status === 'CANCELLED'
       ? `?${listKey}=da-huy`
       : '';
+  // Tiêu đề theo Figma T1: "Vi bằng số 031/2026/VB-THV ngày 12/11/2026" (ngày ghi sổ, chưa ghi sổ thì ngày tạo).
+  const headingDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  }).format(new Date(c.recorded_at ?? c.created_at));
+  const heading = c.case_number
+    ? `${domain.label} số ${c.case_number} ngày ${headingDate}`
+    : `${c.title} · Chi tiết hồ sơ`;
   return (
     <section aria-labelledby="t">
       <AdminBanner
         crumb={[
           [domain.label, `/dms/${domain.slug}${backQuery}`],
-          [c.case_number ?? c.title, undefined],
+          [c.case_number ? `Hồ sơ ${c.case_number}` : c.title, undefined],
         ]}
-        title={`${c.case_number ?? c.title} · Chi tiết hồ sơ`}
-        sub={hasPhone && c.phone ? `${c.title} · SĐT ${c.phone}` : c.title}
+        title={heading}
       />
       <h1 id="t" className="sr-only">
-        {c.case_number ?? c.title} · Chi tiết hồ sơ
+        {heading}
       </h1>
       <p className="mb-3 flex flex-wrap items-center gap-2">
         <span
@@ -256,16 +265,8 @@ export default async function DmsCasePage({
           </span>
         ) : null}
       </p>
-      {c.status === 'RECORDED' && !canAdminEdit ? (
-        <NoticeBar action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
-          Hồ sơ đã ghi sổ: nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin.
-        </NoticeBar>
-      ) : null}
-      {c.status === 'CANCELLED' ? (
-        <NoticeBar tone="info">Bản nháp đã hủy. Lý do: {c.cancel_reason ?? '—'}.</NoticeBar>
-      ) : null}
       <TabNav
-        soft
+        underline
         label={`Chi tiết hồ sơ ${c.title}`}
         active={tab}
         tabs={[
@@ -277,6 +278,14 @@ export default async function DmsCasePage({
           })),
         ]}
       />
+      {c.status === 'RECORDED' && !canAdminEdit ? (
+        <NoticeBar lock action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
+          Hồ sơ đã ghi sổ: nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin.
+        </NoticeBar>
+      ) : null}
+      {c.status === 'CANCELLED' ? (
+        <NoticeBar tone="info">Bản nháp đã hủy. Lý do: {c.cancel_reason ?? '—'}.</NoticeBar>
+      ) : null}
       {tab === 'chung' && isDraft ? (
         <div className="grid gap-4">
           <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
@@ -424,7 +433,6 @@ export default async function DmsCasePage({
           base={base}
           previewId={sp.file}
           canUpload={canUpload}
-          canAddScan={c.status !== 'CANCELLED'}
           canDeleteScan={canDeleteScan}
           groups={docs.map((d, i) => ({
             id: d.id,

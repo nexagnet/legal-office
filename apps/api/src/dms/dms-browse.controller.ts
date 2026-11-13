@@ -66,7 +66,6 @@ const filterShape = {
   to: isoDate.optional(),
   branch: uuid.optional(),
   creator: uuid.optional(),
-  kind: z.string().min(1).max(100).optional(),
   scan: z.enum(['missing', 'complete', 'empty']).optional(),
   pending: bool.optional(),
   /** Thừa hành viên: một hoặc nhiều mã, cách nhau dấu phẩy (tối đa 20). */
@@ -101,7 +100,7 @@ export const filterArgs = (f: CaseFilters) => [
   f.to ?? null,
   f.branch ?? null,
   f.creator ?? null,
-  f.kind ?? null,
+  null, // loại tài liệu (p_kind): đã bỏ khỏi giao diện và API, DB giữ tham số cho tương thích
   f.scan ?? null,
   f.pending ?? null,
 ];
@@ -283,7 +282,6 @@ export class DmsBrowseController {
       q.thv ? `${q.thv.length} Thừa hành viên` : null,
       q.fa ? `lọc 1: ${q.fa}` : null,
       q.fb ? `lọc 2: ${q.fb}` : null,
-      q.kind ? `loại: ${q.kind}` : null,
     ].filter(Boolean);
     const buf = await buildXlsx({
       name: spec.form,
@@ -359,7 +357,6 @@ export class DmsBrowseController {
     const groups: Record<string, { value: string; label: string; n: number }[]> = {
       creator: [],
       branch: [],
-      kind: [],
       scan: [],
       year: [],
       thv: [],

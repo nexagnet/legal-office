@@ -42,7 +42,7 @@ const groups: DocGroup[] = [
     files: [file('f2', 'bien-ban.pdf', 1), file('f3', 'bien-ban.pdf', 2)],
   },
 ];
-const base = { caseId: 'c1', base: '/dms/vi-bang/c1', canUpload: true, canAddScan: true };
+const base = { caseId: 'c1', base: '/dms/vi-bang/c1', canUpload: true };
 
 describe('Tab Tài liệu (thiết kế mới)', () => {
   it('nhãn nhóm không lặp chữ', () => {
@@ -59,6 +59,33 @@ describe('Tab Tài liệu (thiết kế mới)', () => {
     expect(screen.getByTitle('Xem trước main.pdf')).toBeTruthy();
   });
 
+  it('dòng tệp theo Figma T1: ngày 12/11, dung lượng có dấu chấm, chip Bản scan chính', () => {
+    const big: DocGroup[] = [
+      {
+        ...groups[0]!,
+        files: [{ ...file('f1', 'main.pdf'), size_bytes: 2_976_000 }],
+      },
+    ];
+    render(<DmsDocumentsTab {...base} groups={big} canDeleteScan={false} />);
+    expect(screen.getByText('2.906 KB · v1 · 12/11')).toBeTruthy();
+    expect(screen.getAllByText('Bản scan chính').length).toBeGreaterThan(0);
+  });
+
+  it('tên tệp rất dài (không khoảng trắng) bị cắt bằng dấu ba chấm, có tooltip, không kéo giãn cột', () => {
+    const long = `t_${'a'.repeat(40)}_dms_${'b'.repeat(80)}.pdf`;
+    const g: DocGroup[] = [{ ...groups[1]!, files: [file('f9', long)] }];
+    const { container } = render(<DmsDocumentsTab {...base} groups={g} canDeleteScan={false} />);
+    const link = screen.getByRole('link', { name: long });
+    expect(link.getAttribute('title')).toBe(long);
+    expect(link.className).toContain('truncate');
+    // jsdom không dàn trang: kiểm các lớp giữ cột trái không giãn quá ô lưới (min-w-0 + cột minmax(0,1fr)).
+    const column = container.querySelector('section')!.parentElement!;
+    expect(column.className).toContain('min-w-0');
+    expect(column.className).toContain('grid-cols-[minmax(0,1fr)]');
+    expect(container.querySelector('section')!.className).toContain('min-w-0');
+    expect(screen.getByLabelText('Xem trước tệp').className).toContain('min-w-0');
+  });
+
   it('chọn tệp khác thì khung xem trước đổi theo', () => {
     render(<DmsDocumentsTab {...base} groups={groups} previewId="f3" canDeleteScan={false} />);
     expect(screen.getByTitle('Xem trước bien-ban.pdf').getAttribute('src')).toContain('/f3/');
@@ -71,15 +98,7 @@ describe('Tab Tài liệu (thiết kế mới)', () => {
   });
 
   it('không có quyền tải lên thì ẩn nút Tải lên', () => {
-    render(
-      <DmsDocumentsTab
-        {...base}
-        canUpload={false}
-        canAddScan={false}
-        groups={groups}
-        canDeleteScan={false}
-      />,
-    );
+    render(<DmsDocumentsTab {...base} canUpload={false} groups={groups} canDeleteScan={false} />);
     expect(screen.queryByRole('button', { name: /^Tải lên$/ })).toBeNull();
   });
 });
@@ -95,15 +114,7 @@ describe('Hộp thoại Tải lên', () => {
       return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
     });
     const onOpenChange = vi.fn();
-    render(
-      <UploadDialog
-        caseId="c1"
-        targets={[{ id: 'd1', label: 'Vi bằng' }]}
-        allowOther
-        open
-        onOpenChange={onOpenChange}
-      />,
-    );
+    render(<UploadDialog caseId="c1" open onOpenChange={onOpenChange} />);
     const input = screen.getByLabelText('Chọn tệp') as HTMLInputElement;
     fireEvent.change(input, {
       target: { files: [new File(['x'], 'a.pdf', { type: 'application/pdf' })] },
@@ -115,35 +126,34 @@ describe('Hộp thoại Tải lên', () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it('chọn tài liệu có sẵn và bỏ tick bản scan', async () => {
+  it('hộp thoại không hỏi loại, nhóm hay bản scan: chỉ chọn tệp rồi tải', () => {
+    render(<UploadDialog caseId="c1" open onOpenChange={() => undefined} />);
+    expect(screen.queryByLabelText('Gắn vào tài liệu')).toBeNull();
+    expect(screen.queryByLabelText(/Đây là bản scan/)).toBeNull();
+    expect(screen.queryByLabelText(/Loại tài liệu/)).toBeNull();
+  });
+
+  it('đổi tên tệp ngay trong hộp thoại thì gửi tên mới', async () => {
     const calls: string[] = [];
     vi.spyOn(globalThis, 'fetch').mockImplementation((url) => {
       calls.push(String(url));
-      return Promise.resolve(new Response('{}', { status: 200 }));
+      const body = String(url).includes('/other-document') ? { label: 'doc-9' } : {};
+      return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
     });
-    render(
-      <UploadDialog
-        caseId="c1"
-        targets={[{ id: 'd1', label: 'Vi bằng' }]}
-        allowOther
-        open
-        onOpenChange={() => undefined}
-      />,
-    );
-    fireEvent.change(screen.getByLabelText('Gắn vào tài liệu'), { target: { value: 'd1' } });
-    fireEvent.click(screen.getByLabelText(/Đây là bản scan/));
+    render(<UploadDialog caseId="c1" open onOpenChange={() => undefined} />);
     fireEvent.change(screen.getByLabelText('Chọn tệp'), {
-      target: { files: [new File(['x'], 'b.jpg', { type: 'image/jpeg' })] },
+      target: { files: [new File(['x'], 'scan-001.pdf', { type: 'application/pdf' })] },
+    });
+    fireEvent.change(screen.getByLabelText('Tên tài liệu cho scan-001.pdf'), {
+      target: { value: 'Biên bản xác minh' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên 1 tệp' }));
-    await waitFor(() => expect(calls).toHaveLength(1));
-    expect(calls[0]).toMatch(/documents\/d1\/files\?label=b\.jpg&isScan=false/);
+    await waitFor(() => expect(calls).toHaveLength(2));
+    expect(new URL(calls[1]!, 'http://x').searchParams.get('label')).toBe('Biên bản xác minh');
   });
 
   it('chưa chọn tệp thì báo lỗi', () => {
-    render(
-      <UploadDialog caseId="c1" targets={[]} allowOther open onOpenChange={() => undefined} />,
-    );
+    render(<UploadDialog caseId="c1" open onOpenChange={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên' }));
     expect(screen.getByRole('alert').textContent).toContain('ít nhất một tệp');
   });
