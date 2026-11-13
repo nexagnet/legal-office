@@ -191,6 +191,7 @@ function stubApi() {
           { value: 'false', label: 'false', n: 1 },
         ],
         returned: [{ value: 'false', label: 'false', n: 2 }],
+        overdue: [{ value: 'true', label: 'true', n: 2 }],
         scan: [{ value: 'missing', label: 'missing', n: 5 }],
       });
     if (url.includes('/dms/me/permissions')) return json({ permissions: [] });
@@ -331,6 +332,42 @@ describe('hàng lọc mới trên trang danh sách', () => {
     expect(q.searchParams.get('open')).toBe('true');
     expect(q.searchParams.get('status')).toBe('RECORDED');
     expect(q.searchParams.get('domain')).toBe('tongdat');
+  });
+
+  it('Tống đạt có chip Quá hạn báo kết quả kèm số đếm; bật thì gửi overdue cho API và hiện chip Đang lọc; Vi bằng không có chip', async () => {
+    const urls = stubApi();
+    render(
+      await DmsDomainPage({
+        params: Promise.resolve({ domain: 'tong-dat' }),
+        searchParams: Promise.resolve({ qh: '1', tra: '0' }),
+      }),
+    );
+    const nav = screen.getByRole('navigation', { name: 'Việc cần làm' });
+    const chip = within(nav).getByRole('link', { name: /Quá hạn báo kết quả/ });
+    expect(chip.textContent).toContain('2');
+    expect(chip.getAttribute('aria-current')).toBe('true');
+    const page = urls.find((u) => u.includes('case-search') && u.includes('limit=10'))!;
+    expect(new URL(page).searchParams.get('overdue')).toBe('true');
+    const chips = screen.getByRole('group', { name: 'Đang lọc' });
+    expect(within(chips).getByText('Quá hạn báo kết quả')).toBeTruthy();
+    // Chip "Tất cả" xóa cả qh.
+    const all = new URLSearchParams(
+      within(nav)
+        .getByRole('link', { name: /Tất cả/ })
+        .getAttribute('href')!
+        .split('?')[1] ?? '',
+    );
+    expect(all.get('qh')).toBeNull();
+  });
+
+  it('qh đi vào địa chỉ trang và bộ lọc đã lưu; mở lại ra đúng cách nhìn', () => {
+    const v = { filter: 'chinh-thuc' as const, overdue: true };
+    expect(viewToQuery(v).get('qh')).toBe('1');
+    expect(parseExtraView({ qh: '1' }).overdue).toBe(true);
+    const saved = viewToSavedParams(v);
+    expect(saved.overdue).toBe('true');
+    const back = new URLSearchParams(savedParamsToHref('/dms/x', saved).split('?')[1]);
+    expect(back.get('qh')).toBe('1');
   });
 
   it('fa/fb đi vào địa chỉ trang và bộ lọc đã lưu; mở lại ra đúng cách nhìn', () => {

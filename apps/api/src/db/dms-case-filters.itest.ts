@@ -246,6 +246,47 @@ describe.skipIf(!ADMIN_URL)('DMS bộ lọc THV, việc còn dở, đã trả (P
     expect((await facets(U.admin, 'xacminh', null)).fb).toBeUndefined();
   });
 
+  it('Quá hạn báo kết quả tống đạt: 2 ngày làm việc từ Ngày tống đạt, hết hạn khi đã trả KQ; chỉ Tống đạt có hạn', async () => {
+    // td_done: tống đạt 02/03/2026 (thứ Hai) => hạn hết 04/03/2026 23:59:59 giờ Việt Nam.
+    const due = (await owner.query(`SELECT due_at FROM dms_case_index WHERE case_id = $1`, [
+      cases.td_done,
+    ])) as { rows: { due_at: Date }[] };
+    expect(due.rows[0]!.due_at.toISOString()).toBe('2026-03-04T16:59:59.000Z');
+    expect(ids(await search(U.admin, 'tongdat', { overdue: true }))).toEqual(want('td_done'));
+    expect(ids(await search(U.admin, 'tongdat', { overdue: false }))).toEqual(
+      want('td_open', 'td_open_b2'),
+    );
+    expect((await facets(U.admin, 'tongdat', null)).overdue).toEqual({ true: 1 });
+    expect((await facets(U.admin, 'vibang', null)).overdue).toBeUndefined();
+    expect(ids(await search(U.admin, 'vibang', { overdue: true }))).toEqual([]);
+    // Đã trả kết quả thì hết quá hạn (chỉ mục tự dựng lại khi đổi ô).
+    await owner.query(
+      `INSERT INTO dms_case_returned (tenant_id, case_id, returned, changed_by) VALUES ($1,$2,true,$3)`,
+      [T, cases.td_done, U.admin],
+    );
+    expect(ids(await search(U.admin, 'tongdat', { overdue: true }))).toEqual([]);
+    expect((await facets(U.admin, 'tongdat', null)).overdue).toBeUndefined();
+    await owner.query(`UPDATE dms_case_returned SET returned = false WHERE case_id = $1`, [
+      cases.td_done,
+    ]);
+    expect(ids(await search(U.admin, 'tongdat', { overdue: true }))).toEqual(want('td_done'));
+  });
+
+  it('dms_parse_vn_date: chỉ nhận dd/mm/yyyy có thật, còn lại là NULL (không báo lỗi)', async () => {
+    const r = await owner.query(
+      `SELECT dms_parse_vn_date('02/03/2026')::text a, dms_parse_vn_date(' 2/3/2026 ')::text b,
+              dms_parse_vn_date('31/02/2026') c, dms_parse_vn_date('2026-03-02') d, dms_parse_vn_date(NULL) e, dms_parse_vn_date('abc') f`,
+    );
+    expect(r.rows[0]).toEqual({
+      a: '2026-03-02',
+      b: '2026-03-02',
+      c: null,
+      d: null,
+      e: null,
+      f: null,
+    });
+  });
+
   it('Việc còn dở theo luật từng nghiệp vụ', async () => {
     expect(ids(await search(U.admin, 'tongdat', { open: true }))).toEqual(
       want('td_open', 'td_open_b2'),
