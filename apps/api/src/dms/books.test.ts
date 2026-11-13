@@ -19,7 +19,7 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     expect(bookForDomain('khac')).toBeUndefined();
   });
 
-  it('không tự điền hộ: ô thiếu để trống; S-01 lấy loại văn bản từ loại tài liệu; cột tick hiện ✓', () => {
+  it('không tự điền hộ: ô thiếu để trống; dòng S-01 cũ (theo giấy tờ) vẫn đọc được từ thuộc tính giấy tờ; cột tick hiện ✓', () => {
     const row = {
       stt: 3,
       case_title: 't',
@@ -50,7 +50,7 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     ]);
   });
 
-  it('cột số tự cấp: ghép số hồ sơ với ngày người nhập (Vi bằng, Xác minh, Tổ chức, Tống đạt)', () => {
+  it('cột số tự cấp: ghép số hồ sơ với ngày người nhập (Vi bằng, Xác minh, Tổ chức)', () => {
     const base = { stt: 37, case_title: 't', doc_kind: null, doc_attributes: null };
     const vb = {
       ...base,
@@ -82,13 +82,32 @@ describe('định nghĩa sổ nghiệp vụ', () => {
       case_attributes: { hop_dong_dich_vu: '02/11/2026' },
     };
     expect(bookCells(BOOKS['S-05'], tc)[1]).toBe('005/2026/TC-TPL ngày 02/11/2026');
-    const td = {
-      ...base,
+  });
+
+  it('Tống đạt S-01: một hồ sơ một dòng, cột 3 là số văn bản của cơ quan giao (không gắn số văn phòng)', () => {
+    const row = {
+      stt: 20,
+      case_title: 't',
       case_number: '020/2026/TĐ-TPL',
-      case_attributes: {},
-      doc_attributes: { so_ngay_van_ban: '03/11/2026' },
+      case_attributes: {
+        loai_van_ban: 'Bản án',
+        so_ngay_van_ban: '45/2026/DS-ST ngày 10/10/2026',
+        co_quan_toa_an: 'x',
+        ngay_tong_dat: '15/10/2026',
+      },
+      doc_kind: null,
+      doc_attributes: null,
     };
-    expect(bookCells(BOOKS['S-01'], td)[2]).toBe('020/2026/TĐ-TPL ngày 03/11/2026');
+    expect(BOOKS['S-01'].source).toBe('case');
+    expect(bookCells(BOOKS['S-01'], row).slice(0, 7)).toEqual([
+      '20',
+      'Bản án',
+      '45/2026/DS-ST ngày 10/10/2026',
+      '✓',
+      '',
+      '',
+      '15/10/2026',
+    ]);
   });
 
   it('CSV có BOM, thoát dấu, và chặn chèn công thức', () => {

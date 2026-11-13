@@ -133,48 +133,6 @@ export function DmsMultiUpload({ caseId }: { readonly caseId: string }) {
 }
 
 /**
- * Tống đạt: thêm một giấy tờ cần tống đạt, tức một dòng Sổ S-01. Không phải bước "loại tài liệu": chỉ cần Cột 2 (Loại văn
- * bản) của sổ, các cột còn lại nhập ở thẻ giấy tờ ngay bên dưới.
- */
-export function AddS01DocumentForm({ caseId }: { readonly caseId: string }) {
-  const { send, error, busy, setError } = useSender();
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const loai = String(new FormData(form).get('loai_van_ban') ?? '').trim();
-    if (loai === '') return;
-    if (loai === OTHER_KIND) return setError('"Tài liệu khác" không phải giấy tờ cần tống đạt.');
-    const ok = await send(`/api/dms/cases/${caseId}/documents`, {
-      kind: loai.slice(0, 100),
-      title: loai,
-      isOfficial: true,
-      attributes: { loai_van_ban: loai },
-    });
-    if (ok) form.reset();
-  }
-  return (
-    <form
-      onSubmit={submit}
-      className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl bg-surface p-4 shadow-sm"
-      aria-label="Thêm giấy tờ vào sổ S-01"
-    >
-      <label className="flex min-w-60 flex-1 flex-col gap-1 text-[13px] font-semibold">
-        Cột 2: LOẠI VĂN BẢN
-        <Input name="loai_van_ban" required maxLength={100} />
-      </label>
-      <Button type="submit" variant="secondary" loading={busy}>
-        + Thêm giấy tờ vào sổ S-01
-      </Button>
-      {error ? (
-        <p role="alert" className="w-full text-sm">
-          {error}
-        </p>
-      ) : null}
-    </form>
-  );
-}
-
-/**
  * Tải lên một tệp MỚI (không ghi đè) cho tài liệu. Cho cả hồ sơ nháp lẫn đã ghi sổ (bổ sung).
  * Ô "Tài liệu khác" của hồ sơ chưa có tài liệu loại này: truyền `otherForCaseId` thay cho `documentId`, tài liệu được
  * tạo ngay lần tải đầu tiên (máy chủ bảo đảm mỗi hồ sơ chỉ có một).

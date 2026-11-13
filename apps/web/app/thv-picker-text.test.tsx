@@ -98,38 +98,6 @@ describe('ô chữ Thừa hành viên ghi vào cột THV của sổ', () => {
     expect(calls[0]!.url).toBe('/api/dms/cases/c1/thv');
   });
 
-  it('Tống đạt (sổ theo giấy tờ): ghi chữ vào từng giấy tờ nháp, giữ thuộc tính khác', async () => {
-    const calls = stubFetch();
-    render(
-      <DmsThvPicker
-        caseId="c1"
-        options={options}
-        currentId={null}
-        confirmed={null}
-        text=""
-        target={{
-          kind: 'documents',
-          docs: [
-            { id: 'd1', kind: 'Giấy báo', title: 'GB 1', isOfficial: true, attributes: { a: '1' } },
-            { id: 'd2', kind: 'Giấy báo', title: 'GB 2', isOfficial: false, attributes: {} },
-          ],
-        }}
-      />,
-    );
-    expect(screen.getByText(/áp dụng cho 2 giấy tờ nháp/)).toBeTruthy();
-    fireEvent.change(textBox(), { target: { value: 'Trần Văn B' } });
-    save();
-    await waitFor(() => expect(calls).toHaveLength(3));
-    expect(calls[1]).toMatchObject({ url: '/api/dms/documents/d1/draft' });
-    expect(calls[1]!.body).toEqual({
-      kind: 'Giấy báo',
-      title: 'GB 1',
-      isOfficial: true,
-      attributes: { a: '1', thua_hanh_vien: 'Trần Văn B' },
-    });
-    expect(calls[2]).toMatchObject({ url: '/api/dms/documents/d2/draft' });
-  });
-
   it('nghiệp vụ không có cột THV thì không hiện ô chữ', () => {
     render(<DmsThvPicker caseId="c1" options={options} currentId={null} confirmed={null} />);
     expect(screen.queryByLabelText('Ghi vào sổ (họ tên, số thẻ)')).toBeNull();

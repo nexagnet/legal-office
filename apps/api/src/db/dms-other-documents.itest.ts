@@ -155,22 +155,18 @@ describe.skipIf(!ADMIN_URL)('DMS ô Tài liệu khác (PostgreSQL)', () => {
     });
   });
 
-  it('tống đạt: Tài liệu khác không vào Sổ S-01, giấy tờ cần tống đạt vẫn vào', async () => {
+  it('tống đạt: tài liệu (kể cả Tài liệu khác) chỉ là tệp đính kèm, mỗi hồ sơ đúng một dòng Sổ S-01', async () => {
     // Thêm khi còn nháp rồi ghi sổ.
     const c = await mkCase(U.a, 'tongdat');
     await ensure(U.a, c);
     await op('dms_document_add', [T, U.a, c, 'Quyết định THA', 'Giấy tờ 1', false, null]);
     expect(await op('dms_case_record', [T, U.a, c])).toMatchObject({ ok: true });
     expect(await bookRows(c)).toBe(1);
-    // Thêm sau khi đã ghi sổ.
-    const c2 = await mkCase(U.a, 'tongdat');
-    await op('dms_document_add', [T, U.a, c2, 'Quyết định THA', 'Giấy tờ 1', false, null]);
-    expect(await op('dms_case_record', [T, U.a, c2])).toMatchObject({ ok: true });
-    expect(await bookRows(c2)).toBe(1);
-    await ensure(U.a, c2);
-    expect(await bookRows(c2)).toBe(1);
-    await op('dms_document_add', [T, U.a, c2, 'Quyết định THA', 'Giấy tờ 2', false, null]);
-    expect(await bookRows(c2)).toBe(2);
+    // Thêm sau khi đã ghi sổ: không sinh thêm dòng sổ.
+    await ensure(U.a, c);
+    expect(await bookRows(c)).toBe(1);
+    await op('dms_document_add', [T, U.a, c, 'Quyết định THA', 'Giấy tờ 2', false, null]);
+    expect(await bookRows(c)).toBe(1);
   });
 
   it('từ chối: không có quyền thêm tài liệu, hồ sơ đã hủy, hồ sơ không tồn tại', async () => {

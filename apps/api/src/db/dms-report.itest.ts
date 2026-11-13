@@ -168,7 +168,7 @@ describe.skipIf(!ADMIN_URL)('DMS báo cáo tổng hợp (PostgreSQL)', () => {
     expect(row(rows, 'tongdat')).toMatchObject({ recorded_cases: 0, last_stt: null });
   });
 
-  it('việc còn dở: Tống đạt chưa có ngày tống đạt, Xác minh chưa có kết quả, Tổ chức chưa có tài liệu N-08', async () => {
+  it('việc còn dở: Tống đạt (hồ sơ) chưa có ngày tống đạt, Xác minh chưa có kết quả, Tổ chức chưa có tài liệu N-08', async () => {
     const pending = async (u = U.a, year = YEAR) =>
       Object.fromEntries(
         (
@@ -181,18 +181,10 @@ describe.skipIf(!ADMIN_URL)('DMS báo cáo tổng hợp (PostgreSQL)', () => {
     const tc2 = await mkCase(U.a, 'tochuc');
     await op(T, 'dms_document_add', [T, U.a, tc1, 'Biên bản N-08', 'Chuyển giao', false, null]);
     await op(T, 'dms_document_add', [T, U.a, tc2, 'Giấy ủy quyền', 'Ủy quyền', false, null]);
-    const td = await mkCase(U.a, 'tongdat');
-    await op(T, 'dms_document_add', [
-      T,
-      U.a,
-      td,
-      'Giấy báo',
-      'Đã tống đạt',
-      false,
-      JSON.stringify({ ngay_tong_dat: '15/10/2026' }),
-    ]);
-    await op(T, 'dms_document_add', [T, U.a, td, 'Giấy triệu tập', 'Chưa tống đạt', false, null]);
-    for (const c of [xm1, xm2, tc1, tc2, td]) await record(U.a, c);
+    // Tống đạt: một hồ sơ một văn bản; chưa có ngày tống đạt (thuộc tính hồ sơ) là việc còn dở.
+    const td1 = await mkCase(U.a, 'tongdat', OFF, { ngay_tong_dat: '15/10/2026' });
+    const td2 = await mkCase(U.a, 'tongdat', OFF, { ngay_tong_dat: ' ' });
+    for (const c of [xm1, xm2, tc1, tc2, td1, td2]) await record(U.a, c);
     expect(await pending()).toMatchObject({ tongdat: 1, xacminh: 1, tochuc: 1 });
     expect(await pending(U.b)).toMatchObject({ tongdat: 0, xacminh: 0, tochuc: 0 });
     expect(Object.keys(await pending(U.a, 1999))).toHaveLength(0);
