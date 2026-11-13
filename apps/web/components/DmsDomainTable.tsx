@@ -6,9 +6,10 @@ import type { DmsSearchCase } from '../lib/dms-browse';
 import { bookGetter, sttRange, type ListColumn } from '../lib/dms-list-layout';
 import { returnedLabels } from '../lib/dms-list-layout';
 import { ReturnedToggle } from './ReturnedToggle';
+import { DmsColumnFilter } from './DmsColumnFilter';
 import { DataTable } from './ui/data-table';
 
-const headOf = (c: ListColumn, sttLabel: string): ReactNode =>
+const headText = (c: ListColumn, sttLabel: string): ReactNode =>
   c.special === 'stt' ? (
     `${sttLabel} · Mã hồ sơ`
   ) : c.special === 'number' ? (
@@ -18,6 +19,23 @@ const headOf = (c: ListColumn, sttLabel: string): ReactNode =>
     </>
   ) : (
     c.head
+  );
+
+/** Tiêu đề cột, kèm phễu lọc theo cột khi cột lọc được. */
+const headOf = (
+  c: ListColumn,
+  sttLabel: string,
+  ctx?: { readonly domain: string; readonly officeId: string },
+): ReactNode =>
+  ctx ? (
+    <DmsColumnFilter
+      domain={ctx.domain}
+      officeId={ctx.officeId}
+      columnId={c.id}
+      head={headText(c, sttLabel)}
+    />
+  ) : (
+    headText(c, sttLabel)
   );
 
 /** Gộp các cột liên tiếp cùng `group` thành một ô tiêu đề; cột lẻ giữ nguyên. */
@@ -91,9 +109,12 @@ export function DmsDomainTable({
   tableKey,
   draft,
   canMarkReturned = false,
+  filterCtx,
 }: {
   /** Có quyền tích "Đã trả kết quả" (thêm tài liệu) ở miền này; máy chủ vẫn kiểm lại. */
   readonly canMarkReturned?: boolean;
+  /** Có thì tiêu đề các cột lọc được hiện phễu lọc theo cột (chỉ danh sách chính thức của 4 nghiệp vụ). */
+  readonly filterCtx?: { readonly domain: string; readonly officeId: string };
   /** Chế độ Nháp / Đã hủy (Figma 420:1420): chưa có STT, không có dòng sổ, thao tác riêng. */
   readonly draft?: { readonly kind: 'nhap' | 'da-huy'; readonly userId: string | undefined };
   readonly rows: readonly DmsSearchCase[];
@@ -128,7 +149,7 @@ export function DmsDomainTable({
                 {groupCells(layout).map((g) =>
                   g.cols.length === 1 && !g.label ? (
                     <th key={g.cols[0]!.id} scope="col" rowSpan={2}>
-                      {headOf(g.cols[0]!, sttLabel)}
+                      {headOf(g.cols[0]!, sttLabel, filterCtx)}
                     </th>
                   ) : (
                     <th key={g.cols[0]!.id} scope="colgroup" colSpan={g.cols.length}>
@@ -142,7 +163,7 @@ export function DmsDomainTable({
                   .filter((c) => c.group)
                   .map((c) => (
                     <th key={c.id} scope="col">
-                      {c.head}
+                      {headOf(c, sttLabel, filterCtx)}
                     </th>
                   ))}
               </tr>
@@ -151,7 +172,7 @@ export function DmsDomainTable({
             <tr>
               {layout.map((c) => (
                 <th key={c.id} scope="col">
-                  {headOf(c, sttLabel)}
+                  {headOf(c, sttLabel, filterCtx)}
                 </th>
               ))}
             </tr>

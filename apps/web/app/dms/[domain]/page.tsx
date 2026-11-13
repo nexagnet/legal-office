@@ -1,3 +1,4 @@
+import { colsToParam } from '../../../lib/dms-col-filters';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
@@ -187,6 +188,7 @@ export default async function DmsDomainPage({
     overdue: recordedView && domain.code === 'tongdat' ? extra.overdue : undefined,
     fa: vanThu ? undefined : extra.fa,
     fb: vanThu ? undefined : extra.fb,
+    cols: vanThu ? undefined : extra.cols,
     officeId,
     domain: domain.code,
     filter,
@@ -293,6 +295,7 @@ export default async function DmsDomainPage({
     overdue: search.overdue,
     fa: search.fa,
     fb: search.fb,
+    cols: search.cols,
     tu: range.tu,
     den: range.den,
     ky: range.ky,
@@ -419,6 +422,9 @@ export default async function DmsDomainPage({
             <span className="dms-tb-label">Bộ lọc</span>
             {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
             {q ? <input type="hidden" name="q" value={q} /> : null}
+            {colsToParam(search.cols) ? (
+              <input type="hidden" name="cl" value={colsToParam(search.cols)} />
+            ) : null}
             <DmsFilterFields
               view={view}
               range={range}
@@ -661,6 +667,7 @@ export default async function DmsDomainPage({
             sttLabel={sttLabel}
             draft={draftKind ? { kind: draftKind, userId } : undefined}
             canMarkReturned={canAddDocument(permissions, domain.code)}
+            filterCtx={draftKind ? undefined : { domain: domain.code, officeId }}
             tableKey={`DmsDomainTable-${domain.code}${draftKind ? '-nhap' : ''}`}
           />
         ) : (
