@@ -36,3 +36,8 @@ export function ocrLabel(p: OcrProgressInfo): string {
       return 'Chờ OCR';
   }
 }
+
+/** Chỉ PDF và ảnh được OCR; loại khác không hiện gì. Để ở lib (không 'use client') vì máy chủ cũng gọi hàm này. */
+export function ocrApplies(mime: string): boolean {
+  return mime === 'application/pdf' || mime.startsWith('image/');
+}

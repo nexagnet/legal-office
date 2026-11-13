@@ -7,11 +7,6 @@ const FIRST_MS = 3_000;
 const MAX_MS = 15_000;
 const MAX_ERRORS = 5;
 
-/** Chỉ PDF và ảnh được OCR; loại khác không hiện gì. */
-export function ocrApplies(mime: string): boolean {
-  return mime === 'application/pdf' || mime.startsWith('image/');
-}
-
 /**
  * Tiến độ OCR của một tệp tài liệu mới. Khi còn chờ/đang chạy thì hỏi máy chủ vài giây một lần (giãn dần, tạm dừng khi tab ẩn,
  * dừng hẳn khi xong hoặc lỗi). Không dùng cho tài liệu cũ.
