@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
+import { SubmissionViewTabs } from '../../../components/SubmissionViewTabs';
 import { Button } from '../../../components/ui/button';
 import { DataTable } from '../../../components/ui/data-table';
 import { domainBySlug, DMS_DOMAINS, loadThvPending } from '../../../lib/dms';
@@ -28,6 +29,7 @@ export default async function DmsThvPending() {
   return (
     <section aria-labelledby="t">
       <h1 id="t">Hồ sơ nháp chờ tôi lưu</h1>
+      <SubmissionViewTabs active="drafts" />
       {rows === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"

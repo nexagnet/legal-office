@@ -119,7 +119,7 @@ export default async function ActivityPage({
     if (q) p.set('q', q);
     if (n > 1) p.set('p', String(n));
     const s = p.toString();
-    return s ? `/dms/lich-su?${s}` : '/dms/lich-su';
+    return s ? `/quan-tri/lich-su?${s}` : '/quan-tri/lich-su';
   };
   const pageCount = Math.max(1, Math.ceil(list.total / PAGE_SIZE));
   return (
@@ -140,7 +140,7 @@ export default async function ActivityPage({
           <PermissionLogExport officeId={officeId} />
         </p>
       ) : null}
-      <form method="get" action="/dms/lich-su" role="search" className="dms-filters">
+      <form method="get" action="/quan-tri/lich-su" role="search" className="dms-filters">
         {group ? <input type="hidden" name="group" value={group} /> : null}
         <div>
           <label>

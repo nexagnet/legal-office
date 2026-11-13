@@ -58,6 +58,13 @@ export default async function AdminLayout({ children }: { readonly children: Rea
     { href: '/quan-tri/phan-quyen', label: 'Nhóm quyền', badge: pending },
     ...(isAdmin ? [{ href: '/quan-tri/chi-nhanh', label: 'Chi nhánh' }] : []),
     ...(isAdmin || isHead ? [{ href: '/quan-tri/cai-dat', label: 'Cài đặt văn phòng' }] : []),
+    // Chuyển từ menu Công việc; vẫn chỉ Admin.
+    ...(isAdmin
+      ? [
+          { href: '/quan-tri/lich-su', label: 'Lịch sử hoạt động' },
+          { href: '/quan-tri/scan-da-xoa', label: 'Scan đã xóa' },
+        ]
+      : []),
   ];
   return (
     <div className="admin-layout">
