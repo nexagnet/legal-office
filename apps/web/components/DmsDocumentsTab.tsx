@@ -117,7 +117,7 @@ export function DmsDocumentsTab({
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
-      <div className="grid content-start gap-3">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="m-0 text-base font-semibold">Tài liệu của hồ sơ</h2>
@@ -160,7 +160,11 @@ export function DmsDocumentsTab({
           </div>
         ) : (
           shown.map((g) => (
-            <section key={g.id} aria-label={groupLabel(g)} className="grid gap-2">
+            <section
+              key={g.id}
+              aria-label={groupLabel(g)}
+              className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2"
+            >
               <div className="flex items-center justify-between gap-2 px-0.5">
                 <h3 className="m-0 text-[11px] font-semibold tracking-wide text-muted uppercase">
                   {groupLabel(g)}
@@ -202,6 +206,7 @@ export function DmsDocumentsTab({
                         <Link
                           href={`${base}?tab=tai-lieu&file=${f.id}`}
                           aria-current={selected ? 'true' : undefined}
+                          title={f.label}
                           className="block truncate text-sm font-semibold text-ink no-underline after:absolute after:inset-0 after:content-['']"
                         >
                           {f.label}
@@ -232,7 +237,7 @@ export function DmsDocumentsTab({
         )}
       </div>
 
-      <aside aria-label="Xem trước tệp">
+      <aside aria-label="Xem trước tệp" className="min-w-0">
         {current ? (
           <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
             <div className="flex flex-wrap items-center gap-3 px-4 py-3">
