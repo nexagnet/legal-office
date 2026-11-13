@@ -12,12 +12,15 @@ export function ReturnedToggle({
   initial,
   editable,
   caseLabel,
+  ariaPrefix = 'Đã trả kết quả hồ sơ',
 }: {
   readonly caseId: string;
   readonly initial: boolean;
   readonly editable: boolean;
   /** Số hồ sơ hoặc tên hồ sơ, để đọc được bằng trình đọc màn hình. */
   readonly caseLabel: string;
+  /** Câu đọc cho trình đọc màn hình, đứng trước số/tên hồ sơ. */
+  readonly ariaPrefix?: string;
 }) {
   const [checked, setChecked] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -54,7 +57,7 @@ export function ReturnedToggle({
         checked={checked}
         disabled={!editable || busy}
         onChange={(e) => void change(e.target.checked)}
-        aria-label={`Đã trả kết quả hồ sơ ${caseLabel}`}
+        aria-label={`${ariaPrefix} ${caseLabel}`}
       />
       {error ? (
         <small role="alert" className="dms-returned-err">
