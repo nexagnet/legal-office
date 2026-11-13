@@ -1,19 +1,23 @@
-import { FileText, Image as ImageIcon, Upload } from 'lucide-react';
+import { FileText, Image as ImageIcon, Info, Upload } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { DmsFileRow } from '../lib/dms';
 import { cn } from '../lib/cn';
 import { OTHER_KIND } from '../lib/dms-other-kind';
-import { FileActions, UploadButton, type CompareFile, type UploadTarget } from './DmsFileActions';
-import { ocrApplies } from '../lib/ocr-progress';
-import { OcrProgress } from './OcrProgress';
+import { FileActions, UploadButton, type CompareFile } from './DmsFileActions';
+import { ocrApplies, ocrIsActive } from '../lib/ocr-progress';
+import { OcrFileRow } from './OcrProgress';
 
-const dateFmt = new Intl.DateTimeFormat('vi-VN', {
+const dayMonth = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: '2-digit',
   timeZone: 'Asia/Ho_Chi_Minh',
 });
-const sizeLabel = (n: number | string) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
+/** Ngày/tháng dạng "12/11" (Figma T1). Không dùng locale vi-VN vì bản CLDR mới trả "12-11". */
+const dateFmt = { format: (d: Date) => dayMonth.format(d) };
+/** "2.908 KB": dấu chấm ngăn hàng nghìn như Figma, không phụ thuộc locale của máy chủ. */
+const sizeLabel = (n: number | string) =>
+  `${String(Math.max(1, Math.round(Number(n) / 1024))).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} KB`;
 
 export interface DocGroup {
   readonly id: string;
@@ -48,17 +52,46 @@ function olderOf(f: DmsFileRow, list: readonly DmsFileRow[]): CompareFile | null
   return prev ? toCompare(prev) : null;
 }
 
-function ocrChip(f: DmsFileRow): ReactNode {
-  return ocrApplies(f.mime) ? (
-    <OcrProgress
+function RowBody({
+  f,
+  canRetry,
+  title,
+  chips,
+  actions,
+}: {
+  readonly f: DmsFileRow;
+  readonly canRetry: boolean;
+  readonly title: ReactNode;
+  readonly chips: ReactNode;
+  readonly actions: ReactNode;
+}) {
+  if (!ocrApplies(f.mime)) {
+    return (
+      <>
+        <div className="min-w-0 flex-1">
+          {title}
+          <p className="m-0 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+            {chips}
+          </p>
+        </div>
+        {actions}
+      </>
+    );
+  }
+  return (
+    <OcrFileRow
       fileId={f.id}
+      canRetry={canRetry}
       initial={{
         status: f.ocr_status ?? null,
         done: f.ocr_pages_done ?? null,
         total: f.ocr_pages_total ?? null,
       }}
+      title={title}
+      chips={chips}
+      actions={actions}
     />
-  ) : null;
+  );
 }
 
 /**
@@ -71,7 +104,6 @@ export function DmsDocumentsTab({
   groups,
   previewId,
   canUpload,
-  canAddScan,
   canDeleteScan,
 }: {
   readonly caseId: string;
@@ -80,29 +112,16 @@ export function DmsDocumentsTab({
   readonly previewId?: string;
   /** Được tải vào "Tài liệu khác" (không áp dụng cho hồ sơ hủy / Văn thư). */
   readonly canUpload: boolean;
-  /** Hồ sơ chưa hủy: được tải thêm scan cho tài liệu có sẵn. */
-  readonly canAddScan: boolean;
   readonly canDeleteScan: boolean;
 }) {
-  const real = groups.filter((g) => g.kind !== OTHER_KIND);
-  const targets: UploadTarget[] = canAddScan
-    ? real.map((g) => ({ id: g.id, label: groupLabel(g) }))
-    : [];
-  const canPickTarget = canUpload || targets.length > 0;
   const all = groups.flatMap((g) => g.files.map((f) => ({ f, g })));
   const current = all.find((x) => x.f.id === previewId) ?? all.find((x) => x.f.is_scan) ?? all[0];
   const fileCount = all.length;
   const shown = groups.filter((g) => g.files.length > 0 || g.adminEdit);
   const actionsFor = (f: DmsFileRow, g: DocGroup, variant: 'row' | 'preview') => {
-    const isOther = g.kind === OTHER_KIND;
     return (
       <FileActions
-        caseId={caseId}
         file={{ ...toCompare(f), isScan: f.is_scan }}
-        documentId={isOther ? 'other' : g.id}
-        targets={targets}
-        allowOther={canUpload}
-        canAddScan={isOther ? canUpload : canAddScan}
         canDelete={canDeleteScan && f.is_scan}
         older={olderOf(f, g.files)}
         variant={variant}
@@ -112,7 +131,7 @@ export function DmsDocumentsTab({
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
-      <div className="grid content-start gap-3">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="m-0 text-base font-semibold">Tài liệu của hồ sơ</h2>
@@ -120,10 +139,18 @@ export function DmsDocumentsTab({
               {fileCount === 0 ? 'Chưa có tệp' : `${shown.length} nhóm · ${fileCount} tệp`}
             </p>
           </div>
-          {fileCount > 0 && canPickTarget ? (
-            <UploadButton caseId={caseId} targets={targets} allowOther={canUpload} />
-          ) : null}
+          {fileCount > 0 && canUpload ? <UploadButton caseId={caseId} /> : null}
         </div>
+
+        {all.some(({ f }) => ocrApplies(f.mime) && ocrIsActive(f.ocr_status)) ? (
+          <p
+            role="note"
+            className="m-0 flex items-start gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-[13px] text-ink"
+          >
+            <Info size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
+            Tệp vẫn xem và tải được trong lúc OCR. Tìm theo nội dung chữ dùng được sau khi OCR xong.
+          </p>
+        ) : null}
 
         {fileCount === 0 ? (
           <div
@@ -135,17 +162,19 @@ export function DmsDocumentsTab({
             </span>
             <h3 className="m-0 text-base font-semibold">Chưa có tài liệu nào</h3>
             <p className="m-0 max-w-xs text-sm text-muted">
-              {canPickTarget
+              {canUpload
                 ? 'Kéo thả tệp vào hộp thoại Tải lên. Hỗ trợ PDF, JPEG, PNG; không giới hạn số tệp.'
                 : 'Hồ sơ này chưa có tệp nào.'}
             </p>
-            {canPickTarget ? (
-              <UploadButton caseId={caseId} targets={targets} allowOther={canUpload} />
-            ) : null}
+            {canUpload ? <UploadButton caseId={caseId} /> : null}
           </div>
         ) : (
           shown.map((g) => (
-            <section key={g.id} aria-label={groupLabel(g)} className="grid gap-2">
+            <section
+              key={g.id}
+              aria-label={groupLabel(g)}
+              className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2"
+            >
               <div className="flex items-center justify-between gap-2 px-0.5">
                 <h3 className="m-0 text-[11px] font-semibold tracking-wide text-muted uppercase">
                   {groupLabel(g)}
@@ -159,6 +188,7 @@ export function DmsDocumentsTab({
               ) : (
                 g.files.map((f) => {
                   const selected = current?.f.id === f.id;
+                  const isMain = g.isOfficial && g.files.find((x) => x.is_scan)?.id === f.id;
                   return (
                     <div
                       key={f.id}
@@ -182,31 +212,37 @@ export function DmsDocumentsTab({
                           <FileText size={18} />
                         )}
                       </span>
-                      <div className="min-w-0 flex-1">
-                        <Link
-                          href={`${base}?tab=tai-lieu&file=${f.id}`}
-                          aria-current={selected ? 'true' : undefined}
-                          className="block truncate text-sm font-semibold text-ink no-underline after:absolute after:inset-0 after:content-['']"
-                        >
-                          {f.label}
-                        </Link>
-                        <p className="m-0 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-                          <span>
-                            {sizeLabel(f.size_bytes)} · v{f.version} ·{' '}
-                            {dateFmt.format(new Date(f.created_at))}
-                          </span>
-                          <span
-                            className={cn(
-                              'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                              f.is_scan ? 'bg-accent-soft text-accent' : 'bg-head text-muted',
-                            )}
+                      <RowBody
+                        f={f}
+                        canRetry={canUpload}
+                        title={
+                          <Link
+                            href={`${base}?tab=tai-lieu&file=${f.id}`}
+                            aria-current={selected ? 'true' : undefined}
+                            title={f.label}
+                            className="block truncate text-sm font-semibold text-ink no-underline after:absolute after:inset-0 after:content-['']"
                           >
-                            {f.is_scan ? 'Bản scan' : 'Bổ sung'}
-                          </span>
-                          {ocrChip(f)}
-                        </p>
-                      </div>
-                      {actionsFor(f, g, 'row')}
+                            {f.label}
+                          </Link>
+                        }
+                        chips={
+                          <>
+                            <span>
+                              {sizeLabel(f.size_bytes)} · v{f.version} ·{' '}
+                              {dateFmt.format(new Date(f.created_at))}
+                            </span>
+                            <span
+                              className={cn(
+                                'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                                f.is_scan ? 'bg-accent-soft text-accent' : 'bg-head text-muted',
+                              )}
+                            >
+                              {isMain ? 'Bản scan chính' : f.is_scan ? 'Bản scan' : 'Bổ sung'}
+                            </span>
+                          </>
+                        }
+                        actions={actionsFor(f, g, 'row')}
+                      />
                     </div>
                   );
                 })
@@ -216,22 +252,27 @@ export function DmsDocumentsTab({
         )}
       </div>
 
-      <aside aria-label="Xem trước tệp">
+      <aside aria-label="Xem trước tệp" className="min-w-0">
         {current ? (
           <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
             <div className="flex flex-wrap items-center gap-3 px-4 py-3">
               <div className="min-w-0 flex-1">
                 <p className="m-0 truncate text-sm font-semibold">{current.f.label}</p>
                 <p className="m-0 text-xs text-muted">
-                  {current.f.is_scan ? 'Bản scan' : 'Bổ sung'} · v{current.f.version} ·{' '}
-                  {sizeLabel(current.f.size_bytes)}
+                  {current.g.isOfficial &&
+                  current.g.files.find((x) => x.is_scan)?.id === current.f.id
+                    ? 'Bản scan chính'
+                    : current.f.is_scan
+                      ? 'Bản scan'
+                      : 'Bổ sung'}{' '}
+                  · v{current.f.version} · {sizeLabel(current.f.size_bytes)}
                 </p>
               </div>
               {actionsFor(current.f, current.g, 'preview')}
             </div>
             <iframe
               title={`Xem trước ${current.f.label}`}
-              src={`/api/dms/files/${current.f.id}/download?inline=1`}
+              src={`/api/dms/files/${current.f.id}/download?inline=1#toolbar=0&navpanes=0&view=FitH`}
               className="h-[520px] w-full border-0 bg-surface-2"
             />
           </div>

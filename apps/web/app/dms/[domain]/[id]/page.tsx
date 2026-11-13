@@ -29,11 +29,18 @@ import {
   loadDmsFiles,
   loadDmsRevisions,
   loadMyDmsPermissions,
+  loadRecordProblems,
   type DmsBookColumn,
   loadThvOptions,
 } from '../../../../lib/dms';
 import { withCaseNumber } from '../../../../lib/dms-number';
-import { actionLabel, activityNote, loadCaseHistory } from '../../../../lib/dms-activity';
+import {
+  actionLabel,
+  activityNote,
+  collapseHistory,
+  loadCaseHistory,
+  shortActor,
+} from '../../../../lib/dms-activity';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -160,11 +167,12 @@ export default async function DmsCasePage({
     );
   }
   const isDraft = c.status === 'DRAFT';
-  const [documents, permissions, books, thvOptions] = await Promise.all([
+  const [documents, permissions, books, thvOptions, recordProblems] = await Promise.all([
     loadDmsDocuments(cookie, id),
     loadMyDmsPermissions(cookie, c.office_id),
     loadDmsBooks(cookie, true),
     isDraft ? loadThvOptions(cookie) : Promise.resolve([]),
+    isDraft && !isVanThu(domain.code) ? loadRecordProblems(cookie, id) : Promise.resolve([]),
   ]);
   // Sau khi ghi sổ chỉ Admin sửa nội dung (N5); nhân viên chỉ tải thêm scan. Máy chủ vẫn kiểm lại (ADMIN_ONLY).
   const isAdmin = permissions.includes('dms.permission.approve');
@@ -213,6 +221,8 @@ export default async function DmsCasePage({
 
   const creatorName = c.created_by_name;
   const history = tab === 'lich-su' ? await loadCaseHistory(cookie, c.id) : [];
+  const historyGroups = collapseHistory(history);
+  const historyHasNote = historyGroups.some((g) => activityNote(g.first) !== '');
   const revisions = tab === 'lich-su' ? await loadDmsRevisions(cookie, c.id) : [];
   const headingOf = new Map<string, string>(
     (book?.columns ?? []).map((col) => [col.key, col.heading]),
@@ -224,18 +234,27 @@ export default async function DmsCasePage({
     : c.status === 'CANCELLED'
       ? `?${listKey}=da-huy`
       : '';
+  // Tiêu đề theo Figma T1: "Vi bằng số 031/2026/VB-THV ngày 12/11/2026" (ngày ghi sổ, chưa ghi sổ thì ngày tạo).
+  const headingDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  }).format(new Date(c.recorded_at ?? c.created_at));
+  const heading = c.case_number
+    ? `${domain.label} số ${c.case_number} ngày ${headingDate}`
+    : `${c.title} · Chi tiết hồ sơ`;
   return (
     <section aria-labelledby="t">
       <AdminBanner
         crumb={[
           [domain.label, `/dms/${domain.slug}${backQuery}`],
-          [c.case_number ?? c.title, undefined],
+          [c.case_number ? `Hồ sơ ${c.case_number}` : c.title, undefined],
         ]}
-        title={`${c.case_number ?? c.title} · Chi tiết hồ sơ`}
-        sub={hasPhone && c.phone ? `${c.title} · SĐT ${c.phone}` : c.title}
+        title={heading}
       />
       <h1 id="t" className="sr-only">
-        {c.case_number ?? c.title} · Chi tiết hồ sơ
+        {heading}
       </h1>
       <p className="mb-3 flex flex-wrap items-center gap-2">
         <span
@@ -256,16 +275,8 @@ export default async function DmsCasePage({
           </span>
         ) : null}
       </p>
-      {c.status === 'RECORDED' && !canAdminEdit ? (
-        <NoticeBar action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
-          Hồ sơ đã ghi sổ: nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin.
-        </NoticeBar>
-      ) : null}
-      {c.status === 'CANCELLED' ? (
-        <NoticeBar tone="info">Bản nháp đã hủy. Lý do: {c.cancel_reason ?? '—'}.</NoticeBar>
-      ) : null}
       <TabNav
-        soft
+        underline
         label={`Chi tiết hồ sơ ${c.title}`}
         active={tab}
         tabs={[
@@ -277,6 +288,14 @@ export default async function DmsCasePage({
           })),
         ]}
       />
+      {c.status === 'RECORDED' && !canAdminEdit ? (
+        <NoticeBar lock action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
+          Hồ sơ đã ghi sổ: nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin.
+        </NoticeBar>
+      ) : null}
+      {c.status === 'CANCELLED' ? (
+        <NoticeBar tone="info">Bản nháp đã hủy. Lý do: {c.cancel_reason ?? '—'}.</NoticeBar>
+      ) : null}
       {tab === 'chung' && isDraft ? (
         <div className="grid gap-4">
           <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
@@ -366,6 +385,13 @@ export default async function DmsCasePage({
             caseId={c.id}
             canRecord={canConfirm(permissions, domain.code)}
             canCancel={canDraft(permissions, domain.code)}
+            problems={recordProblems.map((p) => {
+              const col = book?.columns.find((x) => x.key === p.key);
+              const name = col ? `Cột ${col.no}: ${col.heading}` : p.key;
+              return p.problem === 'bad_date'
+                ? `${name}: ngày không có thật (nhập dd/mm/yyyy)`
+                : `${name}: còn để trống`;
+            })}
           />
         </div>
       ) : null}
@@ -424,7 +450,6 @@ export default async function DmsCasePage({
           base={base}
           previewId={sp.file}
           canUpload={canUpload}
-          canAddScan={c.status !== 'CANCELLED'}
           canDeleteScan={canDeleteScan}
           groups={docs.map((d, i) => ({
             id: d.id,
@@ -451,7 +476,12 @@ export default async function DmsCasePage({
       {tab === 'lich-su' ? (
         <>
           <section aria-labelledby="rev-title" className="grid gap-3">
-            <h2 id="rev-title">Thay đổi nội dung</h2>
+            <h2
+              id="rev-title"
+              className="m-0 font-[family-name:var(--font)] text-base font-semibold"
+            >
+              Thay đổi nội dung
+            </h2>
             {revisions.length <= 1 ? (
               <p className="muted">Hồ sơ chưa có bản sửa nào.</p>
             ) : (
@@ -495,7 +525,12 @@ export default async function DmsCasePage({
             )}
           </section>
           <section aria-labelledby="hist-title" className="mb-5 grid gap-3">
-            <h2 id="hist-title">Lịch sử hồ sơ</h2>
+            <h2
+              id="hist-title"
+              className="m-0 font-[family-name:var(--font)] text-base font-semibold"
+            >
+              Lịch sử hồ sơ
+            </h2>
             <p className="muted text-sm">Mới nhất trước. Người tạo hồ sơ: {creatorName ?? '—'}.</p>
             {history.length === 0 ? (
               <p className="muted">Chưa có hoạt động nào được ghi.</p>
@@ -508,16 +543,32 @@ export default async function DmsCasePage({
                       <th scope="col">Thời gian</th>
                       <th scope="col">Người làm</th>
                       <th scope="col">Việc đã làm</th>
-                      <th scope="col">Ghi chú</th>
+                      {historyHasNote ? <th scope="col">Ghi chú</th> : null}
                     </tr>
                   </thead>
                   <tbody>
-                    {history.map((h) => (
-                      <tr key={h.id}>
-                        <td>{fmt.format(new Date(h.at))}</td>
-                        <td>{h.actor_label ?? 'Hệ thống'}</td>
-                        <td>{actionLabel(h.action)}</td>
-                        <td>{activityNote(h) || '—'}</td>
+                    {historyGroups.map((g) => (
+                      <tr key={g.first.id}>
+                        <td className="whitespace-nowrap">
+                          {fmt.format(new Date(g.first.at))}
+                          {g.count > 1 ? (
+                            <span className="block text-xs text-muted">
+                              đến {fmt.format(new Date(g.last.at))}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td title={g.first.actor_label ?? undefined}>
+                          {shortActor(g.first.actor_label)}
+                        </td>
+                        <td>
+                          {actionLabel(g.first.action)}
+                          {g.count > 1 ? (
+                            <span className="ml-2 rounded-full bg-head px-2 py-0.5 text-[11px] font-semibold text-muted">
+                              × {g.count} lần
+                            </span>
+                          ) : null}
+                        </td>
+                        {historyHasNote ? <td>{activityNote(g.first) || '—'}</td> : null}
                       </tr>
                     ))}
                   </tbody>

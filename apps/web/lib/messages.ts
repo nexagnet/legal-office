@@ -63,6 +63,7 @@ const MESSAGES: Record<string, string> = {
   FINAL_SCAN_MISSING: 'Chưa có bản scan cuối của Vi bằng.',
   REVOKE_PENDING: 'Đang có đề nghị thu hồi xác nhận MISA chờ xử lý.',
   DOCUMENT_NOT_FOUND: 'Không tìm thấy văn bản.',
+  OCR_NOT_FAILED: 'OCR của tệp này không ở trạng thái lỗi.',
   REQUEST_NOT_FOUND: 'Không tìm thấy yêu cầu hoặc đề xuất.',
   DEADLINE_REQUIRED: 'Cần nhập hạn tống đạt.',
   CASE_NOT_OPEN: 'Hồ sơ xác minh không còn ở trạng thái đang mở.',
@@ -203,6 +204,8 @@ const MESSAGES: Record<string, string> = {
   CASE_NOT_DRAFT:
     'Hồ sơ đã lưu chính thức nên không sửa trực tiếp được. Bạn chỉ tải thêm bản scan; việc sửa nội dung do Admin thực hiện.',
   CASE_CANCELLED: 'Hồ sơ nháp này đã hủy.',
+  REQUIRED_COLUMNS_MISSING:
+    'Còn cột bắt buộc để trống hoặc có ngày không có thật. Bổ sung ở mục A rồi lưu nháp trước khi lưu chính thức.',
   THV_CONFIRMATION_REQUIRED:
     'Hồ sơ có ghi tên thừa hành viên. Chính thừa hành viên đó phải xác nhận nội dung trước khi lưu chính thức.',
   THV_CONFIRMATION_STALE:

@@ -1,5 +1,6 @@
 'use client';
 
+import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 
 /** Sao chép một số liệu để người dùng tự dán vào báo cáo (hệ thống không tự lập hay gửi báo cáo). */
@@ -14,7 +15,7 @@ export function CopyValueButton({
   return (
     <button
       type="button"
-      className="font-semibold text-accent underline-offset-2 hover:underline"
+      className="copy-value"
       aria-label={`Sao chép ${label}`}
       onClick={() => {
         void navigator.clipboard
@@ -26,6 +27,7 @@ export function CopyValueButton({
           .catch(() => undefined);
       }}
     >
+      {done ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
       {done ? 'Đã chép' : 'Sao chép'}
     </button>
   );

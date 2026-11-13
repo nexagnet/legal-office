@@ -35,7 +35,8 @@ body {
   font: 13px/1.5 var(--font);
 }
 a,
-button {
+/* Nút có kích thước Tailwind riêng (size-*, h-*) tự quyết chiều cao; còn lại tối thiểu 44px để dễ bấm. */
+button:not([class*='size-']):not([class*='h-']) {
   min-height: 44px;
 }
 /* Nút phụ chưa gắn lớp: viền nhẹ, nền trắng; nút chính dùng .primary */
@@ -60,8 +61,8 @@ button:not([class]):disabled,
   cursor: progress;
 }
 :focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }
 .skip {
   position: absolute;

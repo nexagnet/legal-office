@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => '/dms/vi-bang',
+  useSearchParams: () => new URLSearchParams(),
   notFound: () => {
     throw new Error('notFound');
   },

@@ -9,6 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
 import { SyntheticHeaderResolver } from '../http/actor';
 import { LocalFileStore } from '../storage/file-store';
+import { withRequiredColumns } from './dms-required-fixture';
 
 // DMS GĐ 2b qua HTTP thật: Trình / Duyệt (N4) và xóa file scan + Scan đã xóa 30 ngày (N6). Dữ liệu giả lập.
 const ADMIN_URL = process.env.DATABASE_URL;
@@ -39,7 +40,8 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt và xóa scan qua HTTP (Postgr
   const OFF = id();
   const U = { admin: id(), m1: id(), m2: id(), outsider: id() };
 
-  const api = async (method: string, path: string, user: string, body?: unknown) => {
+  const api = async (method: string, path: string, user: string, rawBody?: unknown) => {
+    const body = withRequiredColumns(method, path, rawBody);
     const res = await fetch(`${base}${path}`, {
       method,
       headers: {

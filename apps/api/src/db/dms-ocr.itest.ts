@@ -243,6 +243,41 @@ describe.skipIf(!ADMIN_URL)('OCR tìm kiếm toàn văn (PostgreSQL)', () => {
     expect(logs.join('\n')).not.toContain('BOOM');
   });
 
+  it('thử lại OCR: chỉ tệp FAILED, cần quyền thêm tài liệu, đặt lại hàng đợi rồi xử lý được', async () => {
+    const r = await record(U.a, 'BOOM');
+    const retry = (u: string, f = r.f, tenant = T) => op(tenant, 'dms_ocr_retry', [tenant, u, f]);
+    // Chưa lỗi (chưa vào hàng đợi / đang chờ) thì từ chối, không đặt lại việc đang chạy.
+    expect(await retry(U.a)).toMatchObject({ ok: false, code: 'OCR_NOT_FAILED' });
+    for (let i = 0; i < 4; i += 1) await processTenant(app, T, store, engine, log);
+    const state = () =>
+      call(
+        T,
+        `SELECT r.status, r.attempts, r.error FROM dms_ocr_results r
+         JOIN dms_document_versions v ON v.id = r.version_id WHERE v.object_key = $1`,
+        [r.key],
+      );
+    expect(await state()).toEqual([{ status: 'FAILED', attempts: 3, error: 'ENGINE_CRASH' }]);
+
+    expect(await retry(U.b)).toMatchObject({ ok: false, code: 'FILE_NOT_FOUND' }); // người không xem được hồ sơ
+    expect(await retry(U.foreign, r.f, T2)).toMatchObject({ ok: false, code: 'FILE_NOT_FOUND' }); // tenant khác
+    expect(await retry(U.a, id())).toMatchObject({ ok: false, code: 'FILE_NOT_FOUND' });
+
+    expect(await retry(U.a)).toMatchObject({ ok: true, code: 'OCR_RETRY_QUEUED' });
+    expect(await state()).toEqual([{ status: 'PENDING', attempts: 0, error: null }]);
+    expect(await retry(U.a)).toMatchObject({ ok: false, code: 'OCR_NOT_FAILED' }); // đã chờ thì không đặt lại lần nữa
+
+    files.set(r.key, Buffer.from('noi dung da sua loi thu lai ocr'));
+    await processTenant(app, T, store, engine, log);
+    expect((await state())[0]).toMatchObject({ status: 'DONE', error: null });
+    expect(await search(U.a, 'thu lai ocr')).toHaveLength(1);
+    const audit = await call(
+      T,
+      `SELECT 1 FROM dms_audit_records WHERE action = 'dms.ocr.retry'`,
+      [],
+    );
+    expect(audit).toHaveLength(1);
+  });
+
   it('định dạng không hỗ trợ bị SKIPPED, không bao giờ vào kết quả tìm', async () => {
     await record(U.a, 'bang tinh doc rieng', 'application/vnd.ms-excel');
     await processTenant(app, T, store, engine, log);

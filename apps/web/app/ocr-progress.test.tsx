@@ -15,7 +15,7 @@ describe('tiến độ OCR (tài liệu mới)', () => {
     expect(ocrPercent(row('RUNNING', 0, null))).toBeNull();
     expect(ocrPercent(row('RUNNING', 9, 4))).toBe(100);
     expect(ocrPercent(row('DONE', null, null))).toBe(100);
-    expect(ocrLabel(row('RUNNING', 2, 4))).toBe('Đang OCR 50% (2/4 trang)');
+    expect(ocrLabel(row('RUNNING', 2, 4))).toBe('Đang OCR 2/4 trang');
     expect(ocrLabel(row('RUNNING', null, null))).toBe('Đang OCR…');
     expect(ocrLabel(row('PENDING', null, null))).toBe('Chờ OCR');
     expect(ocrLabel(row(null, null, null))).toBe('Chờ OCR');
@@ -62,7 +62,7 @@ describe('OcrProgress', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3_000);
     });
-    expect(screen.getByText('Đang OCR 25% (1/4 trang)')).toBeTruthy();
+    expect(screen.getByText('Đang OCR 1/4 trang')).toBeTruthy();
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('25');
     expect(String(fetchMock.mock.calls[0]![0])).toContain('/api/dms/files/ocr-status?ids=f1');
 
@@ -96,5 +96,51 @@ describe('OcrProgress', () => {
       await vi.advanceTimersByTimeAsync(10 * 60_000);
     });
     expect(fetchMock.mock.calls.length).toBe(5);
+  });
+
+  it('OCR lỗi: có quyền thì hiện nút Thử lại OCR, bấm gọi API rồi quay về chờ và hỏi tiếp', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ code: 'OCR_RETRY_QUEUED' }),
+      } as Response)
+      .mockResolvedValue(reply('RUNNING', 1, 4));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<OcrProgress fileId="f4" initial={row('FAILED', null, null)} canRetry />);
+    await act(async () => {
+      screen.getByRole('button', { name: 'Thử lại OCR' }).click();
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe('/api/dms/files/f4/ocr-retry');
+    expect((init as RequestInit).method).toBe('POST');
+    expect(screen.getByText('Chờ OCR')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Thử lại OCR' })).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3_000);
+    });
+    expect(screen.getByText('Đang OCR 1/4 trang')).toBeTruthy();
+  });
+
+  it('OCR lỗi nhưng không có quyền thì không có nút; máy chủ từ chối thì báo lỗi và giữ trạng thái lỗi', async () => {
+    cleanup();
+    render(<OcrProgress fileId="f5" initial={row('FAILED', null, null)} />);
+    expect(screen.queryByRole('button', { name: 'Thử lại OCR' })).toBeNull();
+    cleanup();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ code: 'PERMISSION_DENIED' }),
+      } as Response),
+    );
+    render(<OcrProgress fileId="f6" initial={row('FAILED', null, null)} canRetry />);
+    await act(async () => {
+      screen.getByRole('button', { name: 'Thử lại OCR' }).click();
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(screen.getByRole('alert')).toBeTruthy();
+    expect(screen.getByText('OCR lỗi')).toBeTruthy();
   });
 });

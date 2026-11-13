@@ -150,6 +150,18 @@ export async function loadDmsCases(
   return body === 'error' ? 'error' : body.rows;
 }
 
+/** Cột bắt buộc còn thiếu / ngày không có thật của bản nháp (máy chủ cũng chặn ghi sổ theo cùng luật). Lỗi đọc thì coi như không có. */
+export async function loadRecordProblems(
+  cookie: string | null,
+  caseId: string,
+): Promise<{ key: string; problem: 'missing' | 'bad_date' }[]> {
+  const body = await getJson<{ problems: { key: string; problem: 'missing' | 'bad_date' }[] }>(
+    `/dms/cases/${encodeURIComponent(caseId)}/record-check`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.problems;
+}
+
 export async function loadMyDmsPermissions(
   cookie: string | null,
   officeId: string,
@@ -357,6 +369,7 @@ export function headerGroups(
 
 export interface DmsThvOption {
   readonly userId: string;
+  readonly officeId?: string;
   readonly label: string;
 }
 
@@ -442,12 +455,17 @@ export async function loadDmsReportFull(
   cookie: string | null,
   officeId: string,
   year: number,
+  branchId?: string,
+  firstHalf = false,
 ): Promise<DmsReportFull | 'error'> {
   const body = await getJson<{
     rows: DmsReportRow[];
     pending?: { domain: string; pending: number }[];
     returned?: { domain: string; returned: number }[];
-  }>(`/dms/report?officeId=${encodeURIComponent(officeId)}&year=${year}`, cookie);
+  }>(
+    `/dms/report?officeId=${encodeURIComponent(officeId)}&year=${year}${branchId ? `&branchId=${encodeURIComponent(branchId)}` : ''}${firstHalf ? '&half=1' : ''}`,
+    cookie,
+  );
   if (body === 'error') return 'error';
   return {
     rows: body.rows,
@@ -460,8 +478,10 @@ export async function loadDmsReport(
   cookie: string | null,
   officeId: string,
   year: number,
+  branchId?: string,
+  firstHalf = false,
 ): Promise<DmsReportRow[] | 'error'> {
-  const body = await loadDmsReportFull(cookie, officeId, year);
+  const body = await loadDmsReportFull(cookie, officeId, year, branchId, firstHalf);
   return body === 'error' ? 'error' : body.rows;
 }
 

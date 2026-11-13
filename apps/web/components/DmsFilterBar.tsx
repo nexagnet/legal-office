@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import type { DmsFacetCounts } from '../lib/dms-browse';
 import { DMS_PERIODS, type DmsDateRange } from '../lib/dms-date-range';
 import { viewHref, type DmsView } from '../lib/dms-filter-params';
+import { colChipText, colLabel, withCol } from '../lib/dms-col-filters';
+import { returnedLabels } from '../lib/dms-list-layout';
 import type { DmsFilter } from '../lib/dms';
 import { DmsPopoverDismiss } from './DmsPopoverDismiss';
 import { Button } from './ui/button';
@@ -64,7 +66,6 @@ function selectOptions(list: readonly Option[], now?: string): ReactNode {
 export function otherFilterCount(v: DmsView, domain: string, recordedView: boolean): number {
   let n = 0;
   if (v.creator) n += 1;
-  if (v.kind) n += 1;
   if (v.branch) n += 1;
   if (recordedView) {
     if (v.filter === 'thieu-scan' || v.filter === 'du-scan') n += 1;
@@ -116,6 +117,7 @@ export function DmsFilterFields({
         : `Thừa hành viên (${thvSelected.length})`;
   const otherN = otherFilterCount(view, domain, recordedView);
   const openLabel = OPEN_LABEL[domain];
+  const RL = returnedLabels(domain);
   const scanValue =
     view.filter === 'thieu-scan' || view.filter === 'du-scan' ? view.filter : 'chinh-thuc';
   const thvOptions = facets.thv.filter((o) => o.value !== '');
@@ -271,25 +273,18 @@ export function DmsFilterFields({
               ) : null}
               {recordedView ? (
                 <label className="dms-field">
-                  <span>Đã trả kết quả</span>
+                  <span>{RL.title}</span>
                   <select
                     name="tra"
                     defaultValue={view.returned === undefined ? '' : view.returned ? '1' : '0'}
                     className="dms-select"
                   >
                     <option value="">Tất cả</option>
-                    <option value="1">Đã trả</option>
-                    <option value="0">Chưa trả</option>
+                    <option value="1">{RL.yes}</option>
+                    <option value="0">{RL.no}</option>
                   </select>
                 </label>
               ) : null}
-              <label className="dms-field">
-                <span>Loại tài liệu</span>
-                <select name="lt" defaultValue={view.kind ?? ''} className="dms-select">
-                  <option value="">Tất cả loại</option>
-                  {selectOptions(facets.kind, view.kind)}
-                </select>
-              </label>
             </div>
             <div>
               {recordedView && openLabel ? (
@@ -362,6 +357,7 @@ export function DmsActiveChips({
   recordedView,
   matchText,
 }: DmsActiveChipsProps) {
+  const RL = returnedLabels(domain);
   const chips: { key: string; text: string; href: string }[] = [];
   const without = (patch: Partial<DmsView>, drop: readonly string[] = []) =>
     viewHref(base, { ...view, ...patch }, { drop });
@@ -397,13 +393,25 @@ export function DmsActiveChips({
       text: `Việc còn dở: ${view.open ? OPEN_LABEL[domain] : 'Đã xong'}`,
       href: without({ open: undefined }),
     });
+  if (recordedView && view.overdue !== undefined)
+    chips.push({
+      key: 'overdue',
+      text: view.overdue ? 'Quá hạn báo kết quả' : 'Chưa quá hạn',
+      href: without({ overdue: undefined }),
+    });
   if (recordedView && view.returned !== undefined)
     chips.push({
       key: 'returned',
-      text: `Đã trả kết quả: ${view.returned ? 'Đã trả' : 'Chưa trả'}`,
+      text: `${RL.title}: ${view.returned ? RL.yes : RL.no}`,
       href: without({ returned: undefined }),
     });
-  const labelOf = (list: DmsFacetCounts['kind'], v: string) =>
+  for (const [key, f] of Object.entries(view.cols ?? {}))
+    chips.push({
+      key: `cl-${key}`,
+      text: colChipText(colLabel(domain, key), f),
+      href: without({ cols: withCol(view.cols, key, undefined) }),
+    });
+  const labelOf = (list: DmsFacetCounts['branch'], v: string) =>
     list.find((o) => o.value === v)?.label ?? v;
   if (view.branch)
     chips.push({
@@ -429,8 +437,6 @@ export function DmsActiveChips({
       text: `${BUSINESS_FILTER[domain]!.fb}: ${view.fb}`,
       href: without({ fb: undefined }),
     });
-  if (view.kind)
-    chips.push({ key: 'lt', text: `Loại: ${view.kind}`, href: without({ kind: undefined }) });
   if (chips.length === 0) return null;
   const tab: DmsFilter =
     view.filter === 'nhap' || view.filter === 'da-huy' ? view.filter : 'chinh-thuc';
@@ -481,9 +487,16 @@ export function DmsWorkChips({ base, view, facets, domain, userId }: DmsWorkChip
       active:
         view.open === undefined &&
         view.returned === undefined &&
+        view.overdue === undefined &&
         view.filter === 'chinh-thuc' &&
         !mine,
-      href: go({ open: undefined, returned: undefined, filter: 'chinh-thuc', thv: undefined }),
+      href: go({
+        open: undefined,
+        returned: undefined,
+        overdue: undefined,
+        filter: 'chinh-thuc',
+        thv: undefined,
+      }),
     },
   ];
   if (labels?.open)
@@ -502,20 +515,31 @@ export function DmsWorkChips({ base, view, facets, domain, userId }: DmsWorkChip
       active: view.open === false,
       href: go({ open: false, filter: 'chinh-thuc' }),
     });
-  items.push(
-    {
+  if (domain === 'tongdat')
+    items.push({
+      key: 'overdue',
+      label: 'Quá hạn báo kết quả',
+      n: countOf(facets.overdue, 'true'),
+      active: view.overdue === true,
+      href: go({ overdue: true, returned: undefined, filter: 'chinh-thuc' }),
+    });
+  const RL = returnedLabels(domain);
+  // Tổ chức THA đã có chip "Chưa có biên bản N-08" (việc còn dở) nên không lặp "Chưa có N-08".
+  if (domain !== 'tochuc')
+    items.push({
       key: 'unreturned',
       label: 'Chưa trả kết quả',
       n: countOf(facets.returned, 'false'),
       active: view.returned === false,
       href: go({ returned: false, filter: 'chinh-thuc' }),
-    },
+    });
+  items.push(
     {
       key: 'returned',
-      label: 'Đã trả kết quả',
+      label: RL.title,
       n: countOf(facets.returned, 'true'),
       active: view.returned === true,
-      href: go({ returned: true, filter: 'chinh-thuc' }),
+      href: go({ returned: true, overdue: undefined, filter: 'chinh-thuc' }),
     },
     {
       key: 'missing',

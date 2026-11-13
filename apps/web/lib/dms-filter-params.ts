@@ -1,4 +1,5 @@
 import type { DmsFilter } from './dms';
+import { colsToParam, parseCols, type ColFilters } from './dms-col-filters';
 
 /** Phần thuần (không đụng máy chủ) của bộ lọc danh sách DMS: dùng được cả ở thành phần chạy trên trình duyệt. */
 
@@ -30,7 +31,6 @@ export interface DmsView {
   readonly year?: number;
   readonly q?: string;
   readonly creator?: string;
-  readonly kind?: string;
   readonly branch?: string;
   /** Thừa hành viên (chọn nhiều). */
   readonly thv?: readonly string[];
@@ -38,9 +38,13 @@ export interface DmsView {
   readonly open?: boolean;
   /** Đã trả kết quả: true / false / không lọc. */
   readonly returned?: boolean;
+  /** Quá hạn báo kết quả tống đạt (chỉ Tống đạt): true = quá hạn. */
+  readonly overdue?: boolean;
   /** Bộ lọc nghiệp vụ (0126): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   readonly fa?: string;
   readonly fb?: string;
+  /** Lọc theo cột (migration 0131): khóa ô sổ -> bộ lọc; trên URL là `cl` (JSON). */
+  readonly cols?: ColFilters;
   /** Khoảng ngày giờ tự chọn (`YYYY-MM-DDTHH:mm`, giờ Việt Nam). */
   readonly tu?: string;
   readonly den?: string;
@@ -63,9 +67,11 @@ export function parseExtraView(sp: Readonly<Record<string, string | string[] | u
   thv: string[];
   open?: boolean;
   returned?: boolean;
+  overdue?: boolean;
   ky?: string;
   fa?: string;
   fb?: string;
+  cols: ColFilters;
 } {
   const raw = sp.thv === undefined ? [] : Array.isArray(sp.thv) ? sp.thv : sp.thv.split(',');
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -79,9 +85,11 @@ export function parseExtraView(sp: Readonly<Record<string, string | string[] | u
     thv,
     open: triState(sp.mo),
     returned: triState(sp.tra),
+    overdue: triState(sp.qh),
     ky: ky || undefined,
     fa: text(sp.fa),
     fb: text(sp.fb),
+    cols: parseCols(sp.cl),
   };
 }
 
@@ -99,13 +107,14 @@ export function viewToQuery(
   put('q', v.q);
   if (v.year !== undefined && !drop.has('year')) qs.set('year', String(v.year));
   put('nt', v.creator);
-  put('lt', v.kind);
   put('dv', v.branch);
   if (!drop.has('thv')) for (const t of v.thv ?? []) qs.append('thv', t);
   if (v.open !== undefined) put('mo', v.open ? '1' : '0');
   if (v.returned !== undefined) put('tra', v.returned ? '1' : '0');
+  if (v.overdue !== undefined) put('qh', v.overdue ? '1' : '0');
   put('fa', v.fa);
   put('fb', v.fb);
+  if (!drop.has('cl')) put('cl', colsToParam(v.cols));
   if (v.ky) put('ky', v.ky);
   else {
     put('tu', v.tu);
@@ -134,14 +143,16 @@ export function viewToSavedParams(v: DmsView): DmsSavedParams {
   if (v.year && base.year !== undefined && !v.ky && !v.tu && !v.den) out.year = v.year;
   if (v.q?.trim()) out.q = v.q.trim();
   if (v.creator) out.creator = v.creator;
-  if (v.kind) out.kind = v.kind;
   if (v.branch) out.branch = v.branch;
   // API nhận thv là chuỗi cách nhau dấu phẩy và boolean dạng chữ ('true'/'false'), nên lưu đúng dạng đó.
   if (v.thv && v.thv.length > 0) out.thv = v.thv.join(',');
   if (v.open !== undefined) out.open = String(v.open);
   if (v.returned !== undefined) out.returned = String(v.returned);
+  if (v.overdue !== undefined) out.overdue = String(v.overdue);
   if (v.fa) out.fa = v.fa;
   if (v.fb) out.fb = v.fb;
+  const cols = colsToParam(v.cols);
+  if (cols) out.cols = cols;
   if (v.ky) out.ky = v.ky;
   else {
     if (v.tu) out.tu = v.tu;
@@ -172,13 +183,14 @@ export function savedParamsToHref(base: string, p: DmsSavedParams): string {
     q: typeof p.q === 'string' ? p.q : undefined,
     year: p.year !== undefined && Number.isFinite(year) ? year : undefined,
     creator: typeof p.creator === 'string' ? p.creator : undefined,
-    kind: typeof p.kind === 'string' ? p.kind : undefined,
     branch: typeof p.branch === 'string' ? p.branch : undefined,
     thv: asText(p.thv)?.split(',').filter(Boolean),
     open: asBool(p.open),
     returned: asBool(p.returned),
+    overdue: asBool(p.overdue),
     fa: typeof p.fa === 'string' ? p.fa : undefined,
     fb: typeof p.fb === 'string' ? p.fb : undefined,
+    cols: typeof p.cols === 'string' ? parseCols(p.cols) : undefined,
     ky: asText(p.ky),
     tu: asText(p.tu),
     den: asText(p.den),

@@ -25,8 +25,11 @@ services:
       R2_BUCKET: ${R2_BUCKET:-}
       R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
       R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      # Hai lịch nền cần danh sách tenant, nếu không chỉ ghi log lỗi và không chạy. Mặc định dùng đúng TENANT_ID của văn phòng.
       REMINDERS_SCHEDULE: ${REMINDERS_SCHEDULE:-on}
+      REMINDER_TENANT_IDS: ${REMINDER_TENANT_IDS:-${TENANT_ID:?TENANT_ID is required}}
       SCAN_PURGE_SCHEDULE: ${SCAN_PURGE_SCHEDULE:-on}
+      SCAN_PURGE_TENANT_IDS: ${SCAN_PURGE_TENANT_IDS:-${TENANT_ID:?TENANT_ID is required}}
       MAIL_SETTINGS_KEY: ${MAIL_SETTINGS_KEY:-}
       RATE_LIMIT_READ_PER_MIN: ${RATE_LIMIT_READ_PER_MIN:-3000}
       RATE_LIMIT_WRITE_PER_MIN: ${RATE_LIMIT_WRITE_PER_MIN:-600}

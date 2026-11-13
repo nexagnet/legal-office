@@ -141,3 +141,30 @@ describe('nhãn hoạt động', () => {
     expect(activityNote({ action: 'dms.file.download', detail: { x: 1 } })).toBe('');
   });
 });
+
+describe('lịch sử hồ sơ gọn', () => {
+  it('rút gọn tên người làm và dịch mã thao tác', async () => {
+    const { shortActor, actionLabel } = await import('../lib/dms-activity');
+    expect(shortActor('phungviet (phungviet@gmail.com)')).toBe('phungviet');
+    expect(shortActor('a@b.vn')).toBe('a');
+    expect(shortActor(null)).toBe('Hệ thống');
+    expect(actionLabel('dms.ocr.retry')).toBe('Thử lại OCR tệp');
+  });
+
+  it('gộp các dòng liền nhau giống nhau', async () => {
+    const { collapseHistory } = await import('../lib/dms-activity');
+    const r = (id: string, action: string, who = 'u') => ({
+      id,
+      action,
+      actor_label: who,
+      detail: null,
+    });
+    const g = collapseHistory([
+      r('1', 'dms.file.download'),
+      r('2', 'dms.file.download'),
+      r('3', 'dms.ocr.retry'),
+      r('4', 'dms.file.download'),
+    ]);
+    expect(g.map((x) => x.count)).toEqual([2, 1, 1]);
+  });
+});

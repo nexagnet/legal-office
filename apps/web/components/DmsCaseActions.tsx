@@ -47,10 +47,13 @@ export async function uploadFilesTo(
   documentId: string,
   files: readonly File[],
   isScan: boolean,
+  /** Tên đặt cho từng tệp (cùng thứ tự với `files`); trống thì dùng tên tệp. */
+  names: readonly string[] = [],
 ): Promise<{ readonly done: number; readonly error: string | null }> {
   let done = 0;
-  for (const file of files) {
-    const q = new URLSearchParams({ label: file.name.slice(0, 200), isScan: String(isScan) });
+  for (const [i, file] of files.entries()) {
+    const name = names[i]?.trim() || file.name;
+    const q = new URLSearchParams({ label: name.slice(0, 200), isScan: String(isScan) });
     const res = await fetch(`/api/dms/documents/${documentId}/files?${q}`, {
       method: 'POST',
       headers: { 'content-type': file.type || 'application/octet-stream' },
@@ -73,13 +76,20 @@ export async function uploadUnclassified(
   caseId: string,
   files: readonly File[],
   isScan = true,
+  names: readonly string[] = [],
 ): Promise<{ readonly done: number; readonly error: string | null }> {
-  const list = files.filter((f) => f.size > 0);
+  const keep = files.map((f, i) => ({ f, name: names[i] ?? '' })).filter((x) => x.f.size > 0);
+  const list = keep.map((x) => x.f);
   if (list.length === 0) return { done: 0, error: null };
   const made = await fetch(`/api/dms/cases/${caseId}/other-document`, { method: 'POST' });
   const madeJson = (await made.json().catch(() => ({}))) as { code?: string; label?: string };
   if (!made.ok || !madeJson.label) return { done: 0, error: messageFor(madeJson.code) };
-  return uploadFilesTo(madeJson.label, list, isScan);
+  return uploadFilesTo(
+    madeJson.label,
+    list,
+    isScan,
+    keep.map((x) => x.name),
+  );
 }
 
 /** Ô tải lên không giới hạn số tệp, không phân loại (cả hồ sơ nháp lẫn đã ghi sổ). */
@@ -228,10 +238,13 @@ export function DmsDraftActions({
   caseId,
   canRecord,
   canCancel,
+  problems = [],
 }: {
   readonly caseId: string;
   readonly canRecord: boolean;
   readonly canCancel: boolean;
+  /** Cột bắt buộc còn thiếu / ngày sai: còn thì khóa nút ghi sổ (máy chủ cũng từ chối). */
+  readonly problems?: readonly string[];
 }) {
   const { send, error, busy } = useSender();
   const [reason, setReason] = useState('');
@@ -295,7 +308,22 @@ export function DmsDraftActions({
       ) : null}
       {canRecord ? (
         <>
-          <Button type="button" loading={busy} onClick={() => setConfirming(true)}>
+          {problems.length > 0 ? (
+            <div role="alert" className="w-full rounded-lg bg-[#fdecec] p-3 text-sm">
+              <strong>Chưa thể lưu chính thức. Bổ sung ở mục A rồi bấm Lưu nháp:</strong>
+              <ul className="m-0 mt-1 list-disc pl-5">
+                {problems.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <Button
+            type="button"
+            loading={busy}
+            disabled={problems.length > 0}
+            onClick={() => setConfirming(true)}
+          >
             Xác nhận lưu chính thức
           </Button>
           <ConfirmModal
@@ -306,7 +334,13 @@ export function DmsDraftActions({
             confirmLabel="Lưu chính thức"
             busy={busy}
             onConfirm={() => {
-              void send(`/api/dms/cases/${caseId}/record`).then(() => setConfirming(false));
+              void send(`/api/dms/cases/${caseId}/record`).then((ok) => {
+                setConfirming(false);
+                // Ghi sổ đổi trạng thái hồ sơ nên tải lại hẳn trang: router.refresh() đôi khi
+                // không thay được trang cũ (đua với yêu cầu prefetch cùng URL của Next 15),
+                // khiến trang vẫn hiện "Nháp" dù đã ghi sổ.
+                if (ok) window.location.reload();
+              });
             }}
           />
         </>

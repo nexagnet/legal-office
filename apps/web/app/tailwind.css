@@ -28,3 +28,14 @@
   --font-sans: var(--font);
   --font-serif: var(--font-serif);
 }
+
+/* Không có preflight: nút có lớp Tailwind không được mang viền/nền mặc định của trình duyệt (khung xám đậm quanh phễu lọc, ⋯). */
+@layer base {
+  button[class] {
+    border: 0 solid transparent;
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    padding: 0;
+  }
+}

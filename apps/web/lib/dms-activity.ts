@@ -91,6 +91,11 @@ const ACTION_LABEL: Readonly<Record<string, string>> = {
   'dms.document.admin_edit': 'Admin sửa tài liệu đã ghi sổ',
   'dms.file.attach': 'Tải tệp lên',
   'dms.file.download': 'Tải tệp về',
+  'dms.ocr.retry': 'Thử lại OCR tệp',
+  'dms.book.export': 'Xuất sổ',
+  'dms.audit.export': 'Xuất nhật ký hoạt động',
+  'dms.number.import': 'Nhập số từ sổ cũ',
+  'dms.amendment.approve': 'Duyệt yêu cầu sửa đổi',
   'dms.scan.delete': 'Xóa file scan',
   'dms.scan.download_deleted': 'Tải scan đã xóa',
   'dms.scan.purge': 'Dọn scan hết hạn 30 ngày (tự động)',
@@ -152,4 +157,43 @@ export function activityNote(row: Pick<ActivityRow, 'action' | 'detail'>): strin
     default:
       return '';
   }
+}
+
+/** "phungviet (phungviet@gmail.com)" -> "phungviet"; chỉ có email -> phần trước @. Đầy đủ nằm ở `title` của ô. */
+export function shortActor(label: string | null): string {
+  if (!label) return 'Hệ thống';
+  const name = label.replace(/\s*\([^)]*@[^)]*\)\s*$/, '').trim();
+  if (name && !name.includes('@')) return name;
+  const at = label.indexOf('@');
+  return at > 0 ? label.slice(0, at) : label;
+}
+
+export interface HistoryGroup<R> {
+  readonly first: R;
+  readonly last: R;
+  readonly count: number;
+}
+
+/** Gộp các dòng LIỀN NHAU (mới nhất trước) cùng người, cùng việc, cùng ghi chú thành một dòng "× n" để khỏi lặp. */
+export function collapseHistory<
+  R extends {
+    readonly action: string;
+    readonly actor_label: string | null;
+    readonly detail: unknown;
+  },
+>(rows: readonly R[]): HistoryGroup<R>[] {
+  const out: { first: R; last: R; count: number }[] = [];
+  for (const r of rows) {
+    const g = out[out.length - 1];
+    if (
+      g &&
+      g.last.action === r.action &&
+      g.last.actor_label === r.actor_label &&
+      activityNote(g.last as never) === activityNote(r as never)
+    ) {
+      g.last = r;
+      g.count += 1;
+    } else out.push({ first: r, last: r, count: 1 });
+  }
+  return out;
 }

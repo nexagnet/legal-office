@@ -1,3 +1,4 @@
+import { colsToParam } from '../../../lib/dms-col-filters';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
@@ -184,15 +185,16 @@ export default async function DmsDomainPage({
     thv: vanThu ? undefined : extra.thv,
     open: recordedView ? extra.open : undefined,
     returned: recordedView ? extra.returned : undefined,
+    overdue: recordedView && domain.code === 'tongdat' ? extra.overdue : undefined,
     fa: vanThu ? undefined : extra.fa,
     fb: vanThu ? undefined : extra.fb,
+    cols: vanThu ? undefined : extra.cols,
     officeId,
     domain: domain.code,
     filter,
     year,
     q,
     creator: sp.nt,
-    kind: sp.lt,
     branch: sp.dv,
   };
   const chipCount = (f: DmsFilter) =>
@@ -286,13 +288,14 @@ export default async function DmsDomainPage({
     year: sp.year ? year : undefined,
     q,
     creator: sp.nt,
-    kind: sp.lt,
     branch: sp.dv,
     thv: search.thv,
     open: search.open,
     returned: search.returned,
+    overdue: search.overdue,
     fa: search.fa,
     fb: search.fb,
+    cols: search.cols,
     tu: range.tu,
     den: range.den,
     ky: range.ky,
@@ -317,14 +320,23 @@ export default async function DmsDomainPage({
     <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
       <div className="dms-title-row">
         <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
-        {!vanThu && canDraft(permissions, domain.code) ? (
-          <NewDmsCaseButton
-            officeId={officeId}
-            domainCode={domain.code}
-            label={domain.label}
-            buttonLabel="+ Tạo hồ sơ"
-            redirectBase={base}
-          />
+        {!vanThu ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild className="min-h-10 px-5 text-[15px] font-bold">
+              <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
+                Xuất sổ {bookCode}
+              </Link>
+            </Button>
+            {canDraft(permissions, domain.code) ? (
+              <NewDmsCaseButton
+                officeId={officeId}
+                domainCode={domain.code}
+                label={domain.label}
+                buttonLabel="+ Tạo hồ sơ"
+                redirectBase={base}
+              />
+            ) : null}
+          </div>
         ) : null}
       </div>
       {draftKind && !vanThu ? (
@@ -419,6 +431,9 @@ export default async function DmsDomainPage({
             <span className="dms-tb-label">Bộ lọc</span>
             {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
             {q ? <input type="hidden" name="q" value={q} /> : null}
+            {colsToParam(search.cols) ? (
+              <input type="hidden" name="cl" value={colsToParam(search.cols)} />
+            ) : null}
             <DmsFilterFields
               view={view}
               range={range}
@@ -568,18 +583,6 @@ export default async function DmsDomainPage({
                     return (
                       <>
                         <label>
-                          <span className="sr-only">Loại tài liệu</span>
-                          <select
-                            name="lt"
-                            defaultValue={sp.lt ?? ''}
-                            className="dms-select"
-                            style={{ width: 112 }}
-                          >
-                            <option value="">Loại tài liệu</option>
-                            {options(facets.kind, sp.lt)}
-                          </select>
-                        </label>
-                        <label>
                           <span className="sr-only">Người tạo</span>
                           <select
                             name="nt"
@@ -632,7 +635,6 @@ export default async function DmsDomainPage({
                       year: sp.year ? year : undefined,
                       q,
                       creator: sp.nt,
-                      kind: sp.lt,
                       branch: sp.dv,
                     })}
                   />
@@ -674,6 +676,7 @@ export default async function DmsDomainPage({
             sttLabel={sttLabel}
             draft={draftKind ? { kind: draftKind, userId } : undefined}
             canMarkReturned={canAddDocument(permissions, domain.code)}
+            filterCtx={draftKind ? undefined : { domain: domain.code, officeId }}
             tableKey={`DmsDomainTable-${domain.code}${draftKind ? '-nhap' : ''}`}
           />
         ) : (

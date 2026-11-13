@@ -79,7 +79,7 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
         tableKey="t"
       />,
     );
-    expect(screen.getAllByRole('columnheader')).toHaveLength(11);
+    expect(screen.getAllByRole('columnheader')).toHaveLength(10);
     expect(screen.getByText('STT 6')).toBeTruthy();
     expect(screen.getByRole('link', { name: '030/2026/VB-THV' })).toBeTruthy();
     expect(screen.getByText('VB-2610-0042')).toBeTruthy();

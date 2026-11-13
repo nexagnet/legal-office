@@ -43,11 +43,59 @@ describe('DataTable', () => {
     const { container, unmount } = render(<Sample />);
     fireEvent.click(await screen.findByRole('button', { name: /Cột hiển thị/ }));
     fireEvent.click(screen.getByLabelText('Ghi chú'));
-    expect(container.querySelector('style')?.textContent).toContain('nth-child(5){display:none}');
+    expect(container.querySelector('style')?.textContent).toContain('nth-child(5)');
     unmount();
     const again = render(<Sample />);
     await screen.findByRole('button', { name: /Cột hiển thị/ });
     expect(again.container.querySelector('style')?.textContent).toContain('nth-child(5)');
+  });
+
+  it('shrinks the group header colSpan when sub-columns are hidden', async () => {
+    const labels = ['A', 'B1', 'B2', 'B3', 'C', 'D'];
+    const { container } = render(
+      <DataTable tableKey="grp">
+        <table data-leafcols="true" data-labels={JSON.stringify(labels)}>
+          <thead>
+            <tr>
+              <th rowSpan={2} data-leaf={0}>
+                A
+              </th>
+              <th colSpan={3} data-gstart={1} data-gcount={3}>
+                Nhóm
+              </th>
+              <th rowSpan={2} data-leaf={4}>
+                C
+              </th>
+              <th rowSpan={2} data-leaf={5}>
+                D
+              </th>
+            </tr>
+            <tr>
+              {[1, 2, 3].map((i) => (
+                <th key={i} data-leaf={i}>
+                  {labels[i]}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {labels.map((l) => (
+                <td key={l}>{l}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </DataTable>,
+    );
+    fireEvent.click(await screen.findByRole('button', { name: /Cột hiển thị/ }));
+    fireEvent.click(screen.getByLabelText('B2'));
+    const th = container.querySelector('th[data-gstart]') as HTMLTableCellElement;
+    expect(th.colSpan).toBe(2);
+    expect(container.querySelector('style')?.textContent).toContain('[data-leaf="2"]');
+    fireEvent.click(screen.getByLabelText('B1'));
+    fireEvent.click(screen.getByLabelText('B3'));
+    expect(th.style.display).toBe('none');
   });
 
   it('toggles compact mode', async () => {

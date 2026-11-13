@@ -1,3 +1,4 @@
+import { colsToParam, type ColFilters } from './dms-col-filters';
 import { API_URL } from './server';
 import type { DmsBookRow, DmsBookSpec, DmsCaseRow, DmsFilter } from './dms';
 import { filterToParams } from './dms-filter-params';
@@ -40,7 +41,6 @@ export interface DmsCaseSearchParams {
   readonly year: number;
   readonly q?: string;
   readonly creator?: string;
-  readonly kind?: string;
   readonly branch?: string;
   /** Khoảng ngày giờ ghi sổ (ISO): `from` tính cả mốc, `to` không tính mốc. Có một trong hai thì bỏ lọc theo năm. */
   readonly from?: string;
@@ -49,9 +49,13 @@ export interface DmsCaseSearchParams {
   readonly thv?: readonly string[];
   readonly open?: boolean;
   readonly returned?: boolean;
+  /** Quá hạn báo kết quả tống đạt (0128). */
+  readonly overdue?: boolean;
   /** Bộ lọc nghiệp vụ (0126): hình thức tống đạt / tỉnh thành / kết quả (fa) và cơ quan giao (fb). */
   readonly fa?: string;
   readonly fb?: string;
+  /** Lọc theo cột (0131). */
+  readonly cols?: ColFilters;
   readonly limit?: number;
   readonly offset?: number;
   readonly total?: boolean;
@@ -73,13 +77,15 @@ function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
   const text = (p.q ?? '').trim();
   if (text) q.set('q', text);
   if (p.creator) q.set('creator', p.creator);
-  if (p.kind) q.set('kind', p.kind);
   if (p.branch) q.set('branch', p.branch);
   if (p.thv && p.thv.length > 0) q.set('thv', p.thv.join(','));
   if (p.open !== undefined) q.set('open', String(p.open));
   if (p.returned !== undefined) q.set('returned', String(p.returned));
+  if (p.overdue !== undefined) q.set('overdue', String(p.overdue));
   if (p.fa) q.set('fa', p.fa);
   if (p.fb) q.set('fb', p.fb);
+  const cols = colsToParam(p.cols);
+  if (cols) q.set('cols', cols);
   if (p.from || p.to) {
     // Khoảng ngày giờ có thể trải qua nhiều năm nên thay cho ô "Năm", không chồng lên nhau.
     q.delete('year');
@@ -174,12 +180,12 @@ export async function countDmsCases(
 const NO_FACETS: DmsFacetCounts = {
   creator: [],
   branch: [],
-  kind: [],
   thv: [],
   fa: [],
   fb: [],
   open: [],
   returned: [],
+  overdue: [],
   scan: [],
 };
 
@@ -191,7 +197,6 @@ export interface DmsFacetOption {
 export interface DmsFacetCounts {
   readonly creator: readonly DmsFacetOption[];
   readonly branch: readonly DmsFacetOption[];
-  readonly kind: readonly DmsFacetOption[];
   /** Thừa hành viên có hồ sơ trong phạm vi xem; `value` rỗng = chưa chọn (không lọc được). */
   readonly thv: readonly DmsFacetOption[];
   /** Giá trị bộ lọc nghiệp vụ (0126) kèm số hồ sơ. */
@@ -200,6 +205,8 @@ export interface DmsFacetCounts {
   /** `value` 'true'/'false': số hồ sơ còn dở / đã xong, chưa trả / đã trả kết quả; scan: missing, complete, empty. */
   readonly open: readonly DmsFacetOption[];
   readonly returned: readonly DmsFacetOption[];
+  /** `value` 'true': số hồ sơ Tống đạt quá hạn báo kết quả (không có nhóm khi bằng 0). */
+  readonly overdue: readonly DmsFacetOption[];
   readonly scan: readonly DmsFacetOption[];
 }
 
@@ -215,12 +222,12 @@ export async function loadDmsFacetCounts(
   const empty: DmsFacetCounts = {
     creator: [],
     branch: [],
-    kind: [],
     thv: [],
     fa: [],
     fb: [],
     open: [],
     returned: [],
+    overdue: [],
     scan: [],
   };
   return body === 'error'
@@ -228,12 +235,12 @@ export async function loadDmsFacetCounts(
     : {
         creator: body.creator ?? [],
         branch: body.branch ?? [],
-        kind: body.kind ?? [],
         thv: body.thv ?? [],
         fa: body.fa ?? [],
         fb: body.fb ?? [],
         open: body.open ?? [],
         returned: body.returned ?? [],
+        overdue: body.overdue ?? [],
         scan: body.scan ?? [],
       };
 }
@@ -292,12 +299,12 @@ export async function loadDmsOcrFacets(
     : {
         creator: body.creator ?? [],
         branch: body.branch ?? [],
-        kind: body.kind ?? [],
         thv: body.thv ?? [],
         fa: body.fa ?? [],
         fb: body.fb ?? [],
         open: body.open ?? [],
         returned: body.returned ?? [],
+        overdue: body.overdue ?? [],
         scan: body.scan ?? [],
         year: body.year ?? [],
       };

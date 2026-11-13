@@ -232,7 +232,14 @@ export class DmsCasesController {
   @Get('report')
   async report(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
     const q = parse(
-      z.object({ officeId: uuid, year: z.coerce.number().int().min(2000).max(2100) }).strict(),
+      z
+        .object({
+          officeId: uuid,
+          year: z.coerce.number().int().min(2000).max(2100),
+          branchId: uuid.optional(),
+          half: z.enum(['1']).optional(),
+        })
+        .strict(),
       query,
     );
     const rows = await this.repo.rows(a.tenantId, 'dms_report_summary', [
@@ -240,6 +247,8 @@ export class DmsCasesController {
       a.userId,
       q.officeId,
       q.year,
+      q.branchId ?? null,
+      q.half === '1',
     ]);
     // Thẻ số "việc còn dở" của Tống đạt, Xác minh, Tổ chức (Figma DMS v2): domain -> số còn dở.
     // Thiếu hàm này (chưa chạy migration 0102) thì không được làm hỏng cả báo cáo.
@@ -363,10 +372,32 @@ export class DmsCasesController {
     return this.run(a, 'dms_document_admin_edit', [id, JSON.stringify(b.attributes), b.reason]);
   }
 
+  /** Xem trước khi ghi sổ: cột bắt buộc còn thiếu hoặc ngày không có thật (cùng luật với `dms_case_record`). */
+  @Get('cases/:id/record-check')
+  async recordCheck(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{ key: string; problem: string }>(
+      a.tenantId,
+      'dms_case_record_problems',
+      [a.tenantId, a.userId, id],
+    );
+    return { problems: rows };
+  }
+
   /** "Xác nhận lưu chính thức": từ đây hồ sơ và tài liệu của nó bất biến. */
   @Post('cases/:id/record')
   @HttpCode(HttpStatus.OK)
-  record(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+  async record(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    // Thiếu cột bắt buộc hoặc ngày không có thật thì không ghi sổ (hồ sơ đã ghi sổ không sửa trực tiếp được).
+    const problems = await this.repo.rows(a.tenantId, 'dms_case_record_problems', [
+      a.tenantId,
+      a.userId,
+      id,
+    ]);
+    if (problems.length > 0)
+      throw new HttpException(
+        { code: 'REQUIRED_COLUMNS_MISSING', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     return this.run(a, 'dms_case_record', [id]);
   }
 
@@ -474,6 +505,13 @@ export class DmsCasesController {
     return this.repo
       .rows(a.tenantId, 'dms_ocr_status', [a.tenantId, a.userId, q.ids])
       .then((rows) => ({ rows }));
+  }
+
+  /** Thử lại OCR cho tệp mà OCR đã lỗi: chỉ đặt lại hàng đợi OCR, không đụng tệp/phiên bản. Cùng quyền thêm tài liệu. */
+  @Post('files/:id/ocr-retry')
+  @HttpCode(HttpStatus.OK)
+  ocrRetry(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    return this.run(a, 'dms_ocr_retry', [id]);
   }
 
   /** Tải lên một tệp MỚI (PDF/JPEG/PNG). Máy chủ tự tính hash và khoá đối tượng; không có đường ghi đè. */

@@ -30,7 +30,7 @@ export function ocrLabel(p: OcrProgressInfo): string {
       return 'Không OCR';
     case 'RUNNING': {
       const pct = ocrPercent(p);
-      return pct === null ? 'Đang OCR…' : `Đang OCR ${pct}% (${p.done}/${p.total} trang)`;
+      return pct === null ? 'Đang OCR…' : `Đang OCR ${p.done}/${p.total} trang`;
     }
     default:
       return 'Chờ OCR';
