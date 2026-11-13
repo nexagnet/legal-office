@@ -34,7 +34,13 @@ import {
   loadThvOptions,
 } from '../../../../lib/dms';
 import { withCaseNumber } from '../../../../lib/dms-number';
-import { actionLabel, activityNote, loadCaseHistory } from '../../../../lib/dms-activity';
+import {
+  actionLabel,
+  activityNote,
+  collapseHistory,
+  loadCaseHistory,
+  shortActor,
+} from '../../../../lib/dms-activity';
 import { currentSession, requestCookie } from '../../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -215,6 +221,8 @@ export default async function DmsCasePage({
 
   const creatorName = c.created_by_name;
   const history = tab === 'lich-su' ? await loadCaseHistory(cookie, c.id) : [];
+  const historyGroups = collapseHistory(history);
+  const historyHasNote = historyGroups.some((g) => activityNote(g.first) !== '');
   const revisions = tab === 'lich-su' ? await loadDmsRevisions(cookie, c.id) : [];
   const headingOf = new Map<string, string>(
     (book?.columns ?? []).map((col) => [col.key, col.heading]),
@@ -468,7 +476,12 @@ export default async function DmsCasePage({
       {tab === 'lich-su' ? (
         <>
           <section aria-labelledby="rev-title" className="grid gap-3">
-            <h2 id="rev-title">Thay đổi nội dung</h2>
+            <h2
+              id="rev-title"
+              className="m-0 font-[family-name:var(--font)] text-base font-semibold"
+            >
+              Thay đổi nội dung
+            </h2>
             {revisions.length <= 1 ? (
               <p className="muted">Hồ sơ chưa có bản sửa nào.</p>
             ) : (
@@ -512,7 +525,12 @@ export default async function DmsCasePage({
             )}
           </section>
           <section aria-labelledby="hist-title" className="mb-5 grid gap-3">
-            <h2 id="hist-title">Lịch sử hồ sơ</h2>
+            <h2
+              id="hist-title"
+              className="m-0 font-[family-name:var(--font)] text-base font-semibold"
+            >
+              Lịch sử hồ sơ
+            </h2>
             <p className="muted text-sm">Mới nhất trước. Người tạo hồ sơ: {creatorName ?? '—'}.</p>
             {history.length === 0 ? (
               <p className="muted">Chưa có hoạt động nào được ghi.</p>
@@ -525,16 +543,32 @@ export default async function DmsCasePage({
                       <th scope="col">Thời gian</th>
                       <th scope="col">Người làm</th>
                       <th scope="col">Việc đã làm</th>
-                      <th scope="col">Ghi chú</th>
+                      {historyHasNote ? <th scope="col">Ghi chú</th> : null}
                     </tr>
                   </thead>
                   <tbody>
-                    {history.map((h) => (
-                      <tr key={h.id}>
-                        <td>{fmt.format(new Date(h.at))}</td>
-                        <td>{h.actor_label ?? 'Hệ thống'}</td>
-                        <td>{actionLabel(h.action)}</td>
-                        <td>{activityNote(h) || '—'}</td>
+                    {historyGroups.map((g) => (
+                      <tr key={g.first.id}>
+                        <td className="whitespace-nowrap">
+                          {fmt.format(new Date(g.first.at))}
+                          {g.count > 1 ? (
+                            <span className="block text-xs text-muted">
+                              đến {fmt.format(new Date(g.last.at))}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td title={g.first.actor_label ?? undefined}>
+                          {shortActor(g.first.actor_label)}
+                        </td>
+                        <td>
+                          {actionLabel(g.first.action)}
+                          {g.count > 1 ? (
+                            <span className="ml-2 rounded-full bg-head px-2 py-0.5 text-[11px] font-semibold text-muted">
+                              × {g.count} lần
+                            </span>
+                          ) : null}
+                        </td>
+                        {historyHasNote ? <td>{activityNote(g.first) || '—'}</td> : null}
                       </tr>
                     ))}
                   </tbody>
