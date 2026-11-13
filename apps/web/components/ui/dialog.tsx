@@ -10,16 +10,18 @@ interface Props {
   readonly title: string;
   readonly description?: string;
   readonly children: ReactNode;
+  /** Hộp thoại rộng (vd. so sánh hai bản tệp cạnh nhau). */
+  readonly wide?: boolean;
 }
 
 /** Hộp thoại giữa màn hình cho thao tác ngắn (Figma N12 D9). Radix lo focus trap, Esc và aria. */
-export function Modal({ open, onOpenChange, title, description, children }: Props) {
+export function Modal({ open, onOpenChange, title, description, children, wide }: Props) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-[#122640]/50" />
         <Dialog.Content
-          className="fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] w-[min(560px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl focus:outline-none"
+          className={`fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] ${wide ? 'w-[min(1100px,calc(100vw-32px))]' : 'w-[min(560px,calc(100vw-32px))]'} -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl focus:outline-none`}
           aria-describedby={undefined}
         >
           <header className="flex items-start gap-3">

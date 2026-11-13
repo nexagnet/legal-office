@@ -45,23 +45,16 @@ export const OTHER_KIND = 'Tài liệu khác';
 
 const ACCEPT = 'application/pdf,image/jpeg,image/png';
 
-/**
- * Tải lên nhiều tệp một lượt vào tài liệu chung "Tài liệu khác" của hồ sơ (tạo ở lần tải đầu tiên, mỗi hồ sơ chỉ một).
- * Không hỏi loại, không hỏi tên: nhãn là tên tệp, tệp tính là bản scan. Trả số tệp đã tải và mã lỗi đầu tiên (nếu có).
- */
-export async function uploadUnclassified(
-  caseId: string,
+/** Tải lần lượt từng tệp lên một tài liệu đã có. Dừng ở tệp lỗi đầu tiên, trả số tệp đã tải và thông báo lỗi. */
+export async function uploadFilesTo(
+  documentId: string,
   files: readonly File[],
+  isScan: boolean,
 ): Promise<{ readonly done: number; readonly error: string | null }> {
-  const list = files.filter((f) => f.size > 0);
-  if (list.length === 0) return { done: 0, error: null };
-  const made = await fetch(`/api/dms/cases/${caseId}/other-document`, { method: 'POST' });
-  const madeJson = (await made.json().catch(() => ({}))) as { code?: string; label?: string };
-  if (!made.ok || !madeJson.label) return { done: 0, error: messageFor(madeJson.code) };
   let done = 0;
-  for (const file of list) {
-    const q = new URLSearchParams({ label: file.name.slice(0, 200), isScan: 'true' });
-    const res = await fetch(`/api/dms/documents/${madeJson.label}/files?${q}`, {
+  for (const file of files) {
+    const q = new URLSearchParams({ label: file.name.slice(0, 200), isScan: String(isScan) });
+    const res = await fetch(`/api/dms/documents/${documentId}/files?${q}`, {
       method: 'POST',
       headers: { 'content-type': file.type || 'application/octet-stream' },
       body: file,
@@ -73,6 +66,23 @@ export async function uploadUnclassified(
     done += 1;
   }
   return { done, error: null };
+}
+
+/**
+ * Tải lên nhiều tệp một lượt vào tài liệu chung "Tài liệu khác" của hồ sơ (tạo ở lần tải đầu tiên, mỗi hồ sơ chỉ một).
+ * Không hỏi loại, không hỏi tên: nhãn là tên tệp; mặc định tính là bản scan. Trả số tệp đã tải và mã lỗi đầu tiên (nếu có).
+ */
+export async function uploadUnclassified(
+  caseId: string,
+  files: readonly File[],
+  isScan = true,
+): Promise<{ readonly done: number; readonly error: string | null }> {
+  const list = files.filter((f) => f.size > 0);
+  if (list.length === 0) return { done: 0, error: null };
+  const made = await fetch(`/api/dms/cases/${caseId}/other-document`, { method: 'POST' });
+  const madeJson = (await made.json().catch(() => ({}))) as { code?: string; label?: string };
+  if (!made.ok || !madeJson.label) return { done: 0, error: messageFor(madeJson.code) };
+  return uploadFilesTo(madeJson.label, list, isScan);
 }
 
 /** Ô tải lên không giới hạn số tệp, không phân loại (cả hồ sơ nháp lẫn đã ghi sổ). */
