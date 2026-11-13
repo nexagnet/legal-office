@@ -113,6 +113,8 @@ Cùng màn danh sách (Figma DMS v2: 352:964 Vi bằng, 352:1415 Tống đạt, 
 | Xác minh điều kiện THA | S-04 | N-05, N-06 | |
 | Tổ chức THA | S-05 | N-07, N-08 | N-08 là bàn giao hồ sơ khi VP chấm dứt |
 
+**Bộ lọc danh sách (13/11/2026, migration 0125):** lọc theo NGHIỆP VỤ chứ không chủ yếu theo ngày. Hàng chip "Việc cần làm" có số đếm (Chưa tống đạt / Đã tống đạt, Chưa có kết quả, Đang thi hành chưa N-08, Chưa trả / Đã trả kết quả, Thiếu scan, Việc của tôi); ô chọn theo nghiệp vụ trong "Bộ lọc khác" (Tống đạt: hình thức và cơ quan giao; Vi bằng: tỉnh/thành; Xác minh: kết quả xác minh; Tổ chức: kết quả thi hành án), kèm Thừa hành viên, Người tạo, Đơn vị, Loại tài liệu; thời gian ghi sổ thu vào "Bộ lọc khác". Nút **Xuất Excel (đang lọc)** (`GET /dms/case-search/export`, tối đa 10.000 hồ sơ) xuất đúng tập đang lọc theo cột sổ; không thay "Xuất sổ" pháp định. Cột chỉ mục `facet_a/facet_b` của `dms_case_index` lấy giá trị thô từ thuộc tính hồ sơ; form có gợi ý giá trị (hình thức tống đạt, kết quả) để cách ghi thống nhất. Chưa làm "Quá hạn": các hạn pháp định nằm ở module văn phòng cũ, chưa gắn với hồ sơ DMS.
+
 Chi tiết hồ sơ (Figma 352:2613): tiêu đề mã hồ sơ, thanh cảnh báo yêu cầu sửa chờ duyệt, 6 tab (Thông tin chung, Tài liệu, Tệp đính kèm, Phiên bản cũ, Yêu cầu sửa đổi, Sổ liên quan), xem trước PDF, tải scan chính/In/Tạo yêu cầu sửa đổi.
 
 ## 6. Sổ Văn thư

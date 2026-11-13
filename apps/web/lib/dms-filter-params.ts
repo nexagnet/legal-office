@@ -38,7 +38,7 @@ export interface DmsView {
   readonly open?: boolean;
   /** Đã trả kết quả: true / false / không lọc. */
   readonly returned?: boolean;
-  /** Bộ lọc nghiệp vụ (0124): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
+  /** Bộ lọc nghiệp vụ (0125): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   readonly fa?: string;
   readonly fb?: string;
   /** Khoảng ngày giờ tự chọn (`YYYY-MM-DDTHH:mm`, giờ Việt Nam). */

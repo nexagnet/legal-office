@@ -3,7 +3,7 @@
 --            Tổ chức = kết quả thi hành án.
 --   facet_b: Tống đạt = cơ quan giao văn bản (Tòa án / Cơ quan THADS / Cơ quan kiểm sát); nghiệp vụ khác không dùng.
 -- Tham số lọc mới trong p_extra: {"fa": "...", "fb": "..."} (so khớp đúng giá trị). Facet có đếm thêm hai nhóm `fa`, `fb`.
--- Dựng lại chỉ mục (phiên bản 4) ở lần tìm kiếm đầu của mỗi tenant.
+-- Dựng lại chỉ mục (phiên bản 5) ở lần tìm kiếm đầu của mỗi tenant.
 
 ALTER TABLE dms_case_index ADD COLUMN facet_a text, ADD COLUMN facet_b text;
 CREATE INDEX dms_ci_facet_a_idx ON dms_case_index (tenant_id, office_id, domain, status, facet_a, sort_at DESC, case_id DESC) WHERE facet_a IS NOT NULL;
@@ -28,7 +28,7 @@ BEGIN
          coalesce((SELECT array_agg(DISTINCT d.kind ORDER BY d.kind) FROM dms_documents d
                     WHERE d.tenant_id = c.tenant_id AND d.case_id = c.id AND d.status <> 'CANCELLED'), '{}'::text[]),
          (SELECT count(*)::integer FROM dms_amendment_requests a WHERE a.tenant_id = c.tenant_id AND a.case_id = c.id AND a.status = 'PENDING'),
-         dms_fold(left(concat_ws(' ', ce.title,
+         dms_fold(left(concat_ws(' ', c.case_number, ce.title,
                   (SELECT string_agg(e.value, ' ') FROM jsonb_each_text(ce.attributes) e),
                   (SELECT string_agg(d.title || ' ' || coalesce((SELECT string_agg(e.value, ' ') FROM jsonb_each_text(dms_doc_effective_attrs(d.tenant_id, d.id)) e), ''), ' ')
                      FROM (SELECT * FROM dms_documents x WHERE x.tenant_id = c.tenant_id AND x.case_id = c.id AND x.status <> 'CANCELLED'
@@ -42,7 +42,7 @@ BEGIN
                                             AND x.status <> 'CANCELLED' AND x.kind ILIKE '%N-08%')
            ELSE false
          END,
-         -- Bộ lọc nghiệp vụ (0124): giá trị thô của hồ sơ, dùng cho ô chọn có đếm. Rỗng = NULL.
+         -- Bộ lọc nghiệp vụ (0125): giá trị thô của hồ sơ, dùng cho ô chọn có đếm. Rỗng = NULL.
          nullif(btrim(CASE c.domain
            WHEN 'tongdat' THEN ce.attributes->>'hinh_thuc_tong_dat'
            WHEN 'vibang' THEN (regexp_split_to_array(coalesce(ce.attributes->>'dia_chi_noi_lap', ''), '\s*,\s*'))[
@@ -171,15 +171,15 @@ END $$;
 CREATE OR REPLACE FUNCTION dms_index_ensure(p_tenant uuid) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE v integer;
 BEGIN
-  IF EXISTS (SELECT 1 FROM dms_index_state WHERE tenant_id = p_tenant AND version >= 4) THEN RETURN; END IF;
+  IF EXISTS (SELECT 1 FROM dms_index_state WHERE tenant_id = p_tenant AND version >= 5) THEN RETURN; END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended('dms_index_ensure:' || p_tenant::text, 0));
   SELECT version INTO v FROM dms_index_state WHERE tenant_id = p_tenant;
-  IF v >= 4 THEN RETURN; END IF;
+  IF v >= 5 THEN RETURN; END IF;
   PERFORM dms_case_index_refresh(p_tenant, c.id) FROM dms_case_files c WHERE c.tenant_id = p_tenant;
   IF v IS NULL THEN
     PERFORM dms_osi_sync_row(r.tenant_id, r.version_id) FROM dms_ocr_results r WHERE r.tenant_id = p_tenant AND r.status = 'DONE';
-    INSERT INTO dms_index_state (tenant_id, version) VALUES (p_tenant, 4) ON CONFLICT (tenant_id) DO UPDATE SET version = 4;
+    INSERT INTO dms_index_state (tenant_id, version) VALUES (p_tenant, 5) ON CONFLICT (tenant_id) DO UPDATE SET version = 5;
   ELSE
-    UPDATE dms_index_state SET version = 4 WHERE tenant_id = p_tenant;
+    UPDATE dms_index_state SET version = 5 WHERE tenant_id = p_tenant;
   END IF;
 END $$;

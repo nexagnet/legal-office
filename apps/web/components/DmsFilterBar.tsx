@@ -20,7 +20,7 @@ export const OPEN_LABEL: Readonly<Record<string, string>> = {
   tochuc: 'Chưa có biên bản N-08',
 };
 
-/** Tên hai bộ lọc nghiệp vụ theo từng nghiệp vụ (facet_a / facet_b, migration 0124). Nghiệp vụ không có thì không hiện ô. */
+/** Tên hai bộ lọc nghiệp vụ theo từng nghiệp vụ (facet_a / facet_b, migration 0125). Nghiệp vụ không có thì không hiện ô. */
 export const BUSINESS_FILTER: Readonly<
   Record<string, { readonly fa?: string; readonly fb?: string }>
 > = {
