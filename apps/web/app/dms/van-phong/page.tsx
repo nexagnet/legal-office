@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ALL_CASES_PAGE_SIZE, DmsAllCases } from '../../../components/DmsAllCases';
+import { CasesViewTabs } from '../../../components/CasesViewTabs';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { loadMyDmsPermissions } from '../../../lib/dms';
 import { searchAllDmsCases } from '../../../lib/dms-browse';
@@ -55,6 +56,7 @@ export default async function OfficeCasesPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Mọi hồ sơ của văn phòng</h1>
+      <CasesViewTabs active="office" canViewAll />
       {result === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"

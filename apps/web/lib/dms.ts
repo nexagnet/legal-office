@@ -189,6 +189,8 @@ export interface DmsDocumentRow {
   readonly attributes: Record<string, unknown>;
 }
 
+import type { OcrStatus } from './ocr-progress';
+
 export interface DmsFileRow {
   readonly id: string;
   readonly label: string;
@@ -197,6 +199,10 @@ export interface DmsFileRow {
   readonly mime: string;
   readonly size_bytes: number | string;
   readonly created_at: string;
+  /** Trạng thái OCR của phiên bản này (null: chưa vào hàng đợi). */
+  readonly ocr_status?: OcrStatus | null;
+  readonly ocr_pages_done?: number | null;
+  readonly ocr_pages_total?: number | null;
 }
 
 /** Quyền xác nhận lưu chính thức ở miền này (own hoặc all). Chỉ để ẩn/hiện nút; máy chủ vẫn kiểm. */

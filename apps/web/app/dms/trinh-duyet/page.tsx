@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
+import { SubmissionViewTabs } from '../../../components/SubmissionViewTabs';
 import { NewSubmissionButton } from '../../../components/SubmissionActions';
 import { DataTable } from '../../../components/ui/data-table';
 import { TabNav } from '../../../components/ui/tab-nav';
@@ -104,6 +105,7 @@ export default async function SubmissionsPage({
       <p className="muted">
         {isAdmin ? 'Bạn duyệt hoặc từ chối từng bản trình.' : 'Bạn chỉ thấy bản trình do mình gửi.'}
       </p>
+      <SubmissionViewTabs active="submissions" />
       <TabNav
         label="Trạng thái bản trình"
         soft
