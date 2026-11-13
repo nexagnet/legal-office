@@ -84,14 +84,14 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     expect(bookCells(BOOKS['S-05'], tc)[1]).toBe('005/2026/TC-TPL ngày 02/11/2026');
   });
 
-  it('Tống đạt S-01: một hồ sơ một dòng, cột 3 là số văn bản của cơ quan giao (không gắn số văn phòng)', () => {
+  it('Tống đạt S-01: một hồ sơ một dòng, cột 3 tự gắn số hồ sơ (= STT) trước ngày người nhập', () => {
     const row = {
       stt: 20,
       case_title: 't',
       case_number: '020/2026/TĐ-TPL',
       case_attributes: {
         loai_van_ban: 'Bản án',
-        so_ngay_van_ban: '45/2026/DS-ST ngày 10/10/2026',
+        so_ngay_van_ban: '10/10/2026',
         co_quan_toa_an: 'x',
         ngay_tong_dat: '15/10/2026',
       },
@@ -102,7 +102,7 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     expect(bookCells(BOOKS['S-01'], row).slice(0, 7)).toEqual([
       '20',
       'Bản án',
-      '45/2026/DS-ST ngày 10/10/2026',
+      '020/2026/TĐ-TPL ngày 10/10/2026',
       '✓',
       '',
       '',

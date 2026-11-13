@@ -59,8 +59,13 @@ export const BOOKS: Readonly<Record<BookCode, BookSpec>> = {
     columns: [
       stt,
       { no: 2, heading: 'LOẠI VĂN BẢN', key: 'loai_van_ban' },
-      // Số, ngày của văn bản do Tòa án/THADS/Viện kiểm sát gửi tới: người nhập gõ đủ, KHÔNG gắn số hồ sơ của văn phòng.
-      { no: 3, heading: 'SỐ, NGÀY, THÁNG, NĂM VĂN BẢN CẦN TỐNG ĐẠT', key: 'so_ngay_van_ban' },
+      // Số tống đạt của văn phòng = STT, tự cấp khi ghi sổ (…/2026/TĐ-TPL) và hiện mờ trước ô ngày, như 3 nghiệp vụ kia.
+      {
+        no: 3,
+        heading: 'SỐ, NGÀY, THÁNG, NĂM VĂN BẢN CẦN TỐNG ĐẠT',
+        key: 'so_ngay_van_ban',
+        autoNumber: true,
+      },
       {
         no: 4,
         heading: 'Tòa án',
