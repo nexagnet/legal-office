@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
 import { SyntheticHeaderResolver } from '../http/actor';
 import { LocalFileStore } from '../storage/file-store';
+import { withRequiredColumns } from './dms-required-fixture';
 
 // DMS qua HTTP thật + PostgreSQL thật + kho tệp trên đĩa. Toàn bộ dữ liệu giả lập.
 const ADMIN_URL = process.env.DATABASE_URL;
@@ -42,7 +43,8 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
   const OFF = id();
   const U = { a: id(), b: id(), approver1: id(), approver2: id(), proposer: id(), none: id() };
 
-  const api = async (method: string, path: string, user: string, body?: unknown) => {
+  const api = async (method: string, path: string, user: string, rawBody?: unknown) => {
+    const body = withRequiredColumns(method, path, rawBody);
     const res = await fetch(`${base}${path}`, {
       method,
       headers: {
@@ -150,6 +152,43 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
     expect(r.json.code).toBe('PERMISSION_DENIED');
   });
 
+  it('ghi sổ bị chặn khi thiếu cột bắt buộc hoặc ngày không có thật; xem trước báo đúng cột', async () => {
+    const c = await api('POST', '/dms/cases', U.a, {
+      officeId: OFF,
+      domain: 'vibang',
+      title: 'Thiếu cột',
+      attributes: { nguoi_yeu_cau: '', so_ngay_vi_bang: '31/02/2026' },
+    });
+    expect(c.status).toBe(201);
+    const id = c.json.label as string;
+    const check = await api('GET', `/dms/cases/${id}/record-check`, U.a);
+    expect(check.status).toBe(200);
+    expect(check.json.problems).toEqual(
+      expect.arrayContaining([
+        { key: 'nguoi_yeu_cau', problem: 'missing' },
+        { key: 'so_ngay_vi_bang', problem: 'bad_date' },
+      ]),
+    );
+    const blocked = await api('POST', `/dms/cases/${id}/record`, U.a);
+    expect(blocked.status).toBe(422);
+    expect(blocked.json.code).toBe('REQUIRED_COLUMNS_MISSING');
+    expect(
+      (
+        await api('PUT', `/dms/cases/${id}/draft`, U.a, {
+          title: 'Đủ cột',
+          attributes: {
+            nguoi_yeu_cau: 'A',
+            noi_dung_yeu_cau: 'N',
+            so_ngay_vi_bang: '01/11/2026',
+            dia_chi_noi_lap: 'Hà Nội',
+          },
+        })
+      ).status,
+    ).toBe(200);
+    expect((await api('GET', `/dms/cases/${id}/record-check`, U.a)).json.problems).toEqual([]);
+    expect((await api('POST', `/dms/cases/${id}/record`, U.a)).status).toBe(200);
+  });
+
   it('vòng đời: tạo nháp → thêm tài liệu → tải tệp scan → ghi sổ → đếm → tải về → bất biến', async () => {
     const c = await api('POST', '/dms/cases', U.a, {
       officeId: OFF,
@@ -163,7 +202,12 @@ describe.skipIf(!ADMIN_URL)('DMS HTTP (PostgreSQL + kho tệp)', () => {
       (
         await api('PUT', `/dms/cases/${caseId}/draft`, U.a, {
           title: 'Vi bằng thử 2',
-          attributes: {},
+          attributes: {
+            nguoi_yeu_cau: 'A',
+            noi_dung_yeu_cau: 'N',
+            so_ngay_vi_bang: '01/11/2026',
+            dia_chi_noi_lap: 'Hà Nội',
+          },
         })
       ).status,
     ).toBe(200);
