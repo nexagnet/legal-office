@@ -3,9 +3,10 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { DmsFileRow } from '../lib/dms';
 import { cn } from '../lib/cn';
-import { OTHER_KIND } from './DmsCaseActions';
+import { OTHER_KIND } from '../lib/dms-other-kind';
 import { FileActions, UploadButton, type CompareFile, type UploadTarget } from './DmsFileActions';
-import { OcrProgress, ocrApplies } from './OcrProgress';
+import { ocrApplies } from '../lib/ocr-progress';
+import { OcrProgress } from './OcrProgress';
 
 const dateFmt = new Intl.DateTimeFormat('vi-VN', {
   day: '2-digit',
