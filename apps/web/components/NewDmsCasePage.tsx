@@ -32,7 +32,7 @@ export function NewDmsCasePage({
   readonly domainCode: string;
   readonly domainLabel: string;
   readonly bookCode: string;
-  /** Cột nhập tay của sổ (chỉ sổ mà mỗi hồ sơ là một dòng); sổ S-01 nhập ở từng giấy tờ nên để trống. */
+  /** Cột nhập tay của sổ (cả 4 sổ: mỗi hồ sơ một dòng sổ). */
   readonly columns: readonly DmsBookColumn[];
   /** Không còn hiển thị (phần hệ thống tự sinh được ẩn); giữ để trang gọi không phải đổi. */
   readonly creatorName?: string;

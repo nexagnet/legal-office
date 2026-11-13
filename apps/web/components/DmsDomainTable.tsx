@@ -3,8 +3,7 @@ import type { ReactNode } from 'react';
 import type { DmsBookRow, DmsBookSpec } from '../lib/dms';
 import { scanState } from '../lib/dms';
 import type { DmsSearchCase } from '../lib/dms-browse';
-import { bookGetter, EXPANDABLE_DOMAINS, sttRange, type ListColumn } from '../lib/dms-list-layout';
-import { DmsRowToggle } from './DmsRowToggle';
+import { bookGetter, sttRange, type ListColumn } from '../lib/dms-list-layout';
 import { ReturnedToggle } from './ReturnedToggle';
 import { DataTable } from './ui/data-table';
 
@@ -168,7 +167,6 @@ export function DmsDomainTable({
           const get = getters[0] ?? (() => '');
           const scan = scanState(r);
           const mine = draft ? r.created_by === draft.userId : false;
-          const expandable = EXPANDABLE_DOMAINS.has(r.domain) && bookRows.length > 1;
           const cells: ReactNode[] = layout.map((c) => {
             if (c.special === 'stt' && draft)
               return (
@@ -222,9 +220,6 @@ export function DmsDomainTable({
                           </Link>
                         )}
                       </span>
-                    ) : null}
-                    {expandable ? (
-                      <DmsRowToggle count={bookRows.length} caseTitle={r.title} />
                     ) : null}
                   </span>
                 </th>
@@ -347,54 +342,15 @@ export function DmsDomainTable({
                 </td>
               );
             return (
-              <td key={c.id} data-zero={c.tick && v.primary === '0' ? 'true' : undefined}>
+              <td key={c.id}>
                 <Clamp>{v.primary}</Clamp>
                 <Clamp muted>{v.secondary ?? ''}</Clamp>
               </td>
             );
           });
           return (
-            <tbody
-              key={r.id}
-              data-open={expandable ? 'false' : undefined}
-              data-draft={draft ? draft.kind : undefined}
-            >
+            <tbody key={r.id} data-draft={draft ? draft.kind : undefined}>
               <tr>{cells}</tr>
-              {expandable ? (
-                <>
-                  <tr className="dms-sub-head">
-                    <td colSpan={layout.length}>
-                      Các dòng Sổ S-01 của hồ sơ {r.title} (mỗi giấy tờ một dòng sổ)
-                    </td>
-                  </tr>
-                  {bookRows.map((br, i) => {
-                    const g = getters[i]!;
-                    return (
-                      <tr key={`${br.stt}-${br.document_id ?? i}`} className="dms-sub">
-                        {layout.map((c) => {
-                          if (c.id === 'stt')
-                            return (
-                              <th key={c.id} scope="row">
-                                {sttLabel} {br.stt}
-                              </th>
-                            );
-                          if (c.special) return <td key={c.id} />;
-                          const text = c.tick
-                            ? g(c.tick)
-                              ? '✓'
-                              : ''
-                            : (c.cell?.(g, [g]).primary ?? '');
-                          return (
-                            <td key={c.id} className={c.tick ? 'dms-tick' : undefined}>
-                              <Clamp>{text}</Clamp>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </>
-              ) : null}
             </tbody>
           );
         })}

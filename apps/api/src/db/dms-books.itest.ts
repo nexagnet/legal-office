@@ -191,58 +191,49 @@ describe.skipIf(!ADMIN_URL)('DMS sổ nghiệp vụ và STT (PostgreSQL)', () =>
     expect((await rows(U.a, 'S-02')).map((r) => r.stt)).toEqual([1, 2, 3]);
   });
 
-  it('tống đạt (S-01): một dòng cho mỗi giấy tờ; giấy tờ thêm sau khi ghi sổ vào sổ ngay', async () => {
-    const c = await mkCase(U.a, 'tongdat');
-    await mkDoc(U.a, c, { so_ngay_van_ban: '12/QĐ, 01/10/2026', co_quan_thads: 'x' });
-    await mkDoc(U.a, c, { so_ngay_van_ban: '45/GTT, 02/10/2026' });
+  it('tống đạt (S-01): một hồ sơ một dòng (STT theo hồ sơ); thêm tài liệu không sinh dòng sổ', async () => {
+    const c = await mkCase(U.a, 'tongdat', OFF, {
+      so_ngay_van_ban: '12/QĐ, 01/10/2026',
+      co_quan_thads: 'x',
+    });
+    // Hồ sơ nháp có tài liệu đính kèm: không ảnh hưởng số dòng sổ.
+    await mkDoc(U.a, c);
+    await mkDoc(U.a, c);
+    expect((await rows(U.a, 'S-01')).length).toBe(0);
     expect((await record(U.a, c)).ok).toBe(true);
+    const c2 = await mkCase(U.a, 'tongdat', OFF, { so_ngay_van_ban: '45/GTT, 02/10/2026' });
+    expect((await record(U.a, c2)).ok).toBe(true);
     const r = await rows(U.a, 'S-01');
     expect(r.map((x) => x.stt)).toEqual([1, 2]);
-    expect(r[0].doc_attributes).toMatchObject({ so_ngay_van_ban: '12/QĐ, 01/10/2026' });
-    expect(r[0].doc_kind).toBe('Quyết định THA');
-    await mkDoc(U.a, c, { so_ngay_van_ban: '08/2026/DS-ST' });
-    expect((await rows(U.a, 'S-01')).map((x) => x.stt)).toEqual([1, 2, 3]);
-    // Hồ sơ vi bằng thêm tài liệu thì KHÔNG sinh dòng S-01.
+    expect(r.map((x) => x.case_id)).toEqual([c, c2]);
+    expect(r[0].document_id).toBeNull();
+    expect(r[0].case_attributes).toMatchObject({ so_ngay_van_ban: '12/QĐ, 01/10/2026' });
+    // Thêm tài liệu sau khi đã ghi sổ (Tống đạt hay Vi bằng) KHÔNG sinh thêm dòng S-01.
+    await mkDoc(U.a, c);
     const v = await mkCase(U.a, 'vibang');
     await mkDoc(U.a, v);
-    expect((await rows(U.a, 'S-01')).length).toBe(3);
+    expect((await rows(U.a, 'S-01')).map((x) => x.stt)).toEqual([1, 2]);
   });
 
-  it('thuộc tính tài liệu sửa được khi nháp, bất biến sau khi ghi sổ', async () => {
-    const c = await mkCase(U.a, 'tongdat');
-    const d = await mkDoc(U.a, c, { ghi_chu: 'cũ' });
+  it('thuộc tính hồ sơ Tống đạt sửa được khi nháp, bất biến sau khi ghi sổ', async () => {
+    const c = await mkCase(U.a, 'tongdat', OFF, { ghi_chu: 'cũ' });
     expect(
       (
-        await op(T, 'dms_document_update_draft', [
+        await op(T, 'dms_case_update_draft', [
           T,
           U.a,
-          d,
-          'Loại',
-          'Tên',
-          false,
+          c,
+          'Hồ sơ tongdat',
           JSON.stringify({ ghi_chu: 'mới' }),
         ])
       ).ok,
     ).toBe(true);
     await record(U.a, c);
-    expect(
-      (await rows(U.a, 'S-01')).find((x) => x.document_id === d)?.doc_attributes,
-    ).toMatchObject({ ghi_chu: 'mới' });
-    expect(
-      (
-        await op(T, 'dms_document_update_draft', [
-          T,
-          U.a,
-          d,
-          'Loại',
-          'Tên',
-          false,
-          JSON.stringify({ ghi_chu: 'hack' }),
-        ])
-      ).code,
-    ).toBe('DOCUMENT_NOT_DRAFT');
+    expect((await rows(U.a, 'S-01')).find((x) => x.case_id === c)?.case_attributes).toMatchObject({
+      ghi_chu: 'mới',
+    });
     await expect(
-      owner.query(`UPDATE dms_documents SET attributes = '{}' WHERE id = $1`, [d]),
+      owner.query(`UPDATE dms_case_files SET attributes = '{}' WHERE id = $1`, [c]),
     ).rejects.toThrow(/immutable/);
   });
 

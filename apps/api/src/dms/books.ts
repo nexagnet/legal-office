@@ -42,7 +42,7 @@ export interface BookSpec {
   readonly domain: 'tongdat' | 'vibang' | 'xacminh' | 'tochuc' | 'vtden' | 'vtdi' | 'vtnb';
   readonly form: string;
   readonly title: string;
-  /** Nguồn thuộc tính của một dòng sổ: S-01 là tài liệu (giấy tờ), còn lại là hồ sơ. */
+  /** Nguồn thuộc tính của một dòng sổ: cả 4 sổ là hồ sơ (S-01 trước 13/11/2026 là giấy tờ; dòng cũ còn đọc được qua `doc_attributes`). */
   readonly source: BookSource;
   readonly columns: readonly BookColumn[];
 }
@@ -55,16 +55,12 @@ export const BOOKS: Readonly<Record<BookCode, BookSpec>> = {
     domain: 'tongdat',
     form: 'TP-THV-S-01',
     title: 'SỔ THEO DÕI VIỆC TỐNG ĐẠT',
-    source: 'document',
+    source: 'case',
     columns: [
       stt,
       { no: 2, heading: 'LOẠI VĂN BẢN', key: 'loai_van_ban' },
-      {
-        no: 3,
-        heading: 'SỐ, NGÀY, THÁNG, NĂM VĂN BẢN CẦN TỐNG ĐẠT',
-        key: 'so_ngay_van_ban',
-        autoNumber: true,
-      },
+      // Số, ngày của văn bản do Tòa án/THADS/Viện kiểm sát gửi tới: người nhập gõ đủ, KHÔNG gắn số hồ sơ của văn phòng.
+      { no: 3, heading: 'SỐ, NGÀY, THÁNG, NĂM VĂN BẢN CẦN TỐNG ĐẠT', key: 'so_ngay_van_ban' },
       {
         no: 4,
         heading: 'Tòa án',
@@ -283,11 +279,17 @@ const text = (v: unknown): string => (v === null || v === undefined ? '' : Strin
 /** Một dòng sổ dạng chữ theo đúng thứ tự cột. Ô trống để trống (không suy đoán, không điền hộ). */
 export function bookCells(spec: BookSpec, row: BookRowRaw): string[] {
   const attrs = spec.source === 'document' ? (row.doc_attributes ?? {}) : row.case_attributes;
+  // Dòng S-01 cũ (một dòng cho mỗi giấy tờ) có `doc_attributes`: thiếu ở hồ sơ thì lấy ở giấy tờ để vẫn đọc được.
+  const legacy = row.doc_attributes ?? {};
   return spec.columns.map((c) => {
     if (c.key === 'stt') return String(row.stt);
     if (c.key === 'title') return text(row.case_title);
-    // Loại văn bản của S-01 mặc định lấy từ loại tài liệu nếu người nhập chưa ghi riêng.
-    const raw = text(attrs[c.key]) || (c.key === 'loai_van_ban' ? text(row.doc_kind) : '');
+    const raw =
+      text(attrs[c.key]) ||
+      (spec.source === 'case'
+        ? text(legacy[c.key]) ||
+          (c.key === 'loai_van_ban' && row.doc_attributes ? text(row.doc_kind) : '')
+        : '');
     const v = c.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
     return c.tick ? (v === '' ? '' : '✓') : v;
   });

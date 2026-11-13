@@ -214,28 +214,24 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
     expect(await numberOf(t)).toBe(`${pad(await firstStt(t, 'S-05'))}/${YEAR}/TC-TPL`);
   });
 
-  it('Tống đạt: số theo hồ sơ (bộ đếm riêng), không theo STT các dòng S-01', async () => {
+  it('Tống đạt: số hồ sơ trùng STT S-01 như 3 nghiệp vụ kia, mỗi hồ sơ một dòng sổ', async () => {
     const c1 = await mkCase(U.a, 'tongdat');
-    await mkDoc(U.a, c1);
     await mkDoc(U.a, c1);
     await mkDoc(U.a, c1);
     expect((await record(U.a, c1)).ok).toBe(true);
     const c2 = await mkCase(U.a, 'tongdat');
     await mkDoc(U.a, c2);
     expect((await record(U.a, c2)).ok).toBe(true);
-    const s1 = await sttOf(c1, 'S-01');
-    const s2 = await sttOf(c2, 'S-01');
-    expect(s1.length).toBe(3);
-    expect(s2.length).toBe(1);
-    // Hồ sơ thứ hai có STT S-01 cao hơn nhưng số hồ sơ chỉ tăng thêm 1.
+    // Tài liệu đính kèm không sinh dòng sổ: mỗi hồ sơ đúng một STT, số = STT.
+    expect(await sttOf(c1, 'S-01')).toEqual([1]);
+    expect(await sttOf(c2, 'S-01')).toEqual([2]);
     expect(await numberOf(c1)).toBe(`001/${YEAR}/TĐ-TPL`);
     expect(await numberOf(c2)).toBe(`002/${YEAR}/TĐ-TPL`);
-    expect(s2[0]).toBe(4);
   });
 
-  it('mỗi văn phòng đếm riêng số hồ sơ; bộ đếm của năm khác không ảnh hưởng năm nay', async () => {
+  it('mỗi văn phòng đếm riêng số hồ sơ; bộ đếm sổ của năm khác không ảnh hưởng năm nay', async () => {
     await owner.query(
-      `INSERT INTO dms_case_number_counters (tenant_id, office_id, domain, year, last_value) VALUES ($1,$2,'tongdat',$3,50)`,
+      `INSERT INTO dms_book_counters (tenant_id, office_id, book, year, last_value) VALUES ($1,$2,'S-01',$3,50)`,
       [T, OFF_B, YEAR - 1],
     );
     const c = await mkCase(U.a, 'tongdat', OFF_B);

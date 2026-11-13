@@ -165,14 +165,10 @@ describe.skipIf(!ADMIN_URL)('DMS bộ lọc THV, việc còn dở, đã trả (P
     await addCase('vb_a2', 'vibang', { thv: U.thvA, branch: B2 });
     await addCase('vb_b1', 'vibang', { thv: U.thvB });
     await addCase('vb_none', 'vibang');
-    // Tống đạt: một hồ sơ còn giấy chưa tống đạt, một hồ sơ đã tống đạt hết.
-    await addCase('td_open', 'tongdat', {
-      docs: [{ kind: 'Giấy A', attrs: { ngay_tong_dat: '01/03/2026' } }, { kind: 'Giấy B' }],
-    });
-    await addCase('td_done', 'tongdat', {
-      docs: [{ kind: 'Giấy A', attrs: { ngay_tong_dat: '02/03/2026' } }],
-    });
-    await addCase('td_open_b2', 'tongdat', { branch: B2, docs: [{ kind: 'Giấy A' }] });
+    // Tống đạt (một hồ sơ một văn bản): chưa có / đã có ngày tống đạt ở thuộc tính hồ sơ.
+    await addCase('td_open', 'tongdat', {});
+    await addCase('td_done', 'tongdat', { attrs: { ngay_tong_dat: '02/03/2026' } });
+    await addCase('td_open_b2', 'tongdat', { branch: B2 });
     // Xác minh: chưa có / đã có kết quả.
     await addCase('xm_open', 'xacminh', {});
     await addCase('xm_done', 'xacminh', { attrs: { ket_qua_xac_minh: 'Có tài sản' } });
@@ -231,15 +227,15 @@ describe.skipIf(!ADMIN_URL)('DMS bộ lọc THV, việc còn dở, đã trả (P
     expect(ids(await search(U.admin, 'vibang', { open: true }))).toEqual([]);
   });
 
-  it('Việc còn dở khớp thẻ số dms_domain_pending_counts (xác minh, tổ chức đếm theo hồ sơ)', async () => {
+  it('Việc còn dở khớp thẻ số dms_domain_pending_counts (đều đếm theo hồ sơ)', async () => {
     const counts = Object.fromEntries(
       (await call('SELECT * FROM dms_domain_pending_counts($1,$2,$3,2026)', [T, U.admin, OFF])).map(
         (r: { domain: string; pending: number }) => [r.domain, Number(r.pending)],
       ),
     );
-    for (const d of ['xacminh', 'tochuc'])
+    for (const d of ['tongdat', 'xacminh', 'tochuc'])
       expect((await search(U.admin, d, { open: true })).length, d).toBe(counts[d]);
-    // Tống đạt: thẻ số đếm GIẤY TỜ chưa tống đạt (td_open có 1, td_open_b2 có 1), bộ lọc đếm HỒ SƠ còn giấy chưa tống đạt.
+    // Tống đạt: thẻ số và bộ lọc cùng đếm hồ sơ chưa có ngày tống đạt.
     expect(counts.tongdat).toBe(2);
     expect((await search(U.admin, 'tongdat', { open: true })).length).toBe(2);
   });

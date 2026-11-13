@@ -269,7 +269,7 @@ export interface DmsBookSpec {
   readonly domain: string;
   readonly form: string;
   readonly title: string;
-  /** S-01: mỗi giấy tờ một dòng (thuộc tính nằm ở tài liệu); các sổ còn lại: mỗi hồ sơ một dòng. */
+  /** Cả 4 sổ: mỗi hồ sơ một dòng (S-01 trước 13/11/2026 là mỗi giấy tờ một dòng, `document`). */
   readonly source: 'case' | 'document';
   readonly columns: readonly DmsBookColumn[];
 }
@@ -324,7 +324,12 @@ export function bookCell(spec: DmsBookSpec, col: DmsBookColumn, row: DmsBookRow)
   if (col.key === 'stt') return String(row.stt);
   if (col.key === 'title') return strOf(row.case_title);
   const attrs = spec.source === 'document' ? (row.doc_attributes ?? {}) : row.case_attributes;
-  const raw = strOf(attrs[col.key]) || (col.key === 'loai_van_ban' ? strOf(row.doc_kind) : '');
+  // Dòng S-01 cũ (một dòng cho mỗi giấy tờ): thiếu ở hồ sơ thì lấy ở giấy tờ để vẫn đọc được.
+  const legacy = spec.source === 'case' ? (row.doc_attributes ?? {}) : {};
+  const raw =
+    strOf(attrs[col.key]) ||
+    strOf(legacy[col.key]) ||
+    (col.key === 'loai_van_ban' && row.doc_attributes ? strOf(row.doc_kind) : '');
   const v = col.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
   return col.tick ? (v === '' ? '' : '✓') : v;
 }

@@ -84,7 +84,7 @@ function kpiItems(
   });
   switch (code) {
     case 'tongdat':
-      return [official, docs('Giấy tờ cần tống đạt'), open('Chưa tống đạt'), missing];
+      return [official, docs('Tài liệu hiện hành'), open('Chưa tống đạt'), missing];
     case 'xacminh':
       return [official, docs('Tài liệu hiện hành'), open('Chưa có kết quả'), missing];
     case 'tochuc':
