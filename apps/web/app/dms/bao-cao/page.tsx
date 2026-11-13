@@ -1,4 +1,5 @@
 import { DataTable } from '../../../components/ui/data-table';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { CopyValueButton } from '../../../components/CopyValueButton';
@@ -10,6 +11,8 @@ export const dynamic = 'force-dynamic';
 
 type Avail = 'ok' | 'partial' | 'none';
 interface Indicator {
+  /** Nhóm hiển thị (dòng tiêu đề nhóm trong bảng). */
+  readonly group: string;
   readonly label: string;
   /** null = chưa tính được, hiện "—". */
   readonly value: number | null;
@@ -22,11 +25,6 @@ const AVAIL_LABEL: Record<Avail, string> = {
   partial: 'Một phần',
   none: 'Chưa đủ dữ liệu',
 };
-const AVAIL_TONE: Record<Avail, string> = {
-  ok: 'bg-[#d9f1e2] text-[#1b6b3a]',
-  partial: 'bg-[#fdf0d5] text-[#8a5a00]',
-  none: 'bg-[#fdf0d5] text-[#8a5a00]',
-};
 
 const byDomain = (rows: readonly DmsReportRow[], code: string) =>
   rows.find((r) => r.domain === code);
@@ -35,37 +33,42 @@ const byDomain = (rows: readonly DmsReportRow[], code: string) =>
 function n09(rows: readonly DmsReportRow[]): Indicator[] {
   return [
     {
-      label:
-        'Tống đạt: số văn bản tống đạt xong (chưa chia Tòa án / Cơ quan kiểm sát / Cơ quan THADS)',
+      group: 'Tống đạt',
+      label: 'Số văn bản tống đạt xong',
       value: byDomain(rows, 'tongdat')?.documents ?? 0,
       avail: 'partial',
-      source: 'Dòng Sổ S-01 đã ghi; hệ thống chưa chia theo cơ quan giao',
+      source: 'Dòng Sổ S-01 đã ghi; chưa chia theo Tòa án / Cơ quan kiểm sát / Cơ quan THADS',
     },
     {
-      label: 'Tống đạt: doanh thu (1.000 đồng)',
+      group: 'Tống đạt',
+      label: 'Doanh thu (1.000 đồng)',
       value: null,
       avail: 'none',
-      source: 'Doanh thu thuộc kế toán (MISA), DMS không giữ tiền',
+      source: 'Thuộc kế toán (MISA), DMS không giữ tiền',
     },
     {
-      label: 'Lập vi bằng: số vi bằng đã lập',
+      group: 'Lập vi bằng',
+      label: 'Số vi bằng đã lập',
       value: byDomain(rows, 'vibang')?.recorded_cases ?? 0,
       avail: 'ok',
       source: 'Dòng Sổ S-02',
     },
     {
-      label: 'Lập vi bằng: doanh thu (1.000 đồng)',
+      group: 'Lập vi bằng',
+      label: 'Doanh thu (1.000 đồng)',
       value: null,
       avail: 'none',
-      source: 'Doanh thu thuộc MISA',
+      source: 'Thuộc MISA',
     },
     {
-      label: 'Việc thi hành án đã tổ chức thi hành xong',
+      group: 'Thi hành án',
+      label: 'Việc đã tổ chức thi hành xong',
       value: byDomain(rows, 'tochuc')?.recorded_cases ?? 0,
       avail: 'partial',
       source: 'Số hồ sơ Tổ chức THA đã ghi sổ; cần trường kết quả để biết việc đã xong',
     },
     {
+      group: 'Nhân sự',
       label: 'Số lượng Thừa hành viên',
       value: null,
       avail: 'partial',
@@ -79,36 +82,46 @@ function n10(rows: readonly DmsReportRow[]): Indicator[] {
   const tochuc = byDomain(rows, 'tochuc')?.recorded_cases ?? 0;
   return [
     {
+      group: 'Việc phải thi hành',
       label: 'Tổng số việc phải thi hành theo hợp đồng đã ký',
       value: tochuc,
       avail: 'ok',
       source: 'Hồ sơ Tổ chức THA đã ghi sổ trong năm',
     },
     {
-      label: 'Tổng số tiền phải thi hành (1.000 đồng)',
-      value: null,
-      avail: 'none',
-      source: 'Chưa có trường số tiền theo hợp đồng',
-    },
-    {
+      group: 'Việc phải thi hành',
       label: 'Việc năm trước chuyển sang; mới ký trong năm',
       value: tochuc,
       avail: 'partial',
       source: 'Mới ký tính được; chuyển sang cần nhập đầu kỳ',
     },
     {
-      label: 'Việc thi hành xong và chấm dứt theo điểm a/b/c/d/đ khoản 5 Điều 31 Luật THADS',
+      group: 'Kết quả',
+      label: 'Việc thi hành xong và chấm dứt (điểm a/b/c/d/đ khoản 5 Điều 31 Luật THADS)',
       value: null,
       avail: 'none',
       source: 'Chưa có trường tình trạng và lý do chấm dứt',
     },
     {
-      label: 'Số tiền chuyển sang / chấm dứt / chưa xong chuyển năm sau (1.000 đồng)',
+      group: 'Số tiền (1.000 đồng)',
+      label: 'Tổng số tiền phải thi hành',
+      value: null,
+      avail: 'none',
+      source: 'Chưa có trường số tiền theo hợp đồng',
+    },
+    {
+      group: 'Số tiền (1.000 đồng)',
+      label: 'Chuyển sang / chấm dứt / chưa xong chuyển năm sau',
       value: null,
       avail: 'none',
       source: 'Chưa có trường số tiền trong hồ sơ',
     },
   ];
+}
+
+/** So với năm trước: null nếu một trong hai chưa tính được. */
+function delta(now: number | null, prev: number | null): number | null {
+  return now === null || prev === null ? null : now - prev;
 }
 
 export default async function DmsReportPage({
@@ -148,14 +161,23 @@ export default async function DmsReportPage({
       </section>
     );
   }
-  const rows = await loadDmsReport(await requestCookie(), officeId, year);
-  const indicators = rows === 'error' ? [] : bc === 'n10' ? n10(rows) : n09(rows);
+  const cookie = await requestCookie();
+  const [rows, prevRows] = await Promise.all([
+    loadDmsReport(cookie, officeId, year),
+    loadDmsReport(cookie, officeId, year - 1),
+  ]);
+  const list = (r: DmsReportRow[] | 'error') =>
+    r === 'error' ? [] : bc === 'n10' ? n10(r) : n09(r);
+  const indicators = list(rows);
+  const prevIndicators = list(prevRows);
+  const code = bc === 'n10' ? 'N-10' : 'N-09';
   const q = (b: string, y: number) => `/dms/bao-cao?bc=${b}&year=${y}`;
+  const groups = [...new Set(indicators.map((i) => i.group))];
   return (
-    <section aria-labelledby="t">
+    <section aria-labelledby="t" className="bao-cao">
       <h1 id="t">Báo cáo · Số liệu tổng hợp</h1>
-      <p className="muted">Chỉ tính hồ sơ đã lưu chính thức trong phạm vi quyền của bạn.</p>
       <TabNav
+        soft
         label="Chọn báo cáo"
         active={bc}
         tabs={[
@@ -163,63 +185,96 @@ export default async function DmsReportPage({
           { key: 'n10', label: 'N-10 · Thống kê kết quả thi hành án', href: q('n10', year) },
         ]}
         action={
-          <span className="flex items-center gap-3 text-sm">
-            <Link href={q(bc, year - 1)}>← {year - 1}</Link>
-            <strong>Năm {year}</strong>
-            <Link href={q(bc, year + 1)}>{year + 1} →</Link>
-            <Link href={`/dms/bao-cao/mau?year=${year}`}>Mẫu báo cáo (Phụ lục III)</Link>
-          </span>
+          <div className="bao-cao-tools">
+            <nav className="year-stepper" aria-label="Chọn năm báo cáo">
+              <Link href={q(bc, year - 1)} aria-label={`Năm ${year - 1}`}>
+                <ChevronLeft size={16} aria-hidden="true" />
+              </Link>
+              <strong>Năm {year}</strong>
+              <Link href={q(bc, year + 1)} aria-label={`Năm ${year + 1}`}>
+                <ChevronRight size={16} aria-hidden="true" />
+              </Link>
+            </nav>
+            <Link className="bao-cao-mau" href={`/dms/bao-cao/mau?year=${year}`}>
+              Mẫu Phụ lục III
+            </Link>
+          </div>
         }
       />
-      <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
-        Số tham khảo để tự điền mẫu TP-THV-N-09/N-10; hệ thống không lập hay gửi báo cáo. Kỳ báo cáo
-        12 tháng (01/01–31/12), chốt hết ngày cuối kỳ (Điều 36 TT 08/2026/TT-BTP).
-      </p>
       {rows === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"
           message="Không tải được báo cáo. Kiểm tra kết nối và thử lại."
         />
       ) : (
-        <DataTable tableKey="dms-bao-cao-page-1">
+        <DataTable tableKey="dms-bao-cao-page-2">
           <table>
             <caption className="sr-only">
-              Chỉ tiêu {bc === 'n10' ? 'N-10' : 'N-09'} năm {year}
+              Chỉ tiêu {code} năm {year}
             </caption>
             <thead>
               <tr>
-                <th scope="col">Chỉ tiêu {bc === 'n10' ? 'N-10' : 'N-09'}</th>
-                <th scope="col">Số liệu</th>
+                <th scope="col">Chỉ tiêu {code}</th>
+                <th scope="col" className="num">
+                  Năm {year}
+                </th>
+                <th scope="col" className="num">
+                  Năm {year - 1}
+                </th>
+                <th scope="col" className="num">
+                  Chênh lệch
+                </th>
                 <th scope="col">Khả năng tính</th>
-                <th scope="col">Sao chép</th>
                 <th scope="col">Nguồn dữ liệu</th>
+                <th scope="col">Sao chép</th>
               </tr>
             </thead>
-            <tbody>
-              {indicators.map((i) => (
-                <tr key={i.label}>
-                  <th scope="row">{i.label}</th>
-                  <td className="text-lg font-bold">{i.value === null ? '—' : i.value}</td>
-                  <td>
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${AVAIL_TONE[i.avail]}`}
-                    >
-                      {AVAIL_LABEL[i.avail]}
-                    </span>
-                  </td>
-                  <td>
-                    {i.value === null ? null : (
-                      <CopyValueButton value={String(i.value)} label={i.label} />
-                    )}
-                  </td>
-                  <td className="muted">{i.source}</td>
+            {groups.map((g) => (
+              <tbody key={g}>
+                <tr className="bao-cao-group">
+                  <th scope="colgroup" colSpan={7}>
+                    {g}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
+                {indicators
+                  .map((i, idx) => ({ i, idx }))
+                  .filter(({ i }) => i.group === g)
+                  .map(({ i, idx }) => {
+                    const prev = prevIndicators[idx]?.value ?? null;
+                    const d = delta(i.value, prev);
+                    return (
+                      <tr key={i.label}>
+                        <th scope="row">{i.label}</th>
+                        <td className="num bao-cao-value">{i.value === null ? '—' : i.value}</td>
+                        <td className="num muted">
+                          {prevRows === 'error' || prev === null ? '—' : prev}
+                        </td>
+                        <td className="num" data-trend={d === null ? undefined : Math.sign(d)}>
+                          {d === null ? '' : d > 0 ? `+${d}` : d}
+                        </td>
+                        <td>
+                          <span className="avail" data-avail={i.avail}>
+                            {AVAIL_LABEL[i.avail]}
+                          </span>
+                        </td>
+                        <td className="muted">{i.source}</td>
+                        <td>
+                          {i.value === null ? null : (
+                            <CopyValueButton value={String(i.value)} label={i.label} />
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            ))}
           </table>
         </DataTable>
       )}
-      <p className="muted mt-3">Báo cáo đã gửi: đăng ký vào Sổ văn bản đi kèm bản scan.</p>
+      <p className="muted bao-cao-note">
+        Số tham khảo để tự điền mẫu TP-THV-{code}; kỳ 01/01–31/12 (Điều 36 TT 08/2026/TT-BTP). Hệ
+        thống không lập hay gửi báo cáo; báo cáo đã gửi đăng ký vào Sổ văn bản đi kèm bản scan.
+      </p>
     </section>
   );
 }
