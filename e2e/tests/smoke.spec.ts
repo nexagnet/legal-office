@@ -63,7 +63,7 @@ test('đăng nhập, đổi mật khẩu lần đầu, tạo nháp Vi bằng, gh
   const res = await recorded;
   console.log('record ->', res.status(), (await res.text().catch(() => '')).slice(0, 300));
   expect(res.ok()).toBe(true);
-  await expect(page.getByRole('heading', { name: /^001\/2026\/VB-THV/ })).toBeVisible({
+  await expect(page.getByRole('heading', { name: /^Vi bằng số 001\/2026\/VB-THV/ })).toBeVisible({
     timeout: 30_000,
   });
   await expect(page.getByText('Đã ghi sổ').first()).toBeVisible();
