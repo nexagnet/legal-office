@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ocrIsActive, ocrLabel, ocrPercent, type OcrProgressInfo } from '../lib/dms';
+import { ocrIsActive, ocrLabel, ocrPercent, type OcrProgressInfo } from '../lib/ocr-progress';
 
 const FIRST_MS = 3_000;
 const MAX_MS = 15_000;

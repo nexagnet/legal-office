@@ -1,7 +1,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OcrProgress, ocrApplies } from '../components/OcrProgress';
-import { ocrIsActive, ocrLabel, ocrPercent } from '../lib/dms';
+import { ocrIsActive, ocrLabel, ocrPercent } from '../lib/ocr-progress';
 
 const row = (status: string | null, done: number | null, total: number | null) => ({
   status: status as never,
