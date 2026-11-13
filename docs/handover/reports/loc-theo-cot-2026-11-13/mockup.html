@@ -1,0 +1,181 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Mockup lọc theo cột</title>
+<style>
+:root{--bg:#f3f6fa;--surface:#fff;--ink:#1f2a3d;--muted:#64748b;--line:#d7dfe9;--head:#eaf0f7;--accent:#2563eb;--accent-bg:#e8f0fe;--ok:#067647;--ok-bg:#e6f7ee;--danger:#b42318;--warn-bg:#fff4df;--warn:#b45309}
+*{box-sizing:border-box}body{margin:0;background:#e5eaf1;color:var(--ink);font:13px/1.5 Inter,system-ui,'Segoe UI',Roboto,sans-serif}
+.frame{background:var(--bg);margin:24px;position:relative;overflow:hidden;border:1px solid var(--line)}
+.d{width:1440px;height:520px;padding:20px 28px}.m{width:390px;height:780px;padding:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 14px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;font-weight:600;color:var(--ink)}
+.btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 4px 0 10px;border-radius:99px;background:var(--accent-bg);color:#1d4ed8;font-weight:600;font-size:12px}
+.chip b{font-weight:500;color:var(--ink)}.chip i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#1d4ed8}
+.clear{color:var(--muted);font-weight:600;font-size:12px;text-decoration:underline;margin-left:4px}
+.meta{padding:0 14px 10px;color:var(--muted);font-size:12px}
+table{border-collapse:collapse;width:100%;table-layout:fixed}
+th{background:var(--head);text-align:left;font-size:12px;font-weight:700;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle;position:relative}
+th .h{display:flex;align-items:center;gap:4px;justify-content:space-between}
+td{padding:9px 8px;border-bottom:1px solid #eaeff5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f{width:22px;height:22px;flex:none;border-radius:6px;display:grid;place-items:center;color:#8aa0b8}
+.f svg{width:13px;height:13px}
+th:hover .f{background:#d9e4f2;color:var(--ink)}
+.f.on{background:var(--accent);color:#fff;position:relative}
+.f.open{background:#d9e4f2;color:var(--ink);outline:2px solid var(--accent)}
+.pill{padding:1px 8px;border-radius:99px;font-size:11px;font-weight:600;background:var(--ok-bg);color:var(--ok)}
+.pill.n{background:#eef2f7;color:var(--muted)}
+.pop{position:absolute;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(16,36,58,.18);padding:14px;width:290px;z-index:5}
+.pop h4{margin:0 0 10px;font-size:13px}
+.in{width:100%;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;background:#fff;color:var(--ink);display:flex;align-items:center}
+.in.f1{border-color:var(--accent);box-shadow:0 0 0 3px #2563eb22}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.seg span{flex:1;text-align:center;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted)}.seg span.s{background:var(--accent-bg);color:var(--accent)}
+.row2{display:flex;gap:8px}.lbl{font-size:11px;color:var(--muted);margin:8px 0 3px;font-weight:600}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.pr{height:34px;padding:0 16px;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;display:inline-flex;align-items:center}
+.lk{color:var(--muted);font-weight:600}
+.ck{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #f0f3f8}
+.ck u{width:16px;height:16px;border:1.5px solid #9fb0c4;border-radius:4px;display:grid;place-items:center;text-decoration:none;flex:none}
+.ck u.x{background:var(--accent);border-color:var(--accent);color:#fff;font-size:11px}
+.ck em{margin-left:auto;font-style:normal;color:var(--muted);font-size:12px}
+.note{position:absolute;font-size:11px;font-weight:600;color:#fff;background:#10243a;border-radius:6px;padding:3px 8px}
+/* mobile */
+.mc{padding:12px;margin-bottom:8px}.mc .t{display:flex;justify-content:space-between;font-weight:700}.mc .r{display:flex;gap:6px;color:var(--muted);margin-top:3px;font-size:12px}.mc .r b{color:var(--ink);font-weight:500}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:96px;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -10px 30px rgba(16,36,58,.25);padding:14px 14px 0;display:flex;flex-direction:column}
+.shade{position:absolute;inset:0;background:#10243a66}
+.grab{width:40px;height:4px;border-radius:2px;background:#cbd5e1;margin:0 auto 10px}
+.acc{border-bottom:1px solid #eef2f7;padding:11px 2px}.acc .a{display:flex;justify-content:space-between;font-weight:600}.acc .a span{color:var(--accent);font-weight:600;font-size:12px}
+.sheetfoot{margin-top:auto;display:flex;gap:10px;padding:12px 0 16px;border-top:1px solid var(--line)}.sheetfoot .btn{flex:1;justify-content:center;height:44px}.sheetfoot .pr{flex:2;justify-content:center;height:44px}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><symbol id="fn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol><symbol id="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol></svg>
+
+<!-- 1. VI BẰNG DESKTOP -->
+<div class="frame d" id="vb-desktop">
+ <div class="card">
+  <div class="bar"><b style="font-size:15px">Vi bằng · 2026</b><span class="sp"></span><span class="btn">Cột hiển thị</span><span class="btn on">Hiển thị gọn</span><span class="btn">Xuất Excel</span></div>
+  <div class="bar" style="padding-top:0"><span class="muted" style="color:var(--muted);font-weight:600">Đang lọc</span>
+   <span class="chip">Người yêu cầu <b>chứa “Nguyễn Văn”</b><i><svg width="11" height="11"><use href="#x"/></svg></i></span>
+   <span class="chip">Ngày vi bằng <b>01/10 – 31/10/2026</b><i><svg width="11" height="11"><use href="#x"/></svg></i></span>
+   <span class="chip">Đã trả KQ <b>Chưa trả</b><i><svg width="11" height="11"><use href="#x"/></svg></i></span>
+   <a class="clear">Xoá tất cả</a></div>
+  <div class="meta">128 hồ sơ khớp (trên 4.310) · lọc được giữ trên địa chỉ trang và dùng cho Xuất Excel</div>
+  <table><colgroup><col style="width:104px"><col style="width:112px"><col style="width:200px"><col style="width:170px"><col style="width:160px"><col style="width:170px"><col style="width:170px"><col style="width:90px"><col style="width:96px"><col style="width:80px"><col style="width:90px"></colgroup>
+  <thead><tr>
+   <th><div class="h">STT · Mã hồ sơ<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">SĐT khách hàng<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Người yêu cầu lập vi bằng<span class="f on open"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Nội dung yêu cầu<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Số, ngày, tháng, năm<span class="f on"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Địa chỉ nơi lập<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Thừa hành viên lập<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Đã trả KQ<span class="f on"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Tài liệu · Scan<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Ghi chú<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th>Xem · Tải</th></tr></thead>
+  <tbody>
+   <tr><td>012 · VB-THV</td><td>09•• ••• 421</td><td>Nguyễn Văn Hùng, Q.7</td><td>Ghi nhận hiện trạng nhà</td><td>012/2026 ngày 03/10</td><td>P. Tân Phú, TP.HCM</td><td>Trần Minh Khoa · 0123</td><td><span class="pill n">Chưa</span></td><td><span class="pill">3 · đủ scan</span></td><td>—</td><td>Xem</td></tr>
+   <tr><td>019 · VB-THV</td><td>09•• ••• 087</td><td>Nguyễn Văn Nam, Thủ Đức</td><td>Giao nhận tiền đặt cọc</td><td>019/2026 ngày 08/10</td><td>P. Linh Trung, TP.HCM</td><td>Lê Thu Hà · 0456</td><td><span class="pill n">Chưa</span></td><td><span class="pill">2 · đủ scan</span></td><td>Gấp</td><td>Xem</td></tr>
+   <tr><td>024 · VB-THV</td><td>09•• ••• 910</td><td>Nguyễn Văn Phúc, Bình Thạnh</td><td>Ghi nhận nội dung tin nhắn</td><td>024/2026 ngày 11/10</td><td>P. 25, TP.HCM</td><td>Trần Minh Khoa · 0123</td><td><span class="pill n">Chưa</span></td><td><span class="pill">1 · đủ scan</span></td><td>—</td><td>Xem</td></tr>
+   <tr><td>031 · VB-THV</td><td>09•• ••• 664</td><td>Nguyễn Văn Quý, Gò Vấp</td><td>Ghi nhận hiện trạng đất</td><td>031/2026 ngày 17/10</td><td>P. 12, TP.HCM</td><td>Lê Thu Hà · 0456</td><td><span class="pill n">Chưa</span></td><td><span class="pill">4 · đủ scan</span></td><td>—</td><td>Xem</td></tr>
+  </tbody></table>
+ </div>
+ <!-- popover: chữ chứa -->
+ <div class="pop" style="left:424px;top:150px">
+  <h4>Người yêu cầu lập vi bằng</h4>
+  <div class="lbl" style="margin-top:0">Chứa chữ</div>
+  <div class="in f1">Nguyễn Văn</div>
+  <div style="color:var(--muted);font-size:12px;margin-top:6px">Không phân biệt hoa thường, có hoặc không dấu</div>
+  <div class="foot"><span class="lk">Xoá cột này</span><span class="pr">Áp dụng</span></div>
+ </div>
+ <!-- popover: khoảng ngày -->
+ <div class="pop" style="left:700px;top:660px;display:none"></div>
+ <div class="note" style="left:446px;top:118px;display:none"></div>
+</div>
+
+<!-- 2. TỐNG ĐẠT DESKTOP (ngày + chọn nhiều + có/không) -->
+<div class="frame d" id="td-desktop">
+ <div class="card">
+  <div class="bar"><b style="font-size:15px">Tống đạt · 2026</b><span class="sp"></span><span class="chip" style="background:#fff4df;color:var(--warn)">Quá hạn báo kết quả <i style="color:var(--warn)"><svg width="11" height="11"><use href="#x"/></svg></i></span><span class="btn">Cột hiển thị</span><span class="btn on">Hiển thị gọn</span><span class="btn">Xuất Excel</span></div>
+  <div class="bar" style="padding-top:0"><span style="color:var(--muted);font-weight:600">Đang lọc</span>
+   <span class="chip">Loại văn bản <b>Giấy triệu tập · Bản án</b><i><svg width="11" height="11"><use href="#x"/></svg></i></span>
+   <span class="chip">Cơ quan giao <b>Tòa án</b><i><svg width="11" height="11"><use href="#x"/></svg></i></span>
+   <a class="clear">Xoá tất cả</a></div>
+  <div class="meta">212 hồ sơ khớp (trên 9.870)</div>
+  <table><colgroup><col style="width:100px"><col style="width:170px"><col style="width:200px"><col style="width:70px"><col style="width:100px"><col style="width:90px"><col style="width:150px"><col style="width:170px"><col style="width:170px"><col style="width:100px"></colgroup>
+  <thead><tr>
+   <th><div class="h">STT<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Loại văn bản<span class="f on"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Số, ngày văn bản<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Tòa án<span class="f on"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Cơ quan THADS<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Kiểm sát<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Ngày tống đạt<span class="f open"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Hình thức<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Thừa hành viên<span class="f"><svg><use href="#fn"/></svg></span></div></th>
+   <th><div class="h">Ghi chú<span class="f"><svg><use href="#fn"/></svg></span></div></th></tr></thead>
+  <tbody>
+   <tr><td>0412</td><td>Giấy triệu tập</td><td>45/2026/GTT ngày 02/10</td><td>✓</td><td></td><td></td><td>06/10/2026</td><td>Trực tiếp</td><td>Trần Minh Khoa</td><td>—</td></tr>
+   <tr><td>0415</td><td>Bản án</td><td>118/2026/DSST ngày 05/10</td><td>✓</td><td></td><td></td><td>09/10/2026</td><td>Niêm yết</td><td>Lê Thu Hà</td><td>—</td></tr>
+   <tr><td>0419</td><td>Giấy triệu tập</td><td>51/2026/GTT ngày 09/10</td><td>✓</td><td></td><td></td><td>12/10/2026</td><td>Qua bưu điện</td><td>Trần Minh Khoa</td><td>—</td></tr>
+  </tbody></table>
+ </div>
+ <div class="pop" style="left:762px;top:150px;width:300px">
+  <h4>Ngày tống đạt</h4>
+  <div class="seg"><span class="s">Khoảng ngày</span><span>Mốc nhanh</span><span>Chưa có ngày</span></div>
+  <div class="row2"><div style="flex:1"><div class="lbl" style="margin-top:0">Từ</div><div class="in f1">01/10/2026</div></div><div style="flex:1"><div class="lbl" style="margin-top:0">Đến</div><div class="in">31/10/2026</div></div></div>
+  <div class="foot"><span class="lk">Xoá cột này</span><span class="pr">Áp dụng</span></div>
+ </div>
+ <div class="pop" style="left:240px;top:150px;width:260px;display:none"></div>
+</div>
+
+<!-- 3. Popover chọn nhiều (riêng) -->
+<div class="frame" id="pop-multi" style="width:760px;height:330px;padding:20px;display:flex;gap:20px;background:#eef2f7">
+ <div class="pop" style="position:static;width:320px">
+  <h4>Hình thức tống đạt <span style="color:var(--muted);font-weight:500">(chọn nhiều)</span></h4>
+  <div class="in" style="color:var(--muted);margin-bottom:6px">Tìm trong danh sách…</div>
+  <div class="ck"><u class="x">✓</u>Trực tiếp<em>6.120</em></div>
+  <div class="ck"><u class="x">✓</u>Niêm yết<em>1.940</em></div>
+  <div class="ck"><u></u>Qua bưu điện<em>1.270</em></div>
+  <div class="ck"><u></u>Qua người thân<em>540</em></div>
+  <div class="foot"><span class="lk">Xoá cột này</span><span class="pr">Áp dụng</span></div>
+ </div>
+ <div class="pop" style="position:static;width:320px">
+  <h4>Đã trả kết quả</h4>
+  <div class="seg"><span>Tất cả</span><span class="s">Chưa trả</span><span>Đã trả</span></div>
+  <h4 style="margin-top:16px">Tài liệu · Bản scan</h4>
+  <div class="seg"><span>Tất cả</span><span>Thiếu scan</span><span class="s">Đủ scan</span></div>
+  <div class="foot"><span class="lk">Xoá cột này</span><span class="pr">Áp dụng</span></div>
+ </div>
+</div>
+
+<!-- 4. MOBILE: danh sách + tờ lọc -->
+<div style="display:flex;gap:24px;margin:24px">
+<div class="frame m" id="vb-mobile-list" style="margin:0">
+ <div class="card" style="padding:10px;margin-bottom:8px"><div class="row2"><span class="btn on" style="flex:1;justify-content:center;height:40px">Lọc theo cột · 3</span><span class="btn" style="height:40px">Xuất Excel</span></div>
+  <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><span class="chip">Người yêu cầu <b>Nguyễn Văn</b><i><svg width="11" height="11"><use href="#x"/></svg></i></span><span class="chip">Ngày <b>10/2026</b><i><svg width="11" height="11"><use href="#x"/></svg></i></span><span class="chip">Chưa trả<i><svg width="11" height="11"><use href="#x"/></svg></i></span></div>
+  <div style="color:var(--muted);font-size:12px;margin-top:8px">128 hồ sơ khớp · <a class="clear" style="margin:0">Xoá tất cả</a></div></div>
+ <div class="card mc"><div class="t"><span>012 · VB-THV</span><span class="pill n">Chưa trả</span></div><div class="r">Người yêu cầu <b>Nguyễn Văn Hùng, Q.7</b></div><div class="r">Số, ngày <b>012/2026 ngày 03/10</b></div><div class="r">THV <b>Trần Minh Khoa</b></div></div>
+ <div class="card mc"><div class="t"><span>019 · VB-THV</span><span class="pill n">Chưa trả</span></div><div class="r">Người yêu cầu <b>Nguyễn Văn Nam, Thủ Đức</b></div><div class="r">Số, ngày <b>019/2026 ngày 08/10</b></div><div class="r">THV <b>Lê Thu Hà</b></div></div>
+ <div class="card mc"><div class="t"><span>024 · VB-THV</span><span class="pill n">Chưa trả</span></div><div class="r">Người yêu cầu <b>Nguyễn Văn Phúc</b></div><div class="r">Số, ngày <b>024/2026 ngày 11/10</b></div></div>
+</div>
+<div class="frame m" id="vb-mobile-sheet" style="margin:0">
+ <div class="shade"></div>
+ <div class="sheet" style="top:70px">
+  <div class="grab"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b style="font-size:15px">Lọc theo cột · Vi bằng</b><span class="lk">Xoá tất cả</span></div>
+  <div class="acc"><div class="a">Người yêu cầu<span>Nguyễn Văn</span></div>
+   <div class="in f1" style="margin-top:8px">Nguyễn Văn</div></div>
+  <div class="acc"><div class="a">Số, ngày vi bằng<span>01/10 – 31/10</span></div>
+   <div class="row2" style="margin-top:8px"><div class="in">01/10/2026</div><div class="in">31/10/2026</div></div></div>
+  <div class="acc"><div class="a">Đã trả kết quả<span>Chưa trả</span></div>
+   <div class="seg" style="margin:8px 0 0"><span>Tất cả</span><span class="s">Chưa trả</span><span>Đã trả</span></div></div>
+  <div class="acc"><div class="a">SĐT khách hàng<span style="color:var(--muted);font-weight:500">▾</span></div></div>
+  <div class="acc"><div class="a">Nội dung yêu cầu<span style="color:var(--muted);font-weight:500">▾</span></div></div>
+  <div class="acc"><div class="a">Địa chỉ nơi lập<span style="color:var(--muted);font-weight:500">▾</span></div></div>
+  <div class="acc"><div class="a">Thừa hành viên<span style="color:var(--muted);font-weight:500">▾</span></div></div>
+  <div class="acc"><div class="a">Ghi chú<span style="color:var(--muted);font-weight:500">▾</span></div></div>
+  <div class="sheetfoot"><span class="btn">Huỷ</span><span class="pr">Xem 128 hồ sơ</span></div>
+ </div>
+</div>
+</div>
+</body></html>
