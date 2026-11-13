@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { messageFor } from '../lib/messages';
 import { ocrIsActive, ocrLabel, ocrPercent, type OcrProgressInfo } from '../lib/ocr-progress';
 
 const FIRST_MS = 3_000;
@@ -14,11 +15,16 @@ const MAX_ERRORS = 5;
 export function OcrProgress({
   fileId,
   initial,
+  canRetry = false,
 }: {
   readonly fileId: string;
   readonly initial: OcrProgressInfo;
+  /** Người xem được thêm tài liệu thì thấy nút "Thử lại" khi OCR lỗi. */
+  readonly canRetry?: boolean;
 }) {
   const [info, setInfo] = useState<OcrProgressInfo>(initial);
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
   const active = ocrIsActive(info.status);
   const errors = useRef(0);
 
@@ -68,6 +74,25 @@ export function OcrProgress({
     };
   }, [active, fileId]);
 
+  async function retry() {
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      const res = await fetch(`/api/dms/files/${encodeURIComponent(fileId)}/ocr-retry`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      const json = (await res.json().catch(() => ({}))) as { code?: string };
+      if (!res.ok) return setRetryError(messageFor(json.code));
+      errors.current = 0;
+      setInfo({ status: 'PENDING', done: null, total: null });
+    } catch {
+      setRetryError('Không kết nối được máy chủ. Vui lòng thử lại.');
+    } finally {
+      setRetrying(false);
+    }
+  }
+
   const pct = ocrPercent(info);
   const tone =
     info.status === 'FAILED'
@@ -90,6 +115,21 @@ export function OcrProgress({
         </span>
       ) : null}
       <span className={tone}>{ocrLabel(info)}</span>
+      {info.status === 'FAILED' && canRetry ? (
+        <button
+          type="button"
+          onClick={() => void retry()}
+          disabled={retrying}
+          className="rounded border border-line-strong px-1.5 py-0.5 text-xs font-medium text-accent hover:bg-accent-soft disabled:opacity-60"
+        >
+          {retrying ? 'Đang gửi…' : 'Thử lại OCR'}
+        </button>
+      ) : null}
+      {retryError ? (
+        <span role="alert" className="text-danger">
+          {retryError}
+        </span>
+      ) : null}
     </span>
   );
 }

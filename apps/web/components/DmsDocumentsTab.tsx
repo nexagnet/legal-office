@@ -48,10 +48,11 @@ function olderOf(f: DmsFileRow, list: readonly DmsFileRow[]): CompareFile | null
   return prev ? toCompare(prev) : null;
 }
 
-function ocrChip(f: DmsFileRow): ReactNode {
+function ocrChip(f: DmsFileRow, canRetry: boolean): ReactNode {
   return ocrApplies(f.mime) ? (
     <OcrProgress
       fileId={f.id}
+      canRetry={canRetry}
       initial={{
         status: f.ocr_status ?? null,
         done: f.ocr_pages_done ?? null,
@@ -203,7 +204,7 @@ export function DmsDocumentsTab({
                           >
                             {f.is_scan ? 'Bản scan' : 'Bổ sung'}
                           </span>
-                          {ocrChip(f)}
+                          {ocrChip(f, canUpload || canAddScan)}
                         </p>
                       </div>
                       {actionsFor(f, g, 'row')}
