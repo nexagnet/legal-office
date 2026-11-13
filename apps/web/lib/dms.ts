@@ -150,6 +150,18 @@ export async function loadDmsCases(
   return body === 'error' ? 'error' : body.rows;
 }
 
+/** Cột bắt buộc còn thiếu / ngày không có thật của bản nháp (máy chủ cũng chặn ghi sổ theo cùng luật). Lỗi đọc thì coi như không có. */
+export async function loadRecordProblems(
+  cookie: string | null,
+  caseId: string,
+): Promise<{ key: string; problem: 'missing' | 'bad_date' }[]> {
+  const body = await getJson<{ problems: { key: string; problem: 'missing' | 'bad_date' }[] }>(
+    `/dms/cases/${encodeURIComponent(caseId)}/record-check`,
+    cookie,
+  );
+  return body === 'error' ? [] : body.problems;
+}
+
 export async function loadMyDmsPermissions(
   cookie: string | null,
   officeId: string,

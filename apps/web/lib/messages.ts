@@ -204,6 +204,8 @@ const MESSAGES: Record<string, string> = {
   CASE_NOT_DRAFT:
     'Hồ sơ đã lưu chính thức nên không sửa trực tiếp được. Bạn chỉ tải thêm bản scan; việc sửa nội dung do Admin thực hiện.',
   CASE_CANCELLED: 'Hồ sơ nháp này đã hủy.',
+  REQUIRED_COLUMNS_MISSING:
+    'Còn cột bắt buộc để trống hoặc có ngày không có thật. Bổ sung ở mục A rồi lưu nháp trước khi lưu chính thức.',
   THV_CONFIRMATION_REQUIRED:
     'Hồ sơ có ghi tên thừa hành viên. Chính thừa hành viên đó phải xác nhận nội dung trước khi lưu chính thức.',
   THV_CONFIRMATION_STALE:

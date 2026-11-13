@@ -29,6 +29,7 @@ import {
   loadDmsFiles,
   loadDmsRevisions,
   loadMyDmsPermissions,
+  loadRecordProblems,
   type DmsBookColumn,
   loadThvOptions,
 } from '../../../../lib/dms';
@@ -160,11 +161,12 @@ export default async function DmsCasePage({
     );
   }
   const isDraft = c.status === 'DRAFT';
-  const [documents, permissions, books, thvOptions] = await Promise.all([
+  const [documents, permissions, books, thvOptions, recordProblems] = await Promise.all([
     loadDmsDocuments(cookie, id),
     loadMyDmsPermissions(cookie, c.office_id),
     loadDmsBooks(cookie, true),
     isDraft ? loadThvOptions(cookie) : Promise.resolve([]),
+    isDraft && !isVanThu(domain.code) ? loadRecordProblems(cookie, id) : Promise.resolve([]),
   ]);
   // Sau khi ghi sổ chỉ Admin sửa nội dung (N5); nhân viên chỉ tải thêm scan. Máy chủ vẫn kiểm lại (ADMIN_ONLY).
   const isAdmin = permissions.includes('dms.permission.approve');
@@ -375,6 +377,13 @@ export default async function DmsCasePage({
             caseId={c.id}
             canRecord={canConfirm(permissions, domain.code)}
             canCancel={canDraft(permissions, domain.code)}
+            problems={recordProblems.map((p) => {
+              const col = book?.columns.find((x) => x.key === p.key);
+              const name = col ? `Cột ${col.no}: ${col.heading}` : p.key;
+              return p.problem === 'bad_date'
+                ? `${name}: ngày không có thật (nhập dd/mm/yyyy)`
+                : `${name}: còn để trống`;
+            })}
           />
         </div>
       ) : null}

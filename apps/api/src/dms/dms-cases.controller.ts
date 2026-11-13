@@ -372,10 +372,32 @@ export class DmsCasesController {
     return this.run(a, 'dms_document_admin_edit', [id, JSON.stringify(b.attributes), b.reason]);
   }
 
+  /** Xem trước khi ghi sổ: cột bắt buộc còn thiếu hoặc ngày không có thật (cùng luật với `dms_case_record`). */
+  @Get('cases/:id/record-check')
+  async recordCheck(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    const rows = await this.repo.rows<{ key: string; problem: string }>(
+      a.tenantId,
+      'dms_case_record_problems',
+      [a.tenantId, a.userId, id],
+    );
+    return { problems: rows };
+  }
+
   /** "Xác nhận lưu chính thức": từ đây hồ sơ và tài liệu của nó bất biến. */
   @Post('cases/:id/record')
   @HttpCode(HttpStatus.OK)
-  record(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+  async record(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    // Thiếu cột bắt buộc hoặc ngày không có thật thì không ghi sổ (hồ sơ đã ghi sổ không sửa trực tiếp được).
+    const problems = await this.repo.rows(a.tenantId, 'dms_case_record_problems', [
+      a.tenantId,
+      a.userId,
+      id,
+    ]);
+    if (problems.length > 0)
+      throw new HttpException(
+        { code: 'REQUIRED_COLUMNS_MISSING', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     return this.run(a, 'dms_case_record', [id]);
   }
 
