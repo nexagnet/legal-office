@@ -7,3 +7,10 @@ dist-package/
 
 # Mã tenant dùng cho script chụp hướng dẫn (không commit)
 scripts/user-guide/tenant.txt
+
+# E2E smoke: trạng thái tạm của stack thử
+e2e/.tmp/
+e2e/.stack.env
+e2e/.stack.pids
+e2e/test-results/
+e2e/playwright-report/
