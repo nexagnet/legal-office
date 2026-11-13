@@ -8,6 +8,10 @@ export interface Op {
   readonly label: string | null;
 }
 
+/** Hàm DB được phép gọi qua `rows()` (hàm trả nhiều dòng). Có test quét mọi chỗ gọi `.rows(` để không sót tên. */
+export const ROWS_FN_ALLOWED =
+  /^of_(search|s06)_[a-z0-9_]+$|^of_list_correspondence$|^of_get_correspondence$|^of_s06_read$|^of_personnel_(for_user|unlinked)$|^of_list_signers$|^of_ledger_s0[1245]$|^vb_list_(cases|case_view|changes|thv|customers|contracts|revokes|n11|documents|registrations|contacts)$|^vb_case_(progress|misa|evidence|legal|history|plan)$|^vb_list_contract_(addenda|attachments)$|^vb_list_customer_numbers$|^vb_number_preview$|^of_mail_settings_get$|^of_login_link_enabled$|^vb_document_file$|^as_list_(transfers|assets)$|^td_list_(documents|attempts|result_notices)$|^of_people_names$|^vx_list_(cases|sources|delegations)$|^vx_get_decision$|^th_list_cases$|^th_get_termination$|^dms_(activity_list|domain_pending_counts|domain_returned_counts|case_revision_list|case_history|case_extras|submission_(list|get|files_list|file_download|pending_count)|deleted_scans_list|deleted_scan_download|case_facets|book_rows_for_cases|list_user_overrides|search_cases|case_facet_counts|search_content|saved_filter_list|list_thv_pending|thv_review_case|book_rows|get_case|list_cases|list_documents|list_files|file_download|list_amendments|report_summary|ocr_search|legacy_(known_hashes|batch_report|list|open|ocr_status|search)|amendment_evidence|amendment_window|list_permission_requests|list_groups|my_permissions|my_branches|branch_access_list|cases_without_branch(_count)?|audit_export_rows|number_status|ocr_status|list_thv_options)$|^of_thv_card_(history_list|scan)$|^au_(cccd_in_use|get_cccd)$/;
+
 /**
  * Gọi các hàm `vibang_*` (0002/0003). Quyền (vai, chi nhánh, THV phụ trách) do DB quyết định và audit.
  * Luôn dùng `SELECT * FROM fn(...)`: `SELECT (fn(...)).*` chạy hàm một lần cho mỗi cột.
@@ -32,12 +36,7 @@ export class VibangRepo {
     fn: string,
     args: readonly unknown[],
   ): Promise<T[]> {
-    if (
-      !/^of_(search|s06)_[a-z0-9_]+$|^of_list_correspondence$|^of_get_correspondence$|^of_s06_read$|^of_personnel_(for_user|unlinked)$|^of_list_signers$|^of_ledger_s0[1245]$|^vb_list_(cases|case_view|changes|thv|customers|contracts|revokes|n11|documents|registrations|contacts)$|^vb_case_(progress|misa|evidence|legal|history|plan)$|^vb_list_customer_numbers$|^vb_number_preview$|^of_mail_settings_get$|^of_login_link_enabled$|^vb_document_file$|^as_list_(transfers|assets)$|^td_list_(documents|attempts|result_notices)$|^of_people_names$|^vx_list_(cases|sources|delegations)$|^vx_get_decision$|^th_list_cases$|^th_get_termination$|^dms_(activity_list|domain_pending_counts|domain_returned_counts|case_revision_list|case_history|case_extras|submission_(list|get|files_list|file_download|pending_count)|deleted_scans_list|deleted_scan_download|case_facets|book_rows_for_cases|list_user_overrides|search_cases|case_facet_counts|search_content|saved_filter_list|list_thv_pending|thv_review_case|book_rows|get_case|list_cases|list_documents|list_files|file_download|list_amendments|report_summary|ocr_search|legacy_(known_hashes|batch_report|list|open)|amendment_evidence|amendment_window|list_permission_requests|list_groups|my_permissions|my_branches|branch_access_list|cases_without_branch(_count)?|audit_export_rows|number_status)$|^of_thv_card_(history_list|scan)$|^au_(cccd_in_use|get_cccd)$/.test(
-        fn,
-      )
-    )
-      throw new Error(`unsafe function name: ${fn}`);
+    if (!ROWS_FN_ALLOWED.test(fn)) throw new Error(`unsafe function name: ${fn}`);
     const placeholders = args.map((_, i) => `$${i + 1}`).join(',');
     return this.pg.withTenant(tenantId, async (client) => {
       const { rows } = await client.query(`SELECT * FROM ${fn}(${placeholders})`, [...args]);
