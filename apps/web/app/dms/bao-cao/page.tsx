@@ -62,6 +62,13 @@ function n09(rows: readonly DmsReportRow[]): Indicator[] {
       source: 'Thuộc MISA',
     },
     {
+      group: 'Xác minh điều kiện THA',
+      label: 'Số việc đã xác minh',
+      value: byDomain(rows, 'xacminh')?.recorded_cases ?? 0,
+      avail: 'partial',
+      source: 'Số hồ sơ Xác minh đã ghi sổ (S-04); doanh thu thuộc MISA',
+    },
+    {
       group: 'Thi hành án',
       label: 'Việc đã tổ chức thi hành xong',
       value: byDomain(rows, 'tochuc')?.recorded_cases ?? 0,
