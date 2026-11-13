@@ -306,7 +306,13 @@ export function DmsDraftActions({
             confirmLabel="Lưu chính thức"
             busy={busy}
             onConfirm={() => {
-              void send(`/api/dms/cases/${caseId}/record`).then(() => setConfirming(false));
+              void send(`/api/dms/cases/${caseId}/record`).then((ok) => {
+                setConfirming(false);
+                // Ghi sổ đổi trạng thái hồ sơ nên tải lại hẳn trang: router.refresh() đôi khi
+                // không thay được trang cũ (đua với yêu cầu prefetch cùng URL của Next 15),
+                // khiến trang vẫn hiện "Nháp" dù đã ghi sổ.
+                if (ok) window.location.reload();
+              });
             }}
           />
         </>
