@@ -161,13 +161,28 @@ describe.skipIf(!ADMIN_URL)('DMS bộ lọc THV, việc còn dở, đã trả (P
     );
 
     // Vi bằng: THV A (CN1), THV A (CN2), THV B (CN1), chưa chọn THV (CN1).
-    await addCase('vb_a1', 'vibang', { thv: U.thvA });
-    await addCase('vb_a2', 'vibang', { thv: U.thvA, branch: B2 });
+    await addCase('vb_a1', 'vibang', {
+      thv: U.thvA,
+      attrs: { dia_chi_noi_lap: '12 Lê Duẩn, Phường Cửa Nam, Hà Nội' },
+    });
+    await addCase('vb_a2', 'vibang', {
+      thv: U.thvA,
+      branch: B2,
+      attrs: { dia_chi_noi_lap: ' TP Hồ Chí Minh ' },
+    });
     await addCase('vb_b1', 'vibang', { thv: U.thvB });
     await addCase('vb_none', 'vibang');
     // Tống đạt (một hồ sơ một văn bản): chưa có / đã có ngày tống đạt ở thuộc tính hồ sơ.
-    await addCase('td_open', 'tongdat', {});
-    await addCase('td_done', 'tongdat', { attrs: { ngay_tong_dat: '02/03/2026' } });
+    await addCase('td_open', 'tongdat', {
+      attrs: { hinh_thuc_tong_dat: 'Niêm yết', co_quan_thads: 'x' },
+    });
+    await addCase('td_done', 'tongdat', {
+      attrs: {
+        ngay_tong_dat: '02/03/2026',
+        hinh_thuc_tong_dat: 'Trực tiếp',
+        co_quan_toa_an: 'x',
+      },
+    });
     await addCase('td_open_b2', 'tongdat', { branch: B2 });
     // Xác minh: chưa có / đã có kết quả.
     await addCase('xm_open', 'xacminh', {});
@@ -214,6 +229,21 @@ describe.skipIf(!ADMIN_URL)('DMS bộ lọc THV, việc còn dở, đã trả (P
     await owner.query(`UPDATE dms_case_returned SET returned = true WHERE case_id = $1`, [
       cases.vb_a1,
     ]);
+  });
+
+  it('Bộ lọc nghiệp vụ fa/fb: hình thức và cơ quan giao (Tống đạt), tỉnh/thành (Vi bằng), kết quả (Xác minh)', async () => {
+    expect(ids(await search(U.admin, 'tongdat', { fa: 'Trực tiếp' }))).toEqual(want('td_done'));
+    expect(ids(await search(U.admin, 'tongdat', { fb: 'Cơ quan THADS' }))).toEqual(want('td_open'));
+    expect(ids(await search(U.admin, 'tongdat', { fa: 'Niêm yết', fb: 'Tòa án' }))).toEqual([]);
+    expect(ids(await search(U.admin, 'vibang', { fa: 'Hà Nội' }))).toEqual(want('vb_a1'));
+    expect(ids(await search(U.admin, 'vibang', { fa: 'TP Hồ Chí Minh' }))).toEqual(want('vb_a2'));
+    expect(ids(await search(U.admin, 'xacminh', { fa: 'Có tài sản' }))).toEqual(want('xm_done'));
+    // Đếm facet theo kiểu "chọn giá trị khác trong cùng nhóm": đang chọn fa vẫn thấy mọi giá trị fa, fb bị thu hẹp.
+    const f = await facets(U.admin, 'tongdat', { fa: 'Trực tiếp' });
+    expect(f.fa).toEqual({ 'Trực tiếp': 1, 'Niêm yết': 1 });
+    expect(f.fb).toEqual({ 'Tòa án': 1 });
+    // Hồ sơ không có giá trị thì không vào nhóm; nghiệp vụ không dùng facet_b không có nhóm fb.
+    expect((await facets(U.admin, 'xacminh', null)).fb).toBeUndefined();
   });
 
   it('Việc còn dở theo luật từng nghiệp vụ', async () => {

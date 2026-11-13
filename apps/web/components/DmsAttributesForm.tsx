@@ -5,7 +5,7 @@ import { useState, type FormEvent } from 'react';
 import type { DmsBookColumn } from '../lib/dms';
 import { dateOnly, numberPrefix } from '../lib/dms-number';
 import { Button } from './ui/button';
-import { Input } from './ui/field';
+import { AttrInput } from './AttrInput';
 import { NumberDateInput } from './NumberDateInput';
 import { messageFor } from '../lib/messages';
 
@@ -81,12 +81,7 @@ export function DmsAttributesForm({
                 defaultValue={dateOnly(current[c.key])}
               />
             ) : (
-              <Input
-                name={c.key}
-                defaultValue={String(current[c.key] ?? '')}
-                maxLength={2000}
-                placeholder={c.tick ? 'Gõ x nếu có' : undefined}
-              />
+              <AttrInput name={c.key} defaultValue={String(current[c.key] ?? '')} tick={c.tick} />
             )}
           </label>
         ))}

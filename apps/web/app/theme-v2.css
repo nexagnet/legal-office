@@ -3495,6 +3495,51 @@ td mark {
   margin-left: auto;
   color: var(--muted);
 }
+/* Hàng chip "Việc cần làm" (bộ lọc nghiệp vụ): bấm một lần là lọc, kèm số hồ sơ. */
+.dms-work-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+.dms-work-chip {
+  padding: 5px 12px;
+  font-weight: 600;
+}
+.dms-work-chip b {
+  min-width: 22px;
+  padding: 1px 7px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--head, #eef2f8);
+  border-radius: 999px;
+}
+.dms-work-chip[data-active] {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.dms-work-chip[data-active] b {
+  color: var(--accent);
+  background: #fff;
+}
+.dms-pop-time {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line, #e2e8f0);
+}
+.dms-pop-time > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.dms-pop-sub {
+  margin: 10px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
 .kpi[data-link] {
   position: relative;
 }

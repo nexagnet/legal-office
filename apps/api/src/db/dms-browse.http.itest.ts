@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
+import ExcelJS from 'exceljs';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
@@ -129,6 +130,49 @@ describe.skipIf(!ADMIN_URL)('DMS duyệt/lọc hồ sơ qua HTTP (PostgreSQL)', 
       officeId: OFF,
       ...Object.fromEntries(Object.entries(o).map(([k, v]) => [k, String(v)])),
     }).toString();
+
+  it('xuất Excel đúng tập đang lọc: cùng quyền xem, tiêu đề cột theo sổ, dòng lọc ghi trong lưu ý', async () => {
+    const get = async (path: string, user: string) => {
+      const res = await fetch(`${base}${path}`, {
+        headers: { 'x-synthetic-user': user, 'x-synthetic-tenant': T },
+      });
+      return { res, buf: Buffer.from(await res.arrayBuffer()) };
+    };
+    const rowsOf = async (buf: Buffer) => {
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buf as unknown as ArrayBuffer);
+      const ws = wb.worksheets[0]!;
+      const out: unknown[][] = [];
+      ws.eachRow((r) => out.push((r.values as unknown[]).slice(1)));
+      return out;
+    };
+    const all = await get(`/dms/case-search/export?${q({ domain: 'vibang' })}`, U.reader);
+    expect(all.res.status).toBe(200);
+    expect(all.res.headers.get('content-type')).toContain('spreadsheetml');
+    const rows = await rowsOf(all.buf);
+    // Dòng 1 tiêu đề, dòng 2 lưu ý, dòng 3 tên cột, rồi 25 hồ sơ.
+    expect(rows).toHaveLength(3 + 25);
+    expect(String(rows[2]![0])).toBe('STT');
+    expect(rows[2]!).toContain('Mã hồ sơ');
+    const one = await get(
+      `/dms/case-search/export?${q({ domain: 'vibang', q: 'nguyen van duc 7', year: 2026 })}`,
+      U.reader,
+    );
+    const filtered = await rowsOf(one.buf);
+    expect(filtered).toHaveLength(3 + 2); // "7" khớp chuỗi con: hồ sơ 7 và 17
+    expect(String(filtered[1]![0])).toContain('tìm "nguyen van duc 7"');
+    // Người không có quyền đọc không lấy được dòng nào; nháp và tham số lạ bị từ chối.
+    expect(
+      await rowsOf((await get(`/dms/case-search/export?${q({ domain: 'vibang' })}`, U.none)).buf),
+    ).toHaveLength(3);
+    expect(
+      (await get(`/dms/case-search/export?${q({ domain: 'vibang', status: 'DRAFT' })}`, U.reader))
+        .res.status,
+    ).toBe(400);
+    expect(
+      (await get(`/dms/case-search/export?${q({ domain: 'vtden' })}`, U.reader)).res.status,
+    ).toBe(400);
+  });
 
   it('tìm không dấu, lọc, tổng và phân trang bằng nextCursor đi hết đúng một lần', async () => {
     const first = await api(

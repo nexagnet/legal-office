@@ -49,6 +49,9 @@ export interface DmsCaseSearchParams {
   readonly thv?: readonly string[];
   readonly open?: boolean;
   readonly returned?: boolean;
+  /** Bộ lọc nghiệp vụ (0126): hình thức tống đạt / tỉnh thành / kết quả (fa) và cơ quan giao (fb). */
+  readonly fa?: string;
+  readonly fb?: string;
   readonly limit?: number;
   readonly offset?: number;
   readonly total?: boolean;
@@ -75,6 +78,8 @@ function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
   if (p.thv && p.thv.length > 0) q.set('thv', p.thv.join(','));
   if (p.open !== undefined) q.set('open', String(p.open));
   if (p.returned !== undefined) q.set('returned', String(p.returned));
+  if (p.fa) q.set('fa', p.fa);
+  if (p.fb) q.set('fb', p.fb);
   if (p.from || p.to) {
     // Khoảng ngày giờ có thể trải qua nhiều năm nên thay cho ô "Năm", không chồng lên nhau.
     q.delete('year');
@@ -82,6 +87,16 @@ function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
     if (p.to) q.set('to', p.to);
   }
   return q;
+}
+
+/**
+ * Liên kết tải Excel đúng tập đang lọc (không có phân trang). Đi qua proxy `/api` của web nên trình duyệt tải trực tiếp,
+ * cùng phiên đăng nhập và cùng quyền xem như danh sách.
+ */
+export function exportCasesHref(p: DmsCaseSearchParams): string {
+  const q = searchQuery(p);
+  q.set('status', 'RECORDED');
+  return `/api/dms/case-search/export?${q}`;
 }
 
 async function getJson<T>(path: string, cookie: string | null): Promise<T | 'error'> {
@@ -156,6 +171,18 @@ export async function countDmsCases(
   return r === 'error' || r.total === null ? undefined : r.total;
 }
 
+const NO_FACETS: DmsFacetCounts = {
+  creator: [],
+  branch: [],
+  kind: [],
+  thv: [],
+  fa: [],
+  fb: [],
+  open: [],
+  returned: [],
+  scan: [],
+};
+
 export interface DmsFacetOption {
   readonly value: string;
   readonly label: string;
@@ -167,6 +194,13 @@ export interface DmsFacetCounts {
   readonly kind: readonly DmsFacetOption[];
   /** Thừa hành viên có hồ sơ trong phạm vi xem; `value` rỗng = chưa chọn (không lọc được). */
   readonly thv: readonly DmsFacetOption[];
+  /** Giá trị bộ lọc nghiệp vụ (0126) kèm số hồ sơ. */
+  readonly fa: readonly DmsFacetOption[];
+  readonly fb: readonly DmsFacetOption[];
+  /** `value` 'true'/'false': số hồ sơ còn dở / đã xong, chưa trả / đã trả kết quả; scan: missing, complete, empty. */
+  readonly open: readonly DmsFacetOption[];
+  readonly returned: readonly DmsFacetOption[];
+  readonly scan: readonly DmsFacetOption[];
 }
 
 /** Lựa chọn của ba ô lọc kèm số hồ sơ, đếm theo các bộ lọc khác đang chọn; lỗi thì bỏ qua, không chặn trang. */
@@ -178,7 +212,17 @@ export async function loadDmsFacetCounts(
     `/dms/case-facet-counts?${searchQuery(p)}`,
     cookie,
   );
-  const empty: DmsFacetCounts = { creator: [], branch: [], kind: [], thv: [] };
+  const empty: DmsFacetCounts = {
+    creator: [],
+    branch: [],
+    kind: [],
+    thv: [],
+    fa: [],
+    fb: [],
+    open: [],
+    returned: [],
+    scan: [],
+  };
   return body === 'error'
     ? empty
     : {
@@ -186,6 +230,11 @@ export async function loadDmsFacetCounts(
         branch: body.branch ?? [],
         kind: body.kind ?? [],
         thv: body.thv ?? [],
+        fa: body.fa ?? [],
+        fb: body.fb ?? [],
+        open: body.open ?? [],
+        returned: body.returned ?? [],
+        scan: body.scan ?? [],
       };
 }
 
@@ -239,12 +288,17 @@ export async function loadDmsOcrFacets(
     cookie,
   );
   return body === 'error'
-    ? { creator: [], branch: [], kind: [], thv: [], year: [] }
+    ? { ...NO_FACETS, year: [] }
     : {
         creator: body.creator ?? [],
         branch: body.branch ?? [],
         kind: body.kind ?? [],
         thv: body.thv ?? [],
+        fa: body.fa ?? [],
+        fb: body.fb ?? [],
+        open: body.open ?? [],
+        returned: body.returned ?? [],
+        scan: body.scan ?? [],
         year: body.year ?? [],
       };
 }

@@ -10,6 +10,7 @@ import { autoCaseTitle } from '../lib/dms-case-title';
 import { messageFor } from '../lib/messages';
 import { uploadUnclassified } from './DmsCaseActions';
 import { Button } from './ui/button';
+import { AttrInput } from './AttrInput';
 import { Input } from './ui/field';
 
 /**
@@ -150,11 +151,7 @@ export function NewDmsCasePage({
                   prefix={numberPrefix(domainCode, new Date().getFullYear())}
                 />
               ) : (
-                <Input
-                  name={c.key}
-                  maxLength={2000}
-                  placeholder={c.tick ? 'Gõ x nếu có' : undefined}
-                />
+                <AttrInput name={c.key} tick={c.tick} />
               )}
             </label>
           ))}
