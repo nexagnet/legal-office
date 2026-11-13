@@ -1,4 +1,5 @@
 import type { DmsFilter } from './dms';
+import { colsToParam, parseCols, type ColFilters } from './dms-col-filters';
 
 /** Phần thuần (không đụng máy chủ) của bộ lọc danh sách DMS: dùng được cả ở thành phần chạy trên trình duyệt. */
 
@@ -42,6 +43,8 @@ export interface DmsView {
   /** Bộ lọc nghiệp vụ (0126): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   readonly fa?: string;
   readonly fb?: string;
+  /** Lọc theo cột (migration 0131): khóa ô sổ -> bộ lọc; trên URL là `cl` (JSON). */
+  readonly cols?: ColFilters;
   /** Khoảng ngày giờ tự chọn (`YYYY-MM-DDTHH:mm`, giờ Việt Nam). */
   readonly tu?: string;
   readonly den?: string;
@@ -68,6 +71,7 @@ export function parseExtraView(sp: Readonly<Record<string, string | string[] | u
   ky?: string;
   fa?: string;
   fb?: string;
+  cols: ColFilters;
 } {
   const raw = sp.thv === undefined ? [] : Array.isArray(sp.thv) ? sp.thv : sp.thv.split(',');
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -85,6 +89,7 @@ export function parseExtraView(sp: Readonly<Record<string, string | string[] | u
     ky: ky || undefined,
     fa: text(sp.fa),
     fb: text(sp.fb),
+    cols: parseCols(sp.cl),
   };
 }
 
@@ -109,6 +114,7 @@ export function viewToQuery(
   if (v.overdue !== undefined) put('qh', v.overdue ? '1' : '0');
   put('fa', v.fa);
   put('fb', v.fb);
+  if (!drop.has('cl')) put('cl', colsToParam(v.cols));
   if (v.ky) put('ky', v.ky);
   else {
     put('tu', v.tu);
@@ -145,6 +151,8 @@ export function viewToSavedParams(v: DmsView): DmsSavedParams {
   if (v.overdue !== undefined) out.overdue = String(v.overdue);
   if (v.fa) out.fa = v.fa;
   if (v.fb) out.fb = v.fb;
+  const cols = colsToParam(v.cols);
+  if (cols) out.cols = cols;
   if (v.ky) out.ky = v.ky;
   else {
     if (v.tu) out.tu = v.tu;
@@ -182,6 +190,7 @@ export function savedParamsToHref(base: string, p: DmsSavedParams): string {
     overdue: asBool(p.overdue),
     fa: typeof p.fa === 'string' ? p.fa : undefined,
     fb: typeof p.fb === 'string' ? p.fb : undefined,
+    cols: typeof p.cols === 'string' ? parseCols(p.cols) : undefined,
     ky: asText(p.ky),
     tu: asText(p.tu),
     den: asText(p.den),
