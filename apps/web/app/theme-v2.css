@@ -3711,3 +3711,129 @@ td mark {
     margin-left: 0;
   }
 }
+
+/* Báo cáo tổng hợp: nhóm chỉ tiêu, số liệu to, so với năm trước */
+.bao-cao-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.year-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: #eceff4;
+  border-radius: 999px;
+}
+.year-stepper strong {
+  min-width: 84px;
+  font-size: 13px;
+  text-align: center;
+}
+.year-stepper a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+  background: #fff;
+  border-radius: 999px;
+}
+.bao-cao-mau {
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  min-height: 31px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.bao-cao .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.bao-cao-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.bao-cao-group th {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: left;
+  background: var(--accent-soft);
+}
+.bao-cao [data-trend='1'] {
+  color: var(--ok);
+}
+.bao-cao [data-trend='-1'] {
+  color: var(--danger);
+}
+.avail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.avail::before {
+  width: 8px;
+  height: 8px;
+  content: '';
+  background: var(--warn-ink);
+  border-radius: 50%;
+}
+.avail[data-avail='ok']::before {
+  background: var(--ok);
+}
+.avail[data-avail='none']::before {
+  background: #b8c0cc;
+}
+.copy-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 0;
+  border-radius: 8px;
+}
+.copy-value:hover {
+  background: #dbe6f6;
+}
+.bao-cao-note {
+  margin-top: 14px;
+  font-size: 12px;
+}
+.bao-cao-branches {
+  margin: 0 0 14px;
+}
+.bao-cao-export {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.year-stepper a[aria-current='page'] {
+  color: var(--accent);
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+}
+.year-stepper a:not(:has(svg)) {
+  width: auto;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+}
