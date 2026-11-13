@@ -27,7 +27,7 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
 ```
 
 - Node 22, pnpm 9.15.4, NestJS (`apps/api`), Next.js 15 (`apps/web`), Postgres 17 SQL thuần.
-- Migration: `apps/api/drizzle/NNNN_*.sql`, đánh số liên tiếp, tương thích ngược; mới nhất lúc viết là **0126**. **Kiểm `main` trước khi chọn số.**
+- Migration: `apps/api/drizzle/NNNN_*.sql`, đánh số liên tiếp, tương thích ngược; mới nhất lúc viết là **0129**. **Kiểm `main` trước khi chọn số.**
 - `docs/` không bị prettier kiểm; `README.md` và `AGENTS.md` thì có.
 
 ## Production (tóm tắt; chi tiết `docs/handover/03-ha-tang-production.md`)
