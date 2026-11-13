@@ -18,7 +18,7 @@ const withDb = (url: string, db: string) => {
   return u.toString();
 };
 
-describe.skipIf(!ADMIN_URL)('DMS lọc theo cột (0130, PostgreSQL)', () => {
+describe.skipIf(!ADMIN_URL)('DMS lọc theo cột (0131, PostgreSQL)', () => {
   const admin = new pg.Pool({ connectionString: ADMIN_URL, max: 1 });
   let owner: pg.Pool;
   let app: pg.Pool;

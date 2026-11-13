@@ -46,8 +46,9 @@ BEGIN
          CASE c.domain
            WHEN 'tongdat' THEN btrim(coalesce(ce.attributes->>'ngay_tong_dat', '')) = ''
            WHEN 'xacminh' THEN btrim(coalesce(c.attributes->>'ket_qua_xac_minh', '')) = ''
-           WHEN 'tochuc' THEN NOT EXISTS (SELECT 1 FROM dms_documents x WHERE x.tenant_id = c.tenant_id AND x.case_id = c.id
-                                            AND x.status <> 'CANCELLED' AND x.kind ILIKE '%N-08%')
+           WHEN 'tochuc' THEN NOT coalesce((SELECT r.returned FROM dms_case_returned r WHERE r.tenant_id = c.tenant_id AND r.case_id = c.id), false)
+                              AND NOT EXISTS (SELECT 1 FROM dms_documents x WHERE x.tenant_id = c.tenant_id AND x.case_id = c.id
+                                                AND x.status <> 'CANCELLED' AND x.kind ILIKE '%N-08%')
            ELSE false
          END,
          -- Bộ lọc nghiệp vụ (0126): giá trị thô của hồ sơ, dùng cho ô chọn có đếm. Rỗng = NULL.
@@ -67,7 +68,7 @@ BEGIN
          CASE WHEN c.domain = 'tongdat' AND c.status = 'RECORDED' AND dms_parse_vn_date(ce.attributes->>'ngay_tong_dat') IS NOT NULL
               THEN of_working_due(c.tenant_id, c.office_id,
                      dms_parse_vn_date(ce.attributes->>'ngay_tong_dat')::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh', 2) END,
-         -- Lọc theo cột (0130): giá trị gốc từng thuộc tính sổ (tối đa 300 ký tự) + `stt` = số hồ sơ.
+         -- Lọc theo cột (0131): giá trị gốc từng thuộc tính sổ (tối đa 300 ký tự) + `stt` = số hồ sơ.
          coalesce((SELECT jsonb_object_agg(e.key, left(btrim(e.value), 300)) FROM jsonb_each_text(ce.attributes) e WHERE btrim(e.value) <> ''), '{}'::jsonb)
            || CASE WHEN c.case_number IS NULL THEN '{}'::jsonb ELSE jsonb_build_object('stt', c.case_number) END
   ON CONFLICT (case_id) DO UPDATE SET
@@ -130,7 +131,7 @@ BEGIN
     IF jsonb_typeof(p_extra->'fb') = 'string' AND p_skip IS DISTINCT FROM 'fb' THEN
       w := w || format(' AND ci.facet_b = %L', p_extra->>'fb');
     END IF;
-    -- Lọc theo cột (0130): {"<khoá cột>": {"c": "chữ chứa"} | {"in": [giá trị gốc]} | {"d": {"from": "YYYY-MM-DD", "to": "YYYY-MM-DD"}} | {"b": true|false}}.
+    -- Lọc theo cột (0131): {"<khoá cột>": {"c": "chữ chứa"} | {"in": [giá trị gốc]} | {"d": {"from": "YYYY-MM-DD", "to": "YYYY-MM-DD"}} | {"b": true|false}}.
     -- Khoá chỉ [a-z0-9_] (API còn đối chiếu danh sách cột của sổ); chữ chứa đã bỏ dấu, chỉ [a-z0-9/.-] nên không chèn được ký tự đại diện LIKE.
     IF jsonb_typeof(p_extra->'cols') = 'object' THEN
       FOR ck, cv IN SELECT * FROM jsonb_each(p_extra->'cols') LOOP

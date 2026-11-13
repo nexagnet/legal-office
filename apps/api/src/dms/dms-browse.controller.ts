@@ -32,7 +32,7 @@ const isoDate = z
   .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/));
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 /**
- * Lọc theo cột (0130): tham số `cols` là JSON `{"<khoá cột>": {"c": "chữ chứa"} | {"in": [giá trị]} | {"d": {"from","to"}} | {"b": true|false}}`.
+ * Lọc theo cột (0131): tham số `cols` là JSON `{"<khoá cột>": {"c": "chữ chứa"} | {"in": [giá trị]} | {"d": {"from","to"}} | {"b": true|false}}`.
  * Khoá chỉ [a-z0-9_] (DB đối chiếu lại và dựng SQL bằng %L); tối đa 12 cột, 50 giá trị chọn.
  */
 const colKey = z.string().regex(/^[a-z0-9_]{1,40}$/);
@@ -84,7 +84,7 @@ const filterShape = {
   /** Bộ lọc nghiệp vụ (0126): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   fa: z.string().min(1).max(200).optional(),
   fb: z.string().min(1).max(200).optional(),
-  /** Lọc theo cột (0130), xem `colsParam`. */
+  /** Lọc theo cột (0131), xem `colsParam`. */
   cols: colsParam.optional(),
 };
 
@@ -326,7 +326,7 @@ export class DmsBrowseController {
     return new StreamableFile(buf);
   }
 
-  /** Giá trị có đếm (tối đa 50) của một cột sổ cho ô "chọn nhiều"; tính trên bộ lọc hiện hành trừ chính cột đó (0130). */
+  /** Giá trị có đếm (tối đa 50) của một cột sổ cho ô "chọn nhiều"; tính trên bộ lọc hiện hành trừ chính cột đó (0131). */
   @Get('case-col-values')
   async colValues(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
     const q = parse(
