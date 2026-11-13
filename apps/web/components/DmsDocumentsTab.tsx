@@ -6,7 +6,7 @@ import { cn } from '../lib/cn';
 import { OTHER_KIND } from '../lib/dms-other-kind';
 import { FileActions, UploadButton, type CompareFile } from './DmsFileActions';
 import { ocrApplies, ocrIsActive } from '../lib/ocr-progress';
-import { OcrProgress } from './OcrProgress';
+import { OcrFileRow } from './OcrProgress';
 
 const dayMonth = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
@@ -52,9 +52,34 @@ function olderOf(f: DmsFileRow, list: readonly DmsFileRow[]): CompareFile | null
   return prev ? toCompare(prev) : null;
 }
 
-function ocrChip(f: DmsFileRow, canRetry: boolean): ReactNode {
-  return ocrApplies(f.mime) ? (
-    <OcrProgress
+function RowBody({
+  f,
+  canRetry,
+  title,
+  chips,
+  actions,
+}: {
+  readonly f: DmsFileRow;
+  readonly canRetry: boolean;
+  readonly title: ReactNode;
+  readonly chips: ReactNode;
+  readonly actions: ReactNode;
+}) {
+  if (!ocrApplies(f.mime)) {
+    return (
+      <>
+        <div className="min-w-0 flex-1">
+          {title}
+          <p className="m-0 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+            {chips}
+          </p>
+        </div>
+        {actions}
+      </>
+    );
+  }
+  return (
+    <OcrFileRow
       fileId={f.id}
       canRetry={canRetry}
       initial={{
@@ -62,8 +87,11 @@ function ocrChip(f: DmsFileRow, canRetry: boolean): ReactNode {
         done: f.ocr_pages_done ?? null,
         total: f.ocr_pages_total ?? null,
       }}
+      title={title}
+      chips={chips}
+      actions={actions}
     />
-  ) : null;
+  );
 }
 
 /**
@@ -184,32 +212,37 @@ export function DmsDocumentsTab({
                           <FileText size={18} />
                         )}
                       </span>
-                      <div className="min-w-0 flex-1">
-                        <Link
-                          href={`${base}?tab=tai-lieu&file=${f.id}`}
-                          aria-current={selected ? 'true' : undefined}
-                          title={f.label}
-                          className="block truncate text-sm font-semibold text-ink no-underline after:absolute after:inset-0 after:content-['']"
-                        >
-                          {f.label}
-                        </Link>
-                        <p className="m-0 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-                          <span>
-                            {sizeLabel(f.size_bytes)} · v{f.version} ·{' '}
-                            {dateFmt.format(new Date(f.created_at))}
-                          </span>
-                          <span
-                            className={cn(
-                              'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                              f.is_scan ? 'bg-accent-soft text-accent' : 'bg-head text-muted',
-                            )}
+                      <RowBody
+                        f={f}
+                        canRetry={canUpload}
+                        title={
+                          <Link
+                            href={`${base}?tab=tai-lieu&file=${f.id}`}
+                            aria-current={selected ? 'true' : undefined}
+                            title={f.label}
+                            className="block truncate text-sm font-semibold text-ink no-underline after:absolute after:inset-0 after:content-['']"
                           >
-                            {isMain ? 'Bản scan chính' : f.is_scan ? 'Bản scan' : 'Bổ sung'}
-                          </span>
-                          {ocrChip(f, canUpload)}
-                        </p>
-                      </div>
-                      {actionsFor(f, g, 'row')}
+                            {f.label}
+                          </Link>
+                        }
+                        chips={
+                          <>
+                            <span>
+                              {sizeLabel(f.size_bytes)} · v{f.version} ·{' '}
+                              {dateFmt.format(new Date(f.created_at))}
+                            </span>
+                            <span
+                              className={cn(
+                                'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                                f.is_scan ? 'bg-accent-soft text-accent' : 'bg-head text-muted',
+                              )}
+                            >
+                              {isMain ? 'Bản scan chính' : f.is_scan ? 'Bản scan' : 'Bổ sung'}
+                            </span>
+                          </>
+                        }
+                        actions={actionsFor(f, g, 'row')}
+                      />
                     </div>
                   );
                 })
