@@ -6,7 +6,8 @@ import { cn } from '../../lib/cn';
 
 /** Chỉ hiện thanh công cụ khi bảng đủ rộng để người dùng cần ẩn bớt cột. */
 const TOOLBAR_MIN_COLUMNS = 5;
-const STORE_PREFIX = 'lo-table:';
+/** v2: bỏ lựa chọn cũ (chỉ số cột lệch ở bảng có tiêu đề nhóm) để mặc định mới (ẩn SĐT khách hàng) có hiệu lực. */
+const STORE_PREFIX = 'lo-table:v2:';
 
 interface Prefs {
   readonly hidden: readonly number[];
