@@ -2,6 +2,7 @@ import { DataTable } from '../../../../components/ui/data-table';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
+import { OcrProgress, ocrApplies } from '../../../../components/OcrProgress';
 import { DeleteScanButton } from '../../../../components/DeleteScanButton';
 import { DmsAdminEdit } from '../../../../components/DmsAdminEdit';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
@@ -492,6 +493,18 @@ export default async function DmsCasePage({
                         chip={f.is_scan ? 'Bản scan' : 'Bổ sung'}
                         chipTone={f.is_scan ? 'main' : 'plain'}
                         current={preview?.id === f.id}
+                        extra={
+                          ocrApplies(f.mime) ? (
+                            <OcrProgress
+                              fileId={f.id}
+                              initial={{
+                                status: f.ocr_status ?? null,
+                                done: f.ocr_pages_done ?? null,
+                                total: f.ocr_pages_total ?? null,
+                              }}
+                            />
+                          ) : undefined
+                        }
                         actions={
                           <>
                             <Button asChild variant="secondary">

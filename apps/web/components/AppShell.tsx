@@ -73,6 +73,20 @@ const SUBPAGE_HEAD: Record<string, { title: string; sub: string }> = {
     title: 'Mọi hồ sơ của văn phòng',
     sub: 'Hồ sơ của cả văn phòng, trong phạm vi quyền của bạn.',
   },
+  '/dms/thv': {
+    title: 'Hồ sơ nháp chờ tôi lưu',
+    sub: 'Bản nháp ghi tên bạn, chờ bạn xác nhận.',
+  },
+  '/dms/lich-su': { title: 'Lịch sử hoạt động', sub: 'Ai làm gì, lúc nào. Chỉ Admin xem.' },
+  '/quan-tri/lich-su': { title: 'Lịch sử hoạt động', sub: 'Ai làm gì, lúc nào. Chỉ Admin xem.' },
+  '/dms/scan-da-xoa': {
+    title: 'Scan đã xóa',
+    sub: 'Scan đã xóa trong 30 ngày qua; chỉ Admin xem và tải.',
+  },
+  '/quan-tri/scan-da-xoa': {
+    title: 'Scan đã xóa',
+    sub: 'Scan đã xóa trong 30 ngày qua; chỉ Admin xem và tải.',
+  },
   '/dms/xac-minh': {
     title: 'Xác minh THA',
     sub: 'Hồ sơ xác minh điều kiện thi hành án (Sổ S-04).',
@@ -313,7 +327,17 @@ const GROUPS: readonly { group: NavItem['group']; title: string }[] = [
 /** Ba sổ Văn thư dùng chung một mục menu: Văn bản đi / nội bộ cũng sáng mục Văn thư (menu chỉ trỏ vào Văn bản đến). */
 const VAN_THU_PATH = /^\/dms\/van-ban-(di|noi-bo)(\/|$)/;
 
+/** Trang đã gộp vào mục khác: sáng đúng mục chứa nó (Hồ sơ, Trình / Duyệt, Quản trị). */
+const MERGED_PATHS: readonly (readonly [RegExp, string])[] = [
+  [/^\/dms\/van-phong(\/|$)/, 'dms'],
+  [/^\/dms\/thv(\/|$)/, 'dms-trinh-duyet'],
+  [/^\/dms\/(lich-su|scan-da-xoa)(\/|$)/, 'quan-tri'],
+];
+
 function currentItem(items: readonly NavItem[], pathname: string): NavItem | undefined {
+  for (const [re, slug] of MERGED_PATHS) {
+    if (re.test(pathname)) return items.find((i) => i.slug === slug);
+  }
   if (VAN_THU_PATH.test(pathname)) {
     const vanThu = items.find((i) => i.slug === 'dms-van-thu');
     if (vanThu) return vanThu;
