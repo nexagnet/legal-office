@@ -4,29 +4,29 @@ ALTER TABLE dms_ocr_results ADD COLUMN pages_done integer;
 ALTER TABLE dms_ocr_results ADD COLUMN pages_total integer;
 
 -- Vá hàm hiện hành (cùng cách vá ở 0105): thay đúng đoạn, báo lỗi nếu không khớp thay vì âm thầm bỏ sót.
-CREATE FUNCTION dms_tmp_patch_0123(p_name text, p_old text, p_new text) RETURNS void LANGUAGE plpgsql AS $$
+CREATE FUNCTION dms_tmp_patch_0124(p_name text, p_old text, p_new text) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE r record; def text; patched text; n integer := 0;
 BEGIN
   FOR r IN SELECT p.oid FROM pg_proc p JOIN pg_namespace ns ON ns.oid = p.pronamespace
             WHERE ns.nspname = current_schema() AND p.proname = p_name AND p.prokind = 'f' LOOP
     def := pg_get_functiondef(r.oid);
     patched := replace(def, p_old, p_new);
-    IF patched = def THEN RAISE EXCEPTION '0123: % không có gì để vá (%)', p_name, p_old; END IF;
+    IF patched = def THEN RAISE EXCEPTION '0124: % không có gì để vá (%)', p_name, p_old; END IF;
     EXECUTE patched;
     n := n + 1;
   END LOOP;
-  IF n = 0 THEN RAISE EXCEPTION '0123: không tìm thấy hàm %', p_name; END IF;
+  IF n = 0 THEN RAISE EXCEPTION '0124: không tìm thấy hàm %', p_name; END IF;
 END $$;
 
 -- Mỗi lần nhận việc (kể cả thử lại) bắt đầu lại từ 0 trang; tổng trang chưa biết cho tới khi worker đếm xong.
-SELECT dms_tmp_patch_0123('dms_ocr_claim',
+SELECT dms_tmp_patch_0124('dms_ocr_claim',
   'claimed_at = now(), attempts = r.attempts + 1, error = NULL',
   'claimed_at = now(), attempts = r.attempts + 1, error = NULL, pages_done = 0, pages_total = NULL');
 -- Xong: đủ số trang.
-SELECT dms_tmp_patch_0123('dms_ocr_complete',
+SELECT dms_tmp_patch_0124('dms_ocr_complete',
   'page_count = p_pages,',
   'page_count = p_pages, pages_done = p_pages, pages_total = p_pages,');
-DROP FUNCTION dms_tmp_patch_0123(text, text, text);
+DROP FUNCTION dms_tmp_patch_0124(text, text, text);
 
 -- Worker báo tiến độ (chỉ khi dòng đang RUNNING). Số trang bị kẹp để done <= total, không bao giờ âm.
 CREATE FUNCTION dms_ocr_progress(p_tenant uuid, p_id uuid, p_done integer, p_total integer)
