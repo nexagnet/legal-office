@@ -42,7 +42,7 @@ const groups: DocGroup[] = [
     files: [file('f2', 'bien-ban.pdf', 1), file('f3', 'bien-ban.pdf', 2)],
   },
 ];
-const base = { caseId: 'c1', base: '/dms/vi-bang/c1', canUpload: true, canAddScan: true };
+const base = { caseId: 'c1', base: '/dms/vi-bang/c1', canUpload: true };
 
 describe('Tab Tài liệu (thiết kế mới)', () => {
   it('nhãn nhóm không lặp chữ', () => {
@@ -98,15 +98,7 @@ describe('Tab Tài liệu (thiết kế mới)', () => {
   });
 
   it('không có quyền tải lên thì ẩn nút Tải lên', () => {
-    render(
-      <DmsDocumentsTab
-        {...base}
-        canUpload={false}
-        canAddScan={false}
-        groups={groups}
-        canDeleteScan={false}
-      />,
-    );
+    render(<DmsDocumentsTab {...base} canUpload={false} groups={groups} canDeleteScan={false} />);
     expect(screen.queryByRole('button', { name: /^Tải lên$/ })).toBeNull();
   });
 });
@@ -122,15 +114,7 @@ describe('Hộp thoại Tải lên', () => {
       return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
     });
     const onOpenChange = vi.fn();
-    render(
-      <UploadDialog
-        caseId="c1"
-        targets={[{ id: 'd1', label: 'Vi bằng' }]}
-        allowOther
-        open
-        onOpenChange={onOpenChange}
-      />,
-    );
+    render(<UploadDialog caseId="c1" open onOpenChange={onOpenChange} />);
     const input = screen.getByLabelText('Chọn tệp') as HTMLInputElement;
     fireEvent.change(input, {
       target: { files: [new File(['x'], 'a.pdf', { type: 'application/pdf' })] },
@@ -142,29 +126,11 @@ describe('Hộp thoại Tải lên', () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it('chọn tài liệu có sẵn và bỏ tick bản scan', async () => {
-    const calls: string[] = [];
-    vi.spyOn(globalThis, 'fetch').mockImplementation((url) => {
-      calls.push(String(url));
-      return Promise.resolve(new Response('{}', { status: 200 }));
-    });
-    render(
-      <UploadDialog
-        caseId="c1"
-        targets={[{ id: 'd1', label: 'Vi bằng' }]}
-        allowOther
-        open
-        onOpenChange={() => undefined}
-      />,
-    );
-    fireEvent.change(screen.getByLabelText('Gắn vào tài liệu'), { target: { value: 'd1' } });
-    fireEvent.click(screen.getByLabelText(/Đây là bản scan/));
-    fireEvent.change(screen.getByLabelText('Chọn tệp'), {
-      target: { files: [new File(['x'], 'b.jpg', { type: 'image/jpeg' })] },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Tải lên 1 tệp' }));
-    await waitFor(() => expect(calls).toHaveLength(1));
-    expect(calls[0]).toMatch(/documents\/d1\/files\?label=b\.jpg&isScan=false/);
+  it('hộp thoại không hỏi loại, nhóm hay bản scan: chỉ chọn tệp rồi tải', () => {
+    render(<UploadDialog caseId="c1" open onOpenChange={() => undefined} />);
+    expect(screen.queryByLabelText('Gắn vào tài liệu')).toBeNull();
+    expect(screen.queryByLabelText(/Đây là bản scan/)).toBeNull();
+    expect(screen.queryByLabelText(/Loại tài liệu/)).toBeNull();
   });
 
   it('đổi tên tệp ngay trong hộp thoại thì gửi tên mới', async () => {
@@ -174,11 +140,7 @@ describe('Hộp thoại Tải lên', () => {
       const body = String(url).includes('/other-document') ? { label: 'doc-9' } : {};
       return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
     });
-    render(
-      <UploadDialog caseId="c1" targets={[]} allowOther open onOpenChange={() => undefined} />,
-    );
-    // Chỉ có "Tài liệu khác" thì không cần ô chọn "Gắn vào tài liệu".
-    expect(screen.queryByLabelText('Gắn vào tài liệu')).toBeNull();
+    render(<UploadDialog caseId="c1" open onOpenChange={() => undefined} />);
     fireEvent.change(screen.getByLabelText('Chọn tệp'), {
       target: { files: [new File(['x'], 'scan-001.pdf', { type: 'application/pdf' })] },
     });
@@ -191,9 +153,7 @@ describe('Hộp thoại Tải lên', () => {
   });
 
   it('chưa chọn tệp thì báo lỗi', () => {
-    render(
-      <UploadDialog caseId="c1" targets={[]} allowOther open onOpenChange={() => undefined} />,
-    );
+    render(<UploadDialog caseId="c1" open onOpenChange={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên' }));
     expect(screen.getByRole('alert').textContent).toContain('ít nhất một tệp');
   });

@@ -40,7 +40,6 @@ export interface DmsCaseSearchParams {
   readonly year: number;
   readonly q?: string;
   readonly creator?: string;
-  readonly kind?: string;
   readonly branch?: string;
   /** Khoảng ngày giờ ghi sổ (ISO): `from` tính cả mốc, `to` không tính mốc. Có một trong hai thì bỏ lọc theo năm. */
   readonly from?: string;
@@ -75,7 +74,6 @@ function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
   const text = (p.q ?? '').trim();
   if (text) q.set('q', text);
   if (p.creator) q.set('creator', p.creator);
-  if (p.kind) q.set('kind', p.kind);
   if (p.branch) q.set('branch', p.branch);
   if (p.thv && p.thv.length > 0) q.set('thv', p.thv.join(','));
   if (p.open !== undefined) q.set('open', String(p.open));
@@ -177,7 +175,6 @@ export async function countDmsCases(
 const NO_FACETS: DmsFacetCounts = {
   creator: [],
   branch: [],
-  kind: [],
   thv: [],
   fa: [],
   fb: [],
@@ -195,7 +192,6 @@ export interface DmsFacetOption {
 export interface DmsFacetCounts {
   readonly creator: readonly DmsFacetOption[];
   readonly branch: readonly DmsFacetOption[];
-  readonly kind: readonly DmsFacetOption[];
   /** Thừa hành viên có hồ sơ trong phạm vi xem; `value` rỗng = chưa chọn (không lọc được). */
   readonly thv: readonly DmsFacetOption[];
   /** Giá trị bộ lọc nghiệp vụ (0126) kèm số hồ sơ. */
@@ -221,7 +217,6 @@ export async function loadDmsFacetCounts(
   const empty: DmsFacetCounts = {
     creator: [],
     branch: [],
-    kind: [],
     thv: [],
     fa: [],
     fb: [],
@@ -235,7 +230,6 @@ export async function loadDmsFacetCounts(
     : {
         creator: body.creator ?? [],
         branch: body.branch ?? [],
-        kind: body.kind ?? [],
         thv: body.thv ?? [],
         fa: body.fa ?? [],
         fb: body.fb ?? [],
@@ -300,7 +294,6 @@ export async function loadDmsOcrFacets(
     : {
         creator: body.creator ?? [],
         branch: body.branch ?? [],
-        kind: body.kind ?? [],
         thv: body.thv ?? [],
         fa: body.fa ?? [],
         fb: body.fb ?? [],

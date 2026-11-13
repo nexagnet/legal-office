@@ -64,7 +64,6 @@ function selectOptions(list: readonly Option[], now?: string): ReactNode {
 export function otherFilterCount(v: DmsView, domain: string, recordedView: boolean): number {
   let n = 0;
   if (v.creator) n += 1;
-  if (v.kind) n += 1;
   if (v.branch) n += 1;
   if (recordedView) {
     if (v.filter === 'thieu-scan' || v.filter === 'du-scan') n += 1;
@@ -283,13 +282,6 @@ export function DmsFilterFields({
                   </select>
                 </label>
               ) : null}
-              <label className="dms-field">
-                <span>Loại tài liệu</span>
-                <select name="lt" defaultValue={view.kind ?? ''} className="dms-select">
-                  <option value="">Tất cả loại</option>
-                  {selectOptions(facets.kind, view.kind)}
-                </select>
-              </label>
             </div>
             <div>
               {recordedView && openLabel ? (
@@ -409,7 +401,7 @@ export function DmsActiveChips({
       text: `Đã trả kết quả: ${view.returned ? 'Đã trả' : 'Chưa trả'}`,
       href: without({ returned: undefined }),
     });
-  const labelOf = (list: DmsFacetCounts['kind'], v: string) =>
+  const labelOf = (list: DmsFacetCounts['branch'], v: string) =>
     list.find((o) => o.value === v)?.label ?? v;
   if (view.branch)
     chips.push({
@@ -435,8 +427,6 @@ export function DmsActiveChips({
       text: `${BUSINESS_FILTER[domain]!.fb}: ${view.fb}`,
       href: without({ fb: undefined }),
     });
-  if (view.kind)
-    chips.push({ key: 'lt', text: `Loại: ${view.kind}`, href: without({ kind: undefined }) });
   if (chips.length === 0) return null;
   const tab: DmsFilter =
     view.filter === 'nhap' || view.filter === 'da-huy' ? view.filter : 'chinh-thuc';

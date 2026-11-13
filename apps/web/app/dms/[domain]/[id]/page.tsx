@@ -433,7 +433,6 @@ export default async function DmsCasePage({
           base={base}
           previewId={sp.file}
           canUpload={canUpload}
-          canAddScan={c.status !== 'CANCELLED'}
           canDeleteScan={canDeleteScan}
           groups={docs.map((d, i) => ({
             id: d.id,

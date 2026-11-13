@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import type { DmsFileRow } from '../lib/dms';
 import { cn } from '../lib/cn';
 import { OTHER_KIND } from '../lib/dms-other-kind';
-import { FileActions, UploadButton, type CompareFile, type UploadTarget } from './DmsFileActions';
+import { FileActions, UploadButton, type CompareFile } from './DmsFileActions';
 import { ocrApplies, ocrIsActive } from '../lib/ocr-progress';
 import { OcrProgress } from './OcrProgress';
 
@@ -76,7 +76,6 @@ export function DmsDocumentsTab({
   groups,
   previewId,
   canUpload,
-  canAddScan,
   canDeleteScan,
 }: {
   readonly caseId: string;
@@ -85,29 +84,16 @@ export function DmsDocumentsTab({
   readonly previewId?: string;
   /** Được tải vào "Tài liệu khác" (không áp dụng cho hồ sơ hủy / Văn thư). */
   readonly canUpload: boolean;
-  /** Hồ sơ chưa hủy: được tải thêm scan cho tài liệu có sẵn. */
-  readonly canAddScan: boolean;
   readonly canDeleteScan: boolean;
 }) {
-  const real = groups.filter((g) => g.kind !== OTHER_KIND);
-  const targets: UploadTarget[] = canAddScan
-    ? real.map((g) => ({ id: g.id, label: groupLabel(g) }))
-    : [];
-  const canPickTarget = canUpload || targets.length > 0;
   const all = groups.flatMap((g) => g.files.map((f) => ({ f, g })));
   const current = all.find((x) => x.f.id === previewId) ?? all.find((x) => x.f.is_scan) ?? all[0];
   const fileCount = all.length;
   const shown = groups.filter((g) => g.files.length > 0 || g.adminEdit);
   const actionsFor = (f: DmsFileRow, g: DocGroup, variant: 'row' | 'preview') => {
-    const isOther = g.kind === OTHER_KIND;
     return (
       <FileActions
-        caseId={caseId}
         file={{ ...toCompare(f), isScan: f.is_scan }}
-        documentId={isOther ? 'other' : g.id}
-        targets={targets}
-        allowOther={canUpload}
-        canAddScan={isOther ? canUpload : canAddScan}
         canDelete={canDeleteScan && f.is_scan}
         older={olderOf(f, g.files)}
         variant={variant}
@@ -125,9 +111,7 @@ export function DmsDocumentsTab({
               {fileCount === 0 ? 'Chưa có tệp' : `${shown.length} nhóm · ${fileCount} tệp`}
             </p>
           </div>
-          {fileCount > 0 && canPickTarget ? (
-            <UploadButton caseId={caseId} targets={targets} allowOther={canUpload} />
-          ) : null}
+          {fileCount > 0 && canUpload ? <UploadButton caseId={caseId} /> : null}
         </div>
 
         {all.some(({ f }) => ocrApplies(f.mime) && ocrIsActive(f.ocr_status)) ? (
@@ -150,13 +134,11 @@ export function DmsDocumentsTab({
             </span>
             <h3 className="m-0 text-base font-semibold">Chưa có tài liệu nào</h3>
             <p className="m-0 max-w-xs text-sm text-muted">
-              {canPickTarget
+              {canUpload
                 ? 'Kéo thả tệp vào hộp thoại Tải lên. Hỗ trợ PDF, JPEG, PNG; không giới hạn số tệp.'
                 : 'Hồ sơ này chưa có tệp nào.'}
             </p>
-            {canPickTarget ? (
-              <UploadButton caseId={caseId} targets={targets} allowOther={canUpload} />
-            ) : null}
+            {canUpload ? <UploadButton caseId={caseId} /> : null}
           </div>
         ) : (
           shown.map((g) => (
@@ -224,7 +206,7 @@ export function DmsDocumentsTab({
                           >
                             {isMain ? 'Bản scan chính' : f.is_scan ? 'Bản scan' : 'Bổ sung'}
                           </span>
-                          {ocrChip(f, canUpload || canAddScan)}
+                          {ocrChip(f, canUpload)}
                         </p>
                       </div>
                       {actionsFor(f, g, 'row')}

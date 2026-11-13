@@ -71,7 +71,6 @@ export default async function DmsSearchPage({
     domain,
     year: Number.isInteger(year) && year >= 2000 && year <= 2100 ? year : undefined,
     creator: sp.nt || undefined,
-    kind: sp.lt || undefined,
     branch: sp.dv || undefined,
     offset: Math.min(MAX_OFFSET, (page - 1) * OCR_PAGE_SIZE),
   };
@@ -81,14 +80,13 @@ export default async function DmsSearchPage({
     q && officeId ? searchDmsCases(cookie, officeId, q, filters) : Promise.resolve(null),
     officeId
       ? loadDmsOcrFacets(cookie, officeId, domain)
-      : Promise.resolve({ creator: [], branch: [], kind: [], year: [] }),
+      : Promise.resolve({ creator: [], branch: [], year: [] }),
   ]);
   const pageHref = (n: number) => {
     const p = new URLSearchParams({ q });
     if (domain) p.set('domain', domain);
     if (filters.year) p.set('year', String(filters.year));
     if (filters.creator) p.set('nt', filters.creator);
-    if (filters.kind) p.set('lt', filters.kind);
     if (filters.branch) p.set('dv', filters.branch);
     if (n > 1) p.set('p', String(n));
     return `/dms/tim-kiem?${p}`;
@@ -129,13 +127,6 @@ export default async function DmsSearchPage({
           <select name="year" defaultValue={filters.year ?? ''} className={SELECT}>
             <option value="">Mọi năm</option>
             {options(facets.year, filters.year ? String(filters.year) : undefined)}
-          </select>
-        </label>
-        <label>
-          <span className="sr-only">Loại tài liệu</span>
-          <select name="lt" defaultValue={filters.kind ?? ''} className={SELECT}>
-            <option value="">Loại tài liệu</option>
-            {options(facets.kind, filters.kind)}
           </select>
         </label>
         <label>

@@ -32,7 +32,6 @@ describe('bộ lọc đã lưu', () => {
       year: 2025,
       q: ' trần ',
       creator: 'u1',
-      kind: 'Biên bản',
       branch: 'b1',
     };
     const saved = viewToSavedParams(view);
@@ -42,7 +41,6 @@ describe('bộ lọc đã lưu', () => {
       year: 2025,
       q: 'trần',
       creator: 'u1',
-      kind: 'Biên bản',
       branch: 'b1',
     });
     const href = savedParamsToHref('/dms/vi-bang', saved);
@@ -53,9 +51,14 @@ describe('bộ lọc đã lưu', () => {
       q: 'trần',
       year: '2025',
       nt: 'u1',
-      lt: 'Biên bản',
       dv: 'b1',
     });
+  });
+
+  it('bộ lọc đã lưu cũ có "kind" (Loại tài liệu đã bỏ) vẫn mở được, bỏ qua loại', () => {
+    expect(savedParamsToHref('/dms/x', { status: 'RECORDED', kind: 'Biên bản', q: 'a' })).toBe(
+      '/dms/x?q=a',
+    );
   });
 
   it('nháp, đã hủy và chính thức không năm; bộ lọc đã lưu kiểu "chờ duyệt" cũ mở về Chính thức', () => {
