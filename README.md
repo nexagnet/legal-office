@@ -5,6 +5,8 @@ Phần mềm quản lý văn phòng thừa hành viên, nhiều văn phòng (ten
 Công nghệ: TypeScript, NestJS (`apps/api`), Next.js + React (`apps/web`), PostgreSQL (SQL thuần, không ORM),
 pnpm workspaces.
 
+**Người mới hoặc AI mới: đọc [`AGENTS.md`](AGENTS.md) và [`docs/handover/`](docs/handover/README.md) trước** (bàn giao toàn bộ kiến thức dự án, cập nhật 13/11/2026).
+
 ## Cấu trúc
 
 - `apps/api`: API NestJS. Nghiệp vụ nằm trong hàm PostgreSQL; schema và migration ở `apps/api/drizzle/*.sql`
