@@ -5,7 +5,7 @@ import { ErrorRetry } from '../../../components/ErrorRetry';
 import { CopyValueButton } from '../../../components/CopyValueButton';
 import { ReportExport } from '../../../components/ReportExport';
 import { TabNav } from '../../../components/ui/tab-nav';
-import { loadDmsReport, type DmsReportRow } from '../../../lib/dms';
+import { loadDmsReport, loadThvOptions, type DmsReportRow } from '../../../lib/dms';
 import { currentSession, requestCookie } from '../../../lib/server';
 
 export const dynamic = 'force-dynamic';
@@ -31,7 +31,7 @@ const byDomain = (rows: readonly DmsReportRow[], code: string) =>
   rows.find((r) => r.domain === code);
 
 /** Chỉ tiêu N-09 (kết quả tổ chức và hoạt động). Chỉ điền phần đếm được từ hồ sơ đã lưu chính thức; tiền và doanh thu thuộc kế toán (MISA). */
-function n09(rows: readonly DmsReportRow[]): Indicator[] {
+function n09(rows: readonly DmsReportRow[], thvCount: number): Indicator[] {
   return [
     {
       group: 'Tống đạt',
@@ -78,9 +78,9 @@ function n09(rows: readonly DmsReportRow[]): Indicator[] {
     {
       group: 'Nhân sự',
       label: 'Số lượng Thừa hành viên',
-      value: null,
+      value: thvCount > 0 ? thvCount : null,
       avail: 'partial',
-      source: 'Từ danh sách Thừa hành viên trong Quản trị',
+      source: 'Người có vai THV hoặc Thẻ THV còn hiệu lực trong Quản trị, tại thời điểm xem',
     },
   ];
 }
@@ -174,12 +174,14 @@ export default async function DmsReportPage({
   const cookie = await requestCookie();
   const officeBranches = session.branches.filter((b) => b.officeId === officeId);
   const branch = officeBranches.find((b) => b.id === sp.branch)?.id;
+  const [thv] = await Promise.all([loadThvOptions(cookie)]);
+  const thvCount = thv.filter((t) => !t.officeId || t.officeId === officeId).length;
   const [rows, prevRows] = await Promise.all([
     loadDmsReport(cookie, officeId, year, branch, firstHalf),
     loadDmsReport(cookie, officeId, year - 1, branch, firstHalf),
   ]);
   const list = (r: DmsReportRow[] | 'error') =>
-    r === 'error' ? [] : bc === 'n10' ? n10(r) : n09(r);
+    r === 'error' ? [] : bc === 'n10' ? n10(r) : n09(r, thvCount);
   const indicators = list(rows);
   const prevIndicators = list(prevRows);
   const code = bc === 'n10' ? 'N-10' : 'N-09';
@@ -237,7 +239,10 @@ export default async function DmsReportPage({
                 </Link>
               </nav>
             ) : null}
-            <Link className="bao-cao-mau" href={`/dms/bao-cao/mau?year=${year}`}>
+            <Link
+              className="bao-cao-mau"
+              href={`/dms/bao-cao/mau?year=${year}${branch ? `&branch=${branch}` : ''}${firstHalf ? '&half=1' : ''}`}
+            >
               Mẫu Phụ lục III
             </Link>
           </div>
@@ -340,8 +345,8 @@ export default async function DmsReportPage({
       )}
       <p className="muted bao-cao-note">
         Số tham khảo để tự điền mẫu TP-THV-{code}; kỳ 6 tháng 01/01–30/06 hoặc 12 tháng 01/01–31/12
-        (Điều 36 TT 08/2026/TT-BTP). Hệ thống không lập hay gửi báo cáo; báo cáo đã gửi đăng ký vào
-        Sổ văn bản đi kèm bản scan.
+        (Điều 36 TT 08/2026/TT-BTP). Hệ thống không lập hay gửi báo cáo; báo cáo đã gửi thì{' '}
+        <Link href="/dms/van-ban-di/tao-moi">đăng ký vào Sổ văn bản đi</Link> kèm bản scan.
       </p>
     </section>
   );

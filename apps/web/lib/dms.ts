@@ -357,6 +357,7 @@ export function headerGroups(
 
 export interface DmsThvOption {
   readonly userId: string;
+  readonly officeId?: string;
   readonly label: string;
 }
 
