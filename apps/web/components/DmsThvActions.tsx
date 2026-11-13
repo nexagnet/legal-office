@@ -24,23 +24,12 @@ async function send(method: string, url: string, body?: unknown): Promise<string
 /** Khóa của cột "Thừa hành viên thực hiện" trong cả 4 sổ (S-01, S-02, S-04, S-05). */
 const THV_TEXT_KEY = 'thua_hanh_vien';
 
-/** Nơi ghi chữ THV: thuộc tính của hồ sơ (S-02/04/05) hoặc của từng giấy tờ nháp (S-01 Tống đạt). */
-export type DmsThvTextTarget =
-  | {
-      readonly kind: 'case';
-      readonly title: string;
-      readonly attributes: Record<string, unknown>;
-    }
-  | {
-      readonly kind: 'documents';
-      readonly docs: readonly {
-        readonly id: string;
-        readonly kind: string;
-        readonly title: string;
-        readonly isOfficial: boolean;
-        readonly attributes: Record<string, unknown>;
-      }[];
-    };
+/** Nơi ghi chữ THV: thuộc tính của hồ sơ (cả 4 sổ, từ 13/11/2026 kể cả Tống đạt). */
+export interface DmsThvTextTarget {
+  readonly kind: 'case';
+  readonly title: string;
+  readonly attributes: Record<string, unknown>;
+}
 
 /**
  * Ghi tên thừa hành viên trên BẢN NHÁP. Ghi tên chưa đủ: chính THV đó phải tự xác nhận trước khi ghi sổ.
@@ -82,22 +71,10 @@ export function DmsThvPicker({
       thvUserId: v === '' ? null : v,
     });
     if (!err && target && next !== text.trim()) {
-      if (target.kind === 'case') {
-        err = await send('PUT', `/api/dms/cases/${caseId}/draft`, {
-          title: target.title,
-          attributes: { ...target.attributes, [THV_TEXT_KEY]: next },
-        });
-      } else {
-        for (const d of target.docs) {
-          err = await send('PUT', `/api/dms/documents/${d.id}/draft`, {
-            kind: d.kind,
-            title: d.title,
-            isOfficial: d.isOfficial,
-            attributes: { ...d.attributes, [THV_TEXT_KEY]: next },
-          });
-          if (err) break;
-        }
-      }
+      err = await send('PUT', `/api/dms/cases/${caseId}/draft`, {
+        title: target.title,
+        attributes: { ...target.attributes, [THV_TEXT_KEY]: next },
+      });
     }
     setError(err);
     setBusy(false);
@@ -136,13 +113,6 @@ export function DmsThvPicker({
         <span className="chip" data-tone={confirmed ? 'ok' : 'warn'}>
           {confirmed ? 'THV đã xác nhận' : 'Chờ THV xác nhận'}
         </span>
-      ) : null}
-      {target?.kind === 'documents' ? (
-        <p className="thv-picker-hint">
-          {target.docs.length === 0
-            ? 'Chưa có giấy tờ nào: thêm giấy tờ rồi mới ghi được chữ THV vào sổ.'
-            : `Chữ này áp dụng cho ${target.docs.length} giấy tờ nháp; từng giấy tờ vẫn sửa riêng được.`}
-        </p>
       ) : null}
       {error ? <p role="alert">{error}</p> : null}
     </form>

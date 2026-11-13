@@ -1,11 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  AddS01DocumentForm,
-  DmsMultiUpload,
-  uploadUnclassified,
-} from '../components/DmsCaseActions';
+import { DmsMultiUpload, uploadUnclassified } from '../components/DmsCaseActions';
 import { DmsCaseExtrasForm } from '../components/DmsCaseExtrasForm';
 
 const refresh = vi.fn();
@@ -60,37 +56,6 @@ describe('Tải lên không phân loại, không giới hạn số tệp', () =>
     render(<DmsMultiUpload caseId="case-1" />);
     expect((screen.getByLabelText('Chọn tệp') as HTMLInputElement).multiple).toBe(true);
     expect(screen.queryByLabelText(/Loại tài liệu/)).toBeNull();
-  });
-});
-
-describe('Tống đạt: thêm giấy tờ vào Sổ S-01', () => {
-  it('chỉ cần Cột 2 Loại văn bản; ghi vào thuộc tính loai_van_ban', async () => {
-    const spy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockImplementation(() => reply(200, { code: 'DOCUMENT_ADDED', label: 'd1' }));
-    render(<AddS01DocumentForm caseId="case-1" />);
-    fireEvent.change(screen.getByLabelText(/Cột 2: LOẠI VĂN BẢN/), {
-      target: { value: 'Quyết định' },
-    });
-    fireEvent.submit(screen.getByRole('form', { name: 'Thêm giấy tờ vào sổ S-01' }));
-    await waitFor(() => expect(refresh).toHaveBeenCalled());
-    expect(JSON.parse(String((spy.mock.calls[0]![1] as RequestInit).body))).toEqual({
-      kind: 'Quyết định',
-      title: 'Quyết định',
-      isOfficial: true,
-      attributes: { loai_van_ban: 'Quyết định' },
-    });
-  });
-
-  it('"Tài liệu khác" không được dùng làm giấy tờ (không vào sổ)', async () => {
-    const spy = vi.spyOn(globalThis, 'fetch');
-    render(<AddS01DocumentForm caseId="case-1" />);
-    fireEvent.change(screen.getByLabelText(/Cột 2: LOẠI VĂN BẢN/), {
-      target: { value: 'Tài liệu khác' },
-    });
-    fireEvent.submit(screen.getByRole('form', { name: 'Thêm giấy tờ vào sổ S-01' }));
-    await screen.findByRole('alert');
-    expect(spy).not.toHaveBeenCalled();
   });
 });
 

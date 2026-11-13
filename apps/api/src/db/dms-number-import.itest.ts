@@ -148,7 +148,7 @@ describe.skipIf(!ADMIN_URL)('DMS nhập số cuối sổ giấy (PostgreSQL)', (
     expect((await importLast(U.thv, OFF, 'S-02', YEAR, 10)).code).toBe('ADMIN_ONLY');
     expect((await importLast(U.admin, OFF2, 'S-02', YEAR, 10)).ok).toBe(false);
     expect(await status(U.thv, OFF)).toEqual([]);
-    expect((await status(U.admin, OFF)).length).toBe(5);
+    expect((await status(U.admin, OFF)).length).toBe(4);
     expect(await lastOf('S-02')).toBe(0);
   });
 
@@ -172,15 +172,21 @@ describe.skipIf(!ADMIN_URL)('DMS nhập số cuối sổ giấy (PostgreSQL)', (
     expect(await numberOf(tc)).toBe(`100/${YEAR}/TC-TPL`);
   });
 
-  it('Tống đạt: STT sổ S-01 và số hồ sơ là hai bộ đếm riêng', async () => {
+  it('Tống đạt: số hồ sơ = STT S-01 (một bộ đếm), không còn nhập riêng CASE-TD', async () => {
     expect((await importLast(U.admin, OFF, 'S-01', YEAR, 40)).ok).toBe(true);
-    expect((await importLast(U.admin, OFF, 'CASE-TD', YEAR, 12)).ok).toBe(true);
+    expect((await importLast(U.admin, OFF, 'CASE-TD', YEAR, 12)).code).toBe('INVALID_NUMBER');
+    expect((await status(U.admin, OFF)).map((r) => r.kind)).toEqual([
+      'S-01',
+      'S-02',
+      'S-04',
+      'S-05',
+    ]);
     const c = await mkCase('tongdat');
     await mkDoc(c);
     await mkDoc(c);
     expect((await record(c)).ok).toBe(true);
-    expect(await sttOf(c, 'S-01')).toEqual([41, 42]);
-    expect(await numberOf(c)).toBe(`013/${YEAR}/TĐ-TPL`);
+    expect(await sttOf(c, 'S-01')).toEqual([41]);
+    expect(await numberOf(c)).toBe(`041/${YEAR}/TĐ-TPL`);
   });
 
   it('chỉ tiến, không lùi; nhập đúng số hiện tại thì được; mỗi lần nhập được ghi lại', async () => {

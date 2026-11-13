@@ -14,15 +14,14 @@ export interface NumberRow {
   readonly importedAt: string | null;
 }
 
-/** Nhãn từng bộ đếm. Tống đạt có hai bộ đếm riêng: STT sổ S-01 (mỗi giấy tờ) và số hồ sơ (mỗi hồ sơ). */
+/** Nhãn từng bộ đếm: STT sổ, đồng thời là phần đầu của số hồ sơ (cả 4 nghiệp vụ). */
 export const KIND_LABEL: Readonly<Record<string, string>> = {
-  'S-01': 'Sổ Tống đạt (S-01) · STT giấy tờ',
-  'CASE-TD': 'Tống đạt · số hồ sơ',
+  'S-01': 'Sổ Tống đạt (S-01)',
   'S-02': 'Sổ Vi bằng (S-02)',
   'S-04': 'Sổ Xác minh điều kiện THA (S-04)',
   'S-05': 'Sổ Tổ chức THA (S-05)',
 };
-const ORDER = ['S-01', 'CASE-TD', 'S-02', 'S-04', 'S-05'];
+const ORDER = ['S-01', 'S-02', 'S-04', 'S-05'];
 
 const day = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' });
 

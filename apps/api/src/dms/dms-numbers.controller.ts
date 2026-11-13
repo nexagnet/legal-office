@@ -16,8 +16,8 @@ import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { parse, respond, uuid } from './dms-http';
 
-/** 4 sổ DMS và bộ đếm số hồ sơ Tống đạt (CASE-TD). Khớp ràng buộc của bảng dms_number_imports. */
-export const NUMBER_KINDS = ['S-01', 'S-02', 'S-04', 'S-05', 'CASE-TD'] as const;
+/** 4 sổ DMS. Từ 13/11/2026 số hồ sơ Tống đạt = STT S-01 nên không còn bộ đếm riêng CASE-TD (DB từ chối từ migration 0125). */
+export const NUMBER_KINDS = ['S-01', 'S-02', 'S-04', 'S-05'] as const;
 const kind = z.enum(NUMBER_KINDS);
 
 /** Năm hiện tại theo giờ Việt Nam, cùng cách tính với dms_vn_year trong DB. */
