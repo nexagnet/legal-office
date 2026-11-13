@@ -3815,3 +3815,25 @@ td mark {
   margin-top: 14px;
   font-size: 12px;
 }
+.bao-cao-branches {
+  margin: 0 0 14px;
+}
+.bao-cao-export {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.year-stepper a[aria-current='page'] {
+  color: var(--accent);
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
+}
+.year-stepper a:not(:has(svg)) {
+  width: auto;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+}

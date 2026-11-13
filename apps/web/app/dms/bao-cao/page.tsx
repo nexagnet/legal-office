@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { CopyValueButton } from '../../../components/CopyValueButton';
+import { ReportExport } from '../../../components/ReportExport';
 import { TabNav } from '../../../components/ui/tab-nav';
 import { loadDmsReport, type DmsReportRow } from '../../../lib/dms';
 import { currentSession, requestCookie } from '../../../lib/server';
@@ -127,7 +128,7 @@ function delta(now: number | null, prev: number | null): number | null {
 export default async function DmsReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; bc?: string }>;
+  searchParams: Promise<{ year?: string; bc?: string; branch?: string; half?: string }>;
 }) {
   const sp = await searchParams;
   const rawYear = Number(sp.year);
@@ -136,6 +137,8 @@ export default async function DmsReportPage({
       ? rawYear
       : new Date().getFullYear();
   const bc = sp.bc === 'n10' ? 'n10' : 'n09';
+  // Kỳ 6 tháng (01/01–30/06) chỉ có ở N-09; N-10 chỉ có kỳ 12 tháng (TT 08 Điều 36).
+  const firstHalf = bc === 'n09' && sp.half === '1';
   const session = await currentSession();
   if (session.status !== 'authenticated') {
     return (
@@ -162,16 +165,32 @@ export default async function DmsReportPage({
     );
   }
   const cookie = await requestCookie();
+  const officeBranches = session.branches.filter((b) => b.officeId === officeId);
+  const branch = officeBranches.find((b) => b.id === sp.branch)?.id;
   const [rows, prevRows] = await Promise.all([
-    loadDmsReport(cookie, officeId, year),
-    loadDmsReport(cookie, officeId, year - 1),
+    loadDmsReport(cookie, officeId, year, branch, firstHalf),
+    loadDmsReport(cookie, officeId, year - 1, branch, firstHalf),
   ]);
   const list = (r: DmsReportRow[] | 'error') =>
     r === 'error' ? [] : bc === 'n10' ? n10(r) : n09(r);
   const indicators = list(rows);
   const prevIndicators = list(prevRows);
   const code = bc === 'n10' ? 'N-10' : 'N-09';
-  const q = (b: string, y: number) => `/dms/bao-cao?bc=${b}&year=${y}`;
+  const q = (b: string, y: number, o: { branch?: string; half?: boolean } = {}) => {
+    const br = 'branch' in o ? o.branch : branch;
+    const h = 'half' in o ? o.half : firstHalf;
+    return `/dms/bao-cao?bc=${b}&year=${y}${br ? `&branch=${br}` : ''}${h && b === 'n09' ? '&half=1' : ''}`;
+  };
+  const periodLabel = firstHalf ? `6 tháng đầu năm ${year}` : `Năm ${year}`;
+  const prevLabel = firstHalf ? `6 tháng đầu ${year - 1}` : `Năm ${year - 1}`;
+  const exportRows = indicators.map((i, idx) => ({
+    group: i.group,
+    label: i.label,
+    value: i.value,
+    prev: prevIndicators[idx]?.value ?? null,
+    status: AVAIL_LABEL[i.avail],
+    source: i.source,
+  }));
   const groups = [...new Set(indicators.map((i) => i.group))];
   return (
     <section aria-labelledby="t" className="bao-cao">
@@ -190,17 +209,52 @@ export default async function DmsReportPage({
               <Link href={q(bc, year - 1)} aria-label={`Năm ${year - 1}`}>
                 <ChevronLeft size={16} aria-hidden="true" />
               </Link>
-              <strong>Năm {year}</strong>
+              <strong>{year}</strong>
               <Link href={q(bc, year + 1)} aria-label={`Năm ${year + 1}`}>
                 <ChevronRight size={16} aria-hidden="true" />
               </Link>
             </nav>
+            {bc === 'n09' ? (
+              <nav className="year-stepper" aria-label="Chọn kỳ báo cáo">
+                <Link
+                  href={q(bc, year, { half: false })}
+                  aria-current={firstHalf ? undefined : 'page'}
+                >
+                  12 tháng
+                </Link>
+                <Link
+                  href={q(bc, year, { half: true })}
+                  aria-current={firstHalf ? 'page' : undefined}
+                >
+                  6 tháng
+                </Link>
+              </nav>
+            ) : null}
             <Link className="bao-cao-mau" href={`/dms/bao-cao/mau?year=${year}`}>
               Mẫu Phụ lục III
             </Link>
           </div>
         }
       />
+      {officeBranches.length > 1 ? (
+        <nav className="tabs-soft bao-cao-branches" aria-label="Lọc theo chi nhánh">
+          <Link
+            href={q(bc, year, { branch: undefined })}
+            aria-current={branch ? undefined : 'page'}
+          >
+            Tất cả chi nhánh
+          </Link>
+          {officeBranches.map((b) => (
+            <Link
+              key={b.id}
+              href={q(bc, year, { branch: b.id })}
+              aria-current={branch === b.id ? 'page' : undefined}
+            >
+              {b.name}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       {rows === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"
@@ -210,16 +264,16 @@ export default async function DmsReportPage({
         <DataTable tableKey="dms-bao-cao-page-2">
           <table>
             <caption className="sr-only">
-              Chỉ tiêu {code} năm {year}
+              Chỉ tiêu {code} {periodLabel}
             </caption>
             <thead>
               <tr>
                 <th scope="col">Chỉ tiêu {code}</th>
                 <th scope="col" className="num">
-                  Năm {year}
+                  {periodLabel}
                 </th>
                 <th scope="col" className="num">
-                  Năm {year - 1}
+                  {prevLabel}
                 </th>
                 <th scope="col" className="num">
                   Chênh lệch
@@ -271,9 +325,16 @@ export default async function DmsReportPage({
           </table>
         </DataTable>
       )}
+      {rows === 'error' ? null : (
+        <ReportExport
+          rows={exportRows}
+          fileName={`bao-cao-${code}-${year}${firstHalf ? '-6thang' : ''}.csv`}
+        />
+      )}
       <p className="muted bao-cao-note">
-        Số tham khảo để tự điền mẫu TP-THV-{code}; kỳ 01/01–31/12 (Điều 36 TT 08/2026/TT-BTP). Hệ
-        thống không lập hay gửi báo cáo; báo cáo đã gửi đăng ký vào Sổ văn bản đi kèm bản scan.
+        Số tham khảo để tự điền mẫu TP-THV-{code}; kỳ 6 tháng 01/01–30/06 hoặc 12 tháng 01/01–31/12
+        (Điều 36 TT 08/2026/TT-BTP). Hệ thống không lập hay gửi báo cáo; báo cáo đã gửi đăng ký vào
+        Sổ văn bản đi kèm bản scan.
       </p>
     </section>
   );
