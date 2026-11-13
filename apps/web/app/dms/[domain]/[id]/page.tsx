@@ -2,28 +2,15 @@ import { DataTable } from '../../../../components/ui/data-table';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
-import { OcrProgress, ocrApplies } from '../../../../components/OcrProgress';
-import { DeleteScanButton } from '../../../../components/DeleteScanButton';
+import { DmsDocumentsTab } from '../../../../components/DmsDocumentsTab';
 import { DmsAdminEdit } from '../../../../components/DmsAdminEdit';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
 import { DmsThvPicker } from '../../../../components/DmsThvActions';
-import {
-  DmsDraftActions,
-  DmsMultiUpload,
-  OTHER_KIND,
-  UploadDmsFile,
-} from '../../../../components/DmsCaseActions';
+import { DmsDraftActions, DmsMultiUpload, OTHER_KIND } from '../../../../components/DmsCaseActions';
 import { DmsCaseExtrasForm } from '../../../../components/DmsCaseExtrasForm';
 import { AdminBanner } from '../../../../components/admin-banner';
 import { Button } from '../../../../components/ui/button';
-import {
-  FileGroupCard,
-  FileRow,
-  InfoCard,
-  InfoGrid,
-  NoticeBar,
-  PdfPane,
-} from '../../../../components/ui/case-detail';
+import { InfoCard, InfoGrid, NoticeBar } from '../../../../components/ui/case-detail';
 import { TabNav } from '../../../../components/ui/tab-nav';
 import {
   BOOK_OF_DOMAIN,
@@ -118,20 +105,18 @@ const CONTRACT_CARDS: Readonly<
   ],
 };
 
-const sizeLabel = (n: number | string) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
-
 /** Các tab của trang chi tiết (Figma "Vi bằng · Chi tiết hồ sơ"): chọn bằng `?tab=`. */
 const TABS = [
   { key: 'chung', label: 'Thông tin chung' },
   { key: 'tai-lieu', label: 'Tài liệu' },
-  { key: 'scan', label: 'Tệp đính kèm' },
-  { key: 'phien-ban', label: 'Phiên bản cũ' },
   { key: 'so', label: 'Sổ liên quan' },
   { key: 'lich-su', label: 'Lịch sử hồ sơ' },
 ] as const;
 type TabKey = (typeof TABS)[number]['key'];
+/** Tab "Tệp đính kèm" (?tab=scan) và "Phiên bản cũ" (?tab=phien-ban) đã gộp vào tab Tài liệu; đường dẫn cũ vẫn mở đúng chỗ. */
+const LEGACY_TABS: Record<string, TabKey> = { scan: 'tai-lieu', 'phien-ban': 'tai-lieu' };
 const activeTab = (raw: string | undefined): TabKey =>
-  TABS.find((t) => t.key === raw)?.key ?? 'chung';
+  TABS.find((t) => t.key === raw)?.key ?? (raw ? LEGACY_TABS[raw] : undefined) ?? 'chung';
 
 export default async function DmsCasePage({
   params,
@@ -205,14 +190,7 @@ export default async function DmsCasePage({
     canAddDocument(permissions, domain.code);
   const filesByDoc = await Promise.all(docs.map((d) => loadDmsFiles(cookie, d.id)));
   const fileCount = filesByDoc.reduce((n, f) => n + f.length, 0);
-  const allFiles = filesByDoc.flat();
-  const scanFileCount = allFiles.filter((f) => f.is_scan).length;
   const docsWithoutScan = docs.filter((_, i) => !filesByDoc[i]!.some((f) => f.is_scan)).length;
-  const preview =
-    allFiles.find((f) => f.id === sp.file) ?? allFiles.find((f) => f.is_scan) ?? allFiles[0];
-  const previewDoc = preview
-    ? docs[filesByDoc.findIndex((l) => l.some((f) => f.id === preview.id))]
-    : undefined;
 
   // STT của hồ sơ trong sổ (chỉ hồ sơ đã ghi sổ): lấy từ dữ liệu sổ của năm ghi sổ.
   const bookCode = BOOK_OF_DOMAIN[domain.code];
@@ -234,21 +212,10 @@ export default async function DmsCasePage({
 
   const creatorName = c.created_by_name;
   const history = tab === 'lich-su' ? await loadCaseHistory(cookie, c.id) : [];
-  const revisions = tab === 'phien-ban' ? await loadDmsRevisions(cookie, c.id) : [];
+  const revisions = tab === 'lich-su' ? await loadDmsRevisions(cookie, c.id) : [];
   const headingOf = new Map<string, string>(
     (book?.columns ?? []).map((col) => [col.key, col.heading]),
   );
-  // Mỗi tài liệu có từ hai phiên bản tệp cùng nhãn trở lên: xem cạnh nhau hai bản mới nhất.
-  const pairs = filesByDoc.flatMap((list) => {
-    const byLabel = new Map<string, typeof list>();
-    for (const f of list) byLabel.set(f.label, [...(byLabel.get(f.label) ?? []), f]);
-    return [...byLabel.values()]
-      .filter((v) => v.length >= 2)
-      .map((v) => {
-        const sorted = [...v].sort((x, y) => x.version - y.version);
-        return { older: sorted[sorted.length - 2]!, newer: sorted[sorted.length - 1]! };
-      });
-  });
   const base = `/dms/${domain.slug}/${c.id}`;
   const listKey = isVanThu(domain.code) ? 'tab' : 'loc';
   const backQuery = isDraft
@@ -288,9 +255,9 @@ export default async function DmsCasePage({
           </span>
         ) : null}
       </p>
-      {c.status === 'RECORDED' ? (
+      {c.status === 'RECORDED' && !canAdminEdit ? (
         <NoticeBar action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
-          Hồ sơ đã ghi sổ: chỉ Admin được sửa nội dung (có lý do), nhân viên chỉ tải thêm scan.
+          Hồ sơ đã ghi sổ: nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin.
         </NoticeBar>
       ) : null}
       {c.status === 'CANCELLED' ? (
@@ -305,23 +272,10 @@ export default async function DmsCasePage({
             key: t.key,
             label: t.label,
             href: t.key === 'chung' ? base : `${base}?tab=${t.key}`,
-            count:
-              t.key === 'tai-lieu'
-                ? docs.length
-                : t.key === 'scan'
-                  ? scanFileCount
-                  : t.key === 'phien-ban'
-                    ? fileCount
-                    : undefined,
+            count: t.key === 'tai-lieu' ? fileCount : undefined,
           })),
         ]}
       />
-      {tab === 'tai-lieu' || tab === 'scan' || tab === 'phien-ban' ? (
-        <p className="mb-4 text-xs text-muted">
-          Tài liệu: {docs.length} nhóm · Tệp đính kèm: {fileCount} file.
-        </p>
-      ) : null}
-
       {tab === 'chung' && isDraft ? (
         <div className="grid gap-4">
           <p className="rounded-xl bg-[#fdf0d5] px-4 py-2 text-sm text-[#5a3d00]">
@@ -464,284 +418,112 @@ export default async function DmsCasePage({
       ) : null}
 
       {tab === 'tai-lieu' ? (
-        <div className="grid gap-5 lg:grid-cols-2">
-          <div>
-            {canUpload ? <DmsMultiUpload caseId={c.id} /> : null}
-            {docs.length === 0 ? (
-              <div className="state" role="status">
-                <h3>Chưa có tài liệu</h3>
-              </div>
-            ) : (
-              docs.map((d, i) => (
-                <FileGroupCard
-                  key={d.id}
-                  title={d.kind === OTHER_KIND ? 'Tài liệu đính kèm' : d.title}
-                  hint={
-                    d.kind === OTHER_KIND
-                      ? '(không phân loại, không vào sổ)'
-                      : `(${d.kind}${d.is_official ? ' · chính thức' : ''})`
-                  }
-                >
-                  {filesByDoc[i]!.length === 0 ? (
-                    <p className="m-0 text-sm text-muted">Chưa có tệp.</p>
-                  ) : (
-                    filesByDoc[i]!.map((f) => (
-                      <FileRow
-                        key={f.id}
-                        name={f.label}
-                        meta={`${sizeLabel(f.size_bytes)} · v${f.version}`}
-                        chip={f.is_scan ? 'Bản scan' : 'Bổ sung'}
-                        chipTone={f.is_scan ? 'main' : 'plain'}
-                        current={preview?.id === f.id}
-                        extra={
-                          ocrApplies(f.mime) ? (
-                            <OcrProgress
-                              fileId={f.id}
-                              initial={{
-                                status: f.ocr_status ?? null,
-                                done: f.ocr_pages_done ?? null,
-                                total: f.ocr_pages_total ?? null,
-                              }}
-                            />
-                          ) : undefined
-                        }
-                        actions={
-                          <>
-                            <Button asChild variant="secondary">
-                              <Link
-                                className="no-underline"
-                                href={`${base}?tab=tai-lieu&file=${f.id}`}
-                              >
-                                Xem
-                              </Link>
-                            </Button>
-                            <Button asChild variant="ghost">
-                              <a
-                                className="no-underline"
-                                href={`/api/dms/files/${f.id}/download`}
-                                download
-                              >
-                                Tải
-                              </a>
-                            </Button>
-                            {canDeleteScan && f.is_scan ? (
-                              <DeleteScanButton kind="document" fileId={f.id} label={f.label} />
-                            ) : null}
-                          </>
-                        }
-                      />
-                    ))
-                  )}
-                  {c.status !== 'CANCELLED' && d.kind !== OTHER_KIND ? (
-                    <UploadDmsFile documentId={d.id} />
-                  ) : null}
-                </FileGroupCard>
-              ))
-            )}
-          </div>
-          <aside aria-label="Xem trước tệp">
-            {preview ? (
-              <PdfPane
-                title={`Xem trước ${preview.label}`}
-                src={`/api/dms/files/${preview.id}/download?inline=1`}
-                caption={`Xem trước · ${preview.label}`}
-                note="Nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin."
-                actions={
-                  <>
-                    <Button asChild>
-                      <a
-                        className="no-underline"
-                        href={`/api/dms/files/${preview.id}/download`}
-                        download
-                      >
-                        Tải bản scan chính
-                      </a>
-                    </Button>
-                    <Button asChild variant="secondary">
-                      <a
-                        className="no-underline"
-                        href={`/api/dms/files/${preview.id}/download?inline=1`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        In
-                      </a>
-                    </Button>
-                    {c.status !== 'CANCELLED' && previewDoc ? (
-                      <Button asChild variant="secondary">
-                        <a className="no-underline" href={`#tai-len-${previewDoc.id}`}>
-                          Tải thêm scan
-                        </a>
-                      </Button>
-                    ) : null}
-                  </>
-                }
-              />
-            ) : (
-              <div className="state" role="status">
-                <h3>Chọn một tệp để xem trước</h3>
-              </div>
-            )}
-          </aside>
-        </div>
+        <DmsDocumentsTab
+          caseId={c.id}
+          base={base}
+          previewId={sp.file}
+          canUpload={canUpload}
+          canAddScan={c.status !== 'CANCELLED'}
+          canDeleteScan={canDeleteScan}
+          groups={docs.map((d, i) => ({
+            id: d.id,
+            title: d.title,
+            kind: d.kind,
+            isOfficial: d.is_official,
+            files: filesByDoc[i]!,
+            adminEdit:
+              canAdminEdit && book && book.source === 'document' && d.kind !== OTHER_KIND ? (
+                <DmsAdminEdit
+                  target="document"
+                  id={d.id}
+                  columns={inputColumns(book)}
+                  current={d.attributes}
+                  buttonLabel="Sửa thông tin (Admin)"
+                  domain={domain.code}
+                  caseNumber={c.case_number}
+                />
+              ) : undefined,
+          }))}
+        />
       ) : null}
 
       {tab === 'lich-su' ? (
-        <section aria-labelledby="hist-title" className="mb-5 grid gap-3">
-          <h2 id="hist-title">Lịch sử hồ sơ</h2>
-          <p className="muted text-sm">Mới nhất trước. Người tạo hồ sơ: {creatorName ?? '—'}.</p>
-          {history.length === 0 ? (
-            <p className="muted">Chưa có hoạt động nào được ghi.</p>
-          ) : (
-            <DataTable tableKey="dms-case-history">
-              <table>
-                <caption className="sr-only">Lịch sử hồ sơ</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Thời gian</th>
-                    <th scope="col">Người làm</th>
-                    <th scope="col">Việc đã làm</th>
-                    <th scope="col">Ghi chú</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((h) => (
-                    <tr key={h.id}>
-                      <td>{fmt.format(new Date(h.at))}</td>
-                      <td>{h.actor_label ?? 'Hệ thống'}</td>
-                      <td>{actionLabel(h.action)}</td>
-                      <td>{activityNote(h) || '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </DataTable>
-          )}
-        </section>
-      ) : null}
-
-      {tab === 'phien-ban' ? (
-        <section aria-labelledby="rev-title" className="mb-5 grid gap-3">
-          <h2 id="rev-title">Phiên bản dữ liệu</h2>
-          {revisions.length <= 1 ? (
-            <p className="muted">Hồ sơ chưa có bản sửa nào.</p>
-          ) : (
-            revisions.slice(1).map((r, i) => {
-              const prev = revisions[i]!;
-              const changes = diffRevision(prev, r);
-              return (
-                <article key={r.rev} className="rounded-2xl bg-surface p-5 shadow-sm">
-                  <h3>
-                    So sánh phiên bản v{prev.rev + 1} → v{r.rev + 1}
-                  </h3>
-                  <p className="muted text-sm">
-                    {fmt.format(new Date(r.created_at))} · {r.created_by_name ?? '—'} · Lý do:{' '}
-                    {r.reason ?? '—'}
-                  </p>
-                  {changes.length === 0 ? (
-                    <p className="muted">
-                      Không có trường dữ liệu nào thay đổi (chỉ thêm bản scan).
-                    </p>
-                  ) : (
-                    changes.map((ch) => {
-                      const label =
-                        ch.key === 'title'
-                          ? 'Tiêu đề'
-                          : (headingOf.get(ch.key)?.replace(/\s*\(.*?\)/g, '') ?? ch.key);
-                      return (
-                        <div key={ch.key} className="mt-2 grid gap-2 sm:grid-cols-2">
-                          <p className="rounded-lg bg-[#fde8e5] px-3 py-2 text-sm">
-                            Trước (v{prev.rev + 1}): {label}: {ch.before || '—'}
-                          </p>
-                          <p className="rounded-lg bg-[#dff3e6] px-3 py-2 text-sm">
-                            Sau (v{r.rev + 1}): {label}: {ch.after || '—'}
-                          </p>
-                        </div>
-                      );
-                    })
-                  )}
-                </article>
-              );
-            })
-          )}
-          {pairs.map((pr) => (
-            <article key={pr.newer.id} className="rounded-2xl bg-surface p-5 shadow-sm">
-              <h3>
-                So sánh tệp {pr.newer.label}: v{pr.older.version} và v{pr.newer.version}
-              </h3>
-              <div className="grid gap-3 lg:grid-cols-2">
-                {[pr.older, pr.newer].map((f) => (
-                  <figure key={f.id} className="m-0">
-                    <iframe
-                      title={`Tệp ${f.label} v${f.version}`}
-                      src={`/api/dms/files/${f.id}/download?inline=1`}
-                      className="h-[420px] w-full rounded-xl border border-line bg-surface"
-                    />
-                    <figcaption className="muted text-xs">
-                      v{f.version} · {f.label} · {sizeLabel(f.size_bytes)}
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : null}
-
-      {tab === 'scan' || tab === 'phien-ban' ? (
         <>
-          <p className="muted">
-            {tab === 'scan' ? `${scanFileCount} tệp scan.` : `${fileCount} phiên bản tệp.`}
-          </p>
-          {(tab === 'scan' ? scanFileCount : fileCount) === 0 ? (
-            <div className="state" role="status">
-              <h3>Chưa có tệp</h3>
-            </div>
-          ) : (
-            <DataTable tableKey="dms-domain-id-page-1">
-              <table>
-                <caption className="sr-only">
-                  {tab === 'scan' ? 'Bản scan của hồ sơ' : 'Phiên bản tệp của hồ sơ'}
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Tệp</th>
-                    <th scope="col">Tài liệu</th>
-                    <th scope="col">Loại</th>
-                    <th scope="col">Phiên bản</th>
-                    <th scope="col">Dung lượng</th>
-                    <th scope="col">Tải</th>
-                    {canDeleteScan && tab === 'scan' ? <th scope="col">Xóa</th> : null}
-                  </tr>
-                </thead>
-                <tbody>
-                  {docs.flatMap((d, i) =>
-                    filesByDoc[i]!.filter((f) => tab === 'phien-ban' || f.is_scan).map((f) => (
-                      <tr key={f.id}>
-                        <th scope="row">{f.label}</th>
-                        <td>{d.title}</td>
-                        <td>{f.is_scan ? 'Bản scan' : 'Tệp'}</td>
-                        <td>v{f.version}</td>
-                        <td>{sizeLabel(f.size_bytes)}</td>
-                        <td>
-                          <a href={`/api/dms/files/${f.id}/download`} download>
-                            Tải
-                          </a>
-                        </td>
-                        {canDeleteScan && tab === 'scan' ? (
-                          <td>
-                            {f.is_scan ? (
-                              <DeleteScanButton kind="document" fileId={f.id} label={f.label} />
-                            ) : null}
-                          </td>
-                        ) : null}
+          <section aria-labelledby="rev-title" className="grid gap-3">
+            <h2 id="rev-title">Thay đổi nội dung</h2>
+            {revisions.length <= 1 ? (
+              <p className="muted">Hồ sơ chưa có bản sửa nào.</p>
+            ) : (
+              revisions.slice(1).map((r, i) => {
+                const prev = revisions[i]!;
+                const changes = diffRevision(prev, r);
+                return (
+                  <article key={r.rev} className="rounded-2xl bg-surface p-5 shadow-sm">
+                    <h3>
+                      So sánh phiên bản v{prev.rev + 1} → v{r.rev + 1}
+                    </h3>
+                    <p className="muted text-sm">
+                      {fmt.format(new Date(r.created_at))} · {r.created_by_name ?? '—'} · Lý do:{' '}
+                      {r.reason ?? '—'}
+                    </p>
+                    {changes.length === 0 ? (
+                      <p className="muted">
+                        Không có trường dữ liệu nào thay đổi (chỉ thêm bản scan).
+                      </p>
+                    ) : (
+                      changes.map((ch) => {
+                        const label =
+                          ch.key === 'title'
+                            ? 'Tiêu đề'
+                            : (headingOf.get(ch.key)?.replace(/\s*\(.*?\)/g, '') ?? ch.key);
+                        return (
+                          <div key={ch.key} className="mt-2 grid gap-2 sm:grid-cols-2">
+                            <p className="rounded-lg bg-[#fde8e5] px-3 py-2 text-sm">
+                              Trước (v{prev.rev + 1}): {label}: {ch.before || '—'}
+                            </p>
+                            <p className="rounded-lg bg-[#dff3e6] px-3 py-2 text-sm">
+                              Sau (v{r.rev + 1}): {label}: {ch.after || '—'}
+                            </p>
+                          </div>
+                        );
+                      })
+                    )}
+                  </article>
+                );
+              })
+            )}
+          </section>
+          <section aria-labelledby="hist-title" className="mb-5 grid gap-3">
+            <h2 id="hist-title">Lịch sử hồ sơ</h2>
+            <p className="muted text-sm">Mới nhất trước. Người tạo hồ sơ: {creatorName ?? '—'}.</p>
+            {history.length === 0 ? (
+              <p className="muted">Chưa có hoạt động nào được ghi.</p>
+            ) : (
+              <DataTable tableKey="dms-case-history">
+                <table>
+                  <caption className="sr-only">Lịch sử hồ sơ</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Thời gian</th>
+                      <th scope="col">Người làm</th>
+                      <th scope="col">Việc đã làm</th>
+                      <th scope="col">Ghi chú</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((h) => (
+                      <tr key={h.id}>
+                        <td>{fmt.format(new Date(h.at))}</td>
+                        <td>{h.actor_label ?? 'Hệ thống'}</td>
+                        <td>{actionLabel(h.action)}</td>
+                        <td>{activityNote(h) || '—'}</td>
                       </tr>
-                    )),
-                  )}
-                </tbody>
-              </table>
-            </DataTable>
-          )}
+                    ))}
+                  </tbody>
+                </table>
+              </DataTable>
+            )}
+          </section>
         </>
       ) : null}
 

@@ -16,14 +16,25 @@ export function DeleteScanButton({
   kind,
   fileId,
   label,
+  open: openProp,
+  onOpenChange,
 }: {
   readonly kind: 'document' | 'submission';
   readonly fileId: string;
   /** Tên file, để người xóa biết đang xóa file nào. */
   readonly label: string;
+  /** Điều khiển từ ngoài (menu ⋯ của tệp): có thì không vẽ nút riêng. */
+  readonly open?: boolean;
+  readonly onOpenChange?: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [innerOpen, setInnerOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const open = controlled ? openProp : innerOpen;
+  const setOpen = (v: boolean) => {
+    if (controlled) onOpenChange?.(v);
+    else setInnerOpen(v);
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,9 +63,11 @@ export function DeleteScanButton({
 
   return (
     <>
-      <Button type="button" variant="ghost" onClick={() => setOpen(true)}>
-        Xóa scan
-      </Button>
+      {controlled ? null : (
+        <Button type="button" variant="ghost" onClick={() => setOpen(true)}>
+          Xóa scan
+        </Button>
+      )}
       <Modal
         open={open}
         onOpenChange={setOpen}
