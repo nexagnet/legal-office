@@ -44,7 +44,7 @@ Văn thư có 3 sổ riêng (không phải nghiệp vụ hồ sơ): **Văn bản
 
 - Trước đó một hồ sơ Tống đạt có nhiều giấy tờ, mỗi giấy tờ một dòng sổ. Từ 13/11 chủ dự án duyệt **Cách A**: **một hồ sơ = một văn bản tống đạt = một dòng S-01**, giống 3 nghiệp vụ còn lại. Giấy tờ chỉ là tệp đính kèm.
 - Số hồ sơ = **STT S-01**, cấp khi "Xác nhận lưu chính thức". Không còn bộ đếm `CASE-TD` (DB và API từ chối nhập số cuối `CASE-TD`).
-- Cột 3 của S-01 là số/ngày văn bản của Tòa án/THADS, do người nhập gõ; hệ thống không tự gắn số văn phòng vào đó.
+- Cột 3 của S-01 tự gắn số hồ sơ = STT trước ngày người nhập (`005/2026/TĐ-TPL ngày dd/mm/yyyy`), giống cột số của 3 nghiệp vụ kia (chốt lại 13/11/2026); giá trị cũ người nhập gõ cả số vẫn giữ nguyên.
 - Danh sách phẳng, không nhóm theo hồ sơ.
 - Migration 0125. Kế hoạch gốc: [reports/ke-hoach-s01-tong-dat-theo-mau-so-2026-11-13.md](reports/ke-hoach-s01-tong-dat-theo-mau-so-2026-11-13.md).
 

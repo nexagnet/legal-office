@@ -202,7 +202,7 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
       columns: [
         { no: 1, heading: 'STT', key: 'stt' },
         { no: 2, heading: 'LOẠI', key: 'loai_van_ban' },
-        { no: 3, heading: 'SỐ, NGÀY', key: 'so_ngay_van_ban' },
+        { no: 3, heading: 'SỐ, NGÀY', key: 'so_ngay_van_ban', autoNumber: true },
         { no: 4, heading: 'Tòa án', key: 'co_quan_toa_an', tick: true },
         { no: 5, heading: 'Cơ quan THADS', key: 'co_quan_thads', tick: true },
         { no: 7, heading: 'NGÀY', key: 'ngay_tong_dat' },
@@ -211,10 +211,11 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     const row: DmsBookRow = {
       ...bookRow,
       stt: 10,
+      case_number: '010/2026/TĐ-TPL',
       document_id: null,
       case_attributes: {
         loai_van_ban: 'Giấy báo',
-        so_ngay_van_ban: '45/2026/DS-ST ngày 10/10/2026',
+        so_ngay_van_ban: '10/10/2026',
         co_quan_toa_an: 'x',
         ngay_tong_dat: '15/10/2026',
       },
@@ -233,7 +234,7 @@ describe('DmsDomainTable (Figma danh sách 4 nghiệp vụ)', () => {
     );
     expect(screen.getByText('STT 10')).toBeTruthy();
     expect(screen.getByText('Giấy báo')).toBeTruthy();
-    expect(screen.getByText('45/2026/DS-ST ngày 10/10/2026')).toBeTruthy();
+    expect(screen.getByText('010/2026/TĐ-TPL')).toBeTruthy();
     expect(screen.getByText('15/10/2026')).toBeTruthy();
     expect(screen.getAllByText('✓')).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /dòng Sổ S-01/ })).toBeNull();

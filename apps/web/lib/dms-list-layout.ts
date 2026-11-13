@@ -167,7 +167,7 @@ const LAYOUTS: Readonly<Record<string, readonly ListColumn[]>> = {
       id: 'so_ngay',
       head: 'Số, ngày, tháng, năm văn bản cần tống đạt',
       width: 110,
-      cell: text('so_ngay_van_ban'),
+      cell: numberThenDate('so_ngay_van_ban'),
     },
     {
       id: 'toa_an',
