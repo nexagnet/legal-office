@@ -97,9 +97,12 @@ export function FileRow({
   chipTone = 'plain',
   actions,
   current,
+  extra,
 }: {
   readonly name: string;
   readonly meta: string;
+  /** Dòng phụ dưới chi tiết (vd. tiến độ OCR). */
+  readonly extra?: ReactNode;
   readonly chip: string;
   readonly chipTone?: 'main' | 'plain';
   readonly actions: ReactNode;
@@ -116,6 +119,7 @@ export function FileRow({
       <div className="min-w-0 flex-1">
         <p className="m-0 truncate text-sm font-semibold text-ink">{name}</p>
         <p className="m-0 text-xs text-muted">{meta}</p>
+        {extra ? <div className="mt-0.5">{extra}</div> : null}
       </div>
       <span
         className={cn(

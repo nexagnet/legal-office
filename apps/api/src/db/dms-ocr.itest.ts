@@ -181,6 +181,48 @@ describe.skipIf(!ADMIN_URL)('OCR tìm kiếm toàn văn (PostgreSQL)', () => {
     expect(await search(U.b, 'tong dat')).toHaveLength(0);
   });
 
+  it('tiến độ OCR theo trang: đang chạy thấy x/y, xong thì 100%, người không xem được hồ sơ không thấy', async () => {
+    const r = await record(U.a, 'tai lieu ba trang', 'application/pdf');
+    const status = (u: string, tenant = T) =>
+      call(tenant, 'SELECT * FROM dms_ocr_status($1,$2,$3)', [tenant, u, [r.f]]);
+    const seen: unknown[] = [];
+    const paged: OcrEngine = {
+      recognize: async (_b, _m, onProgress) => {
+        for (let done = 0; done <= 3; done += 1) {
+          await onProgress?.(done, 3);
+          seen.push((await status(U.a))[0]);
+        }
+        return { engine: 'fake', lang: 'vie', pages: 3, confidence: 90, text: 'tai lieu ba trang' };
+      },
+    };
+    expect((await status(U.a))[0].ocr_status ?? null).toBeNull(); // chưa vào hàng đợi
+    expect(await processTenant(app, T, store, paged, log)).toBeGreaterThanOrEqual(1);
+    expect(seen).toEqual([
+      { file_id: r.f, ocr_status: 'RUNNING', ocr_pages_done: 0, ocr_pages_total: 3 },
+      { file_id: r.f, ocr_status: 'RUNNING', ocr_pages_done: 1, ocr_pages_total: 3 },
+      { file_id: r.f, ocr_status: 'RUNNING', ocr_pages_done: 2, ocr_pages_total: 3 },
+      { file_id: r.f, ocr_status: 'RUNNING', ocr_pages_done: 3, ocr_pages_total: 3 },
+    ]);
+    expect((await status(U.a))[0]).toEqual({
+      file_id: r.f,
+      ocr_status: 'DONE',
+      ocr_pages_done: 3,
+      ocr_pages_total: 3,
+    });
+    expect(await status(U.b)).toEqual([]); // không xem được hồ sơ
+    expect(await status(U.foreign, T2)).toEqual([]);
+    // Danh sách tệp cũng mang trạng thái OCR.
+    const list = await call(T, 'SELECT * FROM dms_list_files($1,$2,$3)', [T, U.a, r.d]);
+    expect(list[0]).toMatchObject({ id: r.f, ocr_status: 'DONE', ocr_pages_total: 3 });
+    // Báo tiến độ sau khi xong không đổi gì; số trang bị kẹp.
+    const row = (
+      await call(T, `SELECT id FROM dms_ocr_results WHERE status = 'DONE' LIMIT 1`, [])
+    )[0];
+    expect((await call(T, 'SELECT dms_ocr_progress($1,$2,1,9) AS ok', [T, row.id]))[0].ok).toBe(
+      false,
+    );
+  });
+
   it('cách ly tenant: tenant khác không thấy văn bản và worker không đụng việc của tenant khác', async () => {
     expect(await search(U.foreign, 'tong dat', OFF2, T2)).toHaveLength(0);
     expect(await call(T2, 'SELECT * FROM dms_ocr_results', [])).toHaveLength(0);
