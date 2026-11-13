@@ -311,6 +311,34 @@ describe.skipIf(!ADMIN_URL)('DMS bộ lọc THV, việc còn dở, đã trả (P
     expect((await search(U.admin, 'tongdat', { open: true })).length).toBe(2);
   });
 
+  it('Tổ chức THA: tích "Đã có N-08" (cờ đã trả) làm hồ sơ hết còn dở, thẻ số khớp; bỏ tích thì còn dở lại', async () => {
+    const pending = async () =>
+      Number(
+        (
+          (await call('SELECT * FROM dms_domain_pending_counts($1,$2,$3,2026)', [
+            T,
+            U.admin,
+            OFF,
+          ])) as { domain: string; pending: number }[]
+        ).find((r) => r.domain === 'tochuc')!.pending,
+      );
+    expect(await pending()).toBe(1);
+    await owner.query(
+      `INSERT INTO dms_case_returned (tenant_id, case_id, returned, changed_by) VALUES ($1,$2,true,$3)`,
+      [T, cases.tc_open, U.admin],
+    );
+    expect(ids(await search(U.admin, 'tochuc', { open: true }))).toEqual([]);
+    expect(ids(await search(U.admin, 'tochuc', { open: false }))).toEqual(
+      want('tc_open', 'tc_done'),
+    );
+    expect(await pending()).toBe(0);
+    await owner.query(`UPDATE dms_case_returned SET returned = false WHERE case_id = $1`, [
+      cases.tc_open,
+    ]);
+    expect(ids(await search(U.admin, 'tochuc', { open: true }))).toEqual(want('tc_open'));
+    expect(await pending()).toBe(1);
+  });
+
   it('bộ lọc chỉ thu hẹp trong phạm vi chi nhánh, không mở rộng', async () => {
     // Văn thư chỉ thấy CN1: THV A có 2 hồ sơ (CN1 và CN2) nhưng văn thư chỉ nhận 1.
     expect(ids(await search(U.clerk, 'vibang', { thv: [U.thvA] }))).toEqual(want('vb_a1'));

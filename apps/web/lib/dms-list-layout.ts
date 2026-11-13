@@ -210,6 +210,34 @@ const PHONE: ListColumn = { id: 'phone', head: 'SĐT khách hàng', width: 110, 
 const RETURNED: ListColumn = { id: 'returned', head: 'Đã trả KQ', width: 80, special: 'returned' };
 
 /**
+ * Nhãn của ô tích sau ghi sổ. Riêng Tổ chức THA ô này là "Đã có biên bản N-08" (không còn dựa vào loại tài liệu; chủ dự án
+ * chốt 13/11/2026), các nghiệp vụ khác là "Đã trả kết quả". Cùng một cờ trong DB (`dms_case_returned`).
+ */
+export function returnedLabels(domainCode: string): {
+  readonly head: string;
+  readonly title: string;
+  readonly yes: string;
+  readonly no: string;
+  readonly aria: string;
+} {
+  return domainCode === 'tochuc'
+    ? {
+        head: 'Đã có N-08',
+        title: 'Đã có biên bản N-08',
+        yes: 'Đã có N-08',
+        no: 'Chưa có N-08',
+        aria: 'Đã có biên bản N-08 của hồ sơ',
+      }
+    : {
+        head: 'Đã trả KQ',
+        title: 'Đã trả kết quả',
+        yes: 'Đã trả',
+        no: 'Chưa trả',
+        aria: 'Đã trả kết quả hồ sơ',
+      };
+}
+
+/**
  * Bố cục danh sách một nghiệp vụ: các cột sổ cốt lõi của Figma, thêm SĐT khách hàng ngay sau cột STT · Mã hồ sơ và
  * ô "Đã trả KQ" ngay trước cột Tài liệu · Scan.
  */
@@ -221,7 +249,7 @@ export function listLayoutFor(domainCode: string): readonly ListColumn[] | undef
     base[0]!,
     PHONE,
     ...base.slice(1, scanAt < 0 ? base.length : scanAt),
-    RETURNED,
+    domainCode === 'tochuc' ? { ...RETURNED, head: returnedLabels(domainCode).head } : RETURNED,
     ...(scanAt < 0 ? [] : base.slice(scanAt)),
   ];
 }

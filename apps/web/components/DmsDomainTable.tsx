@@ -4,6 +4,7 @@ import type { DmsBookRow, DmsBookSpec } from '../lib/dms';
 import { scanState } from '../lib/dms';
 import type { DmsSearchCase } from '../lib/dms-browse';
 import { bookGetter, sttRange, type ListColumn } from '../lib/dms-list-layout';
+import { returnedLabels } from '../lib/dms-list-layout';
 import { ReturnedToggle } from './ReturnedToggle';
 import { DataTable } from './ui/data-table';
 
@@ -244,6 +245,7 @@ export function DmsDomainTable({
                       initial={r.returned}
                       editable={canMarkReturned && r.status === 'RECORDED'}
                       caseLabel={r.case_number ?? r.title}
+                      ariaPrefix={returnedLabels(r.domain).aria}
                     />
                   )}
                 </td>

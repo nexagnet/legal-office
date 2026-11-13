@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { DmsFacetCounts } from '../lib/dms-browse';
 import { DMS_PERIODS, type DmsDateRange } from '../lib/dms-date-range';
 import { viewHref, type DmsView } from '../lib/dms-filter-params';
+import { returnedLabels } from '../lib/dms-list-layout';
 import type { DmsFilter } from '../lib/dms';
 import { DmsPopoverDismiss } from './DmsPopoverDismiss';
 import { Button } from './ui/button';
@@ -115,6 +116,7 @@ export function DmsFilterFields({
         : `Thừa hành viên (${thvSelected.length})`;
   const otherN = otherFilterCount(view, domain, recordedView);
   const openLabel = OPEN_LABEL[domain];
+  const RL = returnedLabels(domain);
   const scanValue =
     view.filter === 'thieu-scan' || view.filter === 'du-scan' ? view.filter : 'chinh-thuc';
   const thvOptions = facets.thv.filter((o) => o.value !== '');
@@ -270,15 +272,15 @@ export function DmsFilterFields({
               ) : null}
               {recordedView ? (
                 <label className="dms-field">
-                  <span>Đã trả kết quả</span>
+                  <span>{RL.title}</span>
                   <select
                     name="tra"
                     defaultValue={view.returned === undefined ? '' : view.returned ? '1' : '0'}
                     className="dms-select"
                   >
                     <option value="">Tất cả</option>
-                    <option value="1">Đã trả</option>
-                    <option value="0">Chưa trả</option>
+                    <option value="1">{RL.yes}</option>
+                    <option value="0">{RL.no}</option>
                   </select>
                 </label>
               ) : null}
@@ -354,6 +356,7 @@ export function DmsActiveChips({
   recordedView,
   matchText,
 }: DmsActiveChipsProps) {
+  const RL = returnedLabels(domain);
   const chips: { key: string; text: string; href: string }[] = [];
   const without = (patch: Partial<DmsView>, drop: readonly string[] = []) =>
     viewHref(base, { ...view, ...patch }, { drop });
@@ -398,7 +401,7 @@ export function DmsActiveChips({
   if (recordedView && view.returned !== undefined)
     chips.push({
       key: 'returned',
-      text: `Đã trả kết quả: ${view.returned ? 'Đã trả' : 'Chưa trả'}`,
+      text: `${RL.title}: ${view.returned ? RL.yes : RL.no}`,
       href: without({ returned: undefined }),
     });
   const labelOf = (list: DmsFacetCounts['branch'], v: string) =>
@@ -513,17 +516,20 @@ export function DmsWorkChips({ base, view, facets, domain, userId }: DmsWorkChip
       active: view.overdue === true,
       href: go({ overdue: true, returned: undefined, filter: 'chinh-thuc' }),
     });
-  items.push(
-    {
+  const RL = returnedLabels(domain);
+  // Tổ chức THA đã có chip "Chưa có biên bản N-08" (việc còn dở) nên không lặp "Chưa có N-08".
+  if (domain !== 'tochuc')
+    items.push({
       key: 'unreturned',
       label: 'Chưa trả kết quả',
       n: countOf(facets.returned, 'false'),
       active: view.returned === false,
       href: go({ returned: false, filter: 'chinh-thuc' }),
-    },
+    });
+  items.push(
     {
       key: 'returned',
-      label: 'Đã trả kết quả',
+      label: RL.title,
       n: countOf(facets.returned, 'true'),
       active: view.returned === true,
       href: go({ returned: true, overdue: undefined, filter: 'chinh-thuc' }),
