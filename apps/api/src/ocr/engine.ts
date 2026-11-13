@@ -17,8 +17,11 @@ export interface OcrOutput {
 
 /** Cổng engine OCR: đổi Tesseract sang PaddleOCR chỉ cần thêm một hiện thực, không đổi worker hay DB. */
 export interface OcrEngine {
-  recognize(bytes: Buffer, mime: string): Promise<OcrOutput>;
+  /** `onProgress(đã xong, tổng)` được gọi khi biết tổng số trang và sau mỗi trang; lỗi của callback không làm hỏng OCR. */
+  recognize(bytes: Buffer, mime: string, onProgress?: OcrProgress): Promise<OcrOutput>;
 }
+
+export type OcrProgress = (done: number, total: number) => void | Promise<void>;
 
 const IMAGE_EXT: Record<string, string> = {
   'image/png': 'png',
@@ -53,7 +56,7 @@ export class TesseractEngine implements OcrEngine {
     private readonly timeoutMs = 120_000,
   ) {}
 
-  async recognize(bytes: Buffer, mime: string): Promise<OcrOutput> {
+  async recognize(bytes: Buffer, mime: string, onProgress?: OcrProgress): Promise<OcrOutput> {
     const dir = await mkdtemp(join(tmpdir(), 'lo-ocr-'));
     try {
       const images: string[] = [];
@@ -87,6 +90,14 @@ export class TesseractEngine implements OcrEngine {
       if (images.length === 0) throw new Error('NO_PAGES');
       const texts: string[] = [];
       const confs: number[] = [];
+      const report = async (done: number) => {
+        try {
+          await onProgress?.(done, images.length);
+        } catch {
+          /* tiến độ chỉ để hiển thị */
+        }
+      };
+      await report(0);
       for (const img of images) {
         const base = img.replace(/\.[^.]+$/, '');
         await run('tesseract', [img, base, '-l', this.lang, '--psm', '1', 'txt', 'tsv'], {
@@ -95,6 +106,7 @@ export class TesseractEngine implements OcrEngine {
         texts.push((await readFile(`${base}.txt`, 'utf8')).trim());
         const c = meanConfidence(await readFile(`${base}.tsv`, 'utf8'));
         if (c !== null) confs.push(c);
+        await report(texts.length);
       }
       const confidence = confs.length
         ? Math.round((confs.reduce((a, b) => a + b, 0) / confs.length) * 100) / 100

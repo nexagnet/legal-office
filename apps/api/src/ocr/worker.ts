@@ -48,11 +48,14 @@ interface Source {
   readonly complete: string;
   readonly fail: string;
   readonly label: string;
+  /** Hàm báo tiến độ theo trang; chỉ tài liệu mới có (tài liệu cũ không hiển thị tiến độ). */
+  readonly progress?: string;
 }
 const CASE_SOURCE: Source = {
   claim: 'dms_ocr_claim',
   complete: 'dms_ocr_complete',
   fail: 'dms_ocr_fail',
+  progress: 'dms_ocr_progress',
   label: 'ocr',
 };
 const LEGACY_SOURCE: Source = {
@@ -87,7 +90,16 @@ export async function processTenant(
     try {
       const bytes = await store.get(job.object_key);
       if (!bytes) throw new Error('FILE_MISSING');
-      const out = await engine.recognize(bytes, job.mime);
+      const out = await engine.recognize(
+        bytes,
+        job.mime,
+        src.progress
+          ? (done, total) =>
+              inTenant(pool, tenant, (c) =>
+                c.query(`SELECT ${src.progress}($1,$2,$3,$4)`, [tenant, job.id, done, total]),
+              ).then(() => undefined)
+          : undefined,
+      );
       await inTenant(pool, tenant, (c) =>
         c.query(`SELECT ${src.complete}($1,$2,$3,$4,$5,$6,$7,$8)`, [
           tenant,

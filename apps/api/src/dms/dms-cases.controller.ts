@@ -457,6 +457,25 @@ export class DmsCasesController {
       .then((rows) => ({ rows }));
   }
 
+  /** Tiến độ OCR của vài tệp (polling nhẹ, không ghi nhật ký). Chỉ trả tệp người gọi xem được. */
+  @Get('files/ocr-status')
+  ocrStatus(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(
+      z
+        .object({
+          ids: z
+            .string()
+            .transform((v) => v.split(',').filter(Boolean))
+            .pipe(z.array(z.string().uuid()).min(1).max(50)),
+        })
+        .strict(),
+      query,
+    );
+    return this.repo
+      .rows(a.tenantId, 'dms_ocr_status', [a.tenantId, a.userId, q.ids])
+      .then((rows) => ({ rows }));
+  }
+
   /** Tải lên một tệp MỚI (PDF/JPEG/PNG). Máy chủ tự tính hash và khoá đối tượng; không có đường ghi đè. */
   @Post('documents/:id/files')
   @HttpCode(HttpStatus.OK)
