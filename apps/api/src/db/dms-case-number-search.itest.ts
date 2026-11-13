@@ -12,6 +12,9 @@ const MIGRATION = readdirSync(DIR)
   .sort()
   .map((f) => readFileSync(resolve(DIR, f), 'utf8'))
   .join('\n');
+// DROP DATABASE ... WITH (FORCE) ở afterAll cắt kết nối còn mở; pool phát lỗi 57P01 mà không ai bắt
+// thì vitest báo "Unhandled Errors" dù mọi test đều qua.
+const ignorePoolError = () => {};
 const DB = `lo_dmsn_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
 const withDb = (url: string, db: string) => {
   const u = new URL(url);
@@ -67,6 +70,7 @@ describe.skipIf(!ADMIN_URL)('DMS tìm theo số hồ sơ (PostgreSQL)', () => {
       `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'legal_app') THEN CREATE ROLE legal_app LOGIN; END IF; END $$`,
     );
     owner = new pg.Pool({ connectionString: withDb(ADMIN_URL!, DB), max: 2 });
+    owner.on('error', ignorePoolError);
     await owner.query(MIGRATION);
     await owner.query('GRANT ALL ON ALL TABLES IN SCHEMA public TO legal_app');
     await owner.query('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO legal_app');
@@ -74,6 +78,7 @@ describe.skipIf(!ADMIN_URL)('DMS tìm theo số hồ sơ (PostgreSQL)', () => {
     appUrl.username = 'legal_app';
     appUrl.password = '';
     app = new pg.Pool({ connectionString: appUrl.toString(), max: 4 });
+    app.on('error', ignorePoolError);
 
     await owner.query(`INSERT INTO tenants (id, name) VALUES ($1,'A')`, [T]);
     await owner.query(`INSERT INTO offices (id, tenant_id, name) VALUES ($1,$2,'VP')`, [OFF, T]);
