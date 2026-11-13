@@ -106,7 +106,7 @@ const bool = (key: string, label: string): ColField => ({ key, label, type: 'boo
 
 /**
  * Cột của danh sách (theo `id` trong `listLayoutFor`) -> các ô sổ lọc được. Cột ghép hai ô (người yêu cầu / người phải THA...)
- * có hai ô lọc trong cùng một popover. Cột không có ở đây (Tài liệu · Scan, Đã trả KQ, SĐT, thao tác) đã có bộ lọc riêng
+ * có hai ô lọc trong cùng một popover. Cột không có ở đây (Tài liệu · Scan, Đã trả KQ, thao tác) đã có bộ lọc riêng
  * hoặc không lọc theo cột.
  */
 export const COLUMN_FILTERS: Readonly<
@@ -114,6 +114,7 @@ export const COLUMN_FILTERS: Readonly<
 > = {
   vibang: {
     stt: [t('stt', 'Mã hồ sơ')],
+    phone: [t('so_dien_thoai', 'SĐT khách hàng')],
     nguoi_yeu_cau: [t('nguoi_yeu_cau', 'Người yêu cầu')],
     noi_dung: [t('noi_dung_yeu_cau', 'Nội dung')],
     so_ngay: [t('so_ngay_vi_bang', 'Số, ngày vi bằng'), date('so_ngay_vi_bang', 'Ngày vi bằng')],
@@ -123,6 +124,7 @@ export const COLUMN_FILTERS: Readonly<
   },
   tongdat: {
     stt: [t('stt', 'Mã hồ sơ')],
+    phone: [t('so_dien_thoai', 'SĐT khách hàng')],
     loai: [choice('loai_van_ban', 'Loại văn bản')],
     so_ngay: [t('so_ngay_van_ban', 'Số, ngày văn bản'), date('so_ngay_van_ban', 'Ngày văn bản')],
     toa_an: [bool('co_quan_toa_an', 'Tòa án')],
@@ -135,6 +137,7 @@ export const COLUMN_FILTERS: Readonly<
   },
   xacminh: {
     stt: [t('stt', 'Mã hồ sơ')],
+    phone: [t('so_dien_thoai', 'SĐT khách hàng')],
     nguoi: [
       t('nguoi_yeu_cau_thi_hanh_an', 'Người yêu cầu THA'),
       t('nguoi_phai_thi_hanh_an', 'Người phải THA'),
@@ -146,6 +149,7 @@ export const COLUMN_FILTERS: Readonly<
   },
   tochuc: {
     stt: [t('stt', 'Mã hồ sơ')],
+    phone: [t('so_dien_thoai', 'SĐT khách hàng')],
     ben: [t('ben_phai_thi_hanh_an', 'Bên phải THA'), t('ben_duoc_thi_hanh_an', 'Bên được THA')],
     khoan: [t('cac_khoan_phai_thi_hanh_an', 'Các khoản')],
     hd_qd: [

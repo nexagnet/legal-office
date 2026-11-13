@@ -320,14 +320,23 @@ export default async function DmsDomainPage({
     <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
       <div className="dms-title-row">
         <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
-        {!vanThu && canDraft(permissions, domain.code) ? (
-          <NewDmsCaseButton
-            officeId={officeId}
-            domainCode={domain.code}
-            label={domain.label}
-            buttonLabel="+ Tạo hồ sơ"
-            redirectBase={base}
-          />
+        {!vanThu ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild className="min-h-10 px-5 text-[15px] font-bold">
+              <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
+                Xuất sổ {bookCode}
+              </Link>
+            </Button>
+            {canDraft(permissions, domain.code) ? (
+              <NewDmsCaseButton
+                officeId={officeId}
+                domainCode={domain.code}
+                label={domain.label}
+                buttonLabel="+ Tạo hồ sơ"
+                redirectBase={base}
+              />
+            ) : null}
+          </div>
         ) : null}
       </div>
       {draftKind && !vanThu ? (
