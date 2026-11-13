@@ -1,5 +1,6 @@
 'use client';
 
+import { RotateCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { messageFor } from '../lib/messages';
 import { ocrIsActive, ocrLabel, ocrPercent, type OcrProgressInfo } from '../lib/ocr-progress';
@@ -94,14 +95,21 @@ export function OcrProgress({
   }
 
   const pct = ocrPercent(info);
+  // Chip trạng thái dạng viên thuốc như Figma T1/T3: xong = xanh lá, đang chạy = cam, lỗi = đỏ.
   const tone =
     info.status === 'FAILED'
-      ? 'text-danger'
+      ? 'bg-[#fdecec] text-danger'
       : info.status === 'DONE'
-        ? 'text-muted'
-        : 'text-accent';
+        ? 'bg-[#e4f6ec] text-[#0f7a45]'
+        : 'bg-[#fdf0d5] text-[#a35a00]';
   return (
-    <span className="inline-flex items-center gap-2 text-xs" data-testid="ocr-progress">
+    <>
+      <span
+        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`}
+        data-testid="ocr-progress"
+      >
+        {ocrLabel(info)}
+      </span>
       {info.status === 'RUNNING' && pct !== null ? (
         <span
           role="progressbar"
@@ -109,27 +117,31 @@ export function OcrProgress({
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={pct}
-          className="h-1.5 w-20 overflow-hidden rounded-full bg-head"
+          className="block h-1 w-full overflow-hidden rounded-full bg-head"
         >
           <span className="block h-full bg-accent" style={{ width: `${pct}%` }} />
         </span>
       ) : null}
-      <span className={tone}>{ocrLabel(info)}</span>
       {info.status === 'FAILED' && canRetry ? (
         <button
           type="button"
           onClick={() => void retry()}
           disabled={retrying}
-          className="rounded border border-line-strong px-1.5 py-0.5 text-xs font-medium text-accent hover:bg-accent-soft disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-xs font-semibold text-ink hover:bg-accent-soft disabled:opacity-60"
         >
+          <RotateCw
+            size={13}
+            aria-hidden="true"
+            className={retrying ? 'animate-spin' : undefined}
+          />
           {retrying ? 'Đang gửi…' : 'Thử lại OCR'}
         </button>
       ) : null}
       {retryError ? (
-        <span role="alert" className="text-danger">
+        <span role="alert" className="text-xs text-danger">
           {retryError}
         </span>
       ) : null}
-    </span>
+    </>
   );
 }

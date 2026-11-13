@@ -1,19 +1,23 @@
-import { FileText, Image as ImageIcon, Upload } from 'lucide-react';
+import { FileText, Image as ImageIcon, Info, Upload } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { DmsFileRow } from '../lib/dms';
 import { cn } from '../lib/cn';
 import { OTHER_KIND } from '../lib/dms-other-kind';
 import { FileActions, UploadButton, type CompareFile, type UploadTarget } from './DmsFileActions';
-import { ocrApplies } from '../lib/ocr-progress';
+import { ocrApplies, ocrIsActive } from '../lib/ocr-progress';
 import { OcrProgress } from './OcrProgress';
 
-const dateFmt = new Intl.DateTimeFormat('vi-VN', {
+const dayMonth = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: '2-digit',
   timeZone: 'Asia/Ho_Chi_Minh',
 });
-const sizeLabel = (n: number | string) => `${Math.max(1, Math.round(Number(n) / 1024))} KB`;
+/** Ngày/tháng dạng "12/11" (Figma T1). Không dùng locale vi-VN vì bản CLDR mới trả "12-11". */
+const dateFmt = { format: (d: Date) => dayMonth.format(d) };
+/** "2.908 KB": dấu chấm ngăn hàng nghìn như Figma, không phụ thuộc locale của máy chủ. */
+const sizeLabel = (n: number | string) =>
+  `${String(Math.max(1, Math.round(Number(n) / 1024))).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} KB`;
 
 export interface DocGroup {
   readonly id: string;
@@ -126,6 +130,16 @@ export function DmsDocumentsTab({
           ) : null}
         </div>
 
+        {all.some(({ f }) => ocrApplies(f.mime) && ocrIsActive(f.ocr_status)) ? (
+          <p
+            role="note"
+            className="m-0 flex items-start gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-[13px] text-ink"
+          >
+            <Info size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
+            Tệp vẫn xem và tải được trong lúc OCR. Tìm theo nội dung chữ dùng được sau khi OCR xong.
+          </p>
+        ) : null}
+
         {fileCount === 0 ? (
           <div
             role="status"
@@ -160,6 +174,7 @@ export function DmsDocumentsTab({
               ) : (
                 g.files.map((f) => {
                   const selected = current?.f.id === f.id;
+                  const isMain = g.isOfficial && g.files.find((x) => x.is_scan)?.id === f.id;
                   return (
                     <div
                       key={f.id}
@@ -202,7 +217,7 @@ export function DmsDocumentsTab({
                               f.is_scan ? 'bg-accent-soft text-accent' : 'bg-head text-muted',
                             )}
                           >
-                            {f.is_scan ? 'Bản scan' : 'Bổ sung'}
+                            {isMain ? 'Bản scan chính' : f.is_scan ? 'Bản scan' : 'Bổ sung'}
                           </span>
                           {ocrChip(f, canUpload || canAddScan)}
                         </p>
@@ -224,15 +239,20 @@ export function DmsDocumentsTab({
               <div className="min-w-0 flex-1">
                 <p className="m-0 truncate text-sm font-semibold">{current.f.label}</p>
                 <p className="m-0 text-xs text-muted">
-                  {current.f.is_scan ? 'Bản scan' : 'Bổ sung'} · v{current.f.version} ·{' '}
-                  {sizeLabel(current.f.size_bytes)}
+                  {current.g.isOfficial &&
+                  current.g.files.find((x) => x.is_scan)?.id === current.f.id
+                    ? 'Bản scan chính'
+                    : current.f.is_scan
+                      ? 'Bản scan'
+                      : 'Bổ sung'}{' '}
+                  · v{current.f.version} · {sizeLabel(current.f.size_bytes)}
                 </p>
               </div>
               {actionsFor(current.f, current.g, 'preview')}
             </div>
             <iframe
               title={`Xem trước ${current.f.label}`}
-              src={`/api/dms/files/${current.f.id}/download?inline=1`}
+              src={`/api/dms/files/${current.f.id}/download?inline=1#toolbar=0&navpanes=0&view=FitH`}
               className="h-[520px] w-full border-0 bg-surface-2"
             />
           </div>

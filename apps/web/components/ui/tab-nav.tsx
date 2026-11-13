@@ -19,6 +19,7 @@ export function TabNav({
   action,
   compact = false,
   soft = false,
+  underline = false,
 }: {
   readonly tabs: readonly TabItem[];
   readonly active: string;
@@ -29,7 +30,35 @@ export function TabNav({
   readonly compact?: boolean;
   /** Chip mềm của Figma danh sách hồ sơ DMS: mục đang chọn chữ xanh trên nền xanh nhạt, mục khác nền xám. */
   readonly soft?: boolean;
+  /** Tab chữ gạch chân của Figma chi tiết hồ sơ (T1): mục đang chọn chữ xanh, gạch xanh dưới chân. */
+  readonly underline?: boolean;
 }) {
+  if (underline) {
+    return (
+      <nav
+        aria-label={label}
+        className="mb-4 flex min-w-0 flex-nowrap gap-7 overflow-x-auto border-b border-line [scrollbar-width:thin]"
+      >
+        {tabs.map((t) => {
+          const on = t.key === active;
+          return (
+            <Link
+              key={t.key}
+              href={t.href}
+              aria-current={on ? 'page' : undefined}
+              className={cn(
+                '-mb-px shrink-0 border-b-2 px-0.5 pt-1 pb-3 text-[15px] font-semibold whitespace-nowrap no-underline',
+                on ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-ink',
+              )}
+            >
+              {t.label}
+              {t.count === undefined ? null : ` (${t.count})`}
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
   if (soft) {
     return (
       <div className="tabs-soft-row">

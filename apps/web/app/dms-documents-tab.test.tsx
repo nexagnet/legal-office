@@ -59,6 +59,18 @@ describe('Tab Tài liệu (thiết kế mới)', () => {
     expect(screen.getByTitle('Xem trước main.pdf')).toBeTruthy();
   });
 
+  it('dòng tệp theo Figma T1: ngày 12/11, dung lượng có dấu chấm, chip Bản scan chính', () => {
+    const big: DocGroup[] = [
+      {
+        ...groups[0]!,
+        files: [{ ...file('f1', 'main.pdf'), size_bytes: 2_976_000 }],
+      },
+    ];
+    render(<DmsDocumentsTab {...base} groups={big} canDeleteScan={false} />);
+    expect(screen.getByText('2.906 KB · v1 · 12/11')).toBeTruthy();
+    expect(screen.getAllByText('Bản scan chính').length).toBeGreaterThan(0);
+  });
+
   it('chọn tệp khác thì khung xem trước đổi theo', () => {
     render(<DmsDocumentsTab {...base} groups={groups} previewId="f3" canDeleteScan={false} />);
     expect(screen.getByTitle('Xem trước bien-ban.pdf').getAttribute('src')).toContain('/f3/');
@@ -138,6 +150,29 @@ describe('Hộp thoại Tải lên', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên 1 tệp' }));
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toMatch(/documents\/d1\/files\?label=b\.jpg&isScan=false/);
+  });
+
+  it('đổi tên tệp ngay trong hộp thoại thì gửi tên mới', async () => {
+    const calls: string[] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation((url) => {
+      calls.push(String(url));
+      const body = String(url).includes('/other-document') ? { label: 'doc-9' } : {};
+      return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
+    });
+    render(
+      <UploadDialog caseId="c1" targets={[]} allowOther open onOpenChange={() => undefined} />,
+    );
+    // Chỉ có "Tài liệu khác" thì không cần ô chọn "Gắn vào tài liệu".
+    expect(screen.queryByLabelText('Gắn vào tài liệu')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Chọn tệp'), {
+      target: { files: [new File(['x'], 'scan-001.pdf', { type: 'application/pdf' })] },
+    });
+    fireEvent.change(screen.getByLabelText('Tên tài liệu cho scan-001.pdf'), {
+      target: { value: 'Biên bản xác minh' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên 1 tệp' }));
+    await waitFor(() => expect(calls).toHaveLength(2));
+    expect(new URL(calls[1]!, 'http://x').searchParams.get('label')).toBe('Biên bản xác minh');
   });
 
   it('chưa chọn tệp thì báo lỗi', () => {

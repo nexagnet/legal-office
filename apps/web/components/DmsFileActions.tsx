@@ -19,7 +19,14 @@ export interface UploadTarget {
   readonly label: string;
 }
 
-const sizeLabel = (n: number) => `${Math.max(1, Math.round(n / 1024))} KB`;
+const sizeLabel = (n: number) =>
+  `${String(Math.max(1, Math.round(n / 1024))).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} KB`;
+
+/** Tệp đã chọn kèm tên người dùng muốn đặt (mặc định là tên tệp). */
+interface Picked {
+  readonly file: File;
+  readonly name: string;
+}
 
 /**
  * Hộp thoại "Tải lên" duy nhất của tab Tài liệu (Figma T5): chọn nhiều tệp, chọn gắn vào tài liệu nào
@@ -44,14 +51,16 @@ export function UploadDialog({
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<Picked[]>([]);
   const [target, setTarget] = useState(defaultTarget);
   const [isScan, setIsScan] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function add(list: FileList | readonly File[] | null) {
-    const next = [...(list ?? [])].filter((f) => f.size > 0);
+    const next = [...(list ?? [])]
+      .filter((f) => f.size > 0)
+      .map((file) => ({ file, name: file.name }));
     if (next.length > 0) setFiles((prev) => [...prev, ...next]);
   }
   function close(v: boolean) {
@@ -74,10 +83,12 @@ export function UploadDialog({
     setBusy(true);
     setError(null);
     try {
+      const list = files.map((p) => p.file);
+      const names = files.map((p) => p.name);
       const r =
         target === OTHER
-          ? await uploadUnclassified(caseId, files, isScan)
-          : await uploadFilesTo(target, files, isScan);
+          ? await uploadUnclassified(caseId, list, isScan, names)
+          : await uploadFilesTo(target, list, isScan, names);
       if (r.done > 0) router.refresh();
       if (r.error) {
         setFiles((prev) => prev.slice(r.done));
@@ -95,20 +106,16 @@ export function UploadDialog({
   }
 
   return (
-    <Modal
-      open={open}
-      onOpenChange={close}
-      title="Tải lên tài liệu"
-      description="PDF, JPEG hoặc PNG, không giới hạn số tệp."
-    >
+    <Modal open={open} onOpenChange={close} title="Tải lên tài liệu">
       <form onSubmit={submit} className="grid gap-4" aria-label="Tải tài liệu lên">
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={drop}
-          className="grid justify-items-center gap-2 rounded-xl border border-dashed border-accent bg-accent-soft/50 px-4 py-6 text-center"
+          className="grid justify-items-center gap-1.5 rounded-xl border border-dashed border-accent bg-accent-soft/50 px-4 py-5 text-center"
         >
-          <Upload size={24} aria-hidden="true" className="text-accent" />
+          <Upload size={22} aria-hidden="true" className="text-accent" />
           <p className="m-0 text-sm font-semibold">Kéo thả tệp vào đây</p>
+          <p className="m-0 text-xs text-muted">PDF, JPEG, PNG · không giới hạn số tệp</p>
           <input
             ref={inputRef}
             type="file"
@@ -127,17 +134,35 @@ export function UploadDialog({
         </div>
         {files.length > 0 ? (
           <ul className="m-0 grid list-none gap-2 p-0" aria-label="Tệp đã chọn">
-            {files.map((f, i) => (
+            {files.map((p, i) => (
               <li
-                key={`${f.name}-${i}`}
-                className="flex items-center gap-3 rounded-lg bg-head px-3 py-2 text-sm"
+                key={`${p.file.name}-${i}`}
+                className="flex items-center gap-2 rounded-lg bg-head py-1 pr-1 pl-3 text-sm"
               >
-                <span className="min-w-0 flex-1 truncate">{f.name}</span>
-                <span className="text-xs text-muted">{sizeLabel(f.size)}</span>
+                <input
+                  type="text"
+                  value={p.name}
+                  maxLength={200}
+                  aria-label={`Tên tài liệu cho ${p.file.name}`}
+                  title="Bấm để đổi tên"
+                  className="min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-1.5 py-1.5 text-sm font-medium text-ink hover:border-line focus:border-accent focus:bg-surface focus:outline-none"
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setFiles((prev) => prev.map((x, j) => (j === i ? { ...x, name } : x)));
+                  }}
+                  onBlur={() =>
+                    setFiles((prev) =>
+                      prev.map((x, j) =>
+                        j === i && x.name.trim() === '' ? { ...x, name: x.file.name } : x,
+                      ),
+                    )
+                  }
+                />
+                <span className="shrink-0 text-xs text-muted">{sizeLabel(p.file.size)}</span>
                 <button
                   type="button"
-                  aria-label={`Bỏ ${f.name}`}
-                  className="grid size-7 place-items-center rounded-md text-muted hover:bg-surface"
+                  aria-label={`Bỏ ${p.file.name}`}
+                  className="grid size-8 shrink-0 place-items-center rounded-md text-muted hover:bg-surface"
                   onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
                 >
                   <X size={14} aria-hidden="true" />
@@ -146,18 +171,20 @@ export function UploadDialog({
             ))}
           </ul>
         ) : null}
-        <label className="grid gap-1 text-[13px] font-semibold">
-          Gắn vào tài liệu
-          <Select value={target} onChange={(e) => setTarget(e.target.value)}>
-            {allowOther ? <option value={OTHER}>Tài liệu khác (không vào sổ)</option> : null}
-            {targets.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </Select>
-        </label>
-        <label className="flex items-center gap-2 text-sm font-semibold">
+        {(allowOther ? 1 : 0) + targets.length <= 1 ? null : (
+          <label className="grid gap-1 text-[13px] font-semibold">
+            Gắn vào tài liệu
+            <Select value={target} onChange={(e) => setTarget(e.target.value)}>
+              {allowOther ? <option value={OTHER}>Tài liệu khác (không vào sổ)</option> : null}
+              {targets.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </Select>
+          </label>
+        )}
+        <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={isScan} onChange={(e) => setIsScan(e.target.checked)} />
           Đây là bản scan (tính vào số scan của hồ sơ)
         </label>
