@@ -49,6 +49,9 @@ function groupCells(layout: readonly ListColumn[]) {
   return out;
 }
 
+/** Cột SĐT tắt sẵn trong "Cột hiển thị" (chủ dự án chốt 13/11/2026); bật lại bằng hộp chọn cột. */
+const DEFAULT_HIDDEN = ['SĐT khách hàng'];
+
 const shortDate = new Intl.DateTimeFormat('vi-VN', {
   day: '2-digit',
   month: '2-digit',
@@ -128,7 +131,7 @@ export function DmsDomainTable({
 }) {
   const total = layout.reduce((n, c) => n + c.width, 0);
   return (
-    <DataTable tableKey={tableKey} className="dms-table-wrap">
+    <DataTable tableKey={tableKey} className="dms-table-wrap" defaultHiddenLabels={DEFAULT_HIDDEN}>
       <table
         className="dms-table"
         data-leafcols="true"

@@ -46,9 +46,12 @@ function writePrefs(key: string, prefs: Prefs): void {
 export function DataTable({
   tableKey,
   className,
+  defaultHiddenLabels,
   children,
 }: {
   readonly tableKey: string;
+  /** Cột (theo nhãn) tắt sẵn khi người dùng chưa từng chỉnh "Cột hiển thị"; vẫn bật lại được. */
+  readonly defaultHiddenLabels?: readonly string[];
   readonly className?: string;
   readonly children: ReactNode;
 }) {
@@ -62,7 +65,13 @@ export function DataTable({
     right: false,
   });
 
+  const hasStored = useRef(false);
   useEffect(() => {
+    try {
+      hasStored.current = window.localStorage.getItem(STORE_PREFIX + tableKey) !== null;
+    } catch {
+      hasStored.current = false;
+    }
     setPrefs(readPrefs(tableKey));
   }, [tableKey]);
 
@@ -192,6 +201,16 @@ export function DataTable({
         .join(''),
     [prefs.hidden, scopeId],
   );
+
+  // Lần đầu (chưa lưu lựa chọn nào): tắt sẵn các cột mặc định, không ghi vào trình duyệt.
+  const defaultsApplied = useRef(false);
+  useEffect(() => {
+    if (defaultsApplied.current || !defaultHiddenLabels?.length || labels.length === 0) return;
+    defaultsApplied.current = true;
+    if (hasStored.current) return;
+    const hidden = labels.flatMap((l, i) => (defaultHiddenLabels.includes(l) ? [i] : []));
+    if (hidden.length > 0) setPrefs((p) => ({ ...p, hidden }));
+  }, [labels, defaultHiddenLabels]);
 
   // Tiêu đề nhóm (colSpan) co lại theo số cột con còn hiện; ẩn hết thì ẩn luôn ô nhóm.
   useEffect(() => {

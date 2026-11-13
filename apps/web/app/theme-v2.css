@@ -3837,3 +3837,48 @@ td mark {
   text-decoration: none;
   background: transparent;
 }
+
+/* Ô tích "Đã trả KQ / Đã có N-08": vuông bo góc, xanh khi tích, dấu ✓ trắng; không dùng ô mặc định của trình duyệt */
+.dms-returned input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-grid;
+  place-content: center;
+  inline-size: 22px;
+  block-size: 22px;
+  min-height: 0;
+  margin: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+.dms-returned input[type='checkbox']::after {
+  content: '';
+  inline-size: 6px;
+  block-size: 11px;
+  margin-top: -2px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.12s;
+}
+.dms-returned input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.dms-returned input[type='checkbox']:checked::after {
+  transform: rotate(45deg) scale(1);
+}
+.dms-returned input[type='checkbox']:hover:not(:disabled) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.dms-returned input[type='checkbox']:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
