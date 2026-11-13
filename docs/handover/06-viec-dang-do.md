@@ -36,7 +36,7 @@ Ký hiệu: 🧑 = chủ dự án (phungviet) hoặc bên ngoài làm; 🤖 = Cl
 |---|---|---|---|
 | C1 | **Thiết kế lại vùng lọc** của danh sách 4 nghiệp vụ (bỏ ô tìm trùng header, 3 hàng có nhãn Hồ sơ / Việc cần làm / Bộ lọc, hàng "Đang lọc", "+ Tạo hồ sơ" đầu trang, ⋯ chứa Xuất sổ/Cột hiển thị/Hiển thị gọn) | 🧑 duyệt → 🤖 code | **Đang chờ chủ dự án duyệt** bản vẽ HTML (Figma hết hạn mức). Thread riêng đang giữ việc này, rồi sẽ viết lại hướng dẫn |
 | C2 | **Viết lại hướng dẫn sử dụng** (PDF có ảnh, khớp giao diện mới, có phần lọc) | 🤖 | Làm sau C1. PR #435 (hướng dẫn v2, dựa trên bản cũ) sẽ đóng khi bản mới xong |
-| C3 | **Nút "Thử lại OCR"** cho tệp OCR lỗi (hiện có % tiến độ, chưa có thử lại; tối đa 3 lần tự thử) | 🤖 | Chưa làm |
+| C3 | **Nút "Thử lại OCR"** cho tệp OCR lỗi (tối đa 3 lần tự thử) | 🤖 | **Đã làm (13/11, migration 0127):** `POST /dms/files/:id/ocr-retry` → `dms_ocr_retry` (chỉ tệp FAILED, cùng quyền thêm tài liệu, có nhật ký); nút hiện cạnh chữ "OCR lỗi" ở tab Tài liệu |
 | C4 | **Chip "Quá hạn"** ở bộ lọc: cần định nghĩa "hạn xử lý" trước | 🧑 quyết nghĩa → 🤖 | Chưa có hạn xử lý trong dữ liệu |
 | C5 | **Cache ngắn hạn cho truy vấn đếm bộ lọc "mọi miền"** (1,1–1,6s trên 150k hồ sơ) | 🤖 | Tùy chọn, chưa làm |
 | C6 | Câu hỏi nghiệp vụ mở: hồ sơ không có tài liệu có được ghi sổ không (đang cho phép, chỉ cảnh báo); quy tắc đếm cột Tổ chức THA ở N-09; xác nhận MISA gate cũ đã bị thay (D-2); mẫu Excel gốc N-09/N-10 của khách | 🧑 | ❓ mở |
