@@ -129,7 +129,7 @@ export function DmsColumnFilter({
   }
 
   return (
-    <span className="inline-flex items-center gap-1">
+    <span className="group/h relative inline-block max-w-full">
       {head}
       <Popover.Root
         open={open}
@@ -143,11 +143,11 @@ export function DmsColumnFilter({
           data-active={active ? 'true' : undefined}
           className={
             active
-              ? 'grid size-6 place-items-center rounded text-accent outline-none focus-visible:bg-accent-soft data-[state=open]:bg-accent-soft'
-              : 'grid size-6 place-items-center rounded text-faint outline-none hover:text-accent focus-visible:bg-accent-soft data-[state=open]:bg-accent-soft'
+              ? 'absolute -top-2 -right-2 grid size-5 place-items-center rounded-full bg-surface text-accent shadow-sm outline-none ring-1 ring-line focus-visible:ring-2 focus-visible:ring-accent'
+              : 'absolute -top-2 -right-2 grid size-5 place-items-center rounded-full bg-surface text-muted opacity-0 shadow-sm outline-none ring-1 ring-line group-hover/h:opacity-100 hover:text-accent focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent data-[state=open]:opacity-100'
           }
         >
-          <Funnel size={14} aria-hidden="true" fill={active ? 'currentColor' : 'none'} />
+          <Funnel size={11} aria-hidden="true" fill={active ? 'currentColor' : 'none'} />
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content
