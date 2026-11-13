@@ -11,9 +11,26 @@ const env = Object.fromEntries(
 const NEW_PASSWORD = 'E2e-Mat-Khau-Moi-5678';
 const TITLE = 'Hồ sơ smoke E2E';
 
+// Khi hỏng, in nội dung trang và các lời gọi API lỗi ra log CI để biết ngay nguyên nhân.
+test.afterEach(async ({ page }, info) => {
+  if (info.status === info.expectedStatus) return;
+  console.log('URL khi hỏng:', page.url());
+  console.log(
+    (
+      await page
+        .locator('body')
+        .innerText()
+        .catch(() => '')
+    ).slice(0, 2000),
+  );
+});
+
 test('đăng nhập, đổi mật khẩu lần đầu, tạo nháp Vi bằng, ghi sổ và thấy ở danh sách Chính thức', async ({
   page,
 }) => {
+  page.on('response', (r) => {
+    if (r.url().includes('/api/') && r.status() >= 400) console.log('API lỗi', r.status(), r.url());
+  });
   await page.goto('/login');
   await page.locator('input[name=identifier]').fill(env.E2E_ADMIN_EMAIL!);
   await page.locator('input[name=password]').fill(env.E2E_ADMIN_PASSWORD!);
