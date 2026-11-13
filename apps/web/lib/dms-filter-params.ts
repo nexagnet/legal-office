@@ -38,6 +38,8 @@ export interface DmsView {
   readonly open?: boolean;
   /** Đã trả kết quả: true / false / không lọc. */
   readonly returned?: boolean;
+  /** Quá hạn báo kết quả tống đạt (chỉ Tống đạt): true = quá hạn. */
+  readonly overdue?: boolean;
   /** Bộ lọc nghiệp vụ (0126): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   readonly fa?: string;
   readonly fb?: string;
@@ -63,6 +65,7 @@ export function parseExtraView(sp: Readonly<Record<string, string | string[] | u
   thv: string[];
   open?: boolean;
   returned?: boolean;
+  overdue?: boolean;
   ky?: string;
   fa?: string;
   fb?: string;
@@ -79,6 +82,7 @@ export function parseExtraView(sp: Readonly<Record<string, string | string[] | u
     thv,
     open: triState(sp.mo),
     returned: triState(sp.tra),
+    overdue: triState(sp.qh),
     ky: ky || undefined,
     fa: text(sp.fa),
     fb: text(sp.fb),
@@ -104,6 +108,7 @@ export function viewToQuery(
   if (!drop.has('thv')) for (const t of v.thv ?? []) qs.append('thv', t);
   if (v.open !== undefined) put('mo', v.open ? '1' : '0');
   if (v.returned !== undefined) put('tra', v.returned ? '1' : '0');
+  if (v.overdue !== undefined) put('qh', v.overdue ? '1' : '0');
   put('fa', v.fa);
   put('fb', v.fb);
   if (v.ky) put('ky', v.ky);
@@ -140,6 +145,7 @@ export function viewToSavedParams(v: DmsView): DmsSavedParams {
   if (v.thv && v.thv.length > 0) out.thv = v.thv.join(',');
   if (v.open !== undefined) out.open = String(v.open);
   if (v.returned !== undefined) out.returned = String(v.returned);
+  if (v.overdue !== undefined) out.overdue = String(v.overdue);
   if (v.fa) out.fa = v.fa;
   if (v.fb) out.fb = v.fb;
   if (v.ky) out.ky = v.ky;
@@ -177,6 +183,7 @@ export function savedParamsToHref(base: string, p: DmsSavedParams): string {
     thv: asText(p.thv)?.split(',').filter(Boolean),
     open: asBool(p.open),
     returned: asBool(p.returned),
+    overdue: asBool(p.overdue),
     fa: typeof p.fa === 'string' ? p.fa : undefined,
     fb: typeof p.fb === 'string' ? p.fb : undefined,
     ky: asText(p.ky),
