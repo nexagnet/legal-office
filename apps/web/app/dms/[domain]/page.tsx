@@ -6,7 +6,7 @@ import { AdminBanner } from '../../../components/admin-banner';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { DmsDomainTable } from '../../../components/DmsDomainTable';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
-import { DmsActiveChips, DmsFilterFields } from '../../../components/DmsFilterBar';
+import { DmsActiveChips, DmsFilterFields, DmsWorkChips } from '../../../components/DmsFilterBar';
 import { KpiStrip, type Kpi } from '../../../components/KpiStrip';
 import { NewDmsCaseButton } from '../../../components/NewDmsCaseButton';
 import { PdfPrintButton } from '../../../components/PdfPrintButton';
@@ -34,6 +34,7 @@ import {
   formatTotal,
   loadBookRowsForCases,
   loadDmsFacetCounts,
+  exportCasesHref,
   pageWindow,
   parseExtraView,
   searchDmsCases,
@@ -183,6 +184,8 @@ export default async function DmsDomainPage({
     thv: vanThu ? undefined : extra.thv,
     open: recordedView ? extra.open : undefined,
     returned: recordedView ? extra.returned : undefined,
+    fa: vanThu ? undefined : extra.fa,
+    fb: vanThu ? undefined : extra.fb,
     officeId,
     domain: domain.code,
     filter,
@@ -288,6 +291,8 @@ export default async function DmsDomainPage({
     thv: search.thv,
     open: search.open,
     returned: search.returned,
+    fa: search.fa,
+    fb: search.fb,
     tu: range.tu,
     den: range.den,
     ky: range.ky,
@@ -378,11 +383,24 @@ export default async function DmsDomainPage({
                 />
               </>
             ) : (
-              <Button asChild variant="secondary">
-                <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
-                  Xuất {bookCode}
-                </Link>
-              </Button>
+              <>
+                {recordedView ? (
+                  <Button asChild variant="secondary">
+                    <a
+                      className="no-underline"
+                      href={exportCasesHref({ ...search, from: range.from, to: range.to })}
+                      title="Tải Excel đúng danh sách đang lọc (tối đa 10.000 hồ sơ)"
+                    >
+                      Xuất Excel (đang lọc)
+                    </a>
+                  </Button>
+                ) : null}
+                <Button asChild variant="secondary">
+                  <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
+                    Xuất {bookCode}
+                  </Link>
+                </Button>
+              </>
             )}
             {canDraft(permissions, domain.code) ? (
               <NewDmsCaseButton
@@ -396,6 +414,15 @@ export default async function DmsDomainPage({
           </span>
         }
       />
+      {!vanThu && recordedView ? (
+        <DmsWorkChips
+          base={base}
+          view={view}
+          facets={facets}
+          domain={domain.code}
+          userId={userId}
+        />
+      ) : null}
       <form method="get" action={base} role="search" className="dms-filters">
         {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
         <DmsCaseSuggest

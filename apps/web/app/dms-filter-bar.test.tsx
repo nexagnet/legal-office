@@ -181,6 +181,17 @@ function stubApi() {
           { value: B, label: 'Trần Hoa', n: 3 },
           { value: '', label: '(chưa chọn)', n: 9 },
         ],
+        fa: [
+          { value: 'Trực tiếp', label: 'Trực tiếp', n: 3 },
+          { value: 'Niêm yết', label: 'Niêm yết', n: 1 },
+        ],
+        fb: [{ value: 'Tòa án', label: 'Tòa án', n: 4 }],
+        open: [
+          { value: 'true', label: 'true', n: 3 },
+          { value: 'false', label: 'false', n: 1 },
+        ],
+        returned: [{ value: 'false', label: 'false', n: 2 }],
+        scan: [{ value: 'missing', label: 'missing', n: 5 }],
       });
     if (url.includes('/dms/me/permissions')) return json({ permissions: [] });
     if (url.includes('/dms/report'))
@@ -250,7 +261,8 @@ describe('hàng lọc mới trên trang danh sách', () => {
     expect(within(tabs).getByText('Chính thức')).toBeTruthy();
     const other = screen.getByRole('group', { name: 'Bộ lọc khác', hidden: true });
     expect(within(other).getByLabelText('Tình trạng scan')).toBeTruthy();
-    expect(within(other).getByLabelText('Đã trả kết quả')).toBeTruthy(); // chỉ Vi bằng
+    expect(within(other).getByLabelText('Đã trả kết quả')).toBeTruthy();
+    expect(within(other).getByLabelText('Tỉnh/thành nơi lập vi bằng')).toBeTruthy();
     expect(within(other).queryByLabelText('Việc còn dở')).toBeNull(); // Vi bằng không có
   });
 
@@ -264,5 +276,60 @@ describe('hàng lọc mới trên trang danh sách', () => {
     );
     const link = screen.getByRole('link', { name: 'Lọc theo Chưa tống đạt' });
     expect(link.getAttribute('href')).toBe('/dms/tong-dat?mo=1');
+  });
+
+  it('Tống đạt: hàng chip việc cần làm có số đếm, bộ lọc nghiệp vụ và Xuất Excel đúng tập đang lọc', async () => {
+    const urls = stubApi();
+    render(
+      await DmsDomainPage({
+        params: Promise.resolve({ domain: 'tong-dat' }),
+        searchParams: Promise.resolve({ fa: 'Trực tiếp', fb: 'Tòa án', mo: '1' }),
+      }),
+    );
+    const nav = screen.getByRole('navigation', { name: 'Việc cần làm' });
+    const open = within(nav).getByRole('link', { name: /Chưa tống đạt/ });
+    expect(open.textContent).toContain('3');
+    expect(open.getAttribute('aria-current')).toBe('true');
+    expect(within(nav).getByRole('link', { name: /Đã tống đạt/ }).textContent).toContain('1');
+    expect(within(nav).getByRole('link', { name: /Thiếu scan/ }).textContent).toContain('5');
+    const done = new URLSearchParams(
+      within(nav)
+        .getByRole('link', { name: /Đã tống đạt/ })
+        .getAttribute('href')!
+        .split('?')[1],
+    );
+    expect(done.get('mo')).toBe('0');
+    expect(done.get('fa')).toBe('Trực tiếp'); // đổi chip không làm mất bộ lọc khác
+    // Bộ lọc gửi cho API, kể cả facet
+    const page = urls.find((u) => u.includes('case-search') && u.includes('limit=10'))!;
+    expect(new URL(page).searchParams.get('fa')).toBe('Trực tiếp');
+    expect(new URL(page).searchParams.get('fb')).toBe('Tòa án');
+    // Chip Đang lọc và ô chọn nghiệp vụ
+    const chips = screen.getByRole('group', { name: 'Đang lọc' });
+    expect(within(chips).getByText('Hình thức tống đạt: Trực tiếp')).toBeTruthy();
+    expect(within(chips).getByText('Cơ quan giao văn bản: Tòa án')).toBeTruthy();
+    const other = screen.getByRole('group', { name: 'Bộ lọc khác', hidden: true });
+    expect(within(other).getByLabelText('Hình thức tống đạt')).toBeTruthy();
+    expect(within(other).getByLabelText('Cơ quan giao văn bản')).toBeTruthy();
+    // Xuất Excel: cùng tham số lọc, chỉ hồ sơ đã ghi sổ
+    const xl = screen.getByRole('link', { name: 'Xuất Excel (đang lọc)' });
+    const q = new URL(xl.getAttribute('href')!, 'http://x');
+    expect(q.pathname).toBe('/api/dms/case-search/export');
+    expect(q.searchParams.get('fa')).toBe('Trực tiếp');
+    expect(q.searchParams.get('open')).toBe('true');
+    expect(q.searchParams.get('status')).toBe('RECORDED');
+    expect(q.searchParams.get('domain')).toBe('tongdat');
+  });
+
+  it('fa/fb đi vào địa chỉ trang và bộ lọc đã lưu; mở lại ra đúng cách nhìn', () => {
+    const v = { filter: 'chinh-thuc' as const, fa: 'Niêm yết', fb: 'Cơ quan THADS' };
+    expect(viewToQuery(v).get('fa')).toBe('Niêm yết');
+    expect(viewToQuery(v).get('fb')).toBe('Cơ quan THADS');
+    const saved = viewToSavedParams(v);
+    expect(saved).toMatchObject({ fa: 'Niêm yết', fb: 'Cơ quan THADS' });
+    const back = new URLSearchParams(savedParamsToHref('/dms/x', saved).split('?')[1]);
+    expect(back.get('fa')).toBe('Niêm yết');
+    expect(parseExtraView({ fa: ' Trực tiếp ', fb: '' })).toMatchObject({ fa: 'Trực tiếp' });
+    expect(parseExtraView({ fb: '' }).fb).toBeUndefined();
   });
 });
