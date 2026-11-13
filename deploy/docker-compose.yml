@@ -1,0 +1,82 @@
+# Production trên một máy (Tencent Lighthouse 2 vCPU/2GB). Chạy bằng:
+#   docker compose --env-file /opt/legal-office/.env -f /opt/legal-office/deploy/docker-compose.yml up -d
+# Postgres chạy trên host (apt) và chỉ nghe 127.0.0.1, nên api/web dùng mạng host; ufw chặn cổng 3000/3001 từ ngoài.
+# Caddy (host) là điểm vào duy nhất: https://<tên miền> -> 127.0.0.1:3000. Không đưa bí mật vào file này: mọi giá trị lấy từ .env.
+services:
+  api:
+    image: ${IMAGE_REGISTRY:-ghcr.io/nexagnet}/legal-office-api:${TAG:?TAG is required}
+    network_mode: host
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      NODE_ENV: production
+      PORT: '3001'
+      NODE_OPTIONS: --max-old-space-size=160
+      AUTH_MODE: password
+      TRUST_PROXY: '1'
+      # API chạy bằng vai legal_app (không superuser); vai chủ DB chỉ dùng cho migration lúc khởi động.
+      DATABASE_URL: ${APP_DATABASE_URL:?APP_DATABASE_URL is required}
+      MIGRATE_DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      APP_DB_ROLE: ${APP_DB_ROLE:-legal_app}
+      WEB_ORIGIN: ${WEB_ORIGIN:?WEB_ORIGIN is required}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      FILE_STORE: ${FILE_STORE:-r2}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      REMINDERS_SCHEDULE: ${REMINDERS_SCHEDULE:-on}
+      SCAN_PURGE_SCHEDULE: ${SCAN_PURGE_SCHEDULE:-on}
+      MAIL_SETTINGS_KEY: ${MAIL_SETTINGS_KEY:-}
+      RATE_LIMIT_READ_PER_MIN: ${RATE_LIMIT_READ_PER_MIN:-3000}
+      RATE_LIMIT_WRITE_PER_MIN: ${RATE_LIMIT_WRITE_PER_MIN:-600}
+      RATE_LIMIT_AUTH_PER_MIN: ${RATE_LIMIT_AUTH_PER_MIN:-20}
+      # Tài liệu cũ: OCR chạy trên PC (không bật ở đây). Bật tìm kiếm sau khi nhập và dựng chỉ mục xong.
+      LEGACY_SEARCH_ENABLED: ${LEGACY_SEARCH_ENABLED:-}
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    logging:
+      driver: json-file
+      options: { max-size: 10m, max-file: '3' }
+
+  web:
+    image: ${IMAGE_REGISTRY:-ghcr.io/nexagnet}/legal-office-web:${TAG:?TAG is required}
+    network_mode: host
+    restart: unless-stopped
+    mem_limit: 384m
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      HOSTNAME: 127.0.0.1
+      NODE_OPTIONS: --max-old-space-size=224
+      API_URL: http://127.0.0.1:3001
+      TENANT_ID: ${TENANT_ID:?TENANT_ID is required}
+      TENANT_NAME: ${TENANT_NAME:-}
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options: { max-size: 10m, max-file: '3' }
