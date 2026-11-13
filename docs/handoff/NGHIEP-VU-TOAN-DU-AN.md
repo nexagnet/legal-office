@@ -109,7 +109,7 @@ Cùng màn danh sách (Figma DMS v2: 352:964 Vi bằng, 352:1415 Tống đạt, 
 | Nghiệp vụ | Sổ | Mẫu liên quan | Ghi chú |
 |---|---|---|---|
 | Vi bằng | S-02 | N-03, N-04, N-11 | THV nêu tên phải tự xác nhận. Số Vi bằng nhập từ bản thật. |
-| Tống đạt | S-01 | N-01, N-02 | Từ 13/11/2026: một hồ sơ = một văn bản tống đạt = một dòng S-01 (như 3 nghiệp vụ kia); số hồ sơ = STT (`005/2026/TĐ-TPL`), không còn bộ đếm riêng CASE-TD. Cột 3 (số, ngày văn bản của Tòa án/THADS) do người nhập gõ đủ, không gắn số văn phòng. Migration 0123. Hồ sơ cũ theo giấy tờ vẫn đọc được. |
+| Tống đạt | S-01 | N-01, N-02 | Từ 13/11/2026: một hồ sơ = một văn bản tống đạt = một dòng S-01 (như 3 nghiệp vụ kia); số hồ sơ = STT (`005/2026/TĐ-TPL`), không còn bộ đếm riêng CASE-TD. Cột 3 (số, ngày văn bản của Tòa án/THADS) do người nhập gõ đủ, không gắn số văn phòng. Migration 0124. Hồ sơ cũ theo giấy tờ vẫn đọc được. |
 | Xác minh điều kiện THA | S-04 | N-05, N-06 | |
 | Tổ chức THA | S-05 | N-07, N-08 | N-08 là bàn giao hồ sơ khi VP chấm dứt |
 

@@ -5,7 +5,7 @@
 --   * Thêm tài liệu vào hồ sơ đã ghi sổ không tạo dòng sổ nữa.
 --   * "Chưa tống đạt" (thẻ số và cờ open_flag): hồ sơ chưa có thuộc tính hồ sơ `ngay_tong_dat` (giá trị hiện hành sau sửa đổi).
 --   * Dữ liệu cũ (nhiều dòng sổ theo giấy tờ) không đổi, vẫn đọc được: sổ lấy thuộc tính hồ sơ, thiếu thì dùng thuộc tính giấy tờ.
---   * Dựng lại chỉ mục hồ sơ (open_flag) ở lần tìm kiếm đầu tiên của mỗi tenant (phiên bản chỉ mục 3).
+--   * Dựng lại chỉ mục hồ sơ (open_flag) ở lần tìm kiếm đầu tiên của mỗi tenant (phiên bản chỉ mục 4).
 
 CREATE OR REPLACE FUNCTION dms_document_add(p_tenant uuid, p_actor uuid, p_case uuid, p_kind text, p_title text, p_is_official boolean, p_attributes jsonb DEFAULT NULL)
 RETURNS vibang_op LANGUAGE plpgsql AS $$
@@ -114,7 +114,7 @@ BEGIN
          coalesce((SELECT array_agg(DISTINCT d.kind ORDER BY d.kind) FROM dms_documents d
                     WHERE d.tenant_id = c.tenant_id AND d.case_id = c.id AND d.status <> 'CANCELLED'), '{}'::text[]),
          (SELECT count(*)::integer FROM dms_amendment_requests a WHERE a.tenant_id = c.tenant_id AND a.case_id = c.id AND a.status = 'PENDING'),
-         dms_fold(left(concat_ws(' ', ce.title,
+         dms_fold(left(concat_ws(' ', c.case_number, ce.title,
                   (SELECT string_agg(e.value, ' ') FROM jsonb_each_text(ce.attributes) e),
                   (SELECT string_agg(d.title || ' ' || coalesce((SELECT string_agg(e.value, ' ') FROM jsonb_each_text(dms_doc_effective_attrs(d.tenant_id, d.id)) e), ''), ' ')
                      FROM (SELECT * FROM dms_documents x WHERE x.tenant_id = c.tenant_id AND x.case_id = c.id AND x.status <> 'CANCELLED'
@@ -139,16 +139,16 @@ END $$;
 CREATE OR REPLACE FUNCTION dms_index_ensure(p_tenant uuid) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE v integer;
 BEGIN
-  IF EXISTS (SELECT 1 FROM dms_index_state WHERE tenant_id = p_tenant AND version >= 3) THEN RETURN; END IF;
+  IF EXISTS (SELECT 1 FROM dms_index_state WHERE tenant_id = p_tenant AND version >= 4) THEN RETURN; END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended('dms_index_ensure:' || p_tenant::text, 0));
   SELECT version INTO v FROM dms_index_state WHERE tenant_id = p_tenant;
-  IF v >= 3 THEN RETURN; END IF;
+  IF v >= 4 THEN RETURN; END IF;
   PERFORM dms_case_index_refresh(p_tenant, c.id) FROM dms_case_files c WHERE c.tenant_id = p_tenant;
   IF v IS NULL THEN
     PERFORM dms_osi_sync_row(r.tenant_id, r.version_id) FROM dms_ocr_results r WHERE r.tenant_id = p_tenant AND r.status = 'DONE';
-    INSERT INTO dms_index_state (tenant_id, version) VALUES (p_tenant, 3) ON CONFLICT (tenant_id) DO UPDATE SET version = 3;
+    INSERT INTO dms_index_state (tenant_id, version) VALUES (p_tenant, 4) ON CONFLICT (tenant_id) DO UPDATE SET version = 4;
   ELSE
-    UPDATE dms_index_state SET version = 3 WHERE tenant_id = p_tenant;
+    UPDATE dms_index_state SET version = 4 WHERE tenant_id = p_tenant;
   END IF;
 END $$;
 
