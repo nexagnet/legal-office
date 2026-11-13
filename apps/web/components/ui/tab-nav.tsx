@@ -37,7 +37,7 @@ export function TabNav({
     return (
       <nav
         aria-label={label}
-        className="mb-4 flex min-w-0 flex-nowrap gap-7 overflow-x-auto border-b border-line [scrollbar-width:thin]"
+        className="mb-4 flex min-w-0 flex-nowrap gap-7 overflow-x-auto overflow-y-hidden border-b border-line pb-px [scrollbar-width:thin]"
       >
         {tabs.map((t) => {
           const on = t.key === active;
