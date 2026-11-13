@@ -90,10 +90,26 @@ export function DataTable({
     };
     const read = () => {
       label();
-      const cells = wrap.querySelectorAll('thead tr:first-child > th');
-      const next = Array.from(cells, (c) => (c.textContent ?? '').trim());
+      // Bảng có tiêu đề nhóm (hai hàng): nhãn từng cột lá lấy từ data-labels, không đếm ô nhóm.
+      const leaf = wrap.querySelector<HTMLElement>('table[data-leafcols][data-labels]');
+      let next: string[] | null = null;
+      if (leaf) {
+        try {
+          const parsed: unknown = JSON.parse(leaf.dataset.labels ?? '[]');
+          if (Array.isArray(parsed)) next = parsed.map((x) => String(x));
+        } catch {
+          next = null;
+        }
+      }
+      if (!next) {
+        const cells = wrap.querySelectorAll('thead tr:first-child > th');
+        next = Array.from(cells, (c) => (c.textContent ?? '').trim());
+      }
+      const labelsNext = next;
       setLabels((prev) =>
-        prev.length === next.length && prev.every((l, i) => l === next[i]) ? prev : next,
+        prev.length === labelsNext.length && prev.every((l, i) => l === labelsNext[i])
+          ? prev
+          : labelsNext,
       );
     };
     read();
@@ -166,10 +182,30 @@ export function DataTable({
   const css = useMemo(
     () =>
       prefs.hidden
-        .map((i) => `[data-dt="${scopeId}"] tr > :nth-child(${i + 1}){display:none}`)
+        .map(
+          (i) =>
+            `[data-dt="${scopeId}"] tbody tr > :nth-child(${i + 1}),` +
+            `[data-dt="${scopeId}"] colgroup > :nth-child(${i + 1}),` +
+            `[data-dt="${scopeId}"] table:not([data-leafcols]) thead tr > :nth-child(${i + 1}),` +
+            `[data-dt="${scopeId}"] thead [data-leaf="${i}"]{display:none}`,
+        )
         .join(''),
     [prefs.hidden, scopeId],
   );
+
+  // Tiêu đề nhóm (colSpan) co lại theo số cột con còn hiện; ẩn hết thì ẩn luôn ô nhóm.
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    wrap.querySelectorAll<HTMLTableCellElement>('th[data-gstart]').forEach((th) => {
+      const start = Number(th.dataset.gstart);
+      const count = Number(th.dataset.gcount);
+      let visible = 0;
+      for (let k = start; k < start + count; k += 1) if (!prefs.hidden.includes(k)) visible += 1;
+      th.colSpan = Math.max(1, visible);
+      th.style.display = visible === 0 ? 'none' : '';
+    });
+  }, [prefs.hidden]);
 
   const showToolbar = labels.length >= TOOLBAR_MIN_COLUMNS;
 
