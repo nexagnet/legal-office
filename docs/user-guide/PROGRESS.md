@@ -1,5 +1,7 @@
 # Hướng dẫn sử dụng: nguồn, cách dựng lại, tình trạng
 
+> **Cập nhật 2026-11-13:** bản chữ mới và đúng giao diện hiện tại (vùng lọc, lọc theo cột, tab Tài liệu, ghi sổ) là [`huong-dan-nhan-vien.md`](huong-dan-nhan-vien.md). Bản này thay các phần danh sách, bộ lọc, Tài liệu và tìm kiếm của `huong-dan-su-dung.md` và PDF cũ (ảnh chụp chưa dựng lại vì giao diện vừa đổi; chỉ dựng lại khi chủ dự án duyệt).
+
 Cập nhật: 2026-11-05 (đối chiếu ảnh với mã giao diện hiện tại: ảnh dựng 04/11 22:05, sau lần đổi giao diện web cuối 04/11 20:48; bỏ PDF theo vai). Trước đó 2026-11-04 (dựng lại từ văn phòng minh họa tạo bằng bootstrap-tenant, dữ liệu nạp bằng SEED_PROFILE=guide; mọi tên và hồ sơ là hư cấu, không nhãn "dữ liệu giả" hay [guide]). Dựng lại: đặt GUIDE_REAL=1 khi chạy các kịch bản role-dms-*.mjs.
 
 ## Có gì
