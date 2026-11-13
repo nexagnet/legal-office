@@ -131,6 +131,7 @@ export function DmsDomainTable({
     <DataTable tableKey={tableKey} className="dms-table-wrap">
       <table
         className="dms-table"
+        data-leafcols="true"
         data-labels={JSON.stringify(
           layout.map((c) => (c.special === 'stt' ? `${sttLabel} · Mã hồ sơ` : c.head)),
         )}
@@ -148,11 +149,22 @@ export function DmsDomainTable({
               <tr>
                 {groupCells(layout).map((g) =>
                   g.cols.length === 1 && !g.label ? (
-                    <th key={g.cols[0]!.id} scope="col" rowSpan={2}>
+                    <th
+                      key={g.cols[0]!.id}
+                      scope="col"
+                      rowSpan={2}
+                      data-leaf={layout.indexOf(g.cols[0]!)}
+                    >
                       {headOf(g.cols[0]!, sttLabel, filterCtx)}
                     </th>
                   ) : (
-                    <th key={g.cols[0]!.id} scope="colgroup" colSpan={g.cols.length}>
+                    <th
+                      key={g.cols[0]!.id}
+                      scope="colgroup"
+                      colSpan={g.cols.length}
+                      data-gstart={layout.indexOf(g.cols[0]!)}
+                      data-gcount={g.cols.length}
+                    >
                       {g.label}
                     </th>
                   ),
@@ -162,7 +174,7 @@ export function DmsDomainTable({
                 {layout
                   .filter((c) => c.group)
                   .map((c) => (
-                    <th key={c.id} scope="col">
+                    <th key={c.id} scope="col" data-leaf={layout.indexOf(c)}>
                       {headOf(c, sttLabel, filterCtx)}
                     </th>
                   ))}
@@ -170,8 +182,8 @@ export function DmsDomainTable({
             </>
           ) : (
             <tr>
-              {layout.map((c) => (
-                <th key={c.id} scope="col">
+              {layout.map((c, i) => (
+                <th key={c.id} scope="col" data-leaf={i}>
                   {headOf(c, sttLabel, filterCtx)}
                 </th>
               ))}
