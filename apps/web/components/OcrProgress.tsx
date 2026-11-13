@@ -1,7 +1,7 @@
 'use client';
 
 import { RotateCw } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { messageFor } from '../lib/messages';
 import { ocrIsActive, ocrLabel, ocrPercent, type OcrProgressInfo } from '../lib/ocr-progress';
 
@@ -13,16 +13,7 @@ const MAX_ERRORS = 5;
  * Tiến độ OCR của một tệp tài liệu mới. Khi còn chờ/đang chạy thì hỏi máy chủ vài giây một lần (giãn dần, tạm dừng khi tab ẩn,
  * dừng hẳn khi xong hoặc lỗi). Không dùng cho tài liệu cũ.
  */
-export function OcrProgress({
-  fileId,
-  initial,
-  canRetry = false,
-}: {
-  readonly fileId: string;
-  readonly initial: OcrProgressInfo;
-  /** Người xem được thêm tài liệu thì thấy nút "Thử lại" khi OCR lỗi. */
-  readonly canRetry?: boolean;
-}) {
+function useOcr(fileId: string, initial: OcrProgressInfo) {
   const [info, setInfo] = useState<OcrProgressInfo>(initial);
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
@@ -94,8 +85,13 @@ export function OcrProgress({
     }
   }
 
+  return { info, retrying, retryError, retry };
+}
+
+type Ocr = ReturnType<typeof useOcr>;
+
+function Chip({ info }: { readonly info: OcrProgressInfo }) {
   const pct = ocrPercent(info);
-  // Chip trạng thái dạng viên thuốc như Figma T1/T3: xong = xanh lá, đang chạy = cam, lỗi = đỏ.
   const tone =
     info.status === 'FAILED'
       ? 'bg-[#fdecec] text-danger'
@@ -122,26 +118,91 @@ export function OcrProgress({
           <span className="block h-full bg-accent" style={{ width: `${pct}%` }} />
         </span>
       ) : null}
-      {info.status === 'FAILED' && canRetry ? (
-        <button
-          type="button"
-          onClick={() => void retry()}
-          disabled={retrying}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-xs font-semibold text-ink hover:bg-accent-soft disabled:opacity-60"
-        >
-          <RotateCw
-            size={13}
-            aria-hidden="true"
-            className={retrying ? 'animate-spin' : undefined}
-          />
-          {retrying ? 'Đang gửi…' : 'Thử lại OCR'}
-        </button>
-      ) : null}
-      {retryError ? (
-        <span role="alert" className="text-xs text-danger">
-          {retryError}
+    </>
+  );
+}
+
+function RetryButton({ ocr }: { readonly ocr: Ocr }) {
+  return (
+    <button
+      type="button"
+      onClick={() => void ocr.retry()}
+      disabled={ocr.retrying}
+      className="inline-flex h-9 items-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3 text-[13px] font-semibold text-ink hover:bg-surface-2 disabled:opacity-60"
+    >
+      <RotateCw
+        size={14}
+        aria-hidden="true"
+        className={ocr.retrying ? 'animate-spin' : undefined}
+      />
+      {ocr.retrying ? 'Đang gửi…' : 'Thử lại OCR'}
+    </button>
+  );
+}
+
+const ErrorNote = ({ ocr }: { readonly ocr: Ocr }) =>
+  ocr.retryError ? (
+    <span role="alert" className="text-xs text-danger">
+      {ocr.retryError}
+    </span>
+  ) : null;
+
+export function OcrProgress({
+  fileId,
+  initial,
+  canRetry = false,
+}: {
+  readonly fileId: string;
+  readonly initial: OcrProgressInfo;
+  /** Người xem được thêm tài liệu thì thấy nút "Thử lại" khi OCR lỗi. */
+  readonly canRetry?: boolean;
+}) {
+  const ocr = useOcr(fileId, initial);
+  return (
+    <>
+      <Chip info={ocr.info} />
+      {ocr.info.status === 'FAILED' && canRetry ? <RetryButton ocr={ocr} /> : null}
+      <ErrorNote ocr={ocr} />
+    </>
+  );
+}
+
+/**
+ * Một dòng tệp (Figma T1/T3): tiêu đề + dòng chip bên trái; nút "Thử lại OCR" (khi lỗi) nằm cạnh các nút hành động bên phải,
+ * nổi lên trên lớp phủ bấm-cả-dòng nên bấm được.
+ */
+export function OcrFileRow({
+  fileId,
+  initial,
+  canRetry,
+  title,
+  chips,
+  actions,
+}: {
+  readonly fileId: string;
+  readonly initial: OcrProgressInfo;
+  readonly canRetry: boolean;
+  readonly title: ReactNode;
+  readonly chips: ReactNode;
+  readonly actions: ReactNode;
+}) {
+  const ocr = useOcr(fileId, initial);
+  return (
+    <>
+      <div className="min-w-0 flex-1">
+        {title}
+        <p className="m-0 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+          {chips}
+          <Chip info={ocr.info} />
+        </p>
+        <ErrorNote ocr={ocr} />
+      </div>
+      {ocr.info.status === 'FAILED' && canRetry ? (
+        <span className="relative z-10 shrink-0">
+          <RetryButton ocr={ocr} />
         </span>
       ) : null}
+      {actions}
     </>
   );
 }

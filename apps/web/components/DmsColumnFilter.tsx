@@ -143,8 +143,8 @@ export function DmsColumnFilter({
           data-active={active ? 'true' : undefined}
           className={
             active
-              ? 'grid size-6 place-items-center rounded text-accent'
-              : 'grid size-6 place-items-center rounded text-faint hover:text-accent'
+              ? 'grid size-6 place-items-center rounded text-accent outline-none focus-visible:bg-accent-soft data-[state=open]:bg-accent-soft'
+              : 'grid size-6 place-items-center rounded text-faint outline-none hover:text-accent focus-visible:bg-accent-soft data-[state=open]:bg-accent-soft'
           }
         >
           <Funnel size={14} aria-hidden="true" fill={active ? 'currentColor' : 'none'} />

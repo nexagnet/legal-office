@@ -60,8 +60,8 @@ button:not([class]):disabled,
   cursor: progress;
 }
 :focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }
 .skip {
   position: absolute;
