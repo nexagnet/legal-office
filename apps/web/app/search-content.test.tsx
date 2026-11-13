@@ -14,7 +14,7 @@ vi.mock('../lib/server', () => ({
 
 import { SearchPalette } from '../components/SearchPalette';
 import { DMS_DOMAINS, VAN_THU_DOMAINS } from '../lib/dms';
-import { DMS_DOMAIN_SLUG, dmsCaseDocsHref } from '../lib/dms-domain-slugs';
+import { DMS_DOMAIN_LABEL, DMS_DOMAIN_SLUG, dmsCaseDocsHref } from '../lib/dms-domain-slugs';
 import { highlightParts, highlightTerms } from '../lib/highlight';
 
 afterEach(() => {
@@ -55,6 +55,13 @@ describe('bảng mã nghiệp vụ cho hộp tìm kiếm', () => {
       [...DMS_DOMAINS, ...VAN_THU_DOMAINS].map((d) => [d.code, d.slug]),
     );
     expect(DMS_DOMAIN_SLUG).toEqual(expected);
+  });
+
+  it('tên nghiệp vụ khớp với danh sách của lib/dms', () => {
+    const expected = Object.fromEntries(
+      [...DMS_DOMAINS, ...VAN_THU_DOMAINS].map((d) => [d.code, d.label]),
+    );
+    expect(DMS_DOMAIN_LABEL).toEqual(expected);
   });
 
   it('dựng đường mở hồ sơ ở tab Tài liệu, mã lạ thì null', () => {
@@ -167,5 +174,85 @@ describe('hộp tìm kiếm: nhóm "Trong nội dung tài liệu"', () => {
     await wait(500);
     expect(searchCalls).toHaveLength(0);
     expect(screen.queryByText('Trong nội dung tài liệu')).toBeNull();
+  });
+});
+
+describe('hộp tìm kiếm: nhóm "Hồ sơ" (tìm ở máy chủ theo số hồ sơ)', () => {
+  let calls: string[];
+  beforeEach(() => {
+    vi.useFakeTimers();
+    calls = [];
+  });
+  const wait = (ms: number) =>
+    act(async () => {
+      await vi.advanceTimersByTimeAsync(ms);
+    });
+  function stub(rows: unknown[] | 'error') {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith('/api/dms/case-search')) {
+        calls.push(url);
+        if (rows === 'error') return { ok: false, status: 500 } as Response;
+        return { ok: true, json: async () => ({ rows }) } as Response;
+      }
+      return { ok: true, json: async () => ({ rows: [] }) } as Response;
+    });
+  }
+  const type = (text: string) => {
+    render(<SearchPalette items={[]} officeId="o1" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Tìm kiếm' }));
+    fireEvent.change(screen.getByLabelText('Từ khóa tìm kiếm'), { target: { value: text } });
+  };
+  const row = {
+    id: 'c9',
+    domain: 'vibang',
+    title: 'Vi bằng Hòa Phát',
+    case_number: '038/2026/VB-TPL',
+  };
+
+  it('gõ số hồ sơ thì gọi case-search (không lọc theo nghiệp vụ, không đếm tổng) và hiện số hồ sơ', async () => {
+    stub([row]);
+    type('038/2026/vb-tpl');
+    await wait(100);
+    expect(calls).toHaveLength(0);
+    await wait(250);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain('officeId=o1');
+    expect(calls[0]).toContain('q=038%2F2026%2Fvb-tpl');
+    expect(calls[0]).toContain('total=false');
+    expect(calls[0]).not.toContain('domain=');
+    expect(screen.getByText('038/2026/VB-TPL')).toBeTruthy();
+    expect(screen.getByText('Vi bằng · Vi bằng Hòa Phát')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /038\/2026\/VB-TPL/ }));
+    expect(push).toHaveBeenCalledWith('/dms/vi-bang/c9?tab=tai-lieu');
+  });
+
+  it('Enter mở hồ sơ đầu tiên khi không có trang khớp', async () => {
+    stub([{ ...row, domain: 'tongdat', id: 'c7', case_number: '12/2026/TĐ-TPL' }]);
+    type('12/2026');
+    await wait(400);
+    fireEvent.keyDown(screen.getByLabelText('Từ khóa tìm kiếm'), { key: 'Enter' });
+    expect(push).toHaveBeenCalledWith('/dms/tong-dat/c7?tab=tai-lieu');
+  });
+
+  it('báo không có hồ sơ và báo lỗi', async () => {
+    stub([]);
+    type('999/2099');
+    await wait(400);
+    expect(screen.getByText('Không có hồ sơ nào khớp “999/2099”.')).toBeTruthy();
+    cleanup();
+    stub('error');
+    type('999/2099');
+    await wait(400);
+    expect(screen.getByText('Không tìm được hồ sơ. Thử lại sau.')).toBeTruthy();
+  });
+
+  it('không có officeId thì không gọi máy chủ', async () => {
+    stub([row]);
+    render(<SearchPalette items={[]} officeId={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Tìm kiếm' }));
+    fireEvent.change(screen.getByLabelText('Từ khóa tìm kiếm'), { target: { value: '038' } });
+    await wait(500);
+    expect(calls).toHaveLength(0);
   });
 });
