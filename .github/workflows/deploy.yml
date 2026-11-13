@@ -1,0 +1,67 @@
+name: deploy
+
+# Triển khai THỦ CÔNG lên server production: build image ở đây (không build trên server 2GB), đẩy GHCR, rồi SSH cập nhật.
+# Chỉ chạy khi chủ dự án bấm "Run workflow" trên nhánh main; không tự chạy khi push.
+# Cần secrets (Settings > Secrets and variables > Actions): DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS.
+# Xem docs/engineering/deploy-tencent.md.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: legal-office-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: build-push-deploy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    if: github.ref == 'refs/heads/main'
+    env:
+      IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+      TAG: ${{ github.sha }}
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build api image
+        run: docker build --target api -t "$IMAGE_REGISTRY/legal-office-api:$TAG" .
+      - name: Build web image (API_URL is baked into Next rewrites at build time)
+        run: docker build --target web --build-arg API_URL=http://127.0.0.1:3001 -t "$IMAGE_REGISTRY/legal-office-web:$TAG" .
+      - name: Push images
+        run: |
+          docker push "$IMAGE_REGISTRY/legal-office-api:$TAG"
+          docker push "$IMAGE_REGISTRY/legal-office-web:$TAG"
+      - name: Prepare SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Copy deploy files
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          tar -C deploy -cf - . | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" \
+            'mkdir -p /opt/legal-office/deploy && tar -C /opt/legal-office/deploy -xf - && chmod +x /opt/legal-office/deploy/scripts/*.sh'
+      - name: Pull and restart on server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          # Token tạm của job được dùng để pull rồi đăng xuất, không lưu lại trên server.
+          printf '%s' "$GHCR_TOKEN" | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" \
+            "docker login ghcr.io -u '$GHCR_USER' --password-stdin >/dev/null && (IMAGE_REGISTRY='$IMAGE_REGISTRY' /opt/legal-office/deploy/scripts/deploy.sh '$TAG'; rc=\$?; docker logout ghcr.io >/dev/null 2>&1; exit \$rc)"
