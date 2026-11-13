@@ -88,7 +88,8 @@ export default async function DeletedScansPage({
     list.rows.map((r) => r.deleted_by),
   );
   const pageCount = Math.max(1, Math.ceil(list.total / PAGE_SIZE));
-  const pageHref = (n: number) => (n > 1 ? `/dms/scan-da-xoa?p=${n}` : '/dms/scan-da-xoa');
+  const pageHref = (n: number) =>
+    n > 1 ? `/quan-tri/scan-da-xoa?p=${n}` : '/quan-tri/scan-da-xoa';
   return (
     <section aria-labelledby="t">
       <h1 id="t">Scan đã xóa 30 ngày</h1>

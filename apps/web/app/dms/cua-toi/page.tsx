@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ALL_CASES_PAGE_SIZE, DmsAllCases } from '../../../components/DmsAllCases';
+import { CasesViewTabs } from '../../../components/CasesViewTabs';
 import { ErrorRetry } from '../../../components/ErrorRetry';
+import { loadMyDmsPermissions } from '../../../lib/dms';
 import { searchAllDmsCases } from '../../../lib/dms-browse';
 import { currentSession, requestCookie } from '../../../lib/server';
 
@@ -31,6 +33,8 @@ export default async function MyCreatedCasesPage({
     );
   }
   const officeId = session.branches[0]?.officeId ?? session.memberships[0]?.officeId;
+  const permissions = officeId ? await loadMyDmsPermissions(await requestCookie(), officeId) : [];
+  const canViewAll = permissions.some((p) => p.endsWith('.read.all'));
   const page = Math.max(1, Math.floor(Number(sp.p)) || 1);
   const result =
     officeId && session.userId
@@ -44,6 +48,7 @@ export default async function MyCreatedCasesPage({
   return (
     <section aria-labelledby="t">
       <h1 id="t">Hồ sơ do tôi tạo</h1>
+      <CasesViewTabs active="mine" canViewAll={canViewAll} />
       {result === 'error' ? (
         <ErrorRetry
           title="Lỗi tải dữ liệu"
