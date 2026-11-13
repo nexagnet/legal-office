@@ -10,6 +10,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
 import { SyntheticHeaderResolver } from '../http/actor';
 import { LocalFileStore } from '../storage/file-store';
+import { withRequiredColumns } from './dms-required-fixture';
 
 // C8: các luồng E2E còn thiếu qua HTTP thật + PostgreSQL thật + kho tệp trên đĩa. Toàn bộ dữ liệu giả lập.
 const ADMIN_URL = process.env.DATABASE_URL;
@@ -70,7 +71,7 @@ describe.skipIf(!ADMIN_URL)('C8: xuất 7 sổ, hủy nháp, ma trận quyền, 
     return res;
   };
   const api = async (method: string, path: string, user: string, body?: unknown) => {
-    const res = await call(method, path, user, body);
+    const res = await call(method, path, user, withRequiredColumns(method, path, body));
     const t = await res.text();
     return { status: res.status, json: t ? (JSON.parse(t) as Json) : {} };
   };

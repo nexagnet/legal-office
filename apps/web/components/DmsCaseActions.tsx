@@ -238,10 +238,13 @@ export function DmsDraftActions({
   caseId,
   canRecord,
   canCancel,
+  problems = [],
 }: {
   readonly caseId: string;
   readonly canRecord: boolean;
   readonly canCancel: boolean;
+  /** Cột bắt buộc còn thiếu / ngày sai: còn thì khóa nút ghi sổ (máy chủ cũng từ chối). */
+  readonly problems?: readonly string[];
 }) {
   const { send, error, busy } = useSender();
   const [reason, setReason] = useState('');
@@ -305,7 +308,22 @@ export function DmsDraftActions({
       ) : null}
       {canRecord ? (
         <>
-          <Button type="button" loading={busy} onClick={() => setConfirming(true)}>
+          {problems.length > 0 ? (
+            <div role="alert" className="w-full rounded-lg bg-[#fdecec] p-3 text-sm">
+              <strong>Chưa thể lưu chính thức. Bổ sung ở mục A rồi bấm Lưu nháp:</strong>
+              <ul className="m-0 mt-1 list-disc pl-5">
+                {problems.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <Button
+            type="button"
+            loading={busy}
+            disabled={problems.length > 0}
+            onClick={() => setConfirming(true)}
+          >
             Xác nhận lưu chính thức
           </Button>
           <ConfirmModal
