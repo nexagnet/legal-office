@@ -30,6 +30,32 @@ const isoDate = z
   .string()
   .datetime({ offset: true })
   .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/));
+const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/**
+ * Lọc theo cột (0130): tham số `cols` là JSON `{"<khoá cột>": {"c": "chữ chứa"} | {"in": [giá trị]} | {"d": {"from","to"}} | {"b": true|false}}`.
+ * Khoá chỉ [a-z0-9_] (DB đối chiếu lại và dựng SQL bằng %L); tối đa 12 cột, 50 giá trị chọn.
+ */
+const colKey = z.string().regex(/^[a-z0-9_]{1,40}$/);
+const colFilter = z
+  .object({
+    c: z.string().min(1).max(200).optional(),
+    in: z.array(z.string().min(1).max(300)).min(1).max(50).optional(),
+    d: z.object({ from: isoDay.optional(), to: isoDay.optional() }).strict().optional(),
+    b: z.boolean().optional(),
+  })
+  .strict();
+const colsParam = z
+  .string()
+  .max(4000)
+  .transform((v, ctx) => {
+    try {
+      return JSON.parse(v) as unknown;
+    } catch {
+      ctx.addIssue({ code: 'custom', message: 'cols không phải JSON' });
+      return z.NEVER;
+    }
+  })
+  .pipe(z.record(colKey, colFilter).refine((r) => Object.keys(r).length <= 12));
 const filterShape = {
   officeId: uuid,
   domain: domain.optional(),
@@ -59,6 +85,8 @@ const filterShape = {
   /** Bộ lọc nghiệp vụ (0126): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   fa: z.string().min(1).max(200).optional(),
   fb: z.string().min(1).max(200).optional(),
+  /** Lọc theo cột (0130), xem `colsParam`. */
+  cols: colsParam.optional(),
 };
 
 export type CaseFilters = z.infer<z.ZodObject<typeof filterShape>>;
@@ -87,6 +115,7 @@ export const extraArg = (f: CaseFilters): string | null => {
   if (f.overdue !== undefined) e.overdue = f.overdue;
   if (f.fa) e.fa = f.fa;
   if (f.fb) e.fb = f.fb;
+  if (f.cols && Object.keys(f.cols).length > 0) e.cols = f.cols;
   return Object.keys(e).length > 0 ? JSON.stringify(e) : null;
 };
 
@@ -297,6 +326,24 @@ export class DmsBrowseController {
       'Cache-Control': 'private, no-store',
     });
     return new StreamableFile(buf);
+  }
+
+  /** Giá trị có đếm (tối đa 50) của một cột sổ cho ô "chọn nhiều"; tính trên bộ lọc hiện hành trừ chính cột đó (0130). */
+  @Get('case-col-values')
+  async colValues(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
+    const q = parse(
+      z.object({ ...filterShape, key: colKey, term: z.string().max(100).optional() }).strict(),
+      query,
+    );
+    const rows = await this.repo.rows<{ value: string; n: string }>(a.tenantId, 'dms_col_values', [
+      a.tenantId,
+      a.userId,
+      ...filterArgs(q),
+      extraArg(q),
+      q.key,
+      q.term?.trim() || null,
+    ]);
+    return rows.map((r) => ({ value: r.value, n: Number(r.n) }));
   }
 
   /** Số hồ sơ theo từng giá trị của từng nhóm lọc (người tạo, chi nhánh, loại tài liệu, tình trạng scan, năm). */
