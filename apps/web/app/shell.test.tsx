@@ -249,7 +249,7 @@ describe('AppShell v2', () => {
       </AppShell>,
     );
     const quick = within(screen.getByRole('navigation', { name: 'Truy cập nhanh' }));
-    for (const name of ['Hồ sơ do tôi tạo', 'Trình / Duyệt', 'Thêm'])
+    for (const name of ['Hồ sơ', 'Trình / Duyệt', 'Thêm'])
       expect(quick.getByRole(name === 'Thêm' ? 'button' : 'link', { name })).toBeTruthy();
   });
 
@@ -290,20 +290,19 @@ describe('menu DMS', () => {
     expect(hrefs['dms-xuat-so']).toBe('/dms/so');
     expect(hrefs['dms-trinh-duyet']).toBe('/dms/trinh-duyet');
     expect(hrefs['dms-sua-doi']).toBeUndefined();
-    // Scan đã xóa 30 ngày: chỉ Admin thấy mục này.
-    expect(hrefs['dms-scan-da-xoa']).toBe('/dms/scan-da-xoa');
-    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-scan-da-xoa');
-    expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-scan-da-xoa');
-    // Tài khoản tạo theo Nhóm quyền có vai THANH_VIEN vẫn phải thấy mục này (nếu là THV được ghi tên).
-    expect(visibleNav(['THANH_VIEN']).map((n) => n.slug)).toContain('dms-thv');
+    // Các mục đã gộp/chuyển (Scan đã xóa, Lịch sử -> Quản trị; nháp chờ lưu -> Trình / Duyệt; Mọi hồ sơ -> Hồ sơ) không còn ở menu bên.
+    const adminSlugs = visibleNav(['ADMIN']).map((n) => n.slug);
+    for (const gone of ['dms-scan-da-xoa', 'dms-lich-su', 'dms-thv', 'dms-van-phong'])
+      expect(adminSlugs).not.toContain(gone);
+    // Mục "Công việc" còn đúng 3 mục.
+    expect(
+      visibleNav(['ADMIN'])
+        .filter((n) => n.group === 'work')
+        .map((n) => n.label),
+    ).toEqual(['Tổng quan', 'Hồ sơ', 'Trình / Duyệt']);
     // Tài liệu cũ: mục riêng; việc hiện hay ẩn theo quyền xem tài liệu cũ do khung trang quyết định.
     expect(hrefs['dms-tai-lieu-cu']).toBe('/dms/tai-lieu-cu');
     expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-tai-lieu-cu');
-    // Lịch sử hoạt động: cũng chỉ Admin.
-    expect(hrefs['dms-lich-su']).toBe('/dms/lich-su');
-    expect(visibleNav(['ADMIN']).map((n) => n.slug)).toContain('dms-lich-su');
-    expect(visibleNav(['THV']).map((n) => n.slug)).not.toContain('dms-lich-su');
-    expect(hrefs['dms-thv']).toBe('/dms/thv');
     expect(hrefs['dms-bao-cao']).toBe('/dms/bao-cao');
     expect(hrefs['vi-bang']).toBe('/vi-bang');
   });
@@ -327,9 +326,7 @@ describe('menu DMS', () => {
     );
     const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
     expect(nav.getByRole('link', { name: 'Vi bằng' }).getAttribute('aria-current')).toBe('page');
-    expect(
-      nav.getByRole('link', { name: 'Hồ sơ do tôi tạo' }).getAttribute('aria-current'),
-    ).toBeNull();
+    expect(nav.getByRole('link', { name: 'Hồ sơ' }).getAttribute('aria-current')).toBeNull();
     expect(container.querySelector('.shell')?.getAttribute('data-domain')).toBe('vi-bang');
   });
 
@@ -341,13 +338,11 @@ describe('menu DMS', () => {
       </AppShell>,
     );
     const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
-    expect(
-      nav.getByRole('link', { name: 'Hồ sơ do tôi tạo' }).getAttribute('aria-current'),
-    ).toBeNull();
+    expect(nav.getByRole('link', { name: 'Hồ sơ' }).getAttribute('aria-current')).toBeNull();
     expect(document.querySelector('.topbar-h')?.textContent).toBe('Lịch sử hoạt động');
   });
 
-  it('Admin ở /dms/lich-su: mục Lịch sử hoạt động sáng', () => {
+  it('Admin ở /dms/lich-su: mục Quản trị sáng', () => {
     path.current = '/dms/lich-su';
     render(
       <AppShell items={visibleNav(['ADMIN'])} tenantName={null}>
@@ -355,8 +350,6 @@ describe('menu DMS', () => {
       </AppShell>,
     );
     const nav = within(screen.getByRole('navigation', { name: 'Điều hướng chính' }));
-    expect(nav.getByRole('link', { name: 'Lịch sử hoạt động' }).getAttribute('aria-current')).toBe(
-      'page',
-    );
+    expect(nav.getByRole('link', { name: 'Quản trị' }).getAttribute('aria-current')).toBe('page');
   });
 });

@@ -62,15 +62,16 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'dms',
-    label: 'Hồ sơ do tôi tạo',
+    label: 'Hồ sơ',
     group: 'work',
     roles: ALL,
     href: '/dms/cua-toi',
-    summary: 'Hồ sơ bạn đã tạo, kể cả bản nháp.',
+    summary: 'Hồ sơ bạn đã tạo (kể cả bản nháp) và, nếu có quyền, hồ sơ cả văn phòng.',
   },
   {
     // Chỉ hiện với tài khoản có quyền xem toàn bộ (`*.read.all`): layout lọc theo quyền.
     slug: 'dms-van-phong',
+    hidden: true,
     label: 'Mọi hồ sơ của văn phòng',
     group: 'work',
     roles: ALL,
@@ -111,6 +112,7 @@ export const NAV: readonly NavItem[] = [
   },
   {
     slug: 'dms-thv',
+    hidden: true,
     label: 'Hồ sơ nháp chờ tôi lưu',
     group: 'work',
     roles: ALL,
@@ -123,10 +125,11 @@ export const NAV: readonly NavItem[] = [
     group: 'work',
     roles: ALL,
     href: '/dms/trinh-duyet',
-    summary: 'Gửi bản trình để Admin duyệt.',
+    summary: 'Gửi bản trình để Admin duyệt; kèm bản nháp chờ bạn xác nhận.',
   },
   {
     slug: 'dms-scan-da-xoa',
+    hidden: true,
     label: 'Scan đã xóa',
     group: 'work',
     roles: ['ADMIN'],
@@ -136,13 +139,14 @@ export const NAV: readonly NavItem[] = [
   {
     slug: 'dms-tai-lieu-cu',
     label: 'Tài liệu cũ',
-    group: 'work',
+    group: 'office',
     roles: ALL,
     href: '/dms/tai-lieu-cu',
     summary: 'Tài liệu nạp từ kho cũ; chỉ xem và tải.',
   },
   {
     slug: 'dms-lich-su',
+    hidden: true,
     label: 'Lịch sử hoạt động',
     group: 'work',
     roles: ['ADMIN'],
