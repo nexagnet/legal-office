@@ -124,6 +124,26 @@ export function DataTable({
     [tableKey],
   );
 
+  // Bấm ra ngoài hoặc nhấn Esc thì đóng hộp "Cột hiển thị".
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: Event) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   const toggleColumn = (index: number) => {
     const hidden = prefs.hidden.includes(index)
       ? prefs.hidden.filter((i) => i !== index)
@@ -158,7 +178,7 @@ export function DataTable({
       {css ? <style>{css}</style> : null}
       {showToolbar ? (
         <div className="dt-toolbar">
-          <div className="dt-menu">
+          <div className="dt-menu" ref={menuRef}>
             <button
               type="button"
               className="dt-btn"

@@ -4,6 +4,7 @@ import type { DmsFacetCounts } from '../lib/dms-browse';
 import { DMS_PERIODS, type DmsDateRange } from '../lib/dms-date-range';
 import { viewHref, type DmsView } from '../lib/dms-filter-params';
 import type { DmsFilter } from '../lib/dms';
+import { DmsPopoverDismiss } from './DmsPopoverDismiss';
 import { Button } from './ui/button';
 
 /**
@@ -123,6 +124,7 @@ export function DmsFilterFields({
   const thvOptions = facets.thv.filter((o) => o.value !== '');
   return (
     <>
+      <DmsPopoverDismiss />
       {thvOptions.length > 0 || thvSelected.length > 0 ? (
         <details
           name="dms-filter-pop"
