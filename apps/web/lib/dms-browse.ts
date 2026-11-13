@@ -49,7 +49,7 @@ export interface DmsCaseSearchParams {
   readonly thv?: readonly string[];
   readonly open?: boolean;
   readonly returned?: boolean;
-  /** Bộ lọc nghiệp vụ (0125): hình thức tống đạt / tỉnh thành / kết quả (fa) và cơ quan giao (fb). */
+  /** Bộ lọc nghiệp vụ (0126): hình thức tống đạt / tỉnh thành / kết quả (fa) và cơ quan giao (fb). */
   readonly fa?: string;
   readonly fb?: string;
   readonly limit?: number;
@@ -194,7 +194,7 @@ export interface DmsFacetCounts {
   readonly kind: readonly DmsFacetOption[];
   /** Thừa hành viên có hồ sơ trong phạm vi xem; `value` rỗng = chưa chọn (không lọc được). */
   readonly thv: readonly DmsFacetOption[];
-  /** Giá trị bộ lọc nghiệp vụ (0125) kèm số hồ sơ. */
+  /** Giá trị bộ lọc nghiệp vụ (0126) kèm số hồ sơ. */
   readonly fa: readonly DmsFacetOption[];
   readonly fb: readonly DmsFacetOption[];
   /** `value` 'true'/'false': số hồ sơ còn dở / đã xong, chưa trả / đã trả kết quả; scan: missing, complete, empty. */

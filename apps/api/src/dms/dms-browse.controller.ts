@@ -54,7 +54,7 @@ const filterShape = {
   open: bool.optional(),
   /** Ô "Đã trả kết quả". */
   returned: bool.optional(),
-  /** Bộ lọc nghiệp vụ (0125): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
+  /** Bộ lọc nghiệp vụ (0126): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
   fa: z.string().min(1).max(200).optional(),
   fb: z.string().min(1).max(200).optional(),
 };

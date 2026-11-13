@@ -42,7 +42,7 @@ BEGIN
                                             AND x.status <> 'CANCELLED' AND x.kind ILIKE '%N-08%')
            ELSE false
          END,
-         -- Bộ lọc nghiệp vụ (0125): giá trị thô của hồ sơ, dùng cho ô chọn có đếm. Rỗng = NULL.
+         -- Bộ lọc nghiệp vụ (0126): giá trị thô của hồ sơ, dùng cho ô chọn có đếm. Rỗng = NULL.
          nullif(btrim(CASE c.domain
            WHEN 'tongdat' THEN ce.attributes->>'hinh_thuc_tong_dat'
            WHEN 'vibang' THEN (regexp_split_to_array(coalesce(ce.attributes->>'dia_chi_noi_lap', ''), '\s*,\s*'))[
