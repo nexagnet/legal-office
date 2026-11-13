@@ -40,9 +40,6 @@ function useSender() {
   return { send, error, busy, setError, setBusy, router };
 }
 
-/** Loại tài liệu chung nhận mọi tệp tải lên không phân loại. Máy chủ giữ đúng tên này để tài liệu này KHÔNG vào Sổ S-01. */
-export const OTHER_KIND = 'Tài liệu khác';
-
 const ACCEPT = 'application/pdf,image/jpeg,image/png';
 
 /** Tải lần lượt từng tệp lên một tài liệu đã có. Dừng ở tệp lỗi đầu tiên, trả số tệp đã tải và thông báo lỗi. */
