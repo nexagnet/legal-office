@@ -182,5 +182,69 @@ jobs:
           DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres
         run: pnpm -r --if-present run test:integration
 
-# Proves lint/typecheck/test/build/audit and DB integration on the exact head. It does not prove
+  e2e-smoke:
+    name: e2e-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      # PR: immutable PR HEAD (not GitHub's synthetic merge commit). push: pushed commit.
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          # Throwaway container reachable only from this job; no real data or credentials.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout without persisted token
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+      - name: Assert checkout is the exact expected commit
+        run: |
+          actual="$(git rev-parse HEAD)"
+          echo "expected=${EXPECTED_SHA} actual=${actual}"
+          if [ "${actual}" != "${EXPECTED_SHA}" ]; then
+            echo "::error::Checked-out HEAD ${actual} != expected ${EXPECTED_SHA}"
+            exit 1
+          fi
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+      - name: Enable pnpm pinned by packageManager
+        run: corepack enable
+      - name: Install with frozen lockfile
+        run: pnpm install --frozen-lockfile
+      - name: Build API and web
+        # Do not set API_URL: the web build rewrites /api/* to the default http://localhost:3001, where the stack runs the API.
+        run: pnpm --filter ./apps/api --filter ./apps/web run build
+      - name: Install Chromium for Playwright
+        run: pnpm --filter @legal-office/e2e exec playwright install --with-deps chromium
+      - name: Start throwaway stack (temp database, fake office, API and web)
+        env:
+          DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres
+        run: bash e2e/start-stack.sh
+      - name: Browser smoke test
+        run: pnpm --filter @legal-office/e2e run test:e2e
+      - name: Show stack logs on failure
+        if: failure()
+        run: |
+          grep -v 'Mapped {' e2e/.tmp/api.log | tail -n 40
+          tail -n 40 e2e/.tmp/web.log
+      - name: Stop stack
+        if: always()
+        env:
+          DATABASE_URL: postgresql://postgres@127.0.0.1:5432/postgres
+        run: bash e2e/stop-stack.sh
+
+# Proves lint/typecheck/test/build/audit, DB integration and a browser smoke (login to record) on the exact head. It does not prove
 # deployment, preview runtime, or the Claude pipeline. Required-check ruleset changes are a separate R3 step.
