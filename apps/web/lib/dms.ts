@@ -505,6 +505,30 @@ export async function searchDmsOcr(
   return { rows: body.rows.slice(0, OCR_PAGE_SIZE), hasMore: body.rows.length > OCR_PAGE_SIZE };
 }
 
+export interface DmsCaseHit {
+  readonly id: string;
+  readonly domain: string;
+  readonly title: string;
+  readonly case_number: string | null;
+}
+
+/** Tìm hồ sơ theo số hồ sơ, tiêu đề, thuộc tính (chỉ mục ở DB, đã lọc quyền xem). Dùng cho trang tìm kiếm toàn cục. */
+export async function searchDmsCases(
+  cookie: string | null,
+  officeId: string,
+  q: string,
+  f: DmsOcrFilters = {},
+): Promise<DmsCaseHit[] | 'error'> {
+  const params = new URLSearchParams({ officeId, q, limit: '20', total: 'false' });
+  if (f.domain) params.set('domain', f.domain);
+  if (f.year) params.set('year', String(f.year));
+  if (f.creator) params.set('creator', f.creator);
+  if (f.kind) params.set('kind', f.kind);
+  if (f.branch) params.set('branch', f.branch);
+  const body = await getJson<{ rows: DmsCaseHit[] }>(`/dms/case-search?${params}`, cookie);
+  return body === 'error' ? 'error' : body.rows;
+}
+
 export interface DmsFacet {
   readonly case_id: string;
   readonly creator_name: string | null;

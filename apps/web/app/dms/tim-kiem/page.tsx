@@ -8,6 +8,7 @@ import {
   DMS_DOMAINS,
   OCR_PAGE_SIZE,
   VAN_THU_DOMAINS,
+  searchDmsCases,
   searchDmsOcr,
   type DmsOcrFilters,
 } from '../../../lib/dms';
@@ -75,8 +76,9 @@ export default async function DmsSearchPage({
     offset: Math.min(MAX_OFFSET, (page - 1) * OCR_PAGE_SIZE),
   };
   const cookie = await requestCookie();
-  const [result, facets] = await Promise.all([
+  const [result, caseHits, facets] = await Promise.all([
     q && officeId ? searchDmsOcr(cookie, officeId, q, filters) : Promise.resolve(null),
+    q && officeId ? searchDmsCases(cookie, officeId, q, filters) : Promise.resolve(null),
     officeId
       ? loadDmsOcrFacets(cookie, officeId, domain)
       : Promise.resolve({ creator: [], branch: [], kind: [], year: [] }),
@@ -108,7 +110,7 @@ export default async function DmsSearchPage({
             name="q"
             defaultValue={q}
             maxLength={200}
-            placeholder="Từ khóa trong chữ nhận dạng từ bản scan…"
+            placeholder="Số hồ sơ (vd 038/2026) hoặc từ khóa trong bản scan…"
           />
         </label>
         <label>
@@ -156,6 +158,41 @@ export default async function DmsSearchPage({
         Chữ trong scan được nhận dạng sau khi tải lên (thường 1 đến 2 phút). Số trong ngoặc là số hồ
         sơ chính thức của từng lựa chọn.
       </p>
+      {caseHits === null ? null : caseHits === 'error' ? (
+        <div className="state" role="alert">
+          <h2>Không tìm được hồ sơ</h2>
+          <p>Máy chủ chưa trả về danh sách hồ sơ. Vui lòng thử lại sau.</p>
+        </div>
+      ) : (
+        <section aria-labelledby="ho-so-khop" className="mb-6">
+          <h2 id="ho-so-khop" className="mb-2 text-base font-semibold">
+            Hồ sơ khớp “{q}”
+          </h2>
+          {caseHits.length === 0 ? (
+            <p className="muted" role="status">
+              Không có hồ sơ nào khớp (tìm theo số hồ sơ, tiêu đề, khách hàng).
+            </p>
+          ) : (
+            <ul className="space-y-1">
+              {caseHits.map((c) => {
+                const d = slugOf(c.domain);
+                const label = (
+                  <>
+                    <strong>{c.case_number ?? c.title}</strong>
+                    {c.case_number ? ` · ${c.title}` : ''}
+                    <span className="muted"> · {d?.label ?? c.domain}</span>
+                  </>
+                );
+                return (
+                  <li key={c.id}>
+                    {d ? <Link href={`/dms/${d.slug}/${c.id}?tab=tai-lieu`}>{label}</Link> : label}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
       {result === null ? null : result === 'error' ? (
         <div className="state" role="alert">
           <h2>Không tìm được</h2>
@@ -165,8 +202,8 @@ export default async function DmsSearchPage({
         <div className="state" role="status">
           <h2>Không có kết quả</h2>
           <p>
-            Không có tệp scan nào khớp “{q}”{page > 1 ? ' ở trang này' : ''}. Thử bỏ bớt bộ lọc hoặc
-            đổi từ khóa.
+            Không có tệp scan nào có chữ “{q}”{page > 1 ? ' ở trang này' : ''}. Thử bỏ bớt bộ lọc
+            hoặc đổi từ khóa.
           </p>
         </div>
       ) : (
