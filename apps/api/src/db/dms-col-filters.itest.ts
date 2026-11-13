@@ -57,16 +57,6 @@ describe.skipIf(!ADMIN_URL)('DMS lọc theo cột (0130, PostgreSQL)', () => {
       [T, u, OFF, domain, status, extra ? JSON.stringify(extra) : null],
     );
   const ids = (rows: { id: string }[]) => rows.map((r) => r.id).sort();
-  const facets = async (u: string, domain: string, extra: object | null) => {
-    const rows = (await call(
-      `SELECT * FROM dms_case_facet_counts($1,$2,$3,$4,'RECORDED',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,$5::jsonb)`,
-      [T, u, OFF, domain, extra ? JSON.stringify(extra) : null],
-    )) as { group_key: string; value: string; n: string }[];
-    const by: Record<string, Record<string, number>> = {};
-    for (const r of rows) (by[r.group_key] ??= {})[r.value] = Number(r.n);
-    return by;
-  };
-
   const addCase = async (
     key: string,
     domain: string,
