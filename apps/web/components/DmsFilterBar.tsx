@@ -60,19 +60,16 @@ function selectOptions(list: readonly Option[], now?: string): ReactNode {
   ));
 }
 
-/** Số bộ lọc đang bật trong ngăn "Bộ lọc khác". */
+/** Số bộ lọc đang bật trong ngăn "Thêm bộ lọc" (Thời gian, Thừa hành viên và hai bộ lọc nghiệp vụ hiện sẵn trên hàng nên không đếm ở đây). */
 export function otherFilterCount(v: DmsView, domain: string, recordedView: boolean): number {
   let n = 0;
   if (v.creator) n += 1;
   if (v.kind) n += 1;
   if (v.branch) n += 1;
-  if (v.fa && BUSINESS_FILTER[domain]?.fa) n += 1;
-  if (v.fb && BUSINESS_FILTER[domain]?.fb) n += 1;
   if (recordedView) {
     if (v.filter === 'thieu-scan' || v.filter === 'du-scan') n += 1;
     if (v.returned !== undefined) n += 1;
     if (v.open !== undefined && domain in OPEN_LABEL) n += 1;
-    if (v.ky || v.tu || v.den) n += 1;
   }
   return n;
 }
@@ -171,16 +168,95 @@ export function DmsFilterFields({
           </div>
         </details>
       ) : null}
+      <details name="dms-filter-pop" className="dms-pop" data-active={timeActive || undefined}>
+        <summary>
+          <span>Thời gian: {timeText}</span>
+        </summary>
+        <div className="dms-pop-body" role="group" aria-label="Thời gian ghi sổ">
+          <p className="dms-pop-sub">Thời gian ghi sổ (giờ Việt Nam)</p>
+          <fieldset className="dms-period">
+            <legend className="sr-only">Mốc nhanh</legend>
+            <label>
+              <input type="radio" name="ky" value="" defaultChecked={!range.ky} />
+              <span>Tùy chọn</span>
+            </label>
+            {DMS_PERIODS.map((p) => (
+              <label key={p.key}>
+                <input type="radio" name="ky" value={p.key} defaultChecked={range.ky === p.key} />
+                <span>{p.label}</span>
+              </label>
+            ))}
+          </fieldset>
+          <div className="dms-pop-row">
+            <label className="dms-datetime">
+              <span>Từ</span>
+              <input
+                type="datetime-local"
+                name="tu"
+                defaultValue={range.tu ?? ''}
+                min="2000-01-01T00:00"
+                max="2100-12-31T23:59"
+                aria-label="Từ ngày giờ"
+                title="Từ ngày giờ ghi sổ (giờ Việt Nam)"
+              />
+            </label>
+            <label className="dms-datetime">
+              <span>Đến</span>
+              <input
+                type="datetime-local"
+                name="den"
+                defaultValue={range.den ?? ''}
+                min="2000-01-01T00:00"
+                max="2100-12-31T23:59"
+                aria-label="Đến ngày giờ"
+                title="Đến hết phút này, theo giờ ghi sổ (giờ Việt Nam)"
+              />
+            </label>
+            <label>
+              <span className="sr-only">Năm</span>
+              <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    Năm {y}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="dms-pop-hint">
+            Chọn mốc nhanh hoặc khoảng Từ/Đến thì ô “Năm” không áp dụng. Tuần tính từ thứ Hai.
+          </p>
+          <div className="dms-pop-foot">
+            <Button type="submit" variant="primary">
+              Áp dụng
+            </Button>
+          </div>
+        </div>
+      </details>
+      {(['fa', 'fb'] as const).map((k) => {
+        const name = BUSINESS_FILTER[domain]?.[k];
+        if (!name) return null;
+        const now = view[k];
+        return (
+          <label key={k} className="dms-fsel" data-active={now ? 'true' : undefined}>
+            <span>{name}</span>
+            <select name={k} defaultValue={now ?? ''} className="dms-select" data-auto>
+              <option value="">Tất cả</option>
+              {selectOptions(facets[k], now)}
+            </select>
+          </label>
+        );
+      })}
       <details
         name="dms-filter-pop"
         className="dms-pop dms-pop-wide"
         data-active={otherN > 0 || undefined}
       >
         <summary>
-          <span>Bộ lọc khác{otherN > 0 ? ` (${otherN})` : ''}</span>
+          <span>Thêm bộ lọc{otherN > 0 ? ` (${otherN})` : ''}</span>
         </summary>
-        <div className="dms-pop-body" role="group" aria-label="Bộ lọc khác">
-          <p className="dms-pop-title">Bộ lọc khác</p>
+        <div className="dms-pop-body" role="group" aria-label="Thêm bộ lọc">
+          <p className="dms-pop-title">Thêm bộ lọc</p>
           <div className="dms-pop-cols">
             <div>
               {recordedView ? (
@@ -214,24 +290,6 @@ export function DmsFilterFields({
                   {selectOptions(facets.kind, view.kind)}
                 </select>
               </label>
-              {BUSINESS_FILTER[domain]?.fa ? (
-                <label className="dms-field">
-                  <span>{BUSINESS_FILTER[domain]!.fa}</span>
-                  <select name="fa" defaultValue={view.fa ?? ''} className="dms-select">
-                    <option value="">Tất cả</option>
-                    {selectOptions(facets.fa, view.fa)}
-                  </select>
-                </label>
-              ) : null}
-              {BUSINESS_FILTER[domain]?.fb ? (
-                <label className="dms-field">
-                  <span>{BUSINESS_FILTER[domain]!.fb}</span>
-                  <select name="fb" defaultValue={view.fb ?? ''} className="dms-select">
-                    <option value="">Tất cả</option>
-                    {selectOptions(facets.fb, view.fb)}
-                  </select>
-                </label>
-              ) : null}
             </div>
             <div>
               {recordedView && openLabel ? (
@@ -264,67 +322,6 @@ export function DmsFilterFields({
               </label>
             </div>
           </div>
-          <details className="dms-pop-time" open={timeActive || undefined}>
-            <summary>Thời gian ghi sổ: {timeText}</summary>
-            <p className="dms-pop-sub">Thời gian ghi sổ (giờ Việt Nam)</p>
-            <fieldset className="dms-period">
-              <legend className="sr-only">Mốc nhanh</legend>
-              <label>
-                <input type="radio" name="ky" value="" defaultChecked={!range.ky} />
-                <span>Tùy chọn</span>
-              </label>
-              {DMS_PERIODS.map((p) => (
-                <label key={p.key}>
-                  <input type="radio" name="ky" value={p.key} defaultChecked={range.ky === p.key} />
-                  <span>{p.label}</span>
-                </label>
-              ))}
-            </fieldset>
-            <div className="dms-pop-row">
-              <label className="dms-datetime">
-                <span>Từ</span>
-                <input
-                  type="datetime-local"
-                  name="tu"
-                  defaultValue={range.tu ?? ''}
-                  min="2000-01-01T00:00"
-                  max="2100-12-31T23:59"
-                  aria-label="Từ ngày giờ"
-                  title="Từ ngày giờ ghi sổ (giờ Việt Nam)"
-                />
-              </label>
-              <label className="dms-datetime">
-                <span>Đến</span>
-                <input
-                  type="datetime-local"
-                  name="den"
-                  defaultValue={range.den ?? ''}
-                  min="2000-01-01T00:00"
-                  max="2100-12-31T23:59"
-                  aria-label="Đến ngày giờ"
-                  title="Đến hết phút này, theo giờ ghi sổ (giờ Việt Nam)"
-                />
-              </label>
-              <label>
-                <span className="sr-only">Năm</span>
-                <select
-                  name="year"
-                  defaultValue={year}
-                  className="dms-select"
-                  style={{ width: 96 }}
-                >
-                  {years.map((y) => (
-                    <option key={y} value={y}>
-                      Năm {y}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <p className="dms-pop-hint">
-              Chọn mốc nhanh hoặc khoảng Từ/Đến thì ô “Năm” không áp dụng. Tuần tính từ thứ Hai.
-            </p>
-          </details>
           <div className="dms-pop-foot">
             <Button type="submit" variant="primary">
               Áp dụng
@@ -332,6 +329,9 @@ export function DmsFilterFields({
           </div>
         </div>
       </details>
+      <Button type="submit" variant="secondary" className="dms-apply">
+        Áp dụng
+      </Button>
       {children}
     </>
   );
@@ -376,6 +376,8 @@ export function DmsActiveChips({
   } else if (yearChosen) {
     chips.push({ key: 'year', text: `Năm ${year}`, href: without({ year: undefined }, ['year']) });
   }
+  if (view.q?.trim())
+    chips.push({ key: 'q', text: `Từ khóa: ${view.q.trim()}`, href: without({ q: undefined }) });
   const names = new Map(facets.thv.map((o) => [o.value, o.label]));
   for (const id of view.thv ?? [])
     chips.push({
