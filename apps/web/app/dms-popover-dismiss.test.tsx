@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DmsPopoverDismiss } from '../components/DmsPopoverDismiss';
 
 afterEach(cleanup);
@@ -36,5 +36,27 @@ describe('đóng ngăn lọc', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(d.open).toBe(false);
     expect(document.activeElement).toBe(d.querySelector(':scope > summary'));
+  });
+  it('ô chọn có data-auto tự gửi biểu mẫu, ô chọn thường thì không', () => {
+    const submit = vi.fn();
+    const { container } = render(
+      <form>
+        <DmsPopoverDismiss />
+        <select name="fa" data-auto>
+          <option value="">Tất cả</option>
+          <option value="x">X</option>
+        </select>
+        <select name="lt">
+          <option value="">Tất cả</option>
+          <option value="y">Y</option>
+        </select>
+      </form>,
+    );
+    const form = container.querySelector('form')!;
+    form.requestSubmit = submit;
+    fireEvent.change(container.querySelector('select[name=lt]')!, { target: { value: 'y' } });
+    expect(submit).not.toHaveBeenCalled();
+    fireEvent.change(container.querySelector('select[name=fa]')!, { target: { value: 'x' } });
+    expect(submit).toHaveBeenCalledTimes(1);
   });
 });

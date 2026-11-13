@@ -315,7 +315,18 @@ export default async function DmsDomainPage({
   const sttLabel = domain.code === 'vtden' ? 'Số đến' : 'STT';
   return (
     <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
-      <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
+      <div className="dms-title-row">
+        <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
+        {!vanThu && canDraft(permissions, domain.code) ? (
+          <NewDmsCaseButton
+            officeId={officeId}
+            domainCode={domain.code}
+            label={domain.label}
+            buttonLabel="+ Tạo hồ sơ"
+            redirectBase={base}
+          />
+        ) : null}
+      </div>
       {draftKind && !vanThu ? (
         <AdminBanner
           title={`${domain.label} · ${draftKind === 'nhap' ? 'Nháp' : 'Đã hủy'}`}
@@ -351,205 +362,63 @@ export default async function DmsDomainPage({
           })}
         />
       )}
-      <TabNav
-        label={`Bộ lọc hồ sơ ${domain.label}`}
-        soft
-        active={filter}
-        tabs={chipSet.map((k) => ({
-          key: k,
-          label: DMS_FILTER_LABEL[k],
-          href: href(k),
-          count: counts[k],
-          tone:
-            !vanThu && !isDraftView && (k === 'nhap' || k === 'da-huy')
-              ? ('warn' as const)
-              : undefined,
-        }))}
-        action={
-          <span className="dms-actionbar">
-            {vanThu ? (
-              <>
+      {vanThu ? null : (
+        <div className="dms-tb">
+          <div className="dms-tb-row">
+            <span className="dms-tb-label">Hồ sơ</span>
+            <nav aria-label={`Bộ lọc hồ sơ ${domain.label}`} className="dms-seg">
+              {chipSet.map((k) => (
+                <Link key={k} href={href(k)} aria-current={k === filter ? 'page' : undefined}>
+                  {DMS_FILTER_LABEL[k]}
+                  {counts[k] === undefined ? null : ` (${counts[k]})`}
+                </Link>
+              ))}
+            </nav>
+            <span className="dms-tb-actions">
+              <DmsSavedFilters
+                officeId={officeId}
+                domain={domain.code}
+                basePath={base}
+                current={viewToSavedParams(view)}
+              />
+              {recordedView ? (
                 <Button asChild variant="secondary">
                   <a
                     className="no-underline"
-                    href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
+                    href={exportCasesHref({ ...search, from: range.from, to: range.to })}
+                    title="Tải Excel đúng danh sách đang lọc (tối đa 10.000 hồ sơ)"
                   >
-                    Xuất Excel
+                    Xuất Excel (đang lọc)
                   </a>
                 </Button>
-                <PdfPrintButton
-                  variant="secondary"
-                  url={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=pdf`}
-                />
-              </>
-            ) : (
-              <>
-                {recordedView ? (
-                  <Button asChild variant="secondary">
-                    <a
-                      className="no-underline"
-                      href={exportCasesHref({ ...search, from: range.from, to: range.to })}
-                      title="Tải Excel đúng danh sách đang lọc (tối đa 10.000 hồ sơ)"
-                    >
-                      Xuất Excel (đang lọc)
-                    </a>
-                  </Button>
-                ) : null}
-                <Button asChild variant="secondary">
-                  <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
-                    Xuất {bookCode}
-                  </Link>
-                </Button>
-              </>
-            )}
-            {canDraft(permissions, domain.code) ? (
-              <NewDmsCaseButton
-                officeId={officeId}
-                domainCode={domain.code}
-                label={domain.label}
-                buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
-                redirectBase={base}
+              ) : null}
+              <details className="dms-pop dms-pop-menu">
+                <summary aria-label="Thêm thao tác">
+                  <span aria-hidden="true">⋯</span>
+                </summary>
+                <div className="dms-pop-body dms-menu">
+                  <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+                  <Link href="/dms/tim-kiem">Tìm trong nội dung scan</Link>
+                </div>
+              </details>
+            </span>
+          </div>
+          {recordedView ? (
+            <div className="dms-tb-row">
+              <span className="dms-tb-label">Việc cần làm</span>
+              <DmsWorkChips
+                base={base}
+                view={view}
+                facets={facets}
+                domain={domain.code}
+                userId={userId}
               />
-            ) : null}
-          </span>
-        }
-      />
-      {!vanThu && recordedView ? (
-        <DmsWorkChips
-          base={base}
-          view={view}
-          facets={facets}
-          domain={domain.code}
-          userId={userId}
-        />
-      ) : null}
-      <form method="get" action={base} role="search" className="dms-filters">
-        {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
-        <DmsCaseSuggest
-          officeId={officeId}
-          domain={domain.code}
-          basePath={base}
-          status={filterToParams(filter, year).status}
-          year={filterToParams(filter, year).year}
-          defaultValue={q}
-        />
-        {vanThu ? (
-          <label>
-            <span className="sr-only">Năm</span>
-            <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
-              {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
-                .concat(year)
-                .filter((y, i, a) => a.indexOf(y) === i)
-                .sort((x, y) => y - x)
-                .map((y) => (
-                  <option key={y} value={y}>
-                    Năm {y}
-                  </option>
-                ))}
-            </select>
-          </label>
-        ) : null}
-        {vanThu ? (
-          <>
-            <Button type="submit" variant="secondary" className="dms-find">
-              Tìm
-            </Button>
-            <details className="dms-adv">
-              <summary>Bộ lọc nâng cao</summary>
-              <div className="dms-adv-body">
-                {(() => {
-                  const options = (
-                    list: readonly { value: string; label: string; n: number }[],
-                    now?: string,
-                  ) => {
-                    // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
-                    list = list.filter((o) => o.value !== '');
-                    const rows =
-                      list.some((o) => o.value === now) || !now
-                        ? list
-                        : [...list, { value: now, label: now, n: 0 }];
-                    return rows.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label} ({o.n.toLocaleString('vi-VN')})
-                      </option>
-                    ));
-                  };
-                  return (
-                    <>
-                      <label>
-                        <span className="sr-only">Loại tài liệu</span>
-                        <select
-                          name="lt"
-                          defaultValue={sp.lt ?? ''}
-                          className="dms-select"
-                          style={{ width: 112 }}
-                        >
-                          <option value="">Loại tài liệu</option>
-                          {options(facets.kind, sp.lt)}
-                        </select>
-                      </label>
-                      <label>
-                        <span className="sr-only">Người tạo</span>
-                        <select
-                          name="nt"
-                          defaultValue={sp.nt ?? ''}
-                          className="dms-select"
-                          style={{ width: 98 }}
-                        >
-                          <option value="">Người tạo</option>
-                          {options(facets.creator, sp.nt)}
-                        </select>
-                      </label>
-                      <label>
-                        <span className="sr-only">Đơn vị</span>
-                        <select
-                          name="dv"
-                          defaultValue={sp.dv ?? ''}
-                          className="dms-select"
-                          style={{ width: 78 }}
-                        >
-                          <option value="">Đơn vị</option>
-                          {options(facets.branch, sp.dv)}
-                        </select>
-                      </label>
-                    </>
-                  );
-                })()}
-                {showScanSelect ? (
-                  <label>
-                    <span className="sr-only">Tình trạng scan</span>
-                    <select
-                      name="loc"
-                      defaultValue={
-                        filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'
-                      }
-                      className="dms-select"
-                      style={{ width: 126 }}
-                    >
-                      <option value="chinh-thuc">Tình trạng scan</option>
-                      <option value="thieu-scan">Thiếu scan</option>
-                      <option value="du-scan">Đủ scan</option>
-                    </select>
-                  </label>
-                ) : null}
-                <DmsSavedFilters
-                  officeId={officeId}
-                  domain={domain.code}
-                  basePath={base}
-                  current={viewToSavedParams({
-                    filter,
-                    year: sp.year ? year : undefined,
-                    q,
-                    creator: sp.nt,
-                    kind: sp.lt,
-                    branch: sp.dv,
-                  })}
-                />
-              </div>
-            </details>
-          </>
-        ) : (
-          <>
+            </div>
+          ) : null}
+          <form method="get" action={base} aria-label="Bộ lọc" className="dms-tb-row dms-tb-form">
+            <span className="dms-tb-label">Bộ lọc</span>
+            {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
+            {q ? <input type="hidden" name="q" value={q} /> : null}
             <DmsFilterFields
               view={view}
               range={range}
@@ -562,33 +431,217 @@ export default async function DmsDomainPage({
                 .sort((x, y) => y - x)}
               yearChosen={Boolean(sp.year) && year !== yearOfVn(new Date())}
               recordedView={recordedView}
-            >
-              <DmsSavedFilters
-                officeId={officeId}
-                domain={domain.code}
-                basePath={base}
-                current={viewToSavedParams(view)}
-              />
-            </DmsFilterFields>
-            <Button type="submit" variant="secondary" className="dms-find">
-              Tìm
-            </Button>
-          </>
-        )}
-      </form>
-      {vanThu ? null : (
-        <DmsActiveChips
-          base={base}
-          view={view}
-          range={range}
-          facets={facets}
-          domain={domain.code}
-          year={year}
-          yearChosen={Boolean(sp.year) && year !== yearOfVn(new Date())}
-          recordedView={recordedView}
-          matchText={formatTotal(total, result.totalCapped)}
-        />
+            />
+          </form>
+          <DmsActiveChips
+            base={base}
+            view={view}
+            range={range}
+            facets={facets}
+            domain={domain.code}
+            year={year}
+            yearChosen={Boolean(sp.year) && year !== yearOfVn(new Date())}
+            recordedView={recordedView}
+            matchText={formatTotal(total, result.totalCapped)}
+          />
+        </div>
       )}
+      {vanThu ? (
+        <>
+          <TabNav
+            label={`Bộ lọc hồ sơ ${domain.label}`}
+            soft
+            active={filter}
+            tabs={chipSet.map((k) => ({
+              key: k,
+              label: DMS_FILTER_LABEL[k],
+              href: href(k),
+              count: counts[k],
+              tone:
+                !vanThu && !isDraftView && (k === 'nhap' || k === 'da-huy')
+                  ? ('warn' as const)
+                  : undefined,
+            }))}
+            action={
+              <span className="dms-actionbar">
+                {vanThu ? (
+                  <>
+                    <Button asChild variant="secondary">
+                      <a
+                        className="no-underline"
+                        href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
+                      >
+                        Xuất Excel
+                      </a>
+                    </Button>
+                    <PdfPrintButton
+                      variant="secondary"
+                      url={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=pdf`}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {recordedView ? (
+                      <Button asChild variant="secondary">
+                        <a
+                          className="no-underline"
+                          href={exportCasesHref({ ...search, from: range.from, to: range.to })}
+                          title="Tải Excel đúng danh sách đang lọc (tối đa 10.000 hồ sơ)"
+                        >
+                          Xuất Excel (đang lọc)
+                        </a>
+                      </Button>
+                    ) : null}
+                    <Button asChild variant="secondary">
+                      <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
+                        Xuất {bookCode}
+                      </Link>
+                    </Button>
+                  </>
+                )}
+                {canDraft(permissions, domain.code) ? (
+                  <NewDmsCaseButton
+                    officeId={officeId}
+                    domainCode={domain.code}
+                    label={domain.label}
+                    buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
+                    redirectBase={base}
+                  />
+                ) : null}
+              </span>
+            }
+          />
+        </>
+      ) : null}
+      {vanThu ? (
+        <form method="get" action={base} role="search" className="dms-filters">
+          {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
+          <DmsCaseSuggest
+            officeId={officeId}
+            domain={domain.code}
+            basePath={base}
+            status={filterToParams(filter, year).status}
+            year={filterToParams(filter, year).year}
+            defaultValue={q}
+          />
+          {vanThu ? (
+            <label>
+              <span className="sr-only">Năm</span>
+              <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
+                {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
+                  .concat(year)
+                  .filter((y, i, a) => a.indexOf(y) === i)
+                  .sort((x, y) => y - x)
+                  .map((y) => (
+                    <option key={y} value={y}>
+                      Năm {y}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          ) : null}
+          {vanThu ? (
+            <>
+              <Button type="submit" variant="secondary" className="dms-find">
+                Tìm
+              </Button>
+              <details className="dms-adv">
+                <summary>Bộ lọc nâng cao</summary>
+                <div className="dms-adv-body">
+                  {(() => {
+                    const options = (
+                      list: readonly { value: string; label: string; n: number }[],
+                      now?: string,
+                    ) => {
+                      // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
+                      list = list.filter((o) => o.value !== '');
+                      const rows =
+                        list.some((o) => o.value === now) || !now
+                          ? list
+                          : [...list, { value: now, label: now, n: 0 }];
+                      return rows.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label} ({o.n.toLocaleString('vi-VN')})
+                        </option>
+                      ));
+                    };
+                    return (
+                      <>
+                        <label>
+                          <span className="sr-only">Loại tài liệu</span>
+                          <select
+                            name="lt"
+                            defaultValue={sp.lt ?? ''}
+                            className="dms-select"
+                            style={{ width: 112 }}
+                          >
+                            <option value="">Loại tài liệu</option>
+                            {options(facets.kind, sp.lt)}
+                          </select>
+                        </label>
+                        <label>
+                          <span className="sr-only">Người tạo</span>
+                          <select
+                            name="nt"
+                            defaultValue={sp.nt ?? ''}
+                            className="dms-select"
+                            style={{ width: 98 }}
+                          >
+                            <option value="">Người tạo</option>
+                            {options(facets.creator, sp.nt)}
+                          </select>
+                        </label>
+                        <label>
+                          <span className="sr-only">Đơn vị</span>
+                          <select
+                            name="dv"
+                            defaultValue={sp.dv ?? ''}
+                            className="dms-select"
+                            style={{ width: 78 }}
+                          >
+                            <option value="">Đơn vị</option>
+                            {options(facets.branch, sp.dv)}
+                          </select>
+                        </label>
+                      </>
+                    );
+                  })()}
+                  {showScanSelect ? (
+                    <label>
+                      <span className="sr-only">Tình trạng scan</span>
+                      <select
+                        name="loc"
+                        defaultValue={
+                          filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'
+                        }
+                        className="dms-select"
+                        style={{ width: 126 }}
+                      >
+                        <option value="chinh-thuc">Tình trạng scan</option>
+                        <option value="thieu-scan">Thiếu scan</option>
+                        <option value="du-scan">Đủ scan</option>
+                      </select>
+                    </label>
+                  ) : null}
+                  <DmsSavedFilters
+                    officeId={officeId}
+                    domain={domain.code}
+                    basePath={base}
+                    current={viewToSavedParams({
+                      filter,
+                      year: sp.year ? year : undefined,
+                      q,
+                      creator: sp.nt,
+                      kind: sp.lt,
+                      branch: sp.dv,
+                    })}
+                  />
+                </div>
+              </details>
+            </>
+          ) : null}
+        </form>
+      ) : null}
       {range.inverted ? (
         <p className="dms-range-note" role="alert">
           “Từ” đang muộn hơn “Đến” nên không có hồ sơ nào. Hãy đổi lại hai mốc thời gian.
@@ -602,12 +655,14 @@ export default async function DmsDomainPage({
       ) : null}
       <div className="dms-card">
         {/* Liên kết nằm đè lên ô trống của đầu bảng; khi không vẽ bảng (trạng thái trống) phải xếp theo dòng, kẻo đè thông báo. */}
-        <Link
-          href="/dms/tim-kiem"
-          className={`dms-scan-link dms-card-link${showsTable ? '' : ' dms-card-link--flow'}`}
-        >
-          Tìm trong nội dung scan
-        </Link>
+        {vanThu ? (
+          <Link
+            href="/dms/tim-kiem"
+            className={`dms-scan-link dms-card-link${showsTable ? '' : ' dms-card-link--flow'}`}
+          >
+            Tìm trong nội dung scan
+          </Link>
+        ) : null}
         {showsTable && listLayout ? (
           <DmsDomainTable
             rows={pageRows}
