@@ -20,6 +20,23 @@ export const OPEN_LABEL: Readonly<Record<string, string>> = {
   tochuc: 'Chưa có biên bản N-08',
 };
 
+/** Tên hai bộ lọc nghiệp vụ theo từng nghiệp vụ (facet_a / facet_b, migration 0124). Nghiệp vụ không có thì không hiện ô. */
+export const BUSINESS_FILTER: Readonly<
+  Record<string, { readonly fa?: string; readonly fb?: string }>
+> = {
+  tongdat: { fa: 'Hình thức tống đạt', fb: 'Cơ quan giao văn bản' },
+  vibang: { fa: 'Tỉnh/thành nơi lập vi bằng' },
+  xacminh: { fa: 'Kết quả xác minh' },
+  tochuc: { fa: 'Kết quả thi hành án' },
+};
+
+/** Nhãn chip "việc cần làm": còn dở / đã xong theo từng nghiệp vụ (Vi bằng không có, chỉ có chip trả kết quả). */
+const WORK_LABEL: Readonly<Record<string, { open?: string; done?: string }>> = {
+  tongdat: { open: 'Chưa tống đạt', done: 'Đã tống đạt' },
+  xacminh: { open: 'Chưa có kết quả', done: 'Đã có kết quả' },
+  tochuc: { open: 'Đang thi hành (chưa có N-08)', done: 'Đã có biên bản N-08' },
+};
+
 const shortLocal = (v: string): string => {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})$/.exec(v);
   return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : v;
@@ -48,10 +65,13 @@ export function otherFilterCount(v: DmsView, domain: string, recordedView: boole
   if (v.creator) n += 1;
   if (v.kind) n += 1;
   if (v.branch) n += 1;
+  if (v.fa && BUSINESS_FILTER[domain]?.fa) n += 1;
+  if (v.fb && BUSINESS_FILTER[domain]?.fb) n += 1;
   if (recordedView) {
     if (v.filter === 'thieu-scan' || v.filter === 'du-scan') n += 1;
-    if (v.returned !== undefined && domain === 'vibang') n += 1;
+    if (v.returned !== undefined) n += 1;
     if (v.open !== undefined && domain in OPEN_LABEL) n += 1;
+    if (v.ky || v.tu || v.den) n += 1;
   }
   return n;
 }
@@ -103,71 +123,6 @@ export function DmsFilterFields({
   const thvOptions = facets.thv.filter((o) => o.value !== '');
   return (
     <>
-      <details name="dms-filter-pop" className="dms-pop" data-active={timeActive || undefined}>
-        <summary>
-          <span>Thời gian: {timeText}</span>
-        </summary>
-        <div className="dms-pop-body" role="group" aria-label="Thời gian ghi sổ">
-          <p className="dms-pop-title">Thời gian ghi sổ (giờ Việt Nam)</p>
-          <fieldset className="dms-period">
-            <legend className="sr-only">Mốc nhanh</legend>
-            <label>
-              <input type="radio" name="ky" value="" defaultChecked={!range.ky} />
-              <span>Tùy chọn</span>
-            </label>
-            {DMS_PERIODS.map((p) => (
-              <label key={p.key}>
-                <input type="radio" name="ky" value={p.key} defaultChecked={range.ky === p.key} />
-                <span>{p.label}</span>
-              </label>
-            ))}
-          </fieldset>
-          <div className="dms-pop-row">
-            <label className="dms-datetime">
-              <span>Từ</span>
-              <input
-                type="datetime-local"
-                name="tu"
-                defaultValue={range.tu ?? ''}
-                min="2000-01-01T00:00"
-                max="2100-12-31T23:59"
-                aria-label="Từ ngày giờ"
-                title="Từ ngày giờ ghi sổ (giờ Việt Nam)"
-              />
-            </label>
-            <label className="dms-datetime">
-              <span>Đến</span>
-              <input
-                type="datetime-local"
-                name="den"
-                defaultValue={range.den ?? ''}
-                min="2000-01-01T00:00"
-                max="2100-12-31T23:59"
-                aria-label="Đến ngày giờ"
-                title="Đến hết phút này, theo giờ ghi sổ (giờ Việt Nam)"
-              />
-            </label>
-            <label>
-              <span className="sr-only">Năm</span>
-              <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
-                {years.map((y) => (
-                  <option key={y} value={y}>
-                    Năm {y}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <p className="dms-pop-hint">
-            Chọn mốc nhanh hoặc khoảng Từ/Đến thì ô “Năm” không áp dụng. Tuần tính từ thứ Hai.
-          </p>
-          <div className="dms-pop-foot">
-            <Button type="submit" variant="primary">
-              Áp dụng
-            </Button>
-          </div>
-        </div>
-      </details>
       {thvOptions.length > 0 || thvSelected.length > 0 ? (
         <details
           name="dms-filter-pop"
@@ -236,7 +191,7 @@ export function DmsFilterFields({
                   </select>
                 </label>
               ) : null}
-              {recordedView && domain === 'vibang' ? (
+              {recordedView ? (
                 <label className="dms-field">
                   <span>Đã trả kết quả</span>
                   <select
@@ -257,6 +212,24 @@ export function DmsFilterFields({
                   {selectOptions(facets.kind, view.kind)}
                 </select>
               </label>
+              {BUSINESS_FILTER[domain]?.fa ? (
+                <label className="dms-field">
+                  <span>{BUSINESS_FILTER[domain]!.fa}</span>
+                  <select name="fa" defaultValue={view.fa ?? ''} className="dms-select">
+                    <option value="">Tất cả</option>
+                    {selectOptions(facets.fa, view.fa)}
+                  </select>
+                </label>
+              ) : null}
+              {BUSINESS_FILTER[domain]?.fb ? (
+                <label className="dms-field">
+                  <span>{BUSINESS_FILTER[domain]!.fb}</span>
+                  <select name="fb" defaultValue={view.fb ?? ''} className="dms-select">
+                    <option value="">Tất cả</option>
+                    {selectOptions(facets.fb, view.fb)}
+                  </select>
+                </label>
+              ) : null}
             </div>
             <div>
               {recordedView && openLabel ? (
@@ -289,6 +262,67 @@ export function DmsFilterFields({
               </label>
             </div>
           </div>
+          <details className="dms-pop-time" open={timeActive || undefined}>
+            <summary>Thời gian ghi sổ: {timeText}</summary>
+            <p className="dms-pop-sub">Thời gian ghi sổ (giờ Việt Nam)</p>
+            <fieldset className="dms-period">
+              <legend className="sr-only">Mốc nhanh</legend>
+              <label>
+                <input type="radio" name="ky" value="" defaultChecked={!range.ky} />
+                <span>Tùy chọn</span>
+              </label>
+              {DMS_PERIODS.map((p) => (
+                <label key={p.key}>
+                  <input type="radio" name="ky" value={p.key} defaultChecked={range.ky === p.key} />
+                  <span>{p.label}</span>
+                </label>
+              ))}
+            </fieldset>
+            <div className="dms-pop-row">
+              <label className="dms-datetime">
+                <span>Từ</span>
+                <input
+                  type="datetime-local"
+                  name="tu"
+                  defaultValue={range.tu ?? ''}
+                  min="2000-01-01T00:00"
+                  max="2100-12-31T23:59"
+                  aria-label="Từ ngày giờ"
+                  title="Từ ngày giờ ghi sổ (giờ Việt Nam)"
+                />
+              </label>
+              <label className="dms-datetime">
+                <span>Đến</span>
+                <input
+                  type="datetime-local"
+                  name="den"
+                  defaultValue={range.den ?? ''}
+                  min="2000-01-01T00:00"
+                  max="2100-12-31T23:59"
+                  aria-label="Đến ngày giờ"
+                  title="Đến hết phút này, theo giờ ghi sổ (giờ Việt Nam)"
+                />
+              </label>
+              <label>
+                <span className="sr-only">Năm</span>
+                <select
+                  name="year"
+                  defaultValue={year}
+                  className="dms-select"
+                  style={{ width: 96 }}
+                >
+                  {years.map((y) => (
+                    <option key={y} value={y}>
+                      Năm {y}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="dms-pop-hint">
+              Chọn mốc nhanh hoặc khoảng Từ/Đến thì ô “Năm” không áp dụng. Tuần tính từ thứ Hai.
+            </p>
+          </details>
           <div className="dms-pop-foot">
             <Button type="submit" variant="primary">
               Áp dụng
@@ -359,7 +393,7 @@ export function DmsActiveChips({
       text: `Việc còn dở: ${view.open ? OPEN_LABEL[domain] : 'Đã xong'}`,
       href: without({ open: undefined }),
     });
-  if (recordedView && view.returned !== undefined && domain === 'vibang')
+  if (recordedView && view.returned !== undefined)
     chips.push({
       key: 'returned',
       text: `Đã trả kết quả: ${view.returned ? 'Đã trả' : 'Chưa trả'}`,
@@ -378,6 +412,18 @@ export function DmsActiveChips({
       key: 'nt',
       text: `Người tạo: ${labelOf(facets.creator, view.creator)}`,
       href: without({ creator: undefined }),
+    });
+  if (view.fa && BUSINESS_FILTER[domain]?.fa)
+    chips.push({
+      key: 'fa',
+      text: `${BUSINESS_FILTER[domain]!.fa}: ${view.fa}`,
+      href: without({ fa: undefined }),
+    });
+  if (view.fb && BUSINESS_FILTER[domain]?.fb)
+    chips.push({
+      key: 'fb',
+      text: `${BUSINESS_FILTER[domain]!.fb}: ${view.fb}`,
+      href: without({ fb: undefined }),
     });
   if (view.kind)
     chips.push({ key: 'lt', text: `Loại: ${view.kind}`, href: without({ kind: undefined }) });
@@ -400,5 +446,103 @@ export function DmsActiveChips({
         <strong>{matchText}</strong> hồ sơ khớp
       </span>
     </div>
+  );
+}
+
+export interface DmsWorkChipsProps {
+  readonly base: string;
+  readonly view: DmsView;
+  readonly facets: DmsFacetCounts;
+  readonly domain: string;
+  /** Mã người đang đăng nhập: chip "Việc của tôi" lọc theo Thừa hành viên là chính người này. */
+  readonly userId?: string;
+}
+
+const countOf = (list: DmsFacetCounts['open'], value: string): number =>
+  list.find((o) => o.value === value)?.n ?? 0;
+
+/**
+ * Hàng chip "Việc cần làm" của danh sách chính thức (lọc theo nghiệp vụ, không theo ngày tháng): bấm một lần là lọc, có số hồ sơ.
+ * Chưa tống đạt / Đã tống đạt, Chưa có kết quả, Đang thi hành (chưa N-08), Chưa trả / Đã trả kết quả, Thiếu scan, Việc của tôi.
+ * Số đếm tính theo các bộ lọc khác đang chọn (trừ chính nhóm đó), nên chip không tự mâu thuẫn với bộ lọc.
+ */
+export function DmsWorkChips({ base, view, facets, domain, userId }: DmsWorkChipsProps) {
+  const labels = WORK_LABEL[domain];
+  const go = (patch: Partial<DmsView>) => viewHref(base, { ...view, ...patch });
+  const mine = Boolean(userId) && view.thv?.length === 1 && view.thv[0] === userId;
+  const items: { key: string; label: string; n?: number; active: boolean; href: string }[] = [
+    {
+      key: 'all',
+      label: 'Tất cả',
+      active:
+        view.open === undefined &&
+        view.returned === undefined &&
+        view.filter === 'chinh-thuc' &&
+        !mine,
+      href: go({ open: undefined, returned: undefined, filter: 'chinh-thuc', thv: undefined }),
+    },
+  ];
+  if (labels?.open)
+    items.push({
+      key: 'open',
+      label: labels.open,
+      n: countOf(facets.open, 'true'),
+      active: view.open === true,
+      href: go({ open: true, filter: 'chinh-thuc' }),
+    });
+  if (labels?.done)
+    items.push({
+      key: 'done',
+      label: labels.done,
+      n: countOf(facets.open, 'false'),
+      active: view.open === false,
+      href: go({ open: false, filter: 'chinh-thuc' }),
+    });
+  items.push(
+    {
+      key: 'unreturned',
+      label: 'Chưa trả kết quả',
+      n: countOf(facets.returned, 'false'),
+      active: view.returned === false,
+      href: go({ returned: false, filter: 'chinh-thuc' }),
+    },
+    {
+      key: 'returned',
+      label: 'Đã trả kết quả',
+      n: countOf(facets.returned, 'true'),
+      active: view.returned === true,
+      href: go({ returned: true, filter: 'chinh-thuc' }),
+    },
+    {
+      key: 'missing',
+      label: 'Thiếu scan',
+      n: countOf(facets.scan, 'missing'),
+      active: view.filter === 'thieu-scan',
+      href: go({ filter: 'thieu-scan' }),
+    },
+  );
+  if (userId)
+    items.push({
+      key: 'mine',
+      label: 'Việc của tôi',
+      n: facets.thv.find((o) => o.value === userId)?.n,
+      active: mine,
+      href: go({ thv: mine ? undefined : [userId], filter: 'chinh-thuc' }),
+    });
+  return (
+    <nav className="dms-work-chips" aria-label="Việc cần làm">
+      {items.map((c) => (
+        <Link
+          key={c.key}
+          href={c.href}
+          className="dms-chip dms-work-chip"
+          aria-current={c.active ? 'true' : undefined}
+          data-active={c.active || undefined}
+        >
+          <span>{c.label}</span>
+          {c.n !== undefined ? <b>{c.n.toLocaleString('vi-VN')}</b> : null}
+        </Link>
+      ))}
+    </nav>
   );
 }

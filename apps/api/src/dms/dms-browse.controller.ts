@@ -4,18 +4,23 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
+  HttpStatus,
   Inject,
   Param,
   ParseUUIDPipe,
   Post,
   Query,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
 import { VibangRepo } from '../vibang/vibang.repo';
-import { bookOf, type BookRowRaw } from './books';
+import { buildXlsx, XLSX_MIME } from '../office/xlsx-export';
+import { bookCells, bookOf, type BookRowRaw } from './books';
 import { mergeBookCaseNumbers, mergeCaseExtras } from './dms-extras';
 import { domain, parse, respond, uuid } from './dms-http';
 
@@ -49,6 +54,9 @@ const filterShape = {
   open: bool.optional(),
   /** Ô "Đã trả kết quả". */
   returned: bool.optional(),
+  /** Bộ lọc nghiệp vụ (0124): giá trị thô facet_a (hình thức tống đạt, tỉnh/thành, kết quả...) và facet_b (cơ quan giao). */
+  fa: z.string().min(1).max(200).optional(),
+  fb: z.string().min(1).max(200).optional(),
 };
 
 export type CaseFilters = z.infer<z.ZodObject<typeof filterShape>>;
@@ -74,7 +82,17 @@ export const extraArg = (f: CaseFilters): string | null => {
   if (f.thv) e.thv = f.thv;
   if (f.open !== undefined) e.open = f.open;
   if (f.returned !== undefined) e.returned = f.returned;
+  if (f.fa) e.fa = f.fa;
+  if (f.fb) e.fb = f.fb;
   return Object.keys(e).length > 0 ? JSON.stringify(e) : null;
+};
+
+/** Trần số hồ sơ của một bản xuất Excel (quá thì báo thu hẹp bộ lọc). */
+const EXPORT_MAX = 10_000;
+const BOOK_FOR: Readonly<Record<string, string>> = {
+  vibang: 'S-02',
+  xacminh: 'S-04',
+  tochuc: 'S-05',
 };
 
 interface SearchRow {
@@ -144,6 +162,139 @@ export class DmsBrowseController {
     };
   }
 
+  /**
+   * Xuất Excel đúng tập hồ sơ đang lọc (cùng tham số, cùng quyền xem như `case-search`). Chỉ hồ sơ đã ghi sổ của một nghiệp vụ;
+   * cột = cột sổ theo mẫu + mã hồ sơ, SĐT, đã trả KQ, số scan, ngày ghi sổ, người tạo. Đây là bản làm việc, không thay "Xuất sổ" pháp định.
+   */
+  @Get('case-search/export')
+  async exportSearch(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query() query: unknown,
+    @Res({ passthrough: true }) res: { set(headers: Record<string, string>): unknown },
+  ) {
+    const q = parse(
+      z
+        .object({ ...filterShape, domain })
+        .strict()
+        .refine((v) => v.status === undefined || v.status === 'RECORDED', {
+          message: 'Chỉ xuất hồ sơ đã ghi sổ',
+        }),
+      query,
+    );
+    const spec = bookOf(q.domain === 'tongdat' ? 'S-01' : (BOOK_FOR[q.domain] ?? ''));
+    if (!spec) throw new HttpException({ code: 'INVALID_DOMAIN' }, HttpStatus.BAD_REQUEST);
+    const f = { ...q, status: 'RECORDED' as const };
+    const cases: Array<Record<string, unknown> & { id: string }> = [];
+    for (let offset = 0; offset < EXPORT_MAX + 1; offset += 200) {
+      const rows = await this.repo.rows<SearchRow & { id: string }>(
+        a.tenantId,
+        'dms_search_cases',
+        [a.tenantId, a.userId, ...filterArgs(f), 'oldest', null, 200, offset, false, extraArg(f)],
+      );
+      const merged = await mergeCaseExtras(this.repo, a, rows);
+      cases.push(...(merged as unknown as typeof cases));
+      if (rows.length < 200) break;
+    }
+    if (cases.length > EXPORT_MAX)
+      throw new HttpException(
+        { code: 'EXPORT_TOO_LARGE', label: String(EXPORT_MAX) },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    const bookRows: Array<BookRowRaw & { case_id: string }> = [];
+    for (let i = 0; i < cases.length; i += 200) {
+      bookRows.push(
+        ...(await mergeBookCaseNumbers(
+          this.repo,
+          a,
+          await this.repo.rows<BookRowRaw & { case_id: string }>(
+            a.tenantId,
+            'dms_book_rows_for_cases',
+            [a.tenantId, a.userId, q.officeId, spec.code, cases.slice(i, i + 200).map((c) => c.id)],
+          ),
+        )),
+      );
+    }
+    const byCase = new Map(cases.map((c) => [c.id, c]));
+    // Mỗi hồ sơ một hoặc nhiều dòng sổ (hồ sơ Tống đạt cũ); hồ sơ chưa có dòng sổ vẫn xuất một dòng, STT để trống.
+    const ordered: Array<BookRowRaw & { case_id: string }> = [];
+    for (const c of cases) {
+      const own = bookRows.filter((r) => r.case_id === c.id).sort((x, y) => x.stt - y.stt);
+      if (own.length > 0) ordered.push(...own);
+      else
+        ordered.push({
+          stt: 0,
+          case_id: c.id,
+          case_title: String(c.title ?? ''),
+          case_attributes: (c.attributes ?? {}) as Record<string, unknown>,
+          doc_kind: null,
+          doc_attributes: null,
+          case_number: (c.case_number as string | null) ?? null,
+        });
+    }
+    const when = new Intl.DateTimeFormat('vi-VN', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+    const day = new Intl.DateTimeFormat('vi-VN', {
+      dateStyle: 'short',
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+    const applied = [
+      q.year ? `năm ${q.year}` : null,
+      q.q ? `tìm "${q.q}"` : null,
+      q.from || q.to ? `ghi sổ ${q.from ?? '…'} → ${q.to ?? '…'}` : null,
+      q.open !== undefined ? (q.open ? 'việc còn dở' : 'đã xong') : null,
+      q.returned !== undefined ? (q.returned ? 'đã trả kết quả' : 'chưa trả kết quả') : null,
+      q.scan ? `scan: ${q.scan}` : null,
+      q.thv ? `${q.thv.length} Thừa hành viên` : null,
+      q.fa ? `lọc 1: ${q.fa}` : null,
+      q.fb ? `lọc 2: ${q.fb}` : null,
+      q.kind ? `loại: ${q.kind}` : null,
+    ].filter(Boolean);
+    const buf = await buildXlsx({
+      name: spec.form,
+      title: `${spec.title} (${spec.form}) · danh sách đã lọc`,
+      notice: `Xuất ${when.format(new Date())}. Bộ lọc: ${applied.length > 0 ? applied.join('; ') : 'không (toàn bộ hồ sơ đã ghi sổ trong phạm vi quyền xem)'}. Bản làm việc, không thay sổ pháp định.`,
+      columns: [
+        ...spec.columns.map((c) => c.heading),
+        'Mã hồ sơ',
+        'SĐT khách hàng',
+        'Đã trả kết quả',
+        'Số tệp scan',
+        'Ngày ghi sổ',
+        'Người tạo',
+      ],
+      rows: ordered.map((r) => {
+        const c = byCase.get(r.case_id) as
+          | {
+              case_number?: string | null;
+              phone?: string | null;
+              returned?: boolean;
+              scan_count?: number;
+              recorded_at?: string | null;
+              created_by_name?: string | null;
+            }
+          | undefined;
+        return [
+          ...bookCells(spec, r).map((v, k) => (k === 0 && r.stt === 0 ? '' : v)),
+          c?.case_number ?? '',
+          c?.phone ?? '',
+          c?.returned ? 'Đã trả' : 'Chưa trả',
+          c?.scan_count ?? 0,
+          c?.recorded_at ? day.format(new Date(c.recorded_at)) : '',
+          c?.created_by_name ?? '',
+        ];
+      }),
+    });
+    res.set({
+      'Content-Type': XLSX_MIME,
+      'Content-Disposition': `attachment; filename="${spec.form}-danh-sach-loc.xlsx"`,
+      'Cache-Control': 'private, no-store',
+    });
+    return new StreamableFile(buf);
+  }
+
   /** Số hồ sơ theo từng giá trị của từng nhóm lọc (người tạo, chi nhánh, loại tài liệu, tình trạng scan, năm). */
   @Get('case-facet-counts')
   async facets(@CurrentActor() a: AuthenticatedActor, @Query() query: unknown) {
@@ -163,6 +314,8 @@ export class DmsBrowseController {
       thv: [],
       open: [],
       returned: [],
+      fa: [],
+      fb: [],
     };
     for (const r of rows)
       groups[r.group_key]?.push({ value: r.value, label: r.label, n: Number(r.n) });
