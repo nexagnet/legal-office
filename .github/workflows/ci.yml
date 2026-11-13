@@ -237,7 +237,9 @@ jobs:
         run: pnpm --filter @legal-office/e2e run test:e2e
       - name: Show stack logs on failure
         if: failure()
-        run: tail -n 60 e2e/.tmp/api.log e2e/.tmp/web.log
+        run: |
+          grep -v 'Mapped {' e2e/.tmp/api.log | tail -n 40
+          tail -n 40 e2e/.tmp/web.log
       - name: Stop stack
         if: always()
         env:

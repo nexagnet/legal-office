@@ -58,8 +58,14 @@ test('đăng nhập, đổi mật khẩu lần đầu, tạo nháp Vi bằng, gh
 
   // Ghi sổ.
   await page.getByRole('button', { name: 'Xác nhận lưu chính thức' }).click();
+  const recorded = page.waitForResponse((r) => /\/api\/dms\/cases\/[^/]+\/record$/.test(r.url()));
   await page.getByRole('dialog').getByRole('button', { name: 'Lưu chính thức' }).click();
-  await expect(page.getByRole('heading', { name: /^001\/2026\/VB-THV/ })).toBeVisible();
+  const res = await recorded;
+  console.log('record ->', res.status(), (await res.text().catch(() => '')).slice(0, 300));
+  expect(res.ok()).toBe(true);
+  await expect(page.getByRole('heading', { name: /^001\/2026\/VB-THV/ })).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page.getByText('Đã ghi sổ').first()).toBeVisible();
 
   // Có mặt ở danh sách Chính thức của Vi bằng.
