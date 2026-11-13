@@ -247,7 +247,7 @@ describe('hàng lọc mới trên trang danh sách', () => {
     expect(within(chips).getByText('2')).toBeTruthy();
   });
 
-  it('không có bộ lọc thì không có hàng chip; chỉ còn ba chip trạng thái, scan nằm trong Bộ lọc khác', async () => {
+  it('không có bộ lọc thì không có hàng chip; chỉ còn ba chip trạng thái, scan nằm trong Thêm bộ lọc', async () => {
     stubApi();
     render(
       await DmsDomainPage({
@@ -259,11 +259,23 @@ describe('hàng lọc mới trên trang danh sách', () => {
     const tabs = screen.getByRole('navigation', { name: 'Bộ lọc hồ sơ Vi bằng' });
     expect(within(tabs).queryByText('Thiếu scan')).toBeNull();
     expect(within(tabs).getByText('Chính thức')).toBeTruthy();
-    const other = screen.getByRole('group', { name: 'Bộ lọc khác', hidden: true });
+    const other = screen.getByRole('group', { name: 'Thêm bộ lọc', hidden: true });
     expect(within(other).getByLabelText('Tình trạng scan')).toBeTruthy();
     expect(within(other).getByLabelText('Đã trả kết quả')).toBeTruthy();
-    expect(within(other).getByLabelText('Tỉnh/thành nơi lập vi bằng')).toBeTruthy();
     expect(within(other).queryByLabelText('Việc còn dở')).toBeNull(); // Vi bằng không có
+    // Bộ lọc nghiệp vụ hiện sẵn trên hàng (không nằm trong ngăn), tự gửi khi đổi
+    const row = screen.getByRole('form', { name: 'Bộ lọc' });
+    const fa = within(row).getByLabelText('Tỉnh/thành nơi lập vi bằng');
+    expect(fa.hasAttribute('data-auto')).toBe(true);
+    expect(within(other).queryByLabelText('Tỉnh/thành nơi lập vi bằng')).toBeNull();
+    // Không còn ô tìm riêng và nút Tìm (header lo việc tìm kiếm)
+    expect(screen.queryByRole('button', { name: 'Tìm' })).toBeNull();
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    // Nút phụ nằm trong menu ⋯
+    expect(screen.getByRole('link', { name: 'Xuất S-02', hidden: true })).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: 'Tìm trong nội dung scan', hidden: true }),
+    ).toBeTruthy();
   });
 
   it('thẻ số bấm được: Chưa tống đạt bật đúng bộ lọc việc còn dở', async () => {
@@ -308,9 +320,9 @@ describe('hàng lọc mới trên trang danh sách', () => {
     const chips = screen.getByRole('group', { name: 'Đang lọc' });
     expect(within(chips).getByText('Hình thức tống đạt: Trực tiếp')).toBeTruthy();
     expect(within(chips).getByText('Cơ quan giao văn bản: Tòa án')).toBeTruthy();
-    const other = screen.getByRole('group', { name: 'Bộ lọc khác', hidden: true });
-    expect(within(other).getByLabelText('Hình thức tống đạt')).toBeTruthy();
-    expect(within(other).getByLabelText('Cơ quan giao văn bản')).toBeTruthy();
+    const row = screen.getByRole('form', { name: 'Bộ lọc' });
+    expect(within(row).getByLabelText('Hình thức tống đạt')).toBeTruthy();
+    expect(within(row).getByLabelText('Cơ quan giao văn bản')).toBeTruthy();
     // Xuất Excel: cùng tham số lọc, chỉ hồ sơ đã ghi sổ
     const xl = screen.getByRole('link', { name: 'Xuất Excel (đang lọc)' });
     const q = new URL(xl.getAttribute('href')!, 'http://x');

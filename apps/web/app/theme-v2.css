@@ -3566,3 +3566,148 @@ td mark {
     grid-template-columns: 1fr;
   }
 }
+
+/* Vùng bộ lọc mới của danh sách 4 nghiệp vụ (13/11): một thẻ, ba hàng có nhãn (Hồ sơ, Việc cần làm, Bộ lọc) + hàng "Đang lọc" */
+.dms-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dms-title-row > button,
+.dms-title-row > a {
+  min-height: 40px !important;
+  padding: 0 20px !important;
+  font-size: 15px !important;
+  font-weight: 700;
+  border-radius: 8px !important;
+}
+.dms-tb {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.dms-tb-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 0;
+}
+.dms-tb-label {
+  flex: 0 0 96px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.dms-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg, #f3f6fb);
+  border-radius: 10px;
+}
+.dms-seg a {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 8px;
+}
+.dms-seg a:hover {
+  color: var(--ink);
+}
+.dms-seg a[aria-current='page'] {
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(15, 31, 59, 0.1);
+}
+.dms-tb-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.dms-tb .dms-work-chips {
+  flex: 1 1 0;
+  margin: 0;
+}
+.dms-tb .dms-chips {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.dms-tb-form .dms-fsel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dms-tb-form .dms-fsel[data-active] .dms-select {
+  font-weight: 600;
+  color: var(--accent);
+  background-color: #e8effb;
+}
+.dms-tb-form .dms-apply {
+  min-height: 27px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  border-radius: 999px !important;
+}
+.dms-pop-menu {
+  margin-left: 0;
+}
+.dms-pop-menu > summary {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 18px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong, #cbd5e3);
+  border-radius: 8px;
+}
+.dms-pop-menu > summary::after {
+  content: none;
+}
+.dms-pop-body.dms-menu {
+  right: 0;
+  left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 240px;
+  padding: 6px;
+}
+.dms-menu a {
+  padding: 9px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: 6px;
+}
+.dms-menu a:hover {
+  background: var(--bg, #f3f6fb);
+}
+@media (max-width: 768px) {
+  .dms-tb-label {
+    flex-basis: 100%;
+  }
+  .dms-tb-actions {
+    margin-left: 0;
+  }
+}
