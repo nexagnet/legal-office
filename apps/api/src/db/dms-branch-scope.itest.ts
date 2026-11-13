@@ -205,6 +205,36 @@ describe.skipIf(!ADMIN_URL)('DMS phạm vi theo chi nhánh (PostgreSQL)', () => 
     expect(await count(U.a)).toBe(1);
     expect(await count(U.b)).toBe(1);
     expect(await count(U.admin)).toBe(2);
+    // Lọc theo chi nhánh: thu hẹp thêm, không mở rộng quyền.
+    const byBranch = async (u: string, b: string | null) =>
+      (await call('SELECT * FROM dms_report_summary($1,$2,$3,$4,$5)', [T, u, OFF, YEAR, b])).find(
+        (r) => r.domain === 'vtden',
+      )!.recorded_cases as number;
+    expect(await byBranch(U.admin, null)).toBe(2);
+    expect(await byBranch(U.admin, B1)).toBe(1);
+    expect(await byBranch(U.admin, B2)).toBe(1);
+    expect(await byBranch(U.a, B2)).toBe(0); // chi nhánh khác phạm vi vẫn không thấy
+    // Kỳ 6 tháng (01/01–30/06 giờ VN): hồ sơ ghi sổ tháng 8 không tính, tháng 3 thì có.
+    const halfCount = async () =>
+      (
+        await call('SELECT * FROM dms_report_summary($1,$2,$3,$4,NULL,true)', [
+          T,
+          U.admin,
+          OFF,
+          YEAR,
+        ])
+      ).find((r) => r.domain === 'vtden')!.recorded_cases as number;
+    const setMonth = (m: number) =>
+      owner.query(
+        `ALTER TABLE dms_case_files DISABLE TRIGGER USER;
+         UPDATE dms_case_files SET recorded_at = make_timestamptz(${YEAR}, ${m}, 15, 12, 0, 0, 'Asia/Ho_Chi_Minh')
+          WHERE tenant_id = '${T}' AND domain = 'vtden' AND status = 'RECORDED';
+         ALTER TABLE dms_case_files ENABLE TRIGGER USER;`,
+      );
+    await setMonth(8);
+    expect(await halfCount()).toBe(0);
+    await setMonth(3);
+    expect(await halfCount()).toBe(2);
   });
 
   it('nhiều chi nhánh phải chọn; chọn chi nhánh chưa được cấp bị từ chối', async () => {
