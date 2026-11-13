@@ -1,3 +1,4 @@
+import { colsToParam, type ColFilters } from './dms-col-filters';
 import { API_URL } from './server';
 import type { DmsBookRow, DmsBookSpec, DmsCaseRow, DmsFilter } from './dms';
 import { filterToParams } from './dms-filter-params';
@@ -53,6 +54,8 @@ export interface DmsCaseSearchParams {
   /** Bộ lọc nghiệp vụ (0126): hình thức tống đạt / tỉnh thành / kết quả (fa) và cơ quan giao (fb). */
   readonly fa?: string;
   readonly fb?: string;
+  /** Lọc theo cột (0131). */
+  readonly cols?: ColFilters;
   readonly limit?: number;
   readonly offset?: number;
   readonly total?: boolean;
@@ -81,6 +84,8 @@ function searchQuery(p: DmsCaseSearchParams): URLSearchParams {
   if (p.overdue !== undefined) q.set('overdue', String(p.overdue));
   if (p.fa) q.set('fa', p.fa);
   if (p.fb) q.set('fb', p.fb);
+  const cols = colsToParam(p.cols);
+  if (cols) q.set('cols', cols);
   if (p.from || p.to) {
     // Khoảng ngày giờ có thể trải qua nhiều năm nên thay cho ô "Năm", không chồng lên nhau.
     q.delete('year');

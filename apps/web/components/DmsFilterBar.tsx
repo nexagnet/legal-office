@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { DmsFacetCounts } from '../lib/dms-browse';
 import { DMS_PERIODS, type DmsDateRange } from '../lib/dms-date-range';
 import { viewHref, type DmsView } from '../lib/dms-filter-params';
+import { colChipText, colLabel, withCol } from '../lib/dms-col-filters';
 import { returnedLabels } from '../lib/dms-list-layout';
 import type { DmsFilter } from '../lib/dms';
 import { DmsPopoverDismiss } from './DmsPopoverDismiss';
@@ -403,6 +404,12 @@ export function DmsActiveChips({
       key: 'returned',
       text: `${RL.title}: ${view.returned ? RL.yes : RL.no}`,
       href: without({ returned: undefined }),
+    });
+  for (const [key, f] of Object.entries(view.cols ?? {}))
+    chips.push({
+      key: `cl-${key}`,
+      text: colChipText(colLabel(domain, key), f),
+      href: without({ cols: withCol(view.cols, key, undefined) }),
     });
   const labelOf = (list: DmsFacetCounts['branch'], v: string) =>
     list.find((o) => o.value === v)?.label ?? v;
