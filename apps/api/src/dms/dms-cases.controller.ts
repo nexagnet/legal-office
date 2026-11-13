@@ -476,6 +476,13 @@ export class DmsCasesController {
       .then((rows) => ({ rows }));
   }
 
+  /** Thử lại OCR cho tệp mà OCR đã lỗi: chỉ đặt lại hàng đợi OCR, không đụng tệp/phiên bản. Cùng quyền thêm tài liệu. */
+  @Post('files/:id/ocr-retry')
+  @HttpCode(HttpStatus.OK)
+  ocrRetry(@CurrentActor() a: AuthenticatedActor, @Param('id', ParseUUIDPipe) id: string) {
+    return this.run(a, 'dms_ocr_retry', [id]);
+  }
+
   /** Tải lên một tệp MỚI (PDF/JPEG/PNG). Máy chủ tự tính hash và khoá đối tượng; không có đường ghi đè. */
   @Post('documents/:id/files')
   @HttpCode(HttpStatus.OK)

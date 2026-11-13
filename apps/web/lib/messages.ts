@@ -63,6 +63,7 @@ const MESSAGES: Record<string, string> = {
   FINAL_SCAN_MISSING: 'Chưa có bản scan cuối của Vi bằng.',
   REVOKE_PENDING: 'Đang có đề nghị thu hồi xác nhận MISA chờ xử lý.',
   DOCUMENT_NOT_FOUND: 'Không tìm thấy văn bản.',
+  OCR_NOT_FAILED: 'OCR của tệp này không ở trạng thái lỗi.',
   REQUEST_NOT_FOUND: 'Không tìm thấy yêu cầu hoặc đề xuất.',
   DEADLINE_REQUIRED: 'Cần nhập hạn tống đạt.',
   CASE_NOT_OPEN: 'Hồ sơ xác minh không còn ở trạng thái đang mở.',
