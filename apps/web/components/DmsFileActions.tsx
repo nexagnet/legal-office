@@ -4,21 +4,12 @@ import * as Menu from '@radix-ui/react-dropdown-menu';
 import { Download, History, MoreHorizontal, Printer, Trash2, Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState, type DragEvent, type FormEvent } from 'react';
-import { uploadFilesTo, uploadUnclassified } from './DmsCaseActions';
+import { uploadUnclassified } from './DmsCaseActions';
 import { DeleteScanButton } from './DeleteScanButton';
 import { Button } from './ui/button';
 import { Modal } from './ui/dialog';
-import { Select } from './ui/field';
 
 const ACCEPT = 'application/pdf,image/jpeg,image/png';
-/** Giá trị ô "Gắn vào" cho tài liệu chung "Tài liệu khác" (tạo ở lần tải đầu tiên nếu chưa có). */
-const OTHER = 'other';
-
-export interface UploadTarget {
-  readonly id: string;
-  readonly label: string;
-}
-
 const sizeLabel = (n: number) =>
   `${String(Math.max(1, Math.round(n / 1024))).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} KB`;
 
@@ -29,31 +20,21 @@ interface Picked {
 }
 
 /**
- * Hộp thoại "Tải lên" duy nhất của tab Tài liệu (Figma T5): chọn nhiều tệp, chọn gắn vào tài liệu nào
- * (mặc định "Tài liệu khác", không vào sổ) và đánh dấu có phải bản scan không.
+ * Hộp thoại "Tải lên" duy nhất của tab Tài liệu (Figma T5): chọn nhiều tệp (có thể đổi tên từng tệp), tải liên tiếp.
+ * Không hỏi loại tài liệu, nhóm hay bản scan: mọi tệp vào tài liệu chung "Tài liệu khác" của hồ sơ và tính là bản scan.
  */
 export function UploadDialog({
   caseId,
-  targets,
-  defaultTarget = OTHER,
-  allowOther,
   open,
   onOpenChange,
 }: {
   readonly caseId: string;
-  /** Các tài liệu có sẵn (trừ "Tài liệu khác") để gắn tệp vào. */
-  readonly targets: readonly UploadTarget[];
-  readonly defaultTarget?: string;
-  /** Được tải vào "Tài liệu khác" (hồ sơ nháp, đã ghi sổ; không phải hồ sơ hủy hay Văn thư). */
-  readonly allowOther: boolean;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<Picked[]>([]);
-  const [target, setTarget] = useState(defaultTarget);
-  const [isScan, setIsScan] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,8 +49,6 @@ export function UploadDialog({
     if (!v) {
       setFiles([]);
       setError(null);
-      setIsScan(true);
-      setTarget(defaultTarget);
     }
     onOpenChange(v);
   }
@@ -85,10 +64,7 @@ export function UploadDialog({
     try {
       const list = files.map((p) => p.file);
       const names = files.map((p) => p.name);
-      const r =
-        target === OTHER
-          ? await uploadUnclassified(caseId, list, isScan, names)
-          : await uploadFilesTo(target, list, isScan, names);
+      const r = await uploadUnclassified(caseId, list, true, names);
       if (r.done > 0) router.refresh();
       if (r.error) {
         setFiles((prev) => prev.slice(r.done));
@@ -96,7 +72,6 @@ export function UploadDialog({
         return;
       }
       setFiles([]);
-      setIsScan(true);
       onOpenChange(false);
     } catch {
       setError('Không kết nối được máy chủ. Vui lòng thử lại.');
@@ -171,23 +146,6 @@ export function UploadDialog({
             ))}
           </ul>
         ) : null}
-        {(allowOther ? 1 : 0) + targets.length <= 1 ? null : (
-          <label className="grid gap-1 text-[13px] font-semibold">
-            Gắn vào tài liệu
-            <Select value={target} onChange={(e) => setTarget(e.target.value)}>
-              {allowOther ? <option value={OTHER}>Tài liệu khác (không vào sổ)</option> : null}
-              {targets.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </Select>
-          </label>
-        )}
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={isScan} onChange={(e) => setIsScan(e.target.checked)} />
-          Đây là bản scan (tính vào số scan của hồ sơ)
-        </label>
         {error ? (
           <p role="alert" className="m-0 text-sm text-danger">
             {error}
@@ -207,15 +165,7 @@ export function UploadDialog({
 }
 
 /** Nút "Tải lên" duy nhất ở đầu danh sách (và ở trạng thái rỗng), mở `UploadDialog`. */
-export function UploadButton({
-  caseId,
-  targets,
-  allowOther,
-}: {
-  readonly caseId: string;
-  readonly targets: readonly UploadTarget[];
-  readonly allowOther: boolean;
-}) {
+export function UploadButton({ caseId }: { readonly caseId: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -223,14 +173,7 @@ export function UploadButton({
         <Upload size={16} aria-hidden="true" />
         Tải lên
       </Button>
-      <UploadDialog
-        caseId={caseId}
-        targets={targets}
-        allowOther={allowOther}
-        defaultTarget={allowOther ? OTHER : (targets[0]?.id ?? OTHER)}
-        open={open}
-        onOpenChange={setOpen}
-      />
+      <UploadDialog caseId={caseId} open={open} onOpenChange={setOpen} />
     </>
   );
 }
@@ -311,36 +254,24 @@ const itemClass =
  * `preview` là thanh công cụ khung xem trước: nút chữ "Tải về" và "In" rồi menu ⋯.
  */
 export function FileActions({
-  caseId,
   file,
-  documentId,
-  targets,
-  allowOther,
-  canAddScan,
   canDelete,
   older,
   variant = 'row',
 }: {
-  readonly caseId: string;
   readonly file: CompareFile & { readonly isScan: boolean };
-  readonly documentId: string;
-  readonly targets: readonly UploadTarget[];
-  readonly allowOther: boolean;
-  /** Được tải thêm scan cho tài liệu của tệp này. */
-  readonly canAddScan: boolean;
   /** Có quyền xóa scan (dms.scan.delete) và tệp là bản scan. */
   readonly canDelete: boolean;
   /** Phiên bản liền trước của tệp (cùng nhãn), nếu có. */
   readonly older: CompareFile | null;
   readonly variant?: 'row' | 'preview';
 }) {
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const download = `/api/dms/files/${file.id}/download`;
   const later = (fn: () => void) => () => setTimeout(fn, 0);
   const preview = variant === 'preview';
-  const hasMenu = !preview || canAddScan || older !== null || canDelete;
+  const hasMenu = !preview || older !== null || canDelete;
 
   return (
     <div className="relative z-10 flex shrink-0 items-center gap-1">
@@ -384,12 +315,6 @@ export function FileActions({
               sideOffset={6}
               className="z-50 w-64 rounded-xl border border-line bg-surface p-1.5 shadow-xl"
             >
-              {canAddScan ? (
-                <Menu.Item className={itemClass} onSelect={later(() => setUploadOpen(true))}>
-                  <Upload size={16} aria-hidden="true" className="text-muted" />
-                  Tải thêm scan cho tài liệu này
-                </Menu.Item>
-              ) : null}
               {older ? (
                 <Menu.Item className={itemClass} onSelect={later(() => setCompareOpen(true))}>
                   <History size={16} aria-hidden="true" className="text-muted" />
@@ -420,16 +345,6 @@ export function FileActions({
             </Menu.Content>
           </Menu.Portal>
         </Menu.Root>
-      ) : null}
-      {canAddScan ? (
-        <UploadDialog
-          caseId={caseId}
-          targets={targets}
-          allowOther={allowOther}
-          defaultTarget={documentId}
-          open={uploadOpen}
-          onOpenChange={setUploadOpen}
-        />
       ) : null}
       {older ? (
         <CompareDialog

@@ -30,7 +30,6 @@ export interface DmsView {
   readonly year?: number;
   readonly q?: string;
   readonly creator?: string;
-  readonly kind?: string;
   readonly branch?: string;
   /** Thừa hành viên (chọn nhiều). */
   readonly thv?: readonly string[];
@@ -103,7 +102,6 @@ export function viewToQuery(
   put('q', v.q);
   if (v.year !== undefined && !drop.has('year')) qs.set('year', String(v.year));
   put('nt', v.creator);
-  put('lt', v.kind);
   put('dv', v.branch);
   if (!drop.has('thv')) for (const t of v.thv ?? []) qs.append('thv', t);
   if (v.open !== undefined) put('mo', v.open ? '1' : '0');
@@ -139,7 +137,6 @@ export function viewToSavedParams(v: DmsView): DmsSavedParams {
   if (v.year && base.year !== undefined && !v.ky && !v.tu && !v.den) out.year = v.year;
   if (v.q?.trim()) out.q = v.q.trim();
   if (v.creator) out.creator = v.creator;
-  if (v.kind) out.kind = v.kind;
   if (v.branch) out.branch = v.branch;
   // API nhận thv là chuỗi cách nhau dấu phẩy và boolean dạng chữ ('true'/'false'), nên lưu đúng dạng đó.
   if (v.thv && v.thv.length > 0) out.thv = v.thv.join(',');
@@ -178,7 +175,6 @@ export function savedParamsToHref(base: string, p: DmsSavedParams): string {
     q: typeof p.q === 'string' ? p.q : undefined,
     year: p.year !== undefined && Number.isFinite(year) ? year : undefined,
     creator: typeof p.creator === 'string' ? p.creator : undefined,
-    kind: typeof p.kind === 'string' ? p.kind : undefined,
     branch: typeof p.branch === 'string' ? p.branch : undefined,
     thv: asText(p.thv)?.split(',').filter(Boolean),
     open: asBool(p.open),

@@ -193,7 +193,6 @@ export default async function DmsDomainPage({
     year,
     q,
     creator: sp.nt,
-    kind: sp.lt,
     branch: sp.dv,
   };
   const chipCount = (f: DmsFilter) =>
@@ -287,7 +286,6 @@ export default async function DmsDomainPage({
     year: sp.year ? year : undefined,
     q,
     creator: sp.nt,
-    kind: sp.lt,
     branch: sp.dv,
     thv: search.thv,
     open: search.open,
@@ -570,18 +568,6 @@ export default async function DmsDomainPage({
                     return (
                       <>
                         <label>
-                          <span className="sr-only">Loại tài liệu</span>
-                          <select
-                            name="lt"
-                            defaultValue={sp.lt ?? ''}
-                            className="dms-select"
-                            style={{ width: 112 }}
-                          >
-                            <option value="">Loại tài liệu</option>
-                            {options(facets.kind, sp.lt)}
-                          </select>
-                        </label>
-                        <label>
                           <span className="sr-only">Người tạo</span>
                           <select
                             name="nt"
@@ -634,7 +620,6 @@ export default async function DmsDomainPage({
                       year: sp.year ? year : undefined,
                       q,
                       creator: sp.nt,
-                      kind: sp.lt,
                       branch: sp.dv,
                     })}
                   />
