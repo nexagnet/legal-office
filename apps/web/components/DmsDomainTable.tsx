@@ -380,7 +380,7 @@ export function DmsDomainTable({
                 </td>
               );
             return (
-              <td key={c.id}>
+              <td key={c.id} className={v.primary === '✓' ? 'dms-tick' : undefined}>
                 <Clamp>{v.primary}</Clamp>
                 <Clamp muted>{v.secondary ?? ''}</Clamp>
               </td>

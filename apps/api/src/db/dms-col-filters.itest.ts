@@ -179,6 +179,26 @@ describe.skipIf(!ADMIN_URL)('DMS lọc theo cột (0131, PostgreSQL)', () => {
       },
     });
     await addCase('td_open_b2', 'tongdat', { branch: B2 });
+    // Hồ sơ S-01 cũ (một dòng sổ cho mỗi giấy tờ): giá trị nằm ở giấy tờ, hồ sơ không có thuộc tính (danh sách hiển thị lấy ở giấy tờ).
+    await addCase('td_legacy', 'tongdat', {
+      attrs: { ghi_chu: '' },
+      docs: [
+        {
+          kind: 'Thông báo',
+          attrs: {
+            co_quan_toa_an: '✓',
+            ghi_chu: 'Đã có người làm chứng',
+            hinh_thuc_tong_dat: 'Niêm yết',
+          },
+        },
+      ],
+    });
+    await owner.query(
+      `INSERT INTO dms_book_entries (tenant_id, office_id, book, year, stt, case_id, document_id, allocated_by)
+       SELECT $1, $2, 'S-01', 2026, 50, $3, d.id, $4 FROM dms_documents d WHERE d.case_id = $3`,
+      [T, OFF, cases['td_legacy'], U.admin],
+    );
+    await owner.query(`SELECT dms_case_index_refresh($1, $2)`, [T, cases['td_legacy']]);
     // Xác minh: chưa có / đã có kết quả.
     await addCase('xm_open', 'xacminh', {});
     await addCase('xm_done', 'xacminh', { attrs: { ket_qua_xac_minh: 'Có tài sản' } });
@@ -251,5 +271,29 @@ describe.skipIf(!ADMIN_URL)('DMS lọc theo cột (0131, PostgreSQL)', () => {
     expect(filtered).toHaveLength(2);
     expect(await col('nguoi_yeu_cau', null, 'binh')).toHaveLength(1);
     await expect(col('a b', null)).rejects.toThrow();
+  });
+
+  it('hồ sơ Tống đạt cũ: lọc theo giá trị ở giấy tờ, khớp với bảng hiển thị', async () => {
+    const td = (c: object) => cols(c, 'tongdat');
+    // "Tòa án: có" gồm cả hồ sơ cũ; "không có" không còn lẫn dòng có ✓.
+    expect(ids(await td({ co_quan_toa_an: { b: true } }))).toEqual(want('td_done', 'td_legacy'));
+    expect(ids(await td({ co_quan_toa_an: { b: false } }))).toEqual(want('td_open', 'td_open_b2'));
+    // Chữ chứa có dấu ở ô Ghi chú của giấy tờ.
+    expect(ids(await td({ ghi_chu: { c: 'người' } }))).toEqual(want('td_legacy'));
+    // Kết hợp hai bộ lọc (ảnh lỗi: Tòa án không có + Ghi chú chứa người) là AND, không có dòng nào đúng.
+    expect(ids(await td({ co_quan_toa_an: { b: false }, ghi_chu: { c: 'người' } }))).toEqual([]);
+    expect(
+      ids(await td({ co_quan_toa_an: { b: true }, ghi_chu: { c: 'nguoi lam chung' } })),
+    ).toEqual(want('td_legacy'));
+    // Loại văn bản lấy từ loại giấy tờ khi hồ sơ không có; ô chọn có đếm cũng thấy giá trị này.
+    expect(ids(await td({ loai_van_ban: { in: ['Thông báo'] } }))).toEqual(want('td_legacy'));
+    expect(
+      ids(
+        await call(
+          `SELECT * FROM dms_search_cases($1,$2,$3,'tongdat','RECORDED',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'newest',NULL,200,0,true,$4::jsonb)`,
+          [T, U.admin, OFF, JSON.stringify({ fa: 'Niêm yết' })],
+        ),
+      ),
+    ).toEqual(want('td_open', 'td_legacy'));
   });
 });
