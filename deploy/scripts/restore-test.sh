@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # Diễn tập khôi phục: kéo bản sao mới nhất về, nạp vào database tạm, đối chiếu số hàng, rồi xoá database tạm.
-# Chạy trên PC (hoặc server nếu đủ chỗ): cần PG_ADMIN_URL (kết nối vai có quyền tạo database) và khoá ĐỌC của bucket lo-backup.
+# Chạy trên PC (hoặc server nếu đủ chỗ): cần PG_ADMIN_URL và khoá ĐỌC của bucket lo-backup.
+# PG_ADMIN_URL PHẢI là superuser (vd. vai postgres): bản sao có `CREATE EXTENSION pg_trgm`, vai thường (kể cả chủ DB) bị từ chối
+# "permission denied to create extension" và pg_restore dừng giữa chừng. Script kiểm tra điều này ngay từ đầu.
 #   BACKUP_R2_ACCOUNT_ID=... BACKUP_R2_BUCKET=lo-backup BACKUP_R2_ACCESS_KEY_ID=... BACKUP_R2_SECRET_ACCESS_KEY=... \
 #   PG_ADMIN_URL=postgres://postgres@127.0.0.1:5432/postgres ./restore-test.sh
 set -euo pipefail
 : "${PG_ADMIN_URL:?}" "${BACKUP_R2_ACCOUNT_ID:?}" "${BACKUP_R2_BUCKET:?}" "${BACKUP_R2_ACCESS_KEY_ID:?}" "${BACKUP_R2_SECRET_ACCESS_KEY:?}"
+[ "$(psql "$PG_ADMIN_URL" -Atc "SELECT rolsuper FROM pg_roles WHERE rolname = current_user")" = t ] \
+  || { echo "PG_ADMIN_URL phai la superuser (vd. postgres) de khoi phuc extension" >&2; exit 1; }
 export RCLONE_CONFIG_BK_TYPE=s3 RCLONE_CONFIG_BK_PROVIDER=Cloudflare
 export RCLONE_CONFIG_BK_ACCESS_KEY_ID="$BACKUP_R2_ACCESS_KEY_ID"
 export RCLONE_CONFIG_BK_SECRET_ACCESS_KEY="$BACKUP_R2_SECRET_ACCESS_KEY"
