@@ -2669,6 +2669,9 @@ fieldset.person-choice .person-choice-name {
 .dms-table .dms-sub > td {
   font-size: 11px;
 }
+.dms-table td.dms-tick {
+  text-align: center;
+}
 .dms-table .dms-sub .dms-tick {
   font-size: 13px;
   color: var(--ok);
