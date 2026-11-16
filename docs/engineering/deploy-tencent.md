@@ -20,13 +20,15 @@ Máy: Ubuntu 22.04, Postgres 17 (apt, chỉ `127.0.0.1`), Docker, Caddy. Web và
 
 ## Cài một lần trên server
 1. `sudo apt-get install -y zstd rclone`; `sudo mkdir -p /var/log/legal-office && sudo chown dev:dev /var/log/legal-office`.
-2. Cài `deploy/Caddyfile` vào `/etc/caddy/Caddyfile`, đặt `SITE_ADDRESS`, `sudo systemctl reload caddy`.
-3. Cron của `dev`: `15 2 * * * /opt/legal-office/deploy/scripts/backup.sh >> /var/log/legal-office/backup.log 2>&1` và `*/5 * * * * /opt/legal-office/deploy/scripts/monitor.sh` và `@reboot sleep 60 && /opt/legal-office/deploy/scripts/warmup.sh`.
-4. Tạo tenant và Admin đầu tiên bằng `bootstrap-tenant` (xem `docs/engineering/go-live-checklist.md`), đặt `TENANT_ID` vào `.env`.
-5. Chạy workflow `deploy` từ nhánh `main`.
+2. Vai sao lưu và extension (bằng `postgres`, mật khẩu ngẫu nhiên, ghi vào `.env` quyền 600, không in ra): `sudo -u postgres psql -c "CREATE ROLE legal_backup LOGIN BYPASSRLS PASSWORD '...'" -c "GRANT pg_read_all_data TO legal_backup"` rồi đặt `BACKUP_DATABASE_URL`. Vai chủ DB không dump được vì các bảng có FORCE ROW LEVEL SECURITY. Tuỳ chọn: `sudo -u postgres psql -d legal_office -c "CREATE EXTENSION IF NOT EXISTS pg_prewarm"` để `warmup.sh` làm nóng cả chỉ mục (không có thì script đọc tuần tự hai bảng chỉ mục).
+3. Cài `deploy/Caddyfile` vào `/etc/caddy/Caddyfile`, đặt `SITE_ADDRESS`, `sudo systemctl reload caddy`.
+4. Cron của `dev`: `15 2 * * * /opt/legal-office/deploy/scripts/backup.sh >> /var/log/legal-office/backup.log 2>&1` và `*/5 * * * * /opt/legal-office/deploy/scripts/monitor.sh` và `@reboot sleep 60 && /opt/legal-office/deploy/scripts/warmup.sh`.
+5. Tạo tenant và Admin đầu tiên bằng `bootstrap-tenant` (xem `docs/engineering/go-live-checklist.md`), đặt `TENANT_ID` vào `.env`.
+6. Chạy workflow `deploy` từ nhánh `main`.
 
 ## Lưu ý vận hành
 - Không build web trên server: build làm RAM còn ~93MB.
 - Giữ API ở 1 bản (rate limit và lịch nhắc/dọn scan nằm trong bộ nhớ một tiến trình).
 - OCR và dựng chỉ mục 200GB làm trên PC; nạp OCR hàng loạt vào bảng chưa `ANALYZE` khi trigger `dms_osi_ocr_trg` bật rất chậm, nên nạp theo lô hoặc tắt trigger rồi `dms_index_ensure`.
 - Sau khởi động lại Postgres/reboot, đợi `warmup.sh` trước giờ làm việc.
+- Diễn tập khôi phục (`restore-test.sh`) cần `PG_ADMIN_URL` là superuser (vd. `postgres`): bản sao có `CREATE EXTENSION pg_trgm`, vai thường bị từ chối và pg_restore dừng giữa chừng. Đã kiểm chứng trên server: dump bằng `legal_backup` rồi restore bằng `postgres` ra đủ 123 bảng, 115 policy, extension pg_trgm.

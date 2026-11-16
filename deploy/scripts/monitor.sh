@@ -14,7 +14,8 @@ swap_used="$(awk '/SwapTotal/ {t=$2} /SwapFree/ {f=$2} END {printf "%d", (t-f)/1
 [ "${swap_used:-0}" -ge 1500 ] && problems+=("swap dung ${swap_used}MB (>=1500MB)")
 curl -fsS -m 5 http://127.0.0.1:3001/health >/dev/null 2>&1 || problems+=("API /health loi")
 curl -fsS -m 8 -o /dev/null http://127.0.0.1:3000/ 2>&1 || problems+=("web khong tra loi")
-systemctl is-active --quiet postgresql || problems+=("postgresql khong active")
+# Không dùng `systemctl is-active postgresql`: unit tổng đó luôn "active (exited)" kể cả khi cụm Postgres đã chết.
+pg_isready -q -h 127.0.0.1 -p 5432 || problems+=("postgresql khong nhan ket noi")
 BK=/var/log/legal-office/backup.log
 if [ -f "$BK" ] && [ -z "$(find "$BK" -mmin -1560 2>/dev/null)" ]; then problems+=("backup dem chua chay trong 26 gio"); fi
 if [ "${#problems[@]}" -gt 0 ]; then
