@@ -2559,6 +2559,45 @@ section[aria-labelledby='branch-t'] .plain-list {
   font-size: 0.75rem;
   vertical-align: middle;
 }
+/* Mẫu N-09/N-10 có 16–17 cột: chia đều cho vừa khung, chữ tiêu đề xuống dòng, không cuộn ngang
+   trên màn hình máy tính. Màn nhỏ (dưới 1000px) vẫn cuộn ngang để chữ không bị bóp. */
+.dt-scroll.stat-table {
+  max-height: none;
+}
+.dt-scroll.stat-table table {
+  table-layout: fixed;
+  min-width: 1000px;
+  width: 100%;
+}
+.dt-scroll.stat-table th,
+.dt-scroll.stat-table td,
+.dt-scroll.stat-table tbody td,
+.dt-scroll.stat-table tbody th {
+  padding: 8px 4px;
+  max-width: none;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+}
+.dt-scroll.stat-table thead th {
+  position: static;
+}
+.dt-scroll.stat-table tr > :first-child,
+.dt-scroll.stat-table tr > :last-child {
+  position: static;
+  box-shadow: none;
+}
+.dt-scroll.stat-table tr > :first-child {
+  width: 3.25rem;
+}
+.dt-scroll.stat-table tr > :nth-child(2) {
+  width: 8rem;
+}
 .stat-sign {
   margin-top: 1rem;
   margin-left: auto;
