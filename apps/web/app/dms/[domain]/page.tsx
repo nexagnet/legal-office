@@ -6,6 +6,7 @@ import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
 import { AdminBanner } from '../../../components/admin-banner';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { DmsDomainTable } from '../../../components/DmsDomainTable';
+import { DmsListBusy } from '../../../components/DmsListBusy';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
 import { DmsActiveChips, DmsFilterFields, DmsWorkChips } from '../../../components/DmsFilterBar';
 import { KpiStrip, type Kpi } from '../../../components/KpiStrip';
@@ -666,19 +667,21 @@ export default async function DmsDomainPage({
           </Link>
         ) : null}
         {showsTable && listLayout ? (
-          <DmsDomainTable
-            rows={pageRows}
-            caption={`Danh sách hồ sơ ${domain.label}`}
-            basePath={base}
-            layout={listLayout}
-            spec={spec}
-            byCase={rowsByCase}
-            sttLabel={sttLabel}
-            draft={draftKind ? { kind: draftKind, userId } : undefined}
-            canMarkReturned={canAddDocument(permissions, domain.code)}
-            filterCtx={draftKind ? undefined : { domain: domain.code, officeId }}
-            tableKey={`DmsDomainTable-${domain.code}${draftKind ? '-nhap' : ''}`}
-          />
+          <DmsListBusy>
+            <DmsDomainTable
+              rows={pageRows}
+              caption={`Danh sách hồ sơ ${domain.label}`}
+              basePath={base}
+              layout={listLayout}
+              spec={spec}
+              byCase={rowsByCase}
+              sttLabel={sttLabel}
+              draft={draftKind ? { kind: draftKind, userId } : undefined}
+              canMarkReturned={canAddDocument(permissions, domain.code)}
+              filterCtx={draftKind ? undefined : { domain: domain.code, officeId }}
+              tableKey={`DmsDomainTable-${domain.code}${draftKind ? '-nhap' : ''}`}
+            />
+          </DmsListBusy>
         ) : (
           <DmsCaseTable
             rows={pageRows}

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DmsColumnFilter } from '../components/DmsColumnFilter';
+import { DmsListBusy, useReportListBusy } from '../components/DmsListBusy';
 import {
   colChipText,
   colLabel,
@@ -103,5 +104,67 @@ describe('phễu lọc trên tiêu đề cột', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Xóa lọc cột' }));
     const url = new URL(push.mock.calls[0]![0] as string, 'http://x');
     expect(parseCols(url.searchParams.get('cl')!)).toEqual({ ghi_chu: { c: 'b' } });
+  });
+
+  it('gõ được dấu cách: ô nhập giữ nguyên chữ đang gõ, chỉ cắt khoảng trắng đầu/cuối khi Áp dụng', () => {
+    render(<DmsColumnFilter domain="vibang" officeId="o" columnId="nguoi_yeu_cau" head="Người" />);
+    fireEvent.click(screen.getByRole('button', { name: /Lọc cột Người yêu cầu/ }));
+    const input = screen.getByLabelText('Người yêu cầu chứa') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'Nguyễn ' } });
+    expect(input.value).toBe('Nguyễn ');
+    fireEvent.change(input, { target: { value: 'Nguyễn Văn ' } });
+    expect(input.value).toBe('Nguyễn Văn ');
+    fireEvent.click(screen.getByRole('button', { name: 'Áp dụng' }));
+    const url = new URL(push.mock.calls[0]![0] as string, 'http://x');
+    expect(parseCols(url.searchParams.get('cl')!)).toEqual({ nguoi_yeu_cau: { c: 'Nguyễn Văn' } });
+  });
+
+  it('chỉ gõ dấu cách rồi Áp dụng: không ghi bộ lọc rỗng', () => {
+    render(<DmsColumnFilter domain="vibang" officeId="o" columnId="nguoi_yeu_cau" head="Người" />);
+    fireEvent.click(screen.getByRole('button', { name: /Lọc cột Người yêu cầu/ }));
+    fireEvent.change(screen.getByLabelText('Người yêu cầu chứa'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Áp dụng' }));
+    const url = new URL(push.mock.calls[0]![0] as string, 'http://x');
+    expect(url.searchParams.get('cl')).toBeNull();
+  });
+});
+
+describe('lọc theo cột: báo đang tải', () => {
+  function Reporter({ pending }: { readonly pending: boolean }) {
+    useReportListBusy(pending);
+    return null;
+  }
+  it('làm mờ bảng và hiện "Đang lọc" khi có lệnh lọc chờ máy chủ, hết thì bỏ', () => {
+    const { rerender } = render(
+      <>
+        <Reporter pending={false} />
+        <DmsListBusy>
+          <table />
+        </DmsListBusy>
+      </>,
+    );
+    expect(screen.queryByRole('status')).toBeNull();
+    act(() => {
+      rerender(
+        <>
+          <Reporter pending />
+          <DmsListBusy>
+            <table />
+          </DmsListBusy>
+        </>,
+      );
+    });
+    expect(screen.getByRole('status', { name: 'Đang lọc danh sách' })).toBeTruthy();
+    act(() => {
+      rerender(
+        <>
+          <Reporter pending={false} />
+          <DmsListBusy>
+            <table />
+          </DmsListBusy>
+        </>,
+      );
+    });
+    expect(screen.queryByRole('status')).toBeNull();
   });
 });

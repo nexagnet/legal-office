@@ -3,7 +3,7 @@
 import * as Popover from '@radix-ui/react-popover';
 import { Funnel } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, useTransition, type ReactNode } from 'react';
 import {
   COLUMN_FILTERS,
   colsToParam,
@@ -15,6 +15,7 @@ import {
 } from '../lib/dms-col-filters';
 import { Button } from './ui/button';
 import { Input, Select } from './ui/field';
+import { useReportListBusy } from './DmsListBusy';
 
 /** Giá trị có đếm của một cột (ô "chọn nhiều"). Chỉ lấy tập hồ sơ đã ghi sổ của nghiệp vụ; chưa thu hẹp theo bộ lọc khác. */
 function ChoiceList({
@@ -107,12 +108,17 @@ export function DmsColumnFilter({
   const current = parseCols(sp.get('cl') ?? undefined);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ColFilters>(current);
+  const [pending, startTransition] = useTransition();
+  useReportListBusy(pending);
   if (!fields) return <>{head}</>;
   const active = fields.some((f) => current[f.key] !== undefined);
   const set = (key: string, patch: Partial<ColFilter>) =>
-    setDraft((d) => withCol(d, key, { ...(d[key] ?? {}), ...patch }));
+    setDraft((d) => ({ ...d, [key]: { ...(d[key] ?? {}), ...patch } }));
 
-  function go(next: ColFilters) {
+  function go(raw: ColFilters) {
+    // Bản nháp giữ nguyên chữ đang gõ (kể cả dấu cách); chỉ khi áp dụng mới cắt khoảng trắng đầu/cuối và bỏ ô rỗng.
+    let next: ColFilters = {};
+    for (const [k, v] of Object.entries(raw)) next = withCol(next, k, v);
     const params = new URLSearchParams(sp.toString());
     const v = colsToParam(next);
     if (v) params.set('cl', v);
@@ -120,7 +126,7 @@ export function DmsColumnFilter({
     params.delete('p');
     const qs = params.toString();
     setOpen(false);
-    router.push(qs ? `${pathname}?${qs}` : pathname);
+    startTransition(() => router.push(qs ? `${pathname}?${qs}` : pathname));
   }
   function clearHere() {
     let next = current;
