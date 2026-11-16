@@ -77,9 +77,15 @@ export async function processTenant(
   log: WorkerLog,
   limit = 20,
   legacy = legacyOcrEnabled(),
+  gate: () => Promise<boolean> = async () => true,
 ): Promise<number> {
   let done = 0;
   for (let i = 0; i < limit; i += 1) {
+    // Máy chung với API/web: thiếu RAM thì ngừng nhận việc, để lượt sau thử lại (không đánh dấu lỗi tệp nào).
+    if (!(await gate())) {
+      log.info('ocr: RAM trống thấp, tạm nghỉ');
+      break;
+    }
     let src = CASE_SOURCE;
     let job = await claimFrom(pool, tenant, src);
     if (!job && legacy) {
