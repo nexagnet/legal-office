@@ -90,7 +90,7 @@ export function N09Form({
         Từ ngày 01 tháng 01 năm {year} đến ngày {firstHalf ? '30 tháng 6' : '31 tháng 12'} năm{' '}
         {year}
       </p>
-      <DataTable tableKey="DmsStatForms-1">
+      <DataTable tableKey="DmsStatForms-1" className="stat-table">
         <table>
           <caption className="sr-only">Mẫu TP-THV-N-09 năm {year}</caption>
           <thead>
@@ -183,7 +183,7 @@ export function N10Form({ unit, year }: { readonly unit: string; readonly year: 
       <p>
         Từ ngày 01 tháng 01 năm {year} đến ngày 31 tháng 12 năm {year}
       </p>
-      <DataTable tableKey="DmsStatForms-2">
+      <DataTable tableKey="DmsStatForms-2" className="stat-table">
         <table>
           <caption className="sr-only">Mẫu TP-THV-N-10 năm {year}</caption>
           <thead>

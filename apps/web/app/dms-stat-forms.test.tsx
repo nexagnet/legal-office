@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 import { N09Form, N10Form } from '../components/DmsStatForms';
 import type { DmsReportRow } from '../lib/dms';
 
@@ -15,6 +15,8 @@ const headerCells = (name: string) =>
   );
 
 describe('mẫu TP-THV-N-09 / N-10', () => {
+  afterEach(cleanup);
+
   it('N-09: đủ 15 cột đánh số, điền số tống đạt, vi bằng, xác minh; không điền tiền', () => {
     render(<N09Form unit="VP Hai Bà Trưng" year={2026} rows={rows} />);
     expect(screen.getByText('TP-THV-N-09')).toBeTruthy();
@@ -55,5 +57,18 @@ describe('mẫu TP-THV-N-09 / N-10', () => {
     );
     expect(cells.slice(0, 2)).toEqual(['1', 'VP Hai Bà Trưng']);
     expect(cells.slice(2).every((c) => c === '')).toBe(true);
+  });
+
+  it('cả hai bảng dùng lớp stat-table để co vừa khung, không tràn ngang', () => {
+    render(
+      <>
+        <N09Form unit="VP" year={2026} rows={rows} />
+        <N10Form unit="VP" year={2026} />
+      </>,
+    );
+    for (const name of ['Mẫu TP-THV-N-09 năm 2026', 'Mẫu TP-THV-N-10 năm 2026']) {
+      const scroll = screen.getByRole('table', { name }).closest('.dt-scroll');
+      expect(scroll?.classList.contains('stat-table')).toBe(true);
+    }
   });
 });
