@@ -205,7 +205,7 @@ export function LegacyUploader({
         </p>
       ) : null}
       {items.length > 0 ? (
-        <table>
+        <table className="legacy-upload-table">
           <caption className="sr-only">Tiến độ tải lên</caption>
           <thead>
             <tr>
@@ -218,7 +218,9 @@ export function LegacyUploader({
           <tbody>
             {items.map((i) => (
               <tr key={i.key}>
-                <th scope="row">{i.file.name}</th>
+                <th scope="row" title={i.file.name}>
+                  {i.file.name}
+                </th>
                 <td>
                   {i.phase === 'error' ? (
                     <span role="alert">{legacyUploadMessage(i.code)}</span>

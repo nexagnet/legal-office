@@ -3885,3 +3885,25 @@ td mark {
   cursor: default;
   opacity: 0.55;
 }
+
+/* Tên tệp dài (không dấu cách) không làm tràn khung tải tài liệu cũ */
+.form input[type='file'] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.legacy-upload-table {
+  table-layout: fixed;
+}
+.legacy-upload-table th,
+.legacy-upload-table td {
+  padding: 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.legacy-upload-table th[scope='row'] {
+  width: 40%;
+}
+.legacy-path {
+  overflow-wrap: anywhere;
+}

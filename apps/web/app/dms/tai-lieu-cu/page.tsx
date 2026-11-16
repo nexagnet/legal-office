@@ -162,7 +162,8 @@ export default async function LegacyDocumentsPage({
             <ul>
               {found.rows.map((h) => (
                 <li key={h.id}>
-                  <strong>{h.rel_path}</strong> <LegacyOpenButton id={h.id} name={h.file_name} />
+                  <strong className="legacy-path">{h.rel_path}</strong>{' '}
+                  <LegacyOpenButton id={h.id} name={h.file_name} />
                   <br />
                   <small>{h.snippet}</small>
                 </li>
@@ -221,7 +222,9 @@ export default async function LegacyDocumentsPage({
                 const folder = legacyFolderOf(r.rel_path);
                 return (
                   <tr key={r.id}>
-                    <th scope="row">{r.file_name}</th>
+                    <th scope="row" title={r.file_name}>
+                      {r.file_name}
+                    </th>
                     <td>
                       {folder ? (
                         <Link href={hrefOf(`${folder}/`, 1)}>{folder}</Link>
