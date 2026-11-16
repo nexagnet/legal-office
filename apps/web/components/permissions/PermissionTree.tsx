@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { cn } from '../../lib/cn';
 import {
+  PERMISSION_ACTIONS,
   PERMISSION_ACTIONS_SHOWN,
   PERMISSION_DOMAINS,
   PERMISSION_SOURCE_LABEL,
@@ -95,7 +96,9 @@ export function PermissionTree({
   const setDomain = (domain: string, on: boolean) => {
     if (disabled) return;
     const next = new Set(value);
-    for (const [action] of PERMISSION_ACTIONS_SHOWN)
+    // Chọn hết chỉ tick các hành động đang hiện. Bỏ hết phải bỏ cả hành động đã ẩn (vd. "Đề nghị sửa đổi") mà nhóm còn cho,
+    // nếu không quyền ẩn đó vẫn còn trong tập quyền dù cột đếm báo 0.
+    for (const [action] of on ? PERMISSION_ACTIONS_SHOWN : PERMISSION_ACTIONS)
       for (const scope of ['own', 'all'] as const) {
         const code = `${domain}.${action}.${scope}`;
         if (on) next.add(code);
