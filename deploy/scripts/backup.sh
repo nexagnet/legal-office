@@ -19,7 +19,7 @@ stamp="$(date -u +%Y-%m-%dT%H%M%SZ)"
 dest="BK:${BACKUP_R2_BUCKET}/db/legal_office-${stamp}.dump.zst"
 echo "[$(date -u +%FT%TZ)] backup bat dau -> db/legal_office-${stamp}.dump.zst"
 # Dump bằng vai legal_backup (BYPASSRLS: đọc được mọi bảng kể cả có RLS). -Fc: định dạng custom, khôi phục chọn lọc được.
-pg_dump --format=custom --compress=0 --no-owner "$BACKUP_DATABASE_URL" | zstd -3 -T1 -q | rclone rcat "$dest" --s3-no-head
+pg_dump --format=custom --compress=0 --no-owner "$BACKUP_DATABASE_URL" | zstd -3 -T1 -q | rclone rcat "$dest"
 size="$(rclone size --json "$dest" 2>/dev/null | sed -n 's/.*"bytes":\([0-9]*\).*/\1/p' || true)"
 if [ -z "${size}" ] || [ "${size}" -lt 10000 ]; then
   echo "[$(date -u +%FT%TZ)] LOI: ban sao qua nho hoac khong doc duoc (size=${size:-?})" >&2
