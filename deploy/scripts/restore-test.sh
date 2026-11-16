@@ -9,7 +9,7 @@ set -euo pipefail
 : "${PG_ADMIN_URL:?}" "${BACKUP_R2_ACCOUNT_ID:?}" "${BACKUP_R2_BUCKET:?}" "${BACKUP_R2_ACCESS_KEY_ID:?}" "${BACKUP_R2_SECRET_ACCESS_KEY:?}"
 [ "$(psql "$PG_ADMIN_URL" -Atc "SELECT rolsuper FROM pg_roles WHERE rolname = current_user")" = t ] \
   || { echo "PG_ADMIN_URL phai la superuser (vd. postgres) de khoi phuc extension" >&2; exit 1; }
-export RCLONE_CONFIG_BK_TYPE=s3 RCLONE_CONFIG_BK_PROVIDER=Cloudflare
+export RCLONE_CONFIG_BK_TYPE=s3 RCLONE_CONFIG_BK_PROVIDER=Other RCLONE_CONFIG_BK_REGION=auto
 export RCLONE_CONFIG_BK_ACCESS_KEY_ID="$BACKUP_R2_ACCESS_KEY_ID"
 export RCLONE_CONFIG_BK_SECRET_ACCESS_KEY="$BACKUP_R2_SECRET_ACCESS_KEY"
 export RCLONE_CONFIG_BK_ENDPOINT="https://${BACKUP_R2_ACCOUNT_ID}.r2.cloudflarestorage.com"

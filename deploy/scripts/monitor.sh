@@ -16,8 +16,9 @@ curl -fsS -m 5 http://127.0.0.1:3001/health >/dev/null 2>&1 || problems+=("API /
 curl -fsS -m 8 -o /dev/null http://127.0.0.1:3000/ 2>&1 || problems+=("web khong tra loi")
 # Không dùng `systemctl is-active postgresql`: unit tổng đó luôn "active (exited)" kể cả khi cụm Postgres đã chết.
 pg_isready -q -h 127.0.0.1 -p 5432 || problems+=("postgresql khong nhan ket noi")
-BK=/var/log/legal-office/backup.log
-if [ -f "$BK" ] && [ -z "$(find "$BK" -mmin -1560 2>/dev/null)" ]; then problems+=("backup dem chua chay trong 26 gio"); fi
+BK=/var/log/legal-office/backup.ok
+# Chưa có dấu = chưa từng sao lưu thành công; cũng cảnh báo (an toàn dữ liệu là ưu tiên 1).
+if [ -z "$(find "$BK" -mmin -1560 2>/dev/null)" ]; then problems+=("khong co ban sao luu thanh cong trong 26 gio"); fi
 if [ "${#problems[@]}" -gt 0 ]; then
   msg="[legal-office $(hostname)] $(IFS='; '; echo "${problems[*]}")"
   echo "$(date -u +%FT%TZ) $msg" >> "$LOG"
