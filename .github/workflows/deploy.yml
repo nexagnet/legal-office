@@ -34,12 +34,15 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Build api image
         run: docker build --target api -t "$IMAGE_REGISTRY/legal-office-api:$TAG" .
+      - name: Build ocr image
+        run: docker build --target ocr -t "$IMAGE_REGISTRY/legal-office-ocr:$TAG" .
       - name: Build web image (API_URL is baked into Next rewrites at build time)
         run: docker build --target web --build-arg API_URL=http://127.0.0.1:3001 -t "$IMAGE_REGISTRY/legal-office-web:$TAG" .
       - name: Push images
         run: |
           docker push "$IMAGE_REGISTRY/legal-office-api:$TAG"
           docker push "$IMAGE_REGISTRY/legal-office-web:$TAG"
+          docker push "$IMAGE_REGISTRY/legal-office-ocr:$TAG"
       - name: Prepare SSH
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}

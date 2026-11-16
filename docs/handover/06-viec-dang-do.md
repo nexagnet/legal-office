@@ -17,7 +17,7 @@ Ký hiệu: 🧑 = chủ dự án (phungviet) hoặc bên ngoài làm; 🤖 = Cl
 | A9 | **Cất khóa giải mã backup + `.env` ở 2 nơi** ngoài máy chủ (trình quản lý mật khẩu + bản cất két) | 🧑 | Mất khóa thì mọi bản sao vô dụng |
 | A10 | **Gia cố SSH** (khóa, tắt mật khẩu, fail2ban), giám sát uptime ngoài miễn phí | 🤖 | |
 | A11 | **Bucket Lock cho scan mới** (`dms/`): quyết có rule 30 ngày không (kiểm xung đột với `scan-purge`) | 🧑 quyết, 🤖 kiểm tài liệu Cloudflare | Tùy chọn |
-| A12 | **OCR scan mới** trên production: chọn cách chạy (cron có giới hạn trên server, hoặc worker trên PC) | 🤖 đề xuất, 🧑 duyệt | `compose` chưa có service OCR |
+| A12 | **OCR scan mới** trên production: chọn cách chạy (cron có giới hạn trên server, hoặc worker trên PC) | 🤖 đề xuất, 🧑 duyệt | **Đã làm (16/11):** service `ocr` trong `deploy/docker-compose.yml` (giới hạn RAM/CPU, tự nghỉ khi thiếu RAM), CD build thêm image `ocr`, hai cờ legacy mặc định bật. Cần deploy tay để có hiệu lực |
 | A13 | **Cắt chuyển:** chọn giờ ít người dùng, runbook từng bước và rollback, chỉ định người trực tuần đầu | 🤖 runbook, 🧑 chọn | |
 | A14 | **Quyết định pháp lý về nơi đặt dữ liệu**: server ở Singapore, tệp trên R2 (Mỹ/toàn cầu); chủ dự án nói không yêu cầu dữ liệu trong nước (9/11) nhưng cần ⚖ xác nhận theo Luật BVDLCN 91/2025/QH15 | 🧑 ⚖ | **Đánh dấu rủi ro (suy đoán của Claude)**, chưa có ý kiến pháp lý |
 

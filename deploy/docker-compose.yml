@@ -34,8 +34,9 @@ services:
       RATE_LIMIT_READ_PER_MIN: ${RATE_LIMIT_READ_PER_MIN:-3000}
       RATE_LIMIT_WRITE_PER_MIN: ${RATE_LIMIT_WRITE_PER_MIN:-600}
       RATE_LIMIT_AUTH_PER_MIN: ${RATE_LIMIT_AUTH_PER_MIN:-20}
-      # Tài liệu cũ: OCR chạy trên PC (không bật ở đây). Bật tìm kiếm sau khi nhập và dựng chỉ mục xong.
-      LEGACY_SEARCH_ENABLED: ${LEGACY_SEARCH_ENABLED:-}
+      # Tài liệu cũ khách tự tải bằng giao diện: OCR liên tục do service ocr bên dưới, tìm kiếm bật ở đây. Đặt 0 trong .env để tắt.
+      LEGACY_OCR_ENABLED: ${LEGACY_OCR_ENABLED:-1}
+      LEGACY_SEARCH_ENABLED: ${LEGACY_SEARCH_ENABLED:-1}
     healthcheck:
       test:
         [
@@ -48,6 +49,40 @@ services:
       timeout: 5s
       retries: 3
       start_period: 90s
+    logging:
+      driver: json-file
+      options: { max-size: 10m, max-file: '3' }
+
+  # OCR nền liên tục (hồ sơ mới trước, tài liệu cũ sau), mỗi lần đúng 1 tệp, 1 trang/lúc. Chung máy 2GB với api/web nên:
+  # trần RAM/CPU cứng, ưu tiên CPU thấp, bị kill đầu tiên khi máy thiếu RAM, tự nghỉ khi RAM trống dưới OCR_MIN_FREE_MB.
+  # Tệp bị kill/hết giờ chỉ ghi lỗi và thử lại tối đa 3 lần; không ảnh hưởng api/web (restart riêng).
+  ocr:
+    image: ${IMAGE_REGISTRY:-ghcr.io/nexagnet}/legal-office-ocr:${TAG:?TAG is required}
+    network_mode: host
+    restart: unless-stopped
+    mem_limit: 600m
+    memswap_limit: 600m
+    cpus: 1.0
+    cpu_shares: 128
+    oom_score_adj: 800
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=128
+      DATABASE_URL: ${APP_DATABASE_URL:?APP_DATABASE_URL is required}
+      FILE_STORE: ${FILE_STORE:-r2}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      OCR_TENANT_IDS: ${OCR_TENANT_IDS:-${TENANT_ID:?TENANT_ID is required}}
+      LEGACY_OCR_ENABLED: ${LEGACY_OCR_ENABLED:-1}
+      OCR_MIN_FREE_MB: ${OCR_MIN_FREE_MB:-250}
+      OCR_PDF_DPI: ${OCR_PDF_DPI:-200}
+      OCR_PAGE_TIMEOUT_SECONDS: ${OCR_PAGE_TIMEOUT_SECONDS:-240}
+      OCR_POLL_SECONDS: ${OCR_POLL_SECONDS:-30}
     logging:
       driver: json-file
       options: { max-size: 10m, max-file: '3' }

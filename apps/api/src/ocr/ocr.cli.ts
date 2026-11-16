@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { fileStoreFromEnv } from '../storage/file-store';
 import { TesseractEngine } from './engine';
+import { memoryGate } from './mem-gate';
 import { processTenant, runOnce, tenantIdsFromEnv } from './worker';
 
 /**
@@ -28,6 +29,7 @@ async function main(): Promise<void> {
     await pool.end();
     process.exit(r.tenantErrors > 0 ? 1 : 0);
   }
+  const gate = memoryGate();
   let stop = false;
   for (const s of ['SIGTERM', 'SIGINT'] as const)
     process.once(s, () => {
@@ -38,7 +40,7 @@ async function main(): Promise<void> {
     let worked = 0;
     for (const t of tenants) {
       try {
-        worked += await processTenant(pool, t, store, engine, console);
+        worked += await processTenant(pool, t, store, engine, console, 20, undefined, gate);
       } catch (e) {
         console.error(`ocr: tenant ${t}: ${e instanceof Error ? e.message : e}`);
       }

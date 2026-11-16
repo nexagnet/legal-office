@@ -42,13 +42,13 @@ Mô tả đầy đủ ở [docs/engineering/deploy-tencent.md](../engineering/de
 | `deploy/scripts/restore-test.sh` | Diễn tập khôi phục vào DB tạm, đối chiếu số hàng |
 | `deploy/scripts/warmup.sh` | Làm nóng cache sau reboot/restart (truy vấn đầu sau khởi động ~1,5–2,6 giây) |
 | `deploy/scripts/monitor.sh` | Cron 5 phút: ổ >75%, RAM available <150MB, swap >=1500MB, `/health`, Postgres, backup quá 26 giờ; ghi `alerts.log`, tùy chọn webhook |
-| `.github/workflows/deploy.yml` | `workflow_dispatch` (**chạy tay**, chỉ nhánh `main`): build `api`, `web` → GHCR → SSH → `deploy.sh` |
+| `.github/workflows/deploy.yml` | `workflow_dispatch` (**chạy tay**, chỉ nhánh `main`): build `api`, `web`, `ocr` → GHCR → SSH → `deploy.sh` |
 
-- **CD chạy tay:** không tự deploy khi push. Secrets GitHub cần có: `DEPLOY_HOST`, `DEPLOY_USER` (`dev`), `DEPLOY_SSH_KEY` (khóa ed25519 riêng cho deploy), `DEPLOY_KNOWN_HOSTS`. Image `ghcr.io/nexagnet/legal-office-{api,web}:<sha>`. `API_URL` của web được nướng lúc build (`http://127.0.0.1:3001`).
+- **CD chạy tay:** không tự deploy khi push. Secrets GitHub cần có: `DEPLOY_HOST`, `DEPLOY_USER` (`dev`), `DEPLOY_SSH_KEY` (khóa ed25519 riêng cho deploy), `DEPLOY_KNOWN_HOSTS`. Image `ghcr.io/nexagnet/legal-office-{api,web,ocr}:<sha>`. `API_URL` của web được nướng lúc build (`http://127.0.0.1:3001`).
 - **Quy tắc vận hành:**
   - **Không build trên server**: build web làm RAM available xuống ~93MB (đã đo). Luôn build ở CI/GHCR.
   - **Chạy 1 bản API** (giới hạn request và lịch nền nằm trong bộ nhớ).
-  - **OCR không chạy trên server**; OCR và dựng chỉ mục 200GB làm trên PC.
+  - **OCR nền chạy trong service `ocr`** (compose): 1 tệp/lần, trần 600MB RAM + 1 CPU, ưu tiên CPU thấp, bị OOM-kill đầu tiên, tự nghỉ khi RAM trống dưới `OCR_MIN_FREE_MB` (250). Dùng cho scan mới và tài liệu cũ khách tự tải qua giao diện (`LEGACY_OCR_ENABLED`, `LEGACY_SEARCH_ENABLED` mặc định 1 trong compose). Khối lượng lớn một lần (200GB) vẫn làm trên PC. Nếu API/web chậm khi OCR chạy: đặt `LEGACY_OCR_ENABLED=0` hoặc `docker compose stop ocr`.
   - Migration tự áp khi API khởi động; trước migration lớn nên có bản sao lưu mới; rollback = triển khai lại tag cũ (`.previous-tag`).
   - Downtime vài giây khi deploy được chấp nhận.
   - Sau reboot đợi `warmup.sh` trước giờ làm việc.
