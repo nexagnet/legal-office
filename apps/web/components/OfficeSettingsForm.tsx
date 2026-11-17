@@ -1,10 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { Scale } from 'lucide-react';
+import { useRef, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { messageFor } from '../lib/messages';
-import { OfficeLogo } from './OfficeLogo';
 
 interface Props {
   readonly officeId: string;
@@ -105,14 +105,16 @@ export function OfficeSettingsForm(p: Props) {
   );
 }
 
-/** Logo của văn phòng: Admin tải lên (JPG/PNG/WebP, tối đa 2 MB), đổi hoặc gỡ để quay về logo mặc định. */
+/** Logo của văn phòng: Admin tải lên (JPG/PNG/WebP, tối đa 2 MB) bằng kéo-thả hoặc bấm chọn, đổi hoặc gỡ để quay về logo mặc định. */
 function LogoField(p: {
   readonly officeId: string;
   readonly version: number | null;
   readonly canEdit: boolean;
 }) {
   const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [over, setOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const url = `/api/office/logo?officeId=${encodeURIComponent(p.officeId)}`;
 
@@ -141,7 +143,7 @@ function LogoField(p: {
   }
 
   async function pick(file: File | undefined) {
-    if (!file) return;
+    if (!file || !p.canEdit) return;
     if (!/^image\/(jpeg|png|webp)$/.test(file.type))
       return setError('Chỉ nhận ảnh JPG, PNG hoặc WebP.');
     if (file.size > 2 * 1024 * 1024) return setError('Ảnh quá lớn (tối đa 2 MB).');
@@ -152,41 +154,80 @@ function LogoField(p: {
   }
 
   return (
-    <div className="logo-field">
+    <div className="logo-field grid gap-2">
       <span>Logo văn phòng</span>
-      <div className="flex items-center gap-3">
-        <span className="logo-slot" aria-hidden="true">
-          <OfficeLogo officeId={p.officeId} version={p.version} />
-        </span>
-        {p.canEdit ? (
-          <>
-            <label className="button">
-              {p.version ? 'Đổi logo' : 'Tải logo lên'}
+      <div
+        data-testid="logo-dropzone"
+        data-over={over ? 'true' : undefined}
+        className="flex items-center gap-4 rounded-xl border border-dashed border-slate-300 p-4 data-[over=true]:border-slate-500 data-[over=true]:bg-slate-50"
+        onDragOver={(e) => {
+          if (!p.canEdit) return;
+          e.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setOver(false);
+          void pick(e.dataTransfer.files[0]);
+        }}
+      >
+        <div className="grid size-24 shrink-0 place-items-center" aria-hidden="true">
+          {p.version ? (
+            <img
+              src={`${url}&v=${p.version}`}
+              alt=""
+              className="max-h-24 max-w-24 object-contain"
+            />
+          ) : (
+            <Scale className="size-12 text-slate-400" aria-hidden="true" />
+          )}
+        </div>
+        <div className="grid gap-2">
+          <p className="m-0 text-sm">
+            {p.version
+              ? 'Logo hiện tại của văn phòng.'
+              : 'Chưa có logo. Đang dùng biểu tượng mặc định.'}
+          </p>
+          {p.canEdit ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="primary"
+                disabled={busy}
+                aria-busy={busy}
+                onClick={() => input.current?.click()}
+              >
+                {p.version ? 'Đổi logo' : 'Tải logo lên'}
+              </button>
+              {p.version ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void send({ method: 'DELETE' }, 'Đã gỡ logo')}
+                >
+                  Gỡ logo
+                </button>
+              ) : null}
               <input
+                ref={input}
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="sr-only"
-                disabled={busy}
                 aria-label="Chọn ảnh logo"
                 onChange={(e) => {
                   void pick(e.target.files?.[0]);
                   e.target.value = '';
                 }}
               />
-            </label>
-            {p.version ? (
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void send({ method: 'DELETE' }, 'Đã gỡ logo')}
-              >
-                Gỡ logo
-              </button>
-            ) : null}
-          </>
-        ) : null}
+            </div>
+          ) : null}
+          <p className="muted m-0 text-xs">
+            Kéo thả ảnh vào đây hoặc bấm chọn. JPG, PNG hoặc WebP, tối đa 2 MB. PNG/WebP nền trong
+            suốt được giữ nguyên. Logo hiện ở thanh bên và làm biểu tượng tab trình duyệt.
+          </p>
+        </div>
       </div>
-      <p className="muted">Logo hiện ở thanh bên và làm biểu tượng tab trình duyệt.</p>
       <p role="alert" className="error" hidden={!error}>
         {error}
       </p>
