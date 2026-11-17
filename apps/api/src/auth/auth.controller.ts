@@ -277,6 +277,7 @@ export class AuthController {
       tenantId: a.tenantId,
       displayName: await this.auth.displayName(a.tenantId, a.userId),
       avatarVersion: await this.auth.avatarVersion(a.tenantId, a.userId),
+      logo: await this.auth.officeLogo(a.tenantId, a.userId),
       mustChangePassword: await this.auth.mustChangePassword(a.tenantId, a.userId),
       memberships: await this.auth.memberships(a.tenantId, a.userId),
       branches: await this.auth.branches(a.tenantId, a.userId),

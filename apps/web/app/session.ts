@@ -21,6 +21,8 @@ export type Session =
       readonly displayName?: string | null;
       /** Phiên bản ảnh đại diện của chính người đăng nhập (null = chưa có ảnh). */
       readonly avatarVersion?: number | null;
+      /** Logo tùy chỉnh của văn phòng (null = dùng logo mặc định). */
+      readonly logo?: OfficeLogo | null;
       /** Mật khẩu do Admin đặt / tài khoản mới: phải đổi ngay trước khi dùng tiếp. */
       readonly mustChangePassword?: boolean;
       readonly memberships: readonly Membership[];
@@ -40,10 +42,16 @@ const isRole = (r: unknown): r is Role => (ROLES as readonly unknown[]).includes
 
 export type Fetcher = (url: string, init: { headers: Record<string, string> }) => Promise<Response>;
 
+export interface OfficeLogo {
+  readonly officeId: string;
+  readonly version: number;
+}
+
 interface MeBody {
   readonly userId?: string;
   readonly displayName?: string | null;
   readonly avatarVersion?: number | null;
+  readonly logo?: OfficeLogo | null;
   readonly mustChangePassword?: boolean;
   readonly memberships?: readonly { officeId: string; role: string; legalSigner: boolean }[];
   readonly branches?: readonly Branch[];
@@ -91,6 +99,7 @@ export async function loadSession(
       userId: body.userId,
       displayName: body.displayName ?? null,
       avatarVersion: body.avatarVersion ?? null,
+      logo: body.logo ?? null,
       mustChangePassword: body.mustChangePassword === true,
       memberships,
       branches: body.branches ?? [],

@@ -422,6 +422,23 @@ export class AuthService {
     });
   }
 
+  /** Logo của văn phòng đầu tiên (theo vai, mã) mà người này thuộc về và đã có logo; null = dùng logo mặc định. */
+  async officeLogo(
+    tenantId: string,
+    userId: string,
+  ): Promise<{ officeId: string; version: number } | null> {
+    return this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ office_id: string; v: string }>(
+        `SELECT s.office_id, (extract(epoch FROM s.logo_updated_at) * 1000)::bigint AS v
+           FROM memberships m JOIN office_settings s ON s.office_id = m.office_id AND s.tenant_id = m.tenant_id
+          WHERE m.tenant_id = $1 AND m.user_id = $2 AND s.logo_key IS NOT NULL
+          ORDER BY m.role, m.office_id LIMIT 1`,
+        [tenantId, userId],
+      );
+      return rows[0] ? { officeId: rows[0].office_id, version: Number(rows[0].v) } : null;
+    });
+  }
+
   async memberships(tenantId: string, userId: string): Promise<Membership[]> {
     return this.pg.withTenant(tenantId, async (c) => {
       const { rows } = await c.query<{ office_id: string; role: string; legal_signer: boolean }>(

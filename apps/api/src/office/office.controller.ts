@@ -1,8 +1,9 @@
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Headers,
   HttpCode,
   HttpException,
@@ -28,6 +29,7 @@ import { addWorkingDays } from '../deadlines/working-days';
 import { LEDGER_BY_CODE, S06_LEDGER, shapeLedgerRow, shapeS06Rows, withThvLabel } from './ledgers';
 import { buildPdf, PDF_MIME } from './pdf-export';
 import { buildXlsx, XLSX_MIME, type SheetSpec } from './xlsx-export';
+import { receiveAvatar } from '../people/avatar';
 import { recordWithUpload } from '../storage/evidence';
 import { FILE_STORE, type FileStore } from '../storage/file-store';
 import type { RawBody } from '../storage/upload';
@@ -77,6 +79,15 @@ export class OfficeController {
     @Inject(VibangRepo) private readonly repo: VibangRepo,
     @Optional() @Inject(FILE_STORE) private readonly store: FileStore | null,
   ) {}
+
+  private requireStore(): FileStore {
+    if (!this.store)
+      throw new HttpException(
+        { code: 'FILE_STORE_NOT_CONFIGURED', label: null },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    return this.store;
+  }
 
   private run(actor: AuthenticatedActor, fn: string, args: readonly unknown[]): Promise<Reply> {
     return this.repo
@@ -805,6 +816,71 @@ export class OfficeController {
       numberRule: r.number_rule,
       branches: r.branches,
     };
+  }
+
+  /**
+   * Logo của văn phòng: mọi thành viên xem được (hiện ở thanh bên và làm biểu tượng tab). Chưa đặt = 404 (web dùng logo mặc định).
+   * Khóa đổi mỗi lần tải lên và web thêm ?v=<phiên bản>, nên cache riêng tư được.
+   */
+  @Get('logo')
+  async logo(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Res({ passthrough: true }) res: { set(h: Record<string, string>): unknown },
+  ) {
+    const store = this.requireStore();
+    const [row] = await this.read<{ object_key: string; mime: string }>(
+      a,
+      'of_search_office_logo',
+      [officeId],
+    );
+    const bytes =
+      row && row.object_key.startsWith(`t/${a.tenantId}/logos/${officeId}/`)
+        ? await store.get(row.object_key)
+        : null;
+    if (!row || !bytes)
+      throw new HttpException({ code: 'FILE_NOT_FOUND', label: null }, HttpStatus.NOT_FOUND);
+    res.set({
+      'content-type': row.mime,
+      'content-disposition': 'inline',
+      'x-content-type-options': 'nosniff',
+      'cache-control': 'private, max-age=86400',
+    });
+    return new StreamableFile(bytes);
+  }
+
+  /** Chỉ Admin: đặt/đổi logo (jpeg/png/webp, tối đa 2 MB, kiểm chữ ký đầu tệp). Mỗi lần là một khóa mới; tệp cũ giữ nguyên. */
+  @Put('logo')
+  @HttpCode(HttpStatus.OK)
+  async setLogo(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+    @Headers('content-type') contentType: string | undefined,
+    @Headers('content-length') contentLength: string | undefined,
+    @Req() req: RawBody,
+  ) {
+    const store = this.requireStore();
+    const file = await receiveAvatar(req, contentType, contentLength);
+    const key = `t/${a.tenantId}/logos/${officeId}/${randomBytes(12).toString('hex')}.${file.extension}`;
+    // Kiểm quyền Admin (qua hàm DB) trước khi ghi tệp, để người không phải Admin không ghi được gì vào kho.
+    const reply = await this.run(a, 'of_set_office_logo', [officeId, key, file.mime]);
+    try {
+      await store.put(key, file.bytes, file.mime);
+    } catch (e) {
+      await this.run(a, 'of_set_office_logo', [officeId, null, null]).catch(() => undefined);
+      throw e;
+    }
+    return reply;
+  }
+
+  /** Chỉ Admin: gỡ logo (chỉ bỏ liên kết; tệp trong kho giữ nguyên). */
+  @Delete('logo')
+  @HttpCode(HttpStatus.OK)
+  clearLogo(
+    @CurrentActor() a: AuthenticatedActor,
+    @Query('officeId', ParseUUIDPipe) officeId: string,
+  ) {
+    return this.run(a, 'of_set_office_logo', [officeId, null, null]);
   }
 
   /** Sửa tên pháp lý/tên hiển thị (chỉ Admin). Bỏ trường nào thì giữ nguyên trường đó. */
