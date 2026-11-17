@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Avatar } from '../components/ui/avatar';
 import { AVATAR_COLORS, avatarColor, initialsOf } from '../lib/avatar';
 
@@ -63,5 +63,33 @@ describe('Avatar photo', () => {
   it('shows initials when there is no photo version', () => {
     render(<Avatar name="Lê Thu Hà" id="u1" photoVersion={null} />);
     expect(screen.getByRole('img', { name: 'Lê Thu Hà' }).textContent).toBe('LH');
+  });
+});
+
+describe('Avatar lookup by id', () => {
+  it('fetches photo versions in one batch and shows the photo for people who have one', async () => {
+    const { waitFor } = await import('@testing-library/react');
+    const calls: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      calls.push(url);
+      return new Response(JSON.stringify({ items: [{ userId: 'p1', version: 7 }] }), {
+        status: 200,
+      });
+    });
+    render(
+      <>
+        <Avatar name="Có Ảnh" id="p1" />
+        <Avatar name="Không Ảnh" id="p2" />
+      </>,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('img', { name: 'Có Ảnh' }).getAttribute('src')).toBe(
+        '/api/people/p1/avatar?v=7',
+      ),
+    );
+    expect(screen.getByRole('img', { name: 'Không Ảnh' }).textContent).toBe('KẢ');
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain('p1,p2');
+    vi.unstubAllGlobals();
   });
 });

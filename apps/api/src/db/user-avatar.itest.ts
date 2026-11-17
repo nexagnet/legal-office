@@ -133,6 +133,24 @@ describe.skipIf(!ADMIN_URL)('User avatar (HTTP + PostgreSQL)', () => {
     expect((await call('GET', `/people/${U.clerk}/avatar`, U.other, T2)).status).toBe(404);
   });
 
+  it('returns photo versions in batch only for self and same-office people', async () => {
+    await call('PUT', '/people/me/avatar', U.clerk, T, PNG, 'image/png');
+    const ids = `${U.clerk},${U.admin},${U.stranger}`;
+    const asAdmin = (await (
+      await call('GET', `/people/avatars?ids=${ids}`, U.admin, T)
+    ).json()) as {
+      items: { userId: string; version: number }[];
+    };
+    expect(asAdmin.items.map((i) => i.userId).sort()).toEqual([U.clerk]);
+    expect(asAdmin.items.every((i) => i.version > 0)).toBe(true);
+    const asStranger = (await (
+      await call('GET', `/people/avatars?ids=${U.clerk}`, U.stranger, T)
+    ).json()) as {
+      items: unknown[];
+    };
+    expect(asStranger.items).toEqual([]);
+  });
+
   it('has no way for an Admin to change someone else’s photo', async () => {
     await call('PUT', '/people/me/avatar', U.admin, T, PNG, 'image/png');
     const before = (await owner.query(`SELECT avatar_key FROM users WHERE id = $1`, [U.clerk]))
