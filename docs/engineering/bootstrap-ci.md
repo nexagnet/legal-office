@@ -159,3 +159,46 @@ referenced central SHA, original CI/PR association, genuine owner request and
 actual fixed hint or trusted verdict/artifact. Keep PR427 Draft and unmerged. If
 an account/authentication step needs owner interaction, report that blocker and
 leave credentials unchanged.
+
+## Builder command and duplicate prevention rollout (#493)
+
+The Builder caller uses the reviewed central merge SHA
+`3cc50ef9ae793c8e4fbb19a729ec764e1d7f1248`.
+[Central PR34](https://github.com/nexagnet/.github/pull/34) covers the shared implementation,
+and [central CI44017644510](https://github.com/nexagnet/.github/actions/runs/44017644510)
+passed on that SHA. [Consumer #493](https://github.com/nexagnet/legal-office/issues/493)
+tracks this rollout and its runtime evidence.
+
+The caller checks owner, repository and new Issue comment before a job with no
+repository token permissions evaluates the body. Send `@claude` or `@claude retry`
+as the entire comment. Matching is case-sensitive and ignores only trailing
+ASCII spaces, tabs and line endings. The reusable Builder job starts only when
+the gate accepts the command on the first workflow attempt. Central preflight
+still verifies the live comment and Task Contract. Credentials are mapped only
+to the reusable Builder job.
+
+After independent review and CI on the PR HEAD, verify CI on the exact merge
+SHA on `main`. Record the consumer and referenced central SHAs for fresh live
+runs on a disposable, docs-only R0 issue. Use synthetic content, an approved
+Task Contract and the existing Publisher App. Leave the test Drafts unmerged.
+
+1. Post a prose comment containing `@claude`. Verify the command gate finishes
+   and the reusable Builder job is skipped. The workflow run can exist because
+   GitHub delivers the `issue_comment` event.
+2. Post the standalone initial command. Verify one App-authored Draft, its
+   issue-specific branch, the claim and the resulting CI on the exact PR HEAD.
+3. Post another standalone initial command while the Draft is open. Verify
+   `DUPLICATE_COMMAND_REJECTED`, no new Agent or Publisher work and one Draft.
+4. Close the synthetic Draft unmerged. Post one standalone retry command. Verify
+   the same issue claim advances and the App creates a new Draft. The rejected
+   duplicate counted as the second command, so this retry uses the third slot.
+5. Verify a fourth command using `@claude retry` reports
+   `RETRY_BUDGET_EXHAUSTED` and creates no new Draft. Retain the owner commands
+   as evidence since they define the ledger. Remove the synthetic `autopilot:ready`
+   label and close the test issue and any remaining test Draft when finished.
+
+A 401 or a missing runtime step leaves the corresponding App case unverified.
+Only report an authentication failure when the trusted output establishes it.
+Do not enable full Claude output or log credentials. Use the central runbook for
+manual recovery of a stranded claim after the holder is confirmed terminal and
+its branch has no pull request.

@@ -1,6 +1,6 @@
 name: Nexagnet V5 Legal Office Builder Caller
 
-# R3 onboarding contract: https://github.com/nexagnet/legal-office/issues/2
+# R3 rollout contract: https://github.com/nexagnet/legal-office/issues/493
 # Event belongs to this consumer repository. No org-wide event listener.
 on:
   issue_comment:
@@ -12,15 +12,40 @@ permissions:
   pull-requests: read
 
 jobs:
-  builder:
-    # Issue-only, owner-authored comments. Central preflight re-fetches the
-    # live Issue/Task Contract, exactly one R0/R1/R2 risk and autopilot:ready.
+  command-gate:
     if: >-
       github.repository == 'nexagnet/legal-office' &&
       github.actor == 'phungtienviet14-sketch' &&
+      github.event.action == 'created' &&
+      github.event.sender.login == 'phungtienviet14-sketch' &&
+      github.event.comment.user.login == 'phungtienviet14-sketch' &&
+      github.event.comment.user.type == 'User' &&
       github.event.issue.pull_request == null &&
-      contains(github.event.comment.body, '@claude')
-    uses: nexagnet/.github/.github/workflows/claude-builder.yml@0d253050b996ce7bf5a08a3728f3b1dc97445656
+      github.run_attempt == '1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions: {}
+    outputs:
+      accepted: ${{ steps.command.outputs.accepted }}
+    steps:
+      - name: Match the complete owner command
+        id: command
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { readFileSync, appendFileSync } = require('node:fs');
+          const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+          const body = event?.comment?.body;
+          const command = typeof body === 'string' ? body.replace(/[ \t\r\n]+$/, '') : '';
+          const accepted = command === '@claude' || command === '@claude retry';
+          appendFileSync(process.env.GITHUB_OUTPUT, `accepted=${accepted}\n`);
+          NODE
+
+  builder:
+    # Central preflight independently verifies intent, live issue and risk.
+    needs: command-gate
+    if: needs.command-gate.outputs.accepted == 'true' && github.run_attempt == '1'
+    uses: nexagnet/.github/.github/workflows/claude-builder.yml@3cc50ef9ae793c8e4fbb19a729ec764e1d7f1248
     with:
       issue_number: ${{ github.event.issue.number }}
     secrets:
