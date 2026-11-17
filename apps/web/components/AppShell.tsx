@@ -48,6 +48,8 @@ interface Props {
   /** Họ tên và mã người đăng nhập, để hiện avatar và tên ở thẻ người dùng; thiếu thì hiện theo vai. */
   readonly userName?: string | null;
   readonly userId?: string | null;
+  /** Phiên bản ảnh đại diện của người đăng nhập; null = chưa có ảnh. */
+  readonly avatarVersion?: number | null;
   /** Văn phòng của người đăng nhập, để hộp tìm kiếm tìm được trong nội dung tài liệu. */
   readonly officeId?: string | null;
   readonly children: ReactNode;
@@ -374,6 +376,7 @@ export function AppShell({
   roleLabel = null,
   userName = null,
   userId = null,
+  avatarVersion = null,
   officeId = null,
   children,
 }: Props) {
@@ -470,7 +473,7 @@ export function AppShell({
           {signedIn ? (
             <div className="profile">
               {userName ? (
-                <Avatar name={userName} id={userId} size="lg" />
+                <Avatar name={userName} id={userId} size="lg" photoVersion={avatarVersion} />
               ) : (
                 <span className="avatar" aria-hidden="true">
                   {initials(roleLabel ?? 'Nhân viên')}
@@ -527,6 +530,7 @@ export function AppShell({
                 roleLabel={roleLabel ?? 'Nhân viên văn phòng'}
                 userName={userName}
                 userId={userId}
+                avatarVersion={avatarVersion}
               />
             </div>
           ) : null}
