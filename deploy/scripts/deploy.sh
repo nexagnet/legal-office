@@ -29,5 +29,9 @@ fi
 echo "$TAG" > "$APP/.current-tag"
 [ -n "$prev" ] && echo "$prev" > "$APP/.previous-tag"
 "$APP/deploy/scripts/warmup.sh" || true
-docker image prune -f --filter "until=168h" >/dev/null 2>&1 || true
+# Dọn ổ đĩa: mỗi tag chiếm ~2,8GB (web+ocr+api). Chỉ giữ tag mới ($TAG) và tag trước ($prev, để quay lại nhanh); xoá các tag cũ hơn.
+# `docker rmi` từ chối xoá image đang được container dùng nên an toàn; lỗi ở đây không làm hỏng deploy.
+docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E '/legal-office-(api|web|ocr):' \
+  | grep -v -e ":${TAG}\$" ${prev:+-e ":${prev}\$"} | xargs -r docker rmi >/dev/null 2>&1 || true
+docker image prune -f >/dev/null 2>&1 || true
 echo "Deploy ${TAG} xong"
