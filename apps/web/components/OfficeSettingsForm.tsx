@@ -2,13 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
+import { toast } from 'sonner';
 import { messageFor } from '../lib/messages';
+import { OfficeLogo } from './OfficeLogo';
 
 interface Props {
   readonly officeId: string;
   readonly legalName: string;
   readonly displayName: string;
-  readonly numberRule: string;
+  /** Phiên bản logo hiện tại (mili giây); null = đang dùng logo mặc định. */
+  readonly logoVersion: number | null;
   readonly branches: readonly { readonly id: string; readonly name: string }[];
   readonly canEdit: boolean;
 }
@@ -78,10 +81,7 @@ export function OfficeSettingsForm(p: Props) {
               maxLength={300}
             />
           </label>
-          <label>
-            Quy tắc số Vi bằng
-            <input value={p.numberRule} readOnly />
-          </label>
+          <LogoField officeId={p.officeId} version={p.logoVersion} canEdit={p.canEdit} />
           <p role="alert" className="error" hidden={!error}>
             {error}
           </p>
@@ -102,5 +102,94 @@ export function OfficeSettingsForm(p: Props) {
         </section>
       </div>
     </form>
+  );
+}
+
+/** Logo của văn phòng: Admin tải lên (JPG/PNG/WebP, tối đa 2 MB), đổi hoặc gỡ để quay về logo mặc định. */
+function LogoField(p: {
+  readonly officeId: string;
+  readonly version: number | null;
+  readonly canEdit: boolean;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const url = `/api/office/logo?officeId=${encodeURIComponent(p.officeId)}`;
+
+  async function send(init: RequestInit, okText: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(url, init);
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { code?: string };
+        return setError(
+          json.code === 'FILE_TOO_LARGE'
+            ? 'Ảnh quá lớn (tối đa 2 MB).'
+            : json.code === 'INVALID_DOCUMENT'
+              ? 'Chỉ nhận ảnh JPG, PNG hoặc WebP.'
+              : messageFor(json.code),
+        );
+      }
+      toast.success(okText);
+      router.refresh();
+    } catch {
+      setError('Không kết nối được máy chủ. Vui lòng thử lại.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function pick(file: File | undefined) {
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type))
+      return setError('Chỉ nhận ảnh JPG, PNG hoặc WebP.');
+    if (file.size > 2 * 1024 * 1024) return setError('Ảnh quá lớn (tối đa 2 MB).');
+    await send(
+      { method: 'PUT', headers: { 'content-type': file.type }, body: file },
+      'Đã cập nhật logo',
+    );
+  }
+
+  return (
+    <div className="logo-field">
+      <span>Logo văn phòng</span>
+      <div className="flex items-center gap-3">
+        <span className="logo-slot" aria-hidden="true">
+          <OfficeLogo officeId={p.officeId} version={p.version} />
+        </span>
+        {p.canEdit ? (
+          <>
+            <label className="button">
+              {p.version ? 'Đổi logo' : 'Tải logo lên'}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                disabled={busy}
+                aria-label="Chọn ảnh logo"
+                onChange={(e) => {
+                  void pick(e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            {p.version ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void send({ method: 'DELETE' }, 'Đã gỡ logo')}
+              >
+                Gỡ logo
+              </button>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+      <p className="muted">Logo hiện ở thanh bên và làm biểu tượng tab trình duyệt.</p>
+      <p role="alert" className="error" hidden={!error}>
+        {error}
+      </p>
+    </div>
   );
 }

@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { hrefOf, NAV, OVERVIEW, type NavItem } from '../app/nav';
 import { NavPending } from './NavPending';
+import { OfficeLogo } from './OfficeLogo';
 import { Avatar } from './ui/avatar';
 import { ProfileMenu } from './ProfileMenu';
 import { SearchPalette } from './SearchPalette';
@@ -50,6 +51,8 @@ interface Props {
   readonly userId?: string | null;
   /** Phiên bản ảnh đại diện của người đăng nhập; null = chưa có ảnh. */
   readonly avatarVersion?: number | null;
+  /** Logo tùy chỉnh của văn phòng; null = logo mặc định. */
+  readonly logo?: { readonly officeId: string; readonly version: number } | null;
   /** Văn phòng của người đăng nhập, để hộp tìm kiếm tìm được trong nội dung tài liệu. */
   readonly officeId?: string | null;
   readonly children: ReactNode;
@@ -377,6 +380,7 @@ export function AppShell({
   userName = null,
   userId = null,
   avatarVersion = null,
+  logo = null,
   officeId = null,
   children,
 }: Props) {
@@ -434,7 +438,7 @@ export function AppShell({
         <aside className="side" data-open={open}>
           <div className="brand">
             <div data-testid="tenant-logo-slot" className="logo-slot" aria-hidden="true">
-              <Scale aria-hidden="true" />
+              <OfficeLogo officeId={logo?.officeId ?? null} version={logo?.version} />
             </div>
             <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
           </div>

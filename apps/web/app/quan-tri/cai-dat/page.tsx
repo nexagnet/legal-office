@@ -9,7 +9,6 @@ interface Settings {
   readonly legalName: string | null;
   readonly displayName: string | null;
   readonly officeName: string;
-  readonly numberRule: string;
   readonly branches: readonly { readonly id: string; readonly name: string }[];
 }
 
@@ -97,7 +96,7 @@ export default async function Page() {
         officeId={officeId}
         legalName={s.legalName ?? s.officeName}
         displayName={s.displayName ?? s.officeName}
-        numberRule={s.numberRule}
+        logoVersion={session.logo?.officeId === officeId ? session.logo.version : null}
         branches={s.branches}
         canEdit={isAdmin}
       />

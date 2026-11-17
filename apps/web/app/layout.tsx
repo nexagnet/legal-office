@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import NextTopLoader from 'nextjs-toploader';
 import type { ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
@@ -17,10 +18,30 @@ import { loadMyDmsPermissions } from '../lib/dms';
 import { loadPendingSubmissionCount } from '../lib/dms-submissions';
 import { currentSession, requestCookie } from '../lib/server';
 
-export const metadata = {
+const BASE_METADATA = {
   title: 'Quản lý văn phòng',
   description: 'Quản lý văn phòng thừa hành viên',
 };
+
+/** Biểu tượng tab: logo tùy chỉnh của văn phòng nếu đã đặt; không thì favicon mặc định (app/favicon.ico, icon.svg, apple-icon.png). */
+export async function generateMetadata(): Promise<Metadata> {
+  const session = await currentSession();
+  const logo = session.status === 'authenticated' ? session.logo : null;
+  if (logo) {
+    const url = `/api/office/logo?officeId=${encodeURIComponent(logo.officeId)}&v=${logo.version}`;
+    return { ...BASE_METADATA, icons: { icon: url, shortcut: url, apple: url } };
+  }
+  return {
+    ...BASE_METADATA,
+    // favicon.ico, icon.svg và apple-icon.png ở thư mục app tự được Next.js gắn; hai PNG nhỏ cho trình duyệt cũ.
+    icons: {
+      icon: [
+        { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      ],
+    },
+  };
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +89,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           tenantName={session.status === 'authenticated' ? session.tenantName : null}
           officeId={officeId ?? null}
           badges={pendingSubmissions ? { 'dms-trinh-duyet': pendingSubmissions } : undefined}
+          logo={session.status === 'authenticated' ? (session.logo ?? null) : null}
           signedIn={session.status === 'authenticated'}
           userName={session.status === 'authenticated' ? (session.displayName ?? null) : null}
           userId={session.status === 'authenticated' ? (session.userId ?? null) : null}
