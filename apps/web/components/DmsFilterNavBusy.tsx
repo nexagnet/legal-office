@@ -1,11 +1,13 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useReportListBusy } from './DmsListBusy';
 
 /** Không có phản hồi sau chừng này thì thôi báo "đang lọc" (tránh treo mờ mãi nếu mạng lỗi). */
 const GIVE_UP_MS = 20_000;
+/** Hiện tối thiểu chừng này để người dùng kịp thấy, kể cả khi máy chủ trả rất nhanh. */
+const MIN_SHOW_MS = 450;
 
 /**
  * Báo "đang lọc" khi người dùng đổi tab, chip, bộ lọc hoặc bấm Áp dụng trong danh sách hồ sơ.
@@ -19,9 +21,13 @@ export function DmsFilterNavBusy() {
   const [pending, setPending] = useState(false);
   useReportListBusy(pending);
 
-  // Địa chỉ đã đổi: danh sách mới đã về.
+  const startedAt = useRef(0);
+
+  // Địa chỉ đã đổi: danh sách mới đã về. Giữ hiệu ứng đủ MIN_SHOW_MS rồi mới tắt.
   useEffect(() => {
-    setPending(false);
+    const wait = Math.max(0, startedAt.current + MIN_SHOW_MS - Date.now());
+    const t = window.setTimeout(() => setPending(false), wait);
+    return () => window.clearTimeout(t);
   }, [pathname, search]);
 
   useEffect(() => {
@@ -40,28 +46,30 @@ export function DmsFilterNavBusy() {
   useEffect(() => {
     const inList = (el: Element | null) => !!el?.closest('.dms-list');
     const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
-        return;
+      // Không xét defaultPrevented: <Link> của Next tự chặn mặc định rồi mới điều hướng bằng JavaScript.
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as Element | null)?.closest('a');
       if (!a || !inList(a) || a.target || a.hasAttribute('download')) return;
       const url = new URL(a.href, window.location.href);
       if (url.origin !== window.location.origin || url.pathname !== window.location.pathname)
         return;
       if (url.search === window.location.search) return;
+      startedAt.current = Date.now();
       setPending(true);
     };
     const onSubmit = (e: SubmitEvent) => {
       const f = e.target as HTMLFormElement | null;
       if (e.defaultPrevented || !f || !inList(f)) return;
       if ((f.method || 'get').toLowerCase() !== 'get') return;
+      startedAt.current = Date.now();
       setPending(true);
     };
     const onShow = () => setPending(false);
-    document.addEventListener('click', onClick);
+    document.addEventListener('click', onClick, true);
     document.addEventListener('submit', onSubmit);
     window.addEventListener('pageshow', onShow);
     return () => {
-      document.removeEventListener('click', onClick);
+      document.removeEventListener('click', onClick, true);
       document.removeEventListener('submit', onSubmit);
       window.removeEventListener('pageshow', onShow);
     };
