@@ -411,6 +411,17 @@ export class AuthService {
     });
   }
 
+  /** Phiên bản ảnh đại diện (mili giây của lần đổi gần nhất); null = chưa có ảnh. Dùng làm tham số bỏ cache. */
+  async avatarVersion(tenantId: string, userId: string): Promise<number | null> {
+    return this.pg.withTenant(tenantId, async (c) => {
+      const { rows } = await c.query<{ v: string | null }>(
+        `SELECT (extract(epoch FROM avatar_updated_at) * 1000)::bigint AS v FROM users WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, userId],
+      );
+      return rows[0]?.v ? Number(rows[0].v) : null;
+    });
+  }
+
   async memberships(tenantId: string, userId: string): Promise<Membership[]> {
     return this.pg.withTenant(tenantId, async (c) => {
       const { rows } = await c.query<{ office_id: string; role: string; legal_signer: boolean }>(

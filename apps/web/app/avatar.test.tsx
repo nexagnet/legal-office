@@ -50,3 +50,18 @@ describe('looksLikeOrganization', () => {
     expect(looksLikeOrganization('Cục Văn')).toBe(true);
   });
 });
+
+describe('Avatar photo', () => {
+  it('shows the profile photo when a version is given and falls back to initials if it fails', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    render(<Avatar name="Lê Thu Hà" id="u1" photoVersion={123} />);
+    const img = screen.getByRole('img', { name: 'Lê Thu Hà' });
+    expect(img.getAttribute('src')).toBe('/api/people/u1/avatar?v=123');
+    fireEvent.error(img);
+    expect(screen.getByRole('img', { name: 'Lê Thu Hà' }).textContent).toBe('LH');
+  });
+  it('shows initials when there is no photo version', () => {
+    render(<Avatar name="Lê Thu Hà" id="u1" photoVersion={null} />);
+    expect(screen.getByRole('img', { name: 'Lê Thu Hà' }).textContent).toBe('LH');
+  });
+});

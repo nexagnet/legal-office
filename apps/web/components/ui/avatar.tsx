@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { UserRound } from 'lucide-react';
 import { avatarColor, initialsOf, looksLikeOrganization, personName } from '../../lib/avatar';
 import { cn } from '../../lib/cn';
@@ -9,21 +12,39 @@ const SIZE = {
 } as const;
 
 /**
- * Avatar chữ viết tắt cho một CON NGƯỜI (Figma N0 · Avatar). Không dùng cho tổ chức hay pháp nhân và không có ảnh
- * đại diện. `id` (mã người dùng) làm màu ổn định; không có thì lấy theo họ tên. Có `aria-label` là họ tên đầy đủ.
+ * Avatar chữ viết tắt cho một CON NGƯỜI (Figma N0 · Avatar). Không dùng cho tổ chức hay pháp nhân. Ảnh đại diện chỉ hiện khi truyền `photoVersion`. `id` (mã người dùng) làm màu ổn định; không có thì lấy theo họ tên. Có `aria-label` là họ tên đầy đủ.
  */
 export function Avatar({
   name,
   id,
   size = 'md',
   className,
+  photoVersion,
 }: {
   readonly name: string;
   readonly id?: string | null;
   readonly size?: keyof typeof SIZE;
   readonly className?: string;
+  /** Có giá trị (và có `id`) thì hiện ảnh đại diện của người đó; ảnh lỗi/không tải được thì quay về chữ viết tắt. */
+  readonly photoVersion?: number | null;
 }) {
   const initials = initialsOf(name);
+  const [broken, setBroken] = useState(false);
+  if (id && photoVersion && !broken) {
+    return (
+      <img
+        role="img"
+        alt={name || 'Người dùng'}
+        src={`/api/people/${id}/avatar?v=${photoVersion}`}
+        onError={() => setBroken(true)}
+        className={cn(
+          'inline-block shrink-0 rounded-full bg-surface-2 object-cover select-none',
+          SIZE[size],
+          className,
+        )}
+      />
+    );
+  }
   return (
     <span
       role="img"
