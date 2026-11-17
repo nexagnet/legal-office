@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { avatarVersionSnapshot, requestAvatar, subscribeAvatars } from '../../lib/avatar-versions';
 import { UserRound } from 'lucide-react';
 import { avatarColor, initialsOf, looksLikeOrganization, personName } from '../../lib/avatar';
 import { cn } from '../../lib/cn';
@@ -12,7 +13,7 @@ const SIZE = {
 } as const;
 
 /**
- * Avatar chữ viết tắt cho một CON NGƯỜI (Figma N0 · Avatar). Không dùng cho tổ chức hay pháp nhân. Ảnh đại diện chỉ hiện khi truyền `photoVersion`. `id` (mã người dùng) làm màu ổn định; không có thì lấy theo họ tên. Có `aria-label` là họ tên đầy đủ.
+ * Avatar chữ viết tắt cho một CON NGƯỜI (Figma N0 · Avatar). Không dùng cho tổ chức hay pháp nhân. Ảnh đại diện tự hiện khi người đó có ảnh (tra theo `id`, gom lô); truyền `photoVersion` để tự quyết. `id` (mã người dùng) làm màu ổn định; không có thì lấy theo họ tên. Có `aria-label` là họ tên đầy đủ.
  */
 export function Avatar({
   name,
@@ -30,12 +31,23 @@ export function Avatar({
 }) {
   const initials = initialsOf(name);
   const [broken, setBroken] = useState(false);
-  if (id && photoVersion && !broken) {
+  // `photoVersion` truyền vào thắng; không truyền (undefined) thì tự tra theo mã người, gom lô.
+  const looked = useSyncExternalStore(
+    subscribeAvatars,
+    () => (id && photoVersion === undefined ? avatarVersionSnapshot(id) : undefined),
+    () => undefined,
+  );
+  useEffect(() => {
+    if (id && photoVersion === undefined) requestAvatar(id);
+  }, [id, photoVersion, looked]);
+  const version = photoVersion === undefined ? looked : photoVersion;
+  useEffect(() => setBroken(false), [version]);
+  if (id && version && !broken) {
     return (
       <img
         role="img"
         alt={name || 'Người dùng'}
-        src={`/api/people/${id}/avatar?v=${photoVersion}`}
+        src={`/api/people/${id}/avatar?v=${version}`}
         onError={() => setBroken(true)}
         className={cn(
           'inline-block shrink-0 rounded-full bg-surface-2 object-cover select-none',
