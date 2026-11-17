@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AVATAR_ACCEPT, AVATAR_MAX_INPUT_BYTES, squareAvatarBlob } from '../lib/avatar-image';
+import { invalidateAvatar } from '../lib/avatar-versions';
 import { messageFor } from '../lib/messages';
 import { Avatar } from './ui/avatar';
 import { Button } from './ui/button';
@@ -41,6 +42,7 @@ export function AvatarDialog({
       return;
     }
     toast.success(okText);
+    if (userId) invalidateAvatar(userId);
     router.refresh();
     onOpenChange(false);
   }

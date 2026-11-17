@@ -119,6 +119,19 @@ export class PeopleController {
     return new StreamableFile(bytes);
   }
 
+  /** Phiên bản ảnh đại diện theo lô mã người (chỉ người có ảnh, cùng văn phòng hoặc chính chủ). Dùng để hiện ảnh trong bảng. */
+  @Get('avatars')
+  async avatars(@CurrentActor() a: AuthenticatedActor, @Query('ids') raw?: string) {
+    const parsed = ids.safeParse((raw ?? '').split(',').filter(Boolean));
+    if (!parsed.success) throw new BadRequestException('ids: danh sách mã người không hợp lệ');
+    const rows = await this.repo.rows<{ user_id: string; version: string }>(
+      a.tenantId,
+      'of_avatar_versions',
+      [a.tenantId, a.userId, parsed.data],
+    );
+    return { items: rows.map((r) => ({ userId: r.user_id, version: Number(r.version) })) };
+  }
+
   @Get('names')
   async names(@CurrentActor() a: AuthenticatedActor, @Query('ids') raw?: string) {
     const parsed = ids.safeParse((raw ?? '').split(',').filter(Boolean));
