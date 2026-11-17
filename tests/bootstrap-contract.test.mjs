@@ -1,4 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -157,7 +160,7 @@ const reviewerCaller = readFileSync(
 ).replaceAll('\r\n', '\n');
 
 describe('V5 consumer callers R3 static security contract (not runtime proof)', () => {
-  const builderPinned = '0d253050b996ce7bf5a08a3728f3b1dc97445656';
+  const builderPinned = '3cc50ef9ae793c8e4fbb19a729ec764e1d7f1248';
   const reviewerPinned = '128ed9e61ab4ee8c7ac604ca05a4e4511d168f10';
 
   it('pins independent immutable and reviewed central Builder/Reviewer workflow versions', () => {
@@ -170,7 +173,7 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
     assert.match(builderCaller, /issue_comment:\n\s+types: \[created\]/);
     assert.match(builderCaller, /github\.actor == 'phungtienviet14-sketch'/);
     assert.match(builderCaller, /github\.event\.issue\.pull_request == null/);
-    assert.match(builderCaller, /contains\(github\.event\.comment\.body, '@claude'\)/);
+    assert.doesNotMatch(builderCaller, /contains\(github\.event\.comment\.body/);
     assert.match(builderCaller, /permissions:\n  contents: read\n  issues: read\n  pull-requests: read/);
     for (const s of [
       'CLAUDE_CODE_OAUTH_TOKEN',
@@ -180,6 +183,59 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
       assert.match(builderCaller, new RegExp(s + ': \\$\\{\\{ secrets\\.' + s + ' \\}\\}'));
     }
     assert.doesNotMatch(builderCaller, /secrets:\s*inherit|pull_request_target|contents: write|issues: write/);
+  });
+
+  it('requires a successful owner-command gate with no token permissions before Builder', () => {
+    const [, gate, builder] = builderCaller.match(/\n  command-gate:\n([\s\S]+?)\n  builder:\n([\s\S]+)/) ?? [];
+    assert.ok(gate && builder, 'expected separate command-gate and builder jobs');
+    assert.match(gate, /permissions: \{\}/);
+    assert.match(gate, /github\.repository == 'nexagnet\/legal-office'/);
+    assert.match(gate, /github\.actor == 'phungtienviet14-sketch'/);
+    assert.match(gate, /github\.event\.sender\.login == 'phungtienviet14-sketch'/);
+    assert.match(gate, /github\.event\.comment\.user\.login == 'phungtienviet14-sketch'/);
+    assert.match(gate, /github\.event\.comment\.user\.type == 'User'/);
+    assert.match(gate, /github\.event\.issue\.pull_request == null/);
+    assert.match(gate, /accepted: \$\{\{ steps\.command\.outputs\.accepted \}\}/);
+    assert.doesNotMatch(gate, /secrets\.|github\.token|uses:|\$\{\{ github\.event\.comment\.body/);
+    assert.match(builder, /needs: command-gate/);
+    assert.match(builder, /needs\.command-gate\.outputs\.accepted == 'true'/);
+    assert.match(builder, /github\.run_attempt == '1'/);
+    assert.doesNotMatch(builder, /always\s*\(/);
+  });
+
+  it('accepts only complete case-sensitive commands with optional trailing ASCII whitespace', () => {
+    const script = builderCaller.match(/node <<'NODE'\n([\s\S]+?)\n\s+NODE\n/)?.[1];
+    assert.ok(script, 'expected inline command evaluator');
+    const dir = mkdtempSync(join(tmpdir(), 'builder-command-'));
+    try {
+      const event = join(dir, 'event.json');
+      const output = join(dir, 'output');
+      const run = (json) => {
+        writeFileSync(event, json);
+        writeFileSync(output, '');
+        const result = spawnSync(process.execPath, ['-e', script], {
+          encoding: 'utf8',
+          env: { ...process.env, GITHUB_EVENT_PATH: event, GITHUB_OUTPUT: output },
+          timeout: 5_000,
+        });
+        return { status: result.status, output: readFileSync(output, 'utf8') };
+      };
+      for (const body of ['@claude', '@claude retry', '@claude \t\r\n', '@claude retry\r\n']) {
+        assert.deepEqual(run(JSON.stringify({ comment: { body } })), { status: 0, output: 'accepted=true\n' }, JSON.stringify(body));
+      }
+      for (const body of [
+        'status: @claude', '@claude please', '> @claude', '\x60@claude\x60', '@Claude', '@claude Retry',
+        ' @claude', '@claude\nretry', '@claude  retry', '@claude\u00a0', '@claude\u2028',
+        '@claude\naccepted=true', '', null, 1, {}, undefined,
+      ]) {
+        assert.deepEqual(run(JSON.stringify({ comment: { body } })), { status: 0, output: 'accepted=false\n' }, JSON.stringify(body));
+      }
+      const invalid = run('{');
+      assert.notEqual(invalid.status, 0);
+      assert.equal(invalid.output, '');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('Reviewer accepts successful PR CI with exact HEAD inputs and expected jobs', () => {
@@ -208,7 +264,7 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
     assert.doesNotMatch(reviewerCaller, /secrets: inherit|BUILDER_PUBLISHER_APP_ID|BUILDER_PUBLISHER_APP_PRIVATE_KEY/);
     assert.doesNotMatch(builderCaller, /pull-requests: write|issues: write|contents: write/);
     assert.match(reviewerCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-reviewer\.yml@128ed9e61ab4ee8c7ac604ca05a4e4511d168f10/);
-    assert.match(builderCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-builder\.yml@0d253050b996ce7bf5a08a3728f3b1dc97445656/);
+    assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + builderPinned));
     assert.doesNotMatch(reviewerCaller, /pull_request_target|workflow_dispatch|gh pr merge|gh api.*merge|deploy/);
   });
 
