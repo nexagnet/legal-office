@@ -23,22 +23,28 @@ const BASE_METADATA = {
   description: 'Quản lý văn phòng thừa hành viên',
 };
 
-/** Biểu tượng tab: logo tùy chỉnh của văn phòng nếu đã đặt; không thì favicon mặc định (app/favicon.ico, icon.svg, apple-icon.png). */
+/**
+ * Biểu tượng tab: logo của văn phòng nếu đã đặt (URL có ?v=<thời điểm đổi> nên đổi logo là trình duyệt tải lại);
+ * không thì favicon mặc định trong public. Không dùng tệp quy ước trong app/ vì Next.js luôn gắn thêm chúng và trình duyệt
+ * có thể chọn chúng thay vì logo.
+ */
 export async function generateMetadata(): Promise<Metadata> {
   const session = await currentSession();
   const logo = session.status === 'authenticated' ? session.logo : null;
   if (logo) {
     const url = `/api/office/logo?officeId=${encodeURIComponent(logo.officeId)}&v=${logo.version}`;
-    return { ...BASE_METADATA, icons: { icon: url, shortcut: url, apple: url } };
+    return { ...BASE_METADATA, icons: { icon: [{ url }], shortcut: [{ url }], apple: [{ url }] } };
   }
   return {
     ...BASE_METADATA,
-    // favicon.ico, icon.svg và apple-icon.png ở thư mục app tự được Next.js gắn; hai PNG nhỏ cho trình duyệt cũ.
     icons: {
       icon: [
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/icon.svg', type: 'image/svg+xml' },
         { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
         { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       ],
+      apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
     },
   };
 }

@@ -13,7 +13,7 @@ export function OfficeLogo({
     <img
       src={`/api/office/logo?officeId=${encodeURIComponent(officeId)}&v=${version}`}
       alt=""
-      className="size-full rounded-[inherit] object-contain"
+      className="size-full object-contain"
     />
   );
 }

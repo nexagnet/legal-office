@@ -437,7 +437,11 @@ export function AppShell({
         </a>
         <aside className="side" data-open={open}>
           <div className="brand">
-            <div data-testid="tenant-logo-slot" className="logo-slot" aria-hidden="true">
+            <div
+              data-testid="tenant-logo-slot"
+              className={logo ? 'logo-slot logo-slot--custom' : 'logo-slot'}
+              aria-hidden="true"
+            >
               <OfficeLogo officeId={logo?.officeId ?? null} version={logo?.version} />
             </div>
             <span className="brand-name">{tenantName ?? 'Quản lý văn phòng'}</span>
