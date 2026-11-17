@@ -6,6 +6,7 @@ import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
 import { AdminBanner } from '../../../components/admin-banner';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { DmsDomainTable } from '../../../components/DmsDomainTable';
+import { DmsFilterNavBusy } from '../../../components/DmsFilterNavBusy';
 import { DmsListBusy } from '../../../components/DmsListBusy';
 import { DmsSavedFilters } from '../../../components/DmsSavedFilters';
 import { DmsActiveChips, DmsFilterFields, DmsWorkChips } from '../../../components/DmsFilterBar';
@@ -319,6 +320,7 @@ export default async function DmsDomainPage({
   const sttLabel = domain.code === 'vtden' ? 'Số đến' : 'STT';
   return (
     <section aria-labelledby="t" className="dms-list" data-domain={domain.code}>
+      <DmsFilterNavBusy />
       <div className="dms-title-row">
         <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
         {!vanThu ? (
