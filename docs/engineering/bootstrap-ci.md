@@ -216,3 +216,12 @@ Credential: Claude runs in CI on the owner's Claude Pro OAuth token
 (`CLAUDE_CODE_OAUTH_TOKEN`). It has a usage limit. On a 429 or limit error the review is
 INCONCLUSIVE, nothing is merged, and nothing is retried automatically; the owner re-runs
 CI by hand after the limit resets.
+
+## Ignore có hạn: GHSA-fc5q-39xc-vjpf (picomatch, ReDoS)
+
+Ngày 18/11/2026 check `audit` đỏ vì advisory mức high này chưa có bản vá (patched versions: `<0.0.0`).
+Chủ dự án đã chọn bỏ qua có hạn: `pnpm.auditConfig.ignoreGhsas` trong `package.json`.
+Lý do chấp nhận: picomatch chỉ nằm trong chuỗi công cụ build/test, không xử lý dữ liệu khách ở runtime
+(chưa kiểm từng đường phụ thuộc; xem lại khi có bản vá).
+**Xem lại muộn nhất 18/12/2026**: nếu đã có bản vá thì nâng phiên bản và xóa dòng ignore; nếu chưa thì
+đánh giá lại và ghi ngày xem lại mới. Không thêm GHSA khác vào danh sách này nếu không có quyết định của chủ.
