@@ -243,3 +243,14 @@ Lý do chấp nhận: picomatch chỉ nằm trong chuỗi công cụ build/test,
 Lý do: Reviewer chỉ chạy sau CI hoàn tất; PR Draft đã xanh rồi chuyển Ready không có commit mới thì không có run CI
 mới để Reviewer bám vào. Ảnh hưởng: thêm tối đa một lượt CI mỗi lần Ready; không thêm lượt Claude nếu SHA không đổi
 vì Reviewer vẫn kiểm điều kiện riêng. Rollback: bỏ dòng `types`.
+
+## V5.1 M4: release-policy (chế độ chỉ thông tin)
+
+- `.github/workflows/release-policy.yml` + `scripts/release-policy.mjs` tính mức rủi ro R0-R3 của PR từ danh sách file
+  (qua API) và nhãn `risk:R*` của Issue liên kết (`Refs #N`). Quy tắc: `.github`, AGENTS/CLAUDE, `deploy`,
+  Dockerfile, `.env*` = R3; migration SQL, lockfile, `package.json`, đường dẫn phân quyền/RLS/tenant = R2;
+  chỉ tài liệu = R0; còn lại R1; diff > 400 dòng hoặc > 20 file tăng 1 bậc; từ 100 file = R3; nhãn Issue chỉ nâng, không hạ.
+- Chạy bằng `pull_request_target` nhưng chỉ checkout `main`, không bao giờ mã của PR; quyền chỉ đọc; kết quả ở job summary.
+- **Không chặn merge** và chưa nằm trong check bắt buộc của ruleset. Theo dõi 2 tuần (đến khoảng 2/12/2026):
+  nếu phân loại đúng thì chủ quyết định đưa vào ruleset (việc tay) và đổi sang chế độ bắt buộc ở PR riêng.
+- Tắt: biến `AUTOPILOT_ENABLED=false` hoặc xóa workflow.

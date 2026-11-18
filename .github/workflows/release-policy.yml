@@ -1,0 +1,35 @@
+name: release-policy
+
+# V5.1 M4. CHẾ ĐỘ CHỈ THÔNG TIN: tính mức rủi ro R0-R3 của PR, không chặn merge (job luôn thành công).
+# pull_request_target chạy mã từ nhánh main; KHÔNG checkout mã của PR, chỉ đọc dữ liệu PR qua API.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: legal-office-release-policy-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  release-policy:
+    name: release-policy
+    if: github.repository == 'nexagnet/legal-office' && vars.AUTOPILOT_ENABLED != 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted main (never the PR code)
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Compute risk (informational)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node scripts/release-policy.mjs
