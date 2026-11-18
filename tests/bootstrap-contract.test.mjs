@@ -310,3 +310,9 @@ describe('V5.1 M1: kill switch and ownership', () => {
     assert.match(t, /Refs #123/);
   });
 });
+
+describe('V5.1 M2: CI re-runs when a Draft PR becomes Ready', () => {
+  it('pull_request types include ready_for_review and keep the default types', () => {
+    assert.match(workflow, /types: \[opened, synchronize, reopened, ready_for_review\]/);
+  });
+});

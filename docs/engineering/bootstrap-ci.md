@@ -236,3 +236,10 @@ Lý do chấp nhận: picomatch chỉ nằm trong chuỗi công cụ build/test,
 - **PR template:** thêm dòng `Refs #N` để Reviewer tự động có thể đọc Issue liên kết.
 - **Chưa làm trong PR này:** đồng bộ pin 4 caller (cần xác minh tương thích từng workflow trung tâm, PR R3 riêng);
   nhãn `hold`, `auto:merge` (chủ tạo ở Settings).
+
+## V5.1 M2: `ready_for_review` cho CI
+
+`ci.yml` chạy thêm khi PR chuyển từ Draft sang Ready (`types: [opened, synchronize, reopened, ready_for_review]`).
+Lý do: Reviewer chỉ chạy sau CI hoàn tất; PR Draft đã xanh rồi chuyển Ready không có commit mới thì không có run CI
+mới để Reviewer bám vào. Ảnh hưởng: thêm tối đa một lượt CI mỗi lần Ready; không thêm lượt Claude nếu SHA không đổi
+vì Reviewer vẫn kiểm điều kiện riêng. Rollback: bỏ dòng `types`.
