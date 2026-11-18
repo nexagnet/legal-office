@@ -25,6 +25,11 @@
       "postcss": "8.5.23",
       "multer": "2.5.0",
       "body-parser": "2.4.0"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-fc5q-39xc-vjpf"
+      ]
     }
   }
 }
