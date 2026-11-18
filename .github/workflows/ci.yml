@@ -4,6 +4,8 @@ name: ci
 on:
   pull_request:
     branches: [main]
+    # V5.1 M2: ready_for_review để Reviewer có run CI mới khi PR Draft chuyển Ready mà không có commit mới.
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
 
