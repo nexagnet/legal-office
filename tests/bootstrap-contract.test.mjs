@@ -287,3 +287,26 @@ describe('V5.1 D1: no automatic Claude Repair (REQ-04)', () => {
     }
   });
 });
+
+describe('V5.1 M1: kill switch and ownership', () => {
+  it('Builder and Reviewer callers stop when repo variable AUTOPILOT_ENABLED is "false"', () => {
+    for (const f of ['claude-builder-caller.yml', 'claude-reviewer-caller.yml']) {
+      const text = readFileSync(new URL('../.github/workflows/' + f, import.meta.url), 'utf8');
+      assert.match(text, /vars\.AUTOPILOT_ENABLED != 'false'/, f);
+    }
+  });
+
+  it('CI is not gated by the kill switch', () => {
+    assert.doesNotMatch(workflow, /AUTOPILOT_ENABLED/);
+  });
+
+  it('CODEOWNERS covers the control plane', () => {
+    const co = readFileSync(new URL('../.github/CODEOWNERS', import.meta.url), 'utf8');
+    for (const p of ['/.github/', '/AGENTS.md', '/deploy/', '/apps/api/drizzle/']) assert.ok(co.includes(p), p);
+  });
+
+  it('PR template carries the Reviewer issue reference line', () => {
+    const t = readFileSync(new URL('../.github/pull_request_template.md', import.meta.url), 'utf8');
+    assert.match(t, /Refs #123/);
+  });
+});

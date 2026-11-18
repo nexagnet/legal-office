@@ -15,6 +15,7 @@ jobs:
   command-gate:
     if: >-
       github.repository == 'nexagnet/legal-office' &&
+      vars.AUTOPILOT_ENABLED != 'false' &&
       github.actor == 'phungtienviet14-sketch' &&
       github.event.action == 'created' &&
       github.event.sender.login == 'phungtienviet14-sketch' &&

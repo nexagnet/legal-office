@@ -225,3 +225,14 @@ Lý do chấp nhận: picomatch chỉ nằm trong chuỗi công cụ build/test,
 (chưa kiểm từng đường phụ thuộc; xem lại khi có bản vá).
 **Xem lại muộn nhất 18/12/2026**: nếu đã có bản vá thì nâng phiên bản và xóa dòng ignore; nếu chưa thì
 đánh giá lại và ghi ngày xem lại mới. Không thêm GHSA khác vào danh sách này nếu không có quyết định của chủ.
+
+## V5.1 M1: kill switch, CODEOWNERS, PR template
+
+- **Kill switch:** biến Actions của repo `AUTOPILOT_ENABLED`. Đặt `false` thì Builder và Reviewer
+  dừng (điều kiện `vars.AUTOPILOT_ENABLED != 'false'`); CI, merge tay và deploy thủ công vẫn chạy.
+  Chưa đặt biến hoặc giá trị khác `false` = bật như cũ. Biến do chủ đặt ở Settings > Secrets and variables
+  > Actions > Variables; PR không sửa được biến này.
+- **CODEOWNERS:** ghi chủ sở hữu vùng điều khiển. Chưa bật bắt buộc duyệt bởi code owner (xem lý do trong file).
+- **PR template:** thêm dòng `Refs #N` để Reviewer tự động có thể đọc Issue liên kết.
+- **Chưa làm trong PR này:** đồng bộ pin 4 caller (cần xác minh tương thích từng workflow trung tâm, PR R3 riêng);
+  nhãn `hold`, `auto:merge` (chủ tạo ở Settings).
