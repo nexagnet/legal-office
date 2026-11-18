@@ -15,7 +15,7 @@ const JOBS = ['bootstrap-verify', 'bootstrap-safety', 'app-verify', 'audit', 'db
 const REVIEW_JOBS = JOBS.filter((j) => j !== 'e2e-smoke');
 
 describe('manual sandbox negative probe caller (R3 #172)', () => {
-  const centralPin = '3a68dd94b9fd927ffd97457020a197ed0423172a';
+  const centralPin = '907fd9287a9789bfe4db9428f91140efa6b87acc';
   const readCaller = () => readFileSync(
     new URL('../.github/workflows/claude-sandbox-probe-caller.yml', import.meta.url), 'utf8',
   ).replaceAll('\r\n', '\n');
@@ -160,8 +160,8 @@ const reviewerCaller = readFileSync(
 ).replaceAll('\r\n', '\n');
 
 describe('V5 consumer callers R3 static security contract (not runtime proof)', () => {
-  const builderPinned = '3cc50ef9ae793c8e4fbb19a729ec764e1d7f1248';
-  const reviewerPinned = '128ed9e61ab4ee8c7ac604ca05a4e4511d168f10';
+  const builderPinned = '907fd9287a9789bfe4db9428f91140efa6b87acc';
+  const reviewerPinned = '907fd9287a9789bfe4db9428f91140efa6b87acc';
 
   it('pins independent immutable and reviewed central Builder/Reviewer workflow versions', () => {
     assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + builderPinned));
@@ -263,7 +263,7 @@ describe('V5 consumer callers R3 static security contract (not runtime proof)', 
     assert.doesNotMatch(reviewerCaller, /issues: write|contents: write|actions: write|id-token: write/);
     assert.doesNotMatch(reviewerCaller, /secrets: inherit|BUILDER_PUBLISHER_APP_ID|BUILDER_PUBLISHER_APP_PRIVATE_KEY/);
     assert.doesNotMatch(builderCaller, /pull-requests: write|issues: write|contents: write/);
-    assert.match(reviewerCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-reviewer\.yml@128ed9e61ab4ee8c7ac604ca05a4e4511d168f10/);
+    assert.match(reviewerCaller, /uses: nexagnet\/\.github\/\.github\/workflows\/claude-reviewer\.yml@907fd9287a9789bfe4db9428f91140efa6b87acc/);
     assert.match(builderCaller, new RegExp('claude-builder\\.yml@' + builderPinned));
     assert.doesNotMatch(reviewerCaller, /pull_request_target|workflow_dispatch|gh pr merge|gh api.*merge|deploy/);
   });

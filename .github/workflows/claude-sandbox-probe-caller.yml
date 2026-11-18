@@ -17,6 +17,6 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.actor == 'phungtienviet14-sketch' &&
       github.ref == 'refs/heads/main'
-    uses: nexagnet/.github/.github/workflows/claude-sandbox-probe.yml@3a68dd94b9fd927ffd97457020a197ed0423172a
+    uses: nexagnet/.github/.github/workflows/claude-sandbox-probe.yml@907fd9287a9789bfe4db9428f91140efa6b87acc
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
