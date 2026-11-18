@@ -316,3 +316,44 @@ describe('V5.1 M2: CI re-runs when a Draft PR becomes Ready', () => {
     assert.match(workflow, /types: \[opened, synchronize, reopened, ready_for_review\]/);
   });
 });
+
+import { classify, linkedIssue, pickRisk } from '../scripts/release-policy.mjs';
+
+describe('V5.1 M4: release-policy risk classification (informational)', () => {
+  const f = (...names) => names.map((filename) => ({ filename, additions: 5, deletions: 0 }));
+  it('docs only is R0, ordinary app code is R1', () => {
+    assert.equal(classify({ files: f('docs/a.md'), issueRisk: 'R0' }).risk, 'R0');
+    assert.equal(classify({ files: f('apps/web/src/x.tsx'), issueRisk: 'R1' }).risk, 'R1');
+  });
+  it('control plane and deploy paths are R3', () => {
+    for (const p of ['.github/workflows/ci.yml', 'AGENTS.md', 'deploy/scripts/deploy.sh', 'Dockerfile', 'apps/api/.env.example'])
+      assert.equal(classify({ files: f(p), issueRisk: 'R0' }).risk, 'R3', p);
+  });
+  it('migrations, lockfile and package.json are R2; Issue label can only raise', () => {
+    assert.equal(classify({ files: f('apps/api/drizzle/0130_x.sql'), issueRisk: 'R0' }).risk, 'R2');
+    assert.equal(classify({ files: f('pnpm-lock.yaml'), issueRisk: 'R0' }).risk, 'R2');
+    assert.equal(classify({ files: f('docs/a.md'), issueRisk: 'R2' }).risk, 'R2');
+  });
+  it('large diff raises one level and missing Issue label is flagged', () => {
+    const big = Array.from({ length: 25 }, (_, i) => ({ filename: `apps/web/src/${i}.tsx`, additions: 1, deletions: 0 }));
+    assert.equal(classify({ files: big, issueRisk: null }).risk, 'R2');
+    assert.equal(classify({ files: f('apps/web/src/x.tsx'), issueRisk: null }).issueUnknown, true);
+  });
+  it('100+ files and empty list fail closed', () => {
+    const many = Array.from({ length: 100 }, (_, i) => ({ filename: `docs/${i}.md`, additions: 1, deletions: 0 }));
+    assert.equal(classify({ files: many, issueRisk: 'R0' }).risk, 'R3');
+    assert.equal(classify({ files: [], issueRisk: 'R0' }).risk, 'UNKNOWN');
+  });
+  it('parses exactly one Issue reference and exactly one risk label', () => {
+    assert.equal(linkedIssue('Refs #12'), 12);
+    assert.equal(linkedIssue('Refs #12 và Closes #13'), null);
+    assert.equal(pickRisk([{ name: 'risk:R1' }]), 'R1');
+    assert.equal(pickRisk([{ name: 'risk:R1' }, { name: 'risk:R2' }]), null);
+  });
+  it('workflow is informational, never checks out PR code and has no write permissions', () => {
+    const w = readFileSync(new URL('../.github/workflows/release-policy.yml', import.meta.url), 'utf8');
+    assert.match(w, /pull_request_target/);
+    assert.match(w, /ref: main/);
+    assert.doesNotMatch(w, /github\.event\.pull_request\.head|contents: write|pull-requests: write|secrets\./);
+  });
+});
