@@ -1,3 +1,7 @@
+## Issue liên kết
+
+<!-- Reviewer tự động đòi đúng 1 dòng: Refs #123 (hoặc Closes #123 / Relates to #123). Bỏ trống nếu PR không qua Reviewer tự động. -->
+
 ## Tóm tắt
 
 ## Kiểm chứng

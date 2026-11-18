@@ -1,0 +1,8 @@
+# Vùng điều khiển: mọi thay đổi cần chủ dự án xem.
+# Ruleset hiện KHÔNG bật require_code_owner_review (chỉ có 1 chủ, GitHub không cho tự duyệt PR của mình).
+# File này ghi rõ chủ sở hữu và sẵn sàng khi có người thứ hai (xem docs/engineering/bootstrap-ci.md).
+/.github/            @phungtienviet14-sketch
+/AGENTS.md           @phungtienviet14-sketch
+/CLAUDE.md           @phungtienviet14-sketch
+/deploy/             @phungtienviet14-sketch
+/apps/api/drizzle/   @phungtienviet14-sketch
