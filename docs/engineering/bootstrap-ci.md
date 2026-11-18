@@ -42,7 +42,7 @@ The job log prints `expected=<sha> actual=<sha>`; reviewers must read it rather 
 
 This separate caller is scoped by [legal-office #172](https://github.com/nexagnet/legal-office/issues/172)
 and [central #32](https://github.com/nexagnet/.github/issues/32). It adds no application behavior.
-The existing Builder, Reviewer and Repair workflow pins stay unchanged.
+The existing Builder and Reviewer workflow pins stay unchanged.
 
 - Workflow: `.github/workflows/claude-sandbox-probe-caller.yml`, display name
   `Nexagnet V5 Legal Office Sandbox Probe (manual)`.
@@ -202,3 +202,17 @@ Only report an authentication failure when the trusted output establishes it.
 Do not enable full Claude output or log credentials. Use the central runbook for
 manual recovery of a stranded claim after the holder is confirmed terminal and
 its branch has no pull request.
+
+## V5.1 D1: automatic Repair removed
+
+`claude-repair-caller.yml` was deleted: Claude must not auto-fix after a Reviewer
+`REQUEST_CHANGES` or a CI failure (design V5.1, REQ-04). A `REQUEST_CHANGES` result is
+now only a PR comment; the owner decides the next step. A repair on demand, if wanted
+later, needs its own R3 task with an owner-issued command. Rollback: restore the file
+from git history (last pin `3bedc42906b1417e5468bae890aae87c40ef8208`); do not restore it
+while Reviewer and Repair would both react to the same run.
+
+Credential: Claude runs in CI on the owner's Claude Pro OAuth token
+(`CLAUDE_CODE_OAUTH_TOKEN`). It has a usage limit. On a 429 or limit error the review is
+INCONCLUSIVE, nothing is merged, and nothing is retried automatically; the owner re-runs
+CI by hand after the limit resets.
