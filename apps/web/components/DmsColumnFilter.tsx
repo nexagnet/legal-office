@@ -176,8 +176,7 @@ export function DmsColumnFilter({
                   ) : null}
                   {f.type === 'date' ? (
                     <p className="muted m-0 text-xs">
-                      Lọc theo ngày ghi trong cột này, khác với “Thời gian ghi sổ” ở thanh lọc phía
-                      trên.
+                      Lọc theo ngày do người nhập ghi trong cột này.
                     </p>
                   ) : null}
                   {f.type === 'date' ? (

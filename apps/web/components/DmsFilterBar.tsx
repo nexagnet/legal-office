@@ -176,10 +176,7 @@ export function DmsFilterFields({
         </summary>
         <div className="dms-pop-body" role="group" aria-label="Thời gian ghi sổ">
           <p className="dms-pop-sub">Thời gian ghi sổ (giờ Việt Nam)</p>
-          <p className="dms-pop-sub text-xs">
-            Lọc theo lúc hồ sơ được ghi sổ. Muốn lọc theo ngày ghi trong một cột (ví dụ ngày vi
-            bằng), bấm biểu tượng phễu ở tiêu đề cột.
-          </p>
+          <p className="dms-pop-sub text-xs">Lọc theo ngày giờ hệ thống ghi nhận hồ sơ vào sổ.</p>
           <fieldset className="dms-period">
             <legend className="sr-only">Mốc nhanh</legend>
             <label>
