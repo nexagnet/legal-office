@@ -105,7 +105,7 @@ class FakeS3 extends LocalFileStore implements DirectTransferStore {
   presignGet(key: string): Promise<string> {
     return Promise.resolve(`http://127.0.0.1:${this.port}/get?key=${encodeURIComponent(key)}`);
   }
-  async head(key: string): Promise<{ size: number } | null> {
+  override async head(key: string): Promise<{ size: number } | null> {
     const b = await this.get(key);
     return b ? { size: b.length } : null;
   }
