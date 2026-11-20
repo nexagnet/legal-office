@@ -1,6 +1,9 @@
-import { randomBytes } from 'node:crypto';
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { createHash, randomBytes } from 'node:crypto';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { link, mkdir, open, readFile, rename, rm, stat, statfs, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
+import { Transform, type Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -18,6 +21,36 @@ export interface FileStore {
 }
 
 export const FILE_STORE = Symbol('FILE_STORE');
+
+/** Lỗi nghiệp vụ của kho tải theo luồng (API đổi sang mã HTTP tương ứng). */
+export type StreamStoreErrorCode = 'EXISTS' | 'SIZE_MISMATCH' | 'HASH_MISMATCH' | 'DISK_FULL';
+export class StreamStoreError extends Error {
+  constructor(readonly code: StreamStoreErrorCode) {
+    super(code);
+  }
+}
+
+/**
+ * Kho tải lên/xuống QUA API theo luồng (không đọc cả tệp vào RAM), dành cho bản lưu trên ổ đĩa (không có liên kết ký sẵn như R2).
+ * `putStream` KHÔNG BAO GIỜ ghi đè khoá đã có (thay cho Bucket Lock): ném EXISTS.
+ */
+export interface StreamTransferStore extends FileStore {
+  head(key: string): Promise<{ size: number } | null>;
+  putStream(
+    key: string,
+    source: Readable,
+    opts: { sha256Hex: string; size: number },
+  ): Promise<void>;
+  getStream(key: string): Promise<{ stream: Readable; size: number } | null>;
+}
+
+export function isStreamTransferStore(store: FileStore | null): store is StreamTransferStore {
+  return (
+    store !== null &&
+    typeof (store as Partial<StreamTransferStore>).putStream === 'function' &&
+    typeof (store as Partial<StreamTransferStore>).getStream === 'function'
+  );
+}
 
 /** Liên kết tải lên có thời hạn: client gửi PUT thẳng tới kho với đúng các header này. */
 export interface PresignedUpload {
@@ -58,9 +91,13 @@ function assertSafeKey(key: string): void {
 }
 
 /** Lưu trên đĩa: dùng cho dev/test, hoặc triển khai nhỏ có ổ đĩa bền. */
-export class LocalFileStore implements FileStore {
+export class LocalFileStore implements StreamTransferStore {
   private readonly root: string;
-  constructor(root: string) {
+  /** `minFreeFraction`: ổ trống dưới mức này thì từ chối nhận tệp mới (0 = không kiểm). */
+  constructor(
+    root: string,
+    private readonly minFreeFraction = 0,
+  ) {
     this.root = resolve(root);
   }
 
@@ -91,6 +128,76 @@ export class LocalFileStore implements FileStore {
 
   async delete(key: string): Promise<void> {
     await rm(this.path(key), { force: true });
+  }
+
+  async head(key: string): Promise<{ size: number } | null> {
+    try {
+      const st = await stat(this.path(key));
+      return st.isFile() ? { size: st.size } : null;
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw e;
+    }
+  }
+
+  async getStream(key: string): Promise<{ stream: Readable; size: number } | null> {
+    const h = await this.head(key);
+    return h ? { stream: createReadStream(this.path(key)), size: h.size } : null;
+  }
+
+  /** Ổ trống dưới ngưỡng thì từ chối (chừa chỗ cho DB, nhật ký, OCR). */
+  private async assertFreeSpace(): Promise<void> {
+    if (this.minFreeFraction <= 0) return;
+    await mkdir(this.root, { recursive: true });
+    const fs = await statfs(this.root);
+    if (fs.blocks > 0 && fs.bavail / fs.blocks < this.minFreeFraction)
+      throw new StreamStoreError('DISK_FULL');
+  }
+
+  /**
+   * Ghi theo luồng vào tệp tạm, đếm byte và băm sha256 khi nhận; chỉ khi ĐÚNG kích thước và sha256 mới đưa vào khoá thật,
+   * bằng `link` (nguyên tử, lỗi nếu khoá đã tồn tại) nên không bao giờ ghi đè tệp cũ.
+   */
+  async putStream(
+    key: string,
+    source: Readable,
+    opts: { sha256Hex: string; size: number },
+  ): Promise<void> {
+    const full = this.path(key);
+    if (await this.head(key)) throw new StreamStoreError('EXISTS');
+    await this.assertFreeSpace();
+    await mkdir(dirname(full), { recursive: true });
+    const tmp = join(dirname(full), `.${randomBytes(6).toString('hex')}.tmp`);
+    const hash = createHash('sha256');
+    let received = 0;
+    const meter = new Transform({
+      transform(chunk: Buffer, _enc, cb) {
+        received += chunk.length;
+        if (received > opts.size) return cb(new StreamStoreError('SIZE_MISMATCH'));
+        hash.update(chunk);
+        cb(null, chunk);
+      },
+    });
+    try {
+      await pipeline(source, meter, createWriteStream(tmp, { flags: 'wx' }));
+      if (received !== opts.size) throw new StreamStoreError('SIZE_MISMATCH');
+      if (hash.digest('hex') !== opts.sha256Hex.toLowerCase())
+        throw new StreamStoreError('HASH_MISMATCH');
+      const fh = await open(tmp, 'r+');
+      try {
+        await fh.sync();
+      } finally {
+        await fh.close();
+      }
+      try {
+        await link(tmp, full);
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === 'EEXIST') throw new StreamStoreError('EXISTS');
+        throw e;
+      }
+    } finally {
+      await rm(tmp, { force: true });
+    }
   }
 }
 
@@ -213,7 +320,11 @@ export function fileStoreFromEnv(env: Env = process.env): FileStore | null {
   if (!kind) return null;
   if (kind === 'local') {
     if (!env.FILE_STORE_DIR) throw new Error('FILE_STORE_DIR is required when FILE_STORE=local');
-    return new LocalFileStore(env.FILE_STORE_DIR);
+    // FILE_STORE_MIN_FREE_PERCENT: ổ trống dưới mức này (mặc định 10%) thì từ chối tệp mới; 0 = tắt.
+    const pct = Number(env.FILE_STORE_MIN_FREE_PERCENT ?? '10');
+    if (!Number.isFinite(pct) || pct < 0 || pct >= 100)
+      throw new Error('FILE_STORE_MIN_FREE_PERCENT must be in [0, 100)');
+    return new LocalFileStore(env.FILE_STORE_DIR, pct / 100);
   }
   if (kind === 'r2') {
     const need = [
