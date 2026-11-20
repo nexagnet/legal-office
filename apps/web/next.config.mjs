@@ -6,6 +6,9 @@ const nextConfig = {
   reactStrictMode: true,
   // Trình duyệt chỉ nói chuyện với web (cùng origin) nên cookie phiên SameSite=Strict hoạt động.
   poweredByHeader: false,
+  // Bản lưu tệp trên ổ đĩa: trình duyệt PUT tệp (tới 200MB) qua /api; mặc định Next cắt yêu cầu proxy sau 30 giây.
+  // Trên production, Caddy đưa đường tải tệp thẳng tới API nên không đi qua đây.
+  experimental: { proxyTimeout: 15 * 60 * 1000 },
   async headers() {
     return [
       {
