@@ -3,6 +3,7 @@ import NextTopLoader from 'nextjs-toploader';
 import type { ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
 import { AppToaster } from '../components/AppToaster';
+import { FaviconSync } from '../components/FaviconSync';
 import { ForcePasswordChange } from '../components/ForcePasswordChange';
 import '@fontsource/be-vietnam-pro/400.css';
 import '@fontsource/be-vietnam-pro/500.css';
@@ -39,12 +40,12 @@ export async function generateMetadata(): Promise<Metadata> {
     ...BASE_METADATA,
     icons: {
       icon: [
-        { url: '/favicon.ico', sizes: 'any' },
-        { url: '/icon.svg', type: 'image/svg+xml' },
-        { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+        { url: '/favicon.ico?v=2', sizes: 'any' },
+        { url: '/icon.svg?v=2', type: 'image/svg+xml' },
+        { url: '/favicon-16x16.png?v=2', sizes: '16x16', type: 'image/png' },
+        { url: '/favicon-32x32.png?v=2', sizes: '32x32', type: 'image/png' },
       ],
-      apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+      apple: [{ url: '/apple-touch-icon.png?v=2', sizes: '180x180', type: 'image/png' }],
     },
   };
 }
@@ -108,6 +109,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         >
           {children}
         </AppShell>
+        <FaviconSync
+          officeId={session.status === 'authenticated' ? (session.logo?.officeId ?? null) : null}
+          version={session.status === 'authenticated' ? (session.logo?.version ?? null) : null}
+        />
         <AppToaster />
       </body>
     </html>
