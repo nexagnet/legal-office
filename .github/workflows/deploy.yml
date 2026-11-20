@@ -3,11 +3,13 @@ name: deploy
 # CD của Legal Office: triển khai THỦ CÔNG, không tự chạy khi push. Mô tả đầy đủ ở docs/engineering/cd-quy-trinh.md.
 #
 #   Bấm "Run workflow" trên nhánh main, chọn môi trường:
-#   - dev        : máy thử (hiện là server Tencent 2GB). Không cần ai duyệt.
-#   - production : máy thật của khách. Environment `production` bắt buộc người duyệt, chỉ nhận nhánh main.
+#   - dev        : server Tencent 2vCPU/2GB, kho tệp R2 hoặc đĩa tuỳ .env trên máy. Không cần ai duyệt.
+#   - production : server Mắt Bão (ổ 100GB, FILE_STORE=local). Environment `production` bắt buộc người duyệt, chỉ nhận nhánh main.
 #
 # Thứ tự: kiểm `ci` xanh đúng commit -> build 3 image, đẩy GHCR -> SSH vào server chạy deploy.sh (tự quay lại bản cũ nếu /health lỗi).
-# Bí mật DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS: đặt ở Environment tương ứng (ưu tiên) hoặc ở repo (dùng chung).
+# Bí mật DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS: đặt RIÊNG ở từng Environment (dev, production), không đặt ở cấp repo.
+# Biến tuỳ chọn của Environment: HEALTH_URL (địa chỉ công khai, vd https://.../api/health) để kiểm thêm từ bên ngoài sau deploy.
+# Khác biệt cấu hình giữa hai server (FILE_STORE, thư mục tệp, tên miền...) nằm trong /opt/legal-office/.env trên từng máy, không nằm trong workflow.
 # Dev trên Northflank vẫn tự deploy từ main ngoài GitHub, không đi qua workflow này.
 on:
   workflow_dispatch:
@@ -85,6 +87,18 @@ jobs:
           docker push "$IMAGE_REGISTRY/legal-office-api:$TAG"
           docker push "$IMAGE_REGISTRY/legal-office-web:$TAG"
           docker push "$IMAGE_REGISTRY/legal-office-ocr:$TAG"
+      - name: Kiểm đã đặt đủ bí mật của Environment ${{ inputs.target }}
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          missing=0
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS; do
+            if [ -z "${!v}" ]; then echo "::error::Thiếu bí mật $v của Environment ${{ inputs.target }}"; missing=1; fi
+          done
+          exit $missing
       - name: Prepare SSH
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -110,6 +124,12 @@ jobs:
           # Token tạm của job được dùng để pull rồi đăng xuất, không lưu lại trên server.
           printf '%s' "$GHCR_TOKEN" | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" \
             "docker login ghcr.io -u '$GHCR_USER' --password-stdin >/dev/null && (IMAGE_REGISTRY='$IMAGE_REGISTRY' /opt/legal-office/deploy/scripts/deploy.sh '$TAG'; rc=\$?; docker logout ghcr.io >/dev/null 2>&1; exit \$rc)"
+      - name: Kiểm sức khoẻ từ bên ngoài (nếu Environment có HEALTH_URL)
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then echo "Không đặt HEALTH_URL, bỏ qua (deploy.sh đã kiểm /health trên server)."; exit 0; fi
+          curl -fsS --retry 6 --retry-delay 10 --retry-connrefused -m 15 "$HEALTH_URL" >/dev/null && echo "HEALTH_URL OK"
       - name: Tóm tắt lần chạy
         if: always()
         run: |
@@ -119,6 +139,8 @@ jobs:
             echo "- Commit: \`${{ github.sha }}\`"
             echo "- Image: \`$IMAGE_REGISTRY/legal-office-{api,web,ocr}:$TAG\`"
             echo "- Người bấm: ${{ github.actor }}"
+            echo "- Server: $([ '${{ inputs.target }}' = production ] && echo 'production (Mắt Bão)' || echo 'dev (Tencent)')"
+            echo "- Kiểm sức khoẻ ngoài: $([ -n '${{ vars.HEALTH_URL }}' ] && echo 'có (HEALTH_URL)' || echo 'không đặt')"
             echo "- Kết quả bước cuối: ${{ job.status }}"
             echo "- Quay lại bản cũ: SSH vào server, chạy \`/opt/legal-office/deploy/scripts/deploy.sh \$(cat /opt/legal-office/.previous-tag)\`"
           } >> "$GITHUB_STEP_SUMMARY"
