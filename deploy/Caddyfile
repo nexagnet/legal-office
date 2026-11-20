@@ -4,10 +4,31 @@
 {$SITE_ADDRESS::80} {
 	encode zstd gzip
 
-	reverse_proxy 127.0.0.1:3000 {
-		# API đã có rate limit theo IP; Caddy đặt X-Forwarded-For nên TRUST_PROXY=1 ở API là đúng.
-		health_uri /
-		health_interval 30s
+	# Bản lưu tệp trên ổ đĩa: trình duyệt PUT tệp tới 200MB. Đưa thẳng tới API (không qua Next, tránh giữ tệp trong RAM 384MB
+	# và giới hạn thời gian chờ). Bản R2 không dùng đường này (trình duyệt PUT thẳng lên R2), để yên cũng vô hại.
+	@legacyput {
+		method PUT
+		path_regexp ^/api/dms/legacy/batches/[0-9a-fA-F-]{36}/files/content$
+	}
+	handle @legacyput {
+		uri strip_prefix /api
+		request_body {
+			max_size 210MB
+		}
+		reverse_proxy 127.0.0.1:3001 {
+			transport http {
+				read_timeout 15m
+				write_timeout 15m
+			}
+		}
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3000 {
+			# API đã có rate limit theo IP; Caddy đặt X-Forwarded-For nên TRUST_PROXY=1 ở API là đúng.
+			health_uri /
+			health_interval 30s
+		}
 	}
 
 	header {

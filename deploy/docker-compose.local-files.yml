@@ -1,0 +1,18 @@
+# Lớp phủ cho bản lưu tệp TRÊN Ổ ĐĨA (không R2). deploy.sh tự thêm tệp này khi .env có FILE_STORE=local:
+#   docker compose --env-file /opt/legal-office/.env -f deploy/docker-compose.yml -f deploy/docker-compose.local-files.yml up -d
+# Thư mục tệp trên máy chủ (mặc định /srv/legal-office/files) phải có sẵn và thuộc uid 1000 (user `node` trong container):
+#   sudo install -d -o 1000 -g 1000 -m 750 /srv/legal-office/files
+# api ghi, ocr đọc: cả hai gắn CÙNG một thư mục. Bản này KHÔNG có bản sao tệp ngoài máy chủ (quyết định của chủ dự án).
+services:
+  api:
+    environment:
+      FILE_STORE: local
+      FILE_STORE_DIR: /data/files
+    volumes:
+      - ${FILE_STORE_HOST_DIR:-/srv/legal-office/files}:/data/files
+  ocr:
+    environment:
+      FILE_STORE: local
+      FILE_STORE_DIR: /data/files
+    volumes:
+      - ${FILE_STORE_HOST_DIR:-/srv/legal-office/files}:/data/files:ro
