@@ -1,15 +1,24 @@
 name: deploy
 
-# CD của Legal Office: triển khai THỦ CÔNG, không tự chạy khi push. Mô tả đầy đủ ở docs/engineering/cd-quy-trinh.md.
+# CD của Legal Office. Mô tả đầy đủ ở docs/engineering/cd-quy-trinh.md.
 #
-#   Bấm "Run workflow" trên nhánh main, chọn môi trường:
-#   - dev        : máy thử (hiện là server Tencent 2GB). Không cần ai duyệt.
-#   - production : máy thật của khách. Environment `production` bắt buộc người duyệt, chỉ nhận nhánh main.
+#   dev        (server Tencent 2vCPU/2GB): TỰ ĐỘNG deploy khi `ci` xanh trên main (workflow_run, đúng commit đã qua ci),
+#                                         hoặc bấm tay Run workflow > dev để chạy lại. Không cần ai duyệt.
+#   production (server Mắt Bão, ổ 100GB, FILE_STORE=local): KHÔNG BAO GIỜ TỰ DEPLOY. Chỉ chủ dự án vào
+#                                         Actions > deploy > Run workflow, chọn production, rồi duyệt Environment `production` (chỉ nhánh main).
 #
-# Thứ tự: kiểm `ci` xanh đúng commit -> build 3 image, đẩy GHCR -> SSH vào server chạy deploy.sh (tự quay lại bản cũ nếu /health lỗi).
-# Bí mật DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS: đặt ở Environment tương ứng (ưu tiên) hoặc ở repo (dùng chung).
+# production chỉ đi qua workflow_dispatch: không được thêm push, pull_request, schedule hay workflow_run cho production.
+# Thứ tự: kiểm `ci` xanh đúng commit -> kiểm máy đủ chỗ -> build 3 image, đẩy GHCR -> SSH chạy deploy.sh
+#         (tự quay lại bản cũ nếu /health lỗi) -> kiểm sức khoẻ từ ngoài (nếu có HEALTH_URL) -> tóm tắt run.
+# Bí mật DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS: đặt RIÊNG ở từng Environment (dev, production), không đặt ở cấp repo.
+# Biến tuỳ chọn của Environment: HEALTH_URL (địa chỉ công khai, vd https://.../api/health).
+# Khác biệt cấu hình giữa hai server (FILE_STORE, thư mục tệp, tên miền...) nằm trong /opt/legal-office/.env trên từng máy, không nằm trong workflow.
 # Dev trên Northflank vẫn tự deploy từ main ngoài GitHub, không đi qua workflow này.
 on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       target:
@@ -24,8 +33,10 @@ permissions:
   packages: write
   checks: read
 
+# Mỗi môi trường một hàng đợi. Không huỷ lần đang chạy (huỷ giữa chừng khi đang khởi động lại API là nguy hiểm);
+# nhiều merge liên tiếp thì chỉ giữ lần chờ MỚI NHẤT, các lần chờ cũ bị bỏ (gộp).
 concurrency:
-  group: legal-office-deploy-${{ inputs.target }}
+  group: legal-office-deploy-${{ inputs.target || 'dev' }}
   cancel-in-progress: false
 
 jobs:
@@ -35,13 +46,17 @@ jobs:
     name: kiem-tra-ci-xanh
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    if: github.ref == 'refs/heads/main'
+    # Tự động: chỉ khi ci (push vào main) thành công. Bấm tay: chỉ từ nhánh main.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main')
     steps:
-      - name: Yêu cầu các check bắt buộc đã thành công trên ${{ github.sha }}
+      - name: Yêu cầu các check bắt buộc đã thành công trên ${{ github.event.workflow_run.head_sha || github.sha }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
           required="bootstrap-verify bootstrap-safety app-verify audit db-integration"
           runs="$(gh api "repos/$REPO/commits/$SHA/check-runs?per_page=100" --jq '.check_runs[] | "\(.name) \(.conclusion)"')"
@@ -57,20 +72,22 @@ jobs:
 
   # Bước 2: build, đẩy GHCR, cập nhật server. Môi trường production dừng ở đây chờ người duyệt.
   deploy:
-    name: build-push-deploy (${{ inputs.target }})
+    name: build-push-deploy (${{ inputs.target || 'dev' }})
     needs: verify-ci
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
-      name: ${{ inputs.target }}
+      name: ${{ inputs.target || 'dev' }}
     env:
+      TARGET: ${{ inputs.target || 'dev' }}
       IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
-      TAG: ${{ github.sha }}
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Checkout without persisted token
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
       - name: Login to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
@@ -85,6 +102,18 @@ jobs:
           docker push "$IMAGE_REGISTRY/legal-office-api:$TAG"
           docker push "$IMAGE_REGISTRY/legal-office-web:$TAG"
           docker push "$IMAGE_REGISTRY/legal-office-ocr:$TAG"
+      - name: Kiểm đã đặt đủ bí mật của Environment ${{ inputs.target || 'dev' }}
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          missing=0
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS; do
+            if [ -z "${!v}" ]; then echo "::error::Thiếu bí mật $v của Environment $TARGET"; missing=1; fi
+          done
+          exit $missing
       - name: Prepare SSH
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -93,6 +122,15 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Kiểm máy đủ chỗ trống (chưa đụng bản đang chạy)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          # Mỗi tag ~2,8GB; cần chỗ cho tag mới trong khi giữ tag hiện tại và tag trước. Thiếu chỗ thì dừng, bản đang chạy giữ nguyên.
+          avail_gb="$(ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" "df -BG --output=avail /var/lib/docker 2>/dev/null | tail -1 | tr -dc 0-9")"
+          echo "Còn trống: ${avail_gb:-?}GB"
+          if [ -z "$avail_gb" ] || [ "$avail_gb" -lt 6 ]; then echo "::error::Ổ đĩa còn dưới 6GB (hoặc không đọc được); dừng trước khi deploy. Dọn ổ rồi chạy lại."; exit 1; fi
       - name: Copy deploy files
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -110,15 +148,23 @@ jobs:
           # Token tạm của job được dùng để pull rồi đăng xuất, không lưu lại trên server.
           printf '%s' "$GHCR_TOKEN" | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" \
             "docker login ghcr.io -u '$GHCR_USER' --password-stdin >/dev/null && (IMAGE_REGISTRY='$IMAGE_REGISTRY' /opt/legal-office/deploy/scripts/deploy.sh '$TAG'; rc=\$?; docker logout ghcr.io >/dev/null 2>&1; exit \$rc)"
+      - name: Kiểm sức khoẻ từ bên ngoài (nếu Environment có HEALTH_URL)
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then echo "Không đặt HEALTH_URL, bỏ qua (deploy.sh đã kiểm /health trên server)."; exit 0; fi
+          curl -fsS --retry 6 --retry-delay 10 --retry-connrefused -m 15 "$HEALTH_URL" >/dev/null && echo "HEALTH_URL OK"
       - name: Tóm tắt lần chạy
         if: always()
         run: |
           {
-            echo "## Deploy ${{ inputs.target }}"
-            echo "- Môi trường: **${{ inputs.target }}**"
-            echo "- Commit: \`${{ github.sha }}\`"
+            echo "## Deploy $TARGET"
+            echo "- Môi trường: **$TARGET** (${{ github.event_name == 'workflow_run' && 'tự động sau ci xanh' || 'bấm tay' }})"
+            echo "- Commit: \`$SHA\`"
             echo "- Image: \`$IMAGE_REGISTRY/legal-office-{api,web,ocr}:$TAG\`"
-            echo "- Người bấm: ${{ github.actor }}"
-            echo "- Kết quả bước cuối: ${{ job.status }}"
+            echo "- Người kích hoạt: ${{ github.actor }}"
+            echo "- Server: $([ "$TARGET" = production ] && echo 'production (Mắt Bão)' || echo 'dev (Tencent)')"
+            echo "- Kiểm sức khoẻ ngoài: $([ -n '${{ vars.HEALTH_URL }}' ] && echo 'có (HEALTH_URL)' || echo 'không đặt')"
+            echo "- Kết quả: ${{ job.status }}. Nếu lỗi, deploy.sh đã tự chạy lại bản cũ (xem log bước 'Pull and restart on server'); production không bị ảnh hưởng."
             echo "- Quay lại bản cũ: SSH vào server, chạy \`/opt/legal-office/deploy/scripts/deploy.sh \$(cat /opt/legal-office/.previous-tag)\`"
           } >> "$GITHUB_STEP_SUMMARY"
