@@ -443,7 +443,11 @@ export class DmsBrowseController {
         b.officeId,
         b.domain,
         b.name,
-        JSON.stringify(b.params),
+        // `cols` đã bị lược đồ đọc thành đối tượng; lưu lại đúng dạng chuỗi JSON như web gửi, để mở lại bộ lọc đọc được.
+        JSON.stringify({
+          ...b.params,
+          ...(b.params.cols ? { cols: JSON.stringify(b.params.cols) } : {}),
+        }),
       ])
       .then(respond);
   }
