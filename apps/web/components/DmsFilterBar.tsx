@@ -172,10 +172,11 @@ export function DmsFilterFields({
       ) : null}
       <details name="dms-filter-pop" className="dms-pop" data-active={timeActive || undefined}>
         <summary>
-          <span>Thời gian: {timeText}</span>
+          <span>Thời gian ghi sổ: {timeText}</span>
         </summary>
         <div className="dms-pop-body" role="group" aria-label="Thời gian ghi sổ">
           <p className="dms-pop-sub">Thời gian ghi sổ (giờ Việt Nam)</p>
+          <p className="dms-pop-sub text-xs">Lọc theo ngày giờ hệ thống ghi nhận hồ sơ vào sổ.</p>
           <fieldset className="dms-period">
             <legend className="sr-only">Mốc nhanh</legend>
             <label>

@@ -170,6 +170,14 @@ const asBool = (x: unknown): boolean | undefined =>
       ? false
       : undefined;
 
+/** `cols` lưu dạng chuỗi JSON; bản cũ của máy chủ lưu thành đối tượng (do lược đồ biến chuỗi thành đối tượng trước khi ghi DB). */
+const asCols = (x: unknown): ColFilters | undefined =>
+  typeof x === 'string'
+    ? parseCols(x)
+    : typeof x === 'object' && x !== null && !Array.isArray(x)
+      ? parseCols(JSON.stringify(x))
+      : undefined;
+
 /** Tham số lưu -> đường dẫn trang danh sách (`base` + chuỗi truy vấn). Hiểu cả giá trị cũ (chưa có thv/open/returned/ky). */
 export function savedParamsToHref(base: string, p: DmsSavedParams): string {
   let loc: DmsFilter = 'chinh-thuc';
@@ -190,7 +198,7 @@ export function savedParamsToHref(base: string, p: DmsSavedParams): string {
     overdue: asBool(p.overdue),
     fa: typeof p.fa === 'string' ? p.fa : undefined,
     fb: typeof p.fb === 'string' ? p.fb : undefined,
-    cols: typeof p.cols === 'string' ? parseCols(p.cols) : undefined,
+    cols: asCols(p.cols),
     ky: asText(p.ky),
     tu: asText(p.tu),
     den: asText(p.den),
