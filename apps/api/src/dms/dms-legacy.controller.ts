@@ -9,7 +9,9 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
+  Req,
   Res,
   StreamableFile,
   UseGuards,
@@ -17,10 +19,23 @@ import {
 import { z } from 'zod';
 import type { AuthenticatedActor } from '../http/actor';
 import { ActorGuard, CurrentActor } from '../http/actor.guard';
-import { FILE_STORE, isDirectTransferStore, type FileStore } from '../storage/file-store';
+import type { Readable } from 'node:stream';
+import {
+  FILE_STORE,
+  isDirectTransferStore,
+  isStreamTransferStore,
+  StreamStoreError,
+  type FileStore,
+} from '../storage/file-store';
 import { VibangRepo } from '../vibang/vibang.repo';
 import { parse, respond, uuid } from './dms-http';
-import { LEGACY_MAX_BYTES, legacyObjectKey, legacyOcrEnabled, legacySearchEnabled } from './legacy';
+import {
+  LEGACY_LOCAL_MAX_BYTES,
+  LEGACY_MAX_BYTES,
+  legacyObjectKey,
+  legacyOcrEnabled,
+  legacySearchEnabled,
+} from './legacy';
 import { searchTerms, snippetAround, toTsQuery } from '../ocr/text';
 
 const MIME = /^[a-z0-9][a-z0-9!#$&^_.+-]{0,60}\/[a-z0-9][a-z0-9!#$&^_.+-]{0,60}$/i;
@@ -66,7 +81,7 @@ const fail = (status: HttpStatus, code: string): never => {
  * Nhập hàng loạt TÀI LIỆU CŨ (chỉ lưu tệp + đánh dấu "tài liệu cũ", không tạo hồ sơ nghiệp vụ). Quyền do DB quyết định theo
  * Nhóm quyền (dms.legacy.import / dms.legacy.read). Tệp không đi qua API: client xin liên kết tải lên có thời hạn, tải thẳng
  * lên kho (kho tự kiểm tra sha256 và kích thước), rồi gọi `complete` để API kiểm tra tệp đã tới nơi và đăng ký bản ghi.
- * Cố ý KHÔNG có DELETE/PUT: bản ghi và tệp tài liệu cũ không xoá, không ghi đè, không sửa.
+ * Cố ý KHÔNG có DELETE, và PUT chỉ để tạo tệp mới (kho đĩa; không ghi đè): bản ghi và tệp tài liệu cũ không xoá, không ghi đè, không sửa.
  */
 @Controller('dms/legacy')
 @UseGuards(ActorGuard)
@@ -167,13 +182,26 @@ export class DmsLegacyController {
     }
 
     if (!this.store) return fail(HttpStatus.SERVICE_UNAVAILABLE, 'FILE_STORE_NOT_CONFIGURED');
-    if (!isDirectTransferStore(this.store))
+    const direct = isDirectTransferStore(this.store);
+    if (!direct && !isStreamTransferStore(this.store))
       return fail(HttpStatus.NOT_IMPLEMENTED, 'DIRECT_UPLOAD_NOT_SUPPORTED');
-    if (f.size > LEGACY_MAX_BYTES) return fail(HttpStatus.PAYLOAD_TOO_LARGE, 'FILE_TOO_LARGE');
+    if (f.size > (direct ? LEGACY_MAX_BYTES : LEGACY_LOCAL_MAX_BYTES))
+      return fail(HttpStatus.PAYLOAD_TOO_LARGE, 'FILE_TOO_LARGE');
     // Khóa đã có đúng kích thước (lần nhập trước đã PUT xong nhưng chưa đăng ký): không cấp liên kết PUT nữa,
     // vì kho có Bucket Lock sẽ từ chối ghi đè (409). Client gọi thẳng `complete`.
     const existing = await this.store.head(key);
     if (existing && existing.size === f.size) return { status: 'UPLOADED', deduplicated: false };
+    if (!isDirectTransferStore(this.store)) {
+      // Kho đĩa: không có liên kết ký sẵn, client PUT nội dung tới chính API (cùng origin, cùng cookie phiên).
+      const q = new URLSearchParams({ sha256: f.sha256, size: String(f.size) });
+      return {
+        status: 'UPLOAD',
+        deduplicated: false,
+        url: `/api/dms/legacy/batches/${id}/files/content?${q.toString()}`,
+        headers: { 'content-type': 'application/octet-stream' },
+        expiresAt: new Date(Date.now() + UPLOAD_TTL_SECONDS * 1000).toISOString(),
+      };
+    }
     const up = await this.store.presignPut(key, {
       sha256Hex: f.sha256,
       size: f.size,
@@ -200,7 +228,7 @@ export class DmsLegacyController {
     const b = await this.batch(a, id);
     if (b.status !== 'OPEN') return fail(HttpStatus.CONFLICT, 'BATCH_CLOSED');
     if (!this.store) return fail(HttpStatus.SERVICE_UNAVAILABLE, 'FILE_STORE_NOT_CONFIGURED');
-    if (!isDirectTransferStore(this.store))
+    if (!isDirectTransferStore(this.store) && !isStreamTransferStore(this.store))
       return fail(HttpStatus.NOT_IMPLEMENTED, 'DIRECT_UPLOAD_NOT_SUPPORTED');
     const key = legacyObjectKey(a.tenantId, b.office_id, f.sha256);
     const head = await this.store.head(key);
@@ -208,6 +236,54 @@ export class DmsLegacyController {
     if (head.size !== f.size) return fail(HttpStatus.UNPROCESSABLE_ENTITY, 'UPLOAD_SIZE_MISMATCH');
     const r = await this.register(a, id, f, key).then(respond);
     return { status: 'REGISTERED', fileId: r.label ?? null, code: r.code };
+  }
+
+  /**
+   * Bước 2 của kho ĐĨA (thay cho PUT tới R2): nhận nội dung tệp theo luồng, kiểm đúng kích thước và sha256 khi nhận, ghi vào khoá
+   * `legacyObjectKey`. Không bao giờ ghi đè: khoá đã có thì 409. Cần quyền nhập tài liệu cũ vào đợt đang mở.
+   */
+  @Put('batches/:id/files/content')
+  async content(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: unknown,
+    @Req() req: Readable & { headers: Record<string, string | string[] | undefined> },
+  ) {
+    const q = parse(
+      z.object({ sha256: z.string().regex(SHA256), size: z.coerce.number().int().min(0) }).strict(),
+      query,
+    );
+    const store = this.store;
+    if (!store) return fail(HttpStatus.SERVICE_UNAVAILABLE, 'FILE_STORE_NOT_CONFIGURED');
+    if (isDirectTransferStore(store) || !isStreamTransferStore(store))
+      return fail(HttpStatus.NOT_IMPLEMENTED, 'DIRECT_UPLOAD_NOT_SUPPORTED');
+    if (q.size > LEGACY_LOCAL_MAX_BYTES)
+      return fail(HttpStatus.PAYLOAD_TOO_LARGE, 'FILE_TOO_LARGE');
+    const b = await this.batch(a, id);
+    if (b.status !== 'OPEN') return fail(HttpStatus.CONFLICT, 'BATCH_CLOSED');
+    const can = await this.repo.rows<{ ok: boolean }>(a.tenantId, 'dms_legacy_can_import', [
+      a.tenantId,
+      a.userId,
+      id,
+    ]);
+    if (!can[0]?.ok) return fail(HttpStatus.FORBIDDEN, 'PERMISSION_DENIED');
+    if (Number(req.headers['content-length']) !== q.size)
+      return fail(HttpStatus.UNPROCESSABLE_ENTITY, 'UPLOAD_SIZE_MISMATCH');
+    const key = legacyObjectKey(a.tenantId, b.office_id, q.sha256);
+    try {
+      await store.putStream(key, req, { sha256Hex: q.sha256, size: q.size });
+    } catch (e) {
+      if (!(e instanceof StreamStoreError)) throw e;
+      const map = {
+        EXISTS: [HttpStatus.CONFLICT, 'OBJECT_EXISTS'],
+        SIZE_MISMATCH: [HttpStatus.UNPROCESSABLE_ENTITY, 'UPLOAD_SIZE_MISMATCH'],
+        HASH_MISMATCH: [HttpStatus.UNPROCESSABLE_ENTITY, 'UPLOAD_HASH_MISMATCH'],
+        DISK_FULL: [HttpStatus.INSUFFICIENT_STORAGE, 'STORAGE_FULL'],
+      } as const;
+      const [status, code] = map[e.code];
+      return fail(status, code);
+    }
+    return { status: 'UPLOADED' };
   }
 
   private register(
@@ -348,12 +424,20 @@ export class DmsLegacyController {
         expiresAt: new Date(Date.now() + DOWNLOAD_TTL_SECONDS * 1000).toISOString(),
       };
     }
-    const bytes = await this.store.get(file.object_key);
-    if (!bytes) return fail(HttpStatus.NOT_FOUND, 'FILE_NOT_FOUND');
-    res.set({
+    const headers = {
       'content-type': file.mime,
       'content-disposition': `attachment; filename="${file.file_name.replace(/[^A-Za-z0-9._-]/g, '_')}"`,
-    });
+    };
+    if (isStreamTransferStore(this.store)) {
+      // Kho đĩa: phát theo luồng, không đọc cả tệp vào RAM (API chỉ có 256MB).
+      const s = await this.store.getStream(file.object_key);
+      if (!s) return fail(HttpStatus.NOT_FOUND, 'FILE_NOT_FOUND');
+      res.set({ ...headers, 'content-length': String(s.size) });
+      return new StreamableFile(s.stream);
+    }
+    const bytes = await this.store.get(file.object_key);
+    if (!bytes) return fail(HttpStatus.NOT_FOUND, 'FILE_NOT_FOUND');
+    res.set(headers);
     return new StreamableFile(bytes);
   }
 }
