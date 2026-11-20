@@ -1,9 +1,9 @@
 name: Nexagnet V5 Legal Office Reviewer Caller
 
 # R3 onboarding contract: https://github.com/nexagnet/legal-office/issues/2
-# Central Reviewer verifies Publisher PRs or explicitly owner-signed
-# Claude Project PRs, always with exact-head CI, canonical Task Contract and
-# strict protected-path controls; unsigned owner PRs fail closed.
+# Chế độ PR thường của Reviewer dùng chung: tác giả tin cậy + ci xanh đúng HEAD +
+# kiểm chỉ đọc + chặn đường dẫn nhạy cảm (.github, AGENTS.md, hạ tầng...).
+# Không còn cần Task Contract. Đổi SHA ghim phải qua PR do chủ duyệt.
 on:
   workflow_run:
     workflows: [ci]
@@ -26,11 +26,16 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.pull_requests[0].number != null
-    uses: nexagnet/.github/.github/workflows/claude-reviewer.yml@128ed9e61ab4ee8c7ac604ca05a4e4511d168f10
+    uses: nexagnet/.github/.github/workflows/claude-reviewer.yml@748866182dd34fcc0beff4621b94b7a7e0ba48b9
     with:
       pr_number: ${{ github.event.workflow_run.pull_requests[0].number }}
       expected_head_sha: ${{ github.event.workflow_run.head_sha }}
       ci_run_id: ${{ github.event.workflow_run.id }}
       required_jobs_csv: bootstrap-verify,bootstrap-safety,app-verify,audit,db-integration
+      # Chế độ PR thường (không cần Task Contract/Issue/nhãn rủi ro). PR Draft bị bỏ qua êm.
+      require_task_contract: false
+      trusted_authors_csv: phungtienviet14-sketch
+      max_changed_files: 100
+      ignore_count_regex: '^pnpm-lock\.yaml$|^docs/|^apps/api/drizzle/meta/'
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

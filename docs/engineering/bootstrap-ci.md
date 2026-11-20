@@ -49,7 +49,7 @@ The existing Builder and Reviewer workflow pins stay unchanged.
 - Event: `workflow_dispatch` only, with no inputs. The job requires repository
   `nexagnet/legal-office`, actor `phungtienviet14-sketch` and `refs/heads/main`.
   The central workflow independently checks the actual default branch and actor.
-- Central version: `3a68dd94b9fd927ffd97457020a197ed0423172a`, the immutable
+- Central version: `748866182dd34fcc0beff4621b94b7a7e0ba48b9 (trước V5.1: 3a68dd9)`, the immutable
   owner-approved PR35 merge commit. Its exact-main CI must pass before rollout.
 - Permissions: read-only contents/issues/pull requests. Only the existing
   `CLAUDE_CODE_OAUTH_TOKEN` is explicitly mapped; no inherited secrets or Publisher
@@ -129,7 +129,7 @@ fallbacks and unrelated workflow pins intact.
 
 ## Bounded Reviewer SDK failure hints (#430)
 
-The current Reviewer caller pins `128ed9e61ab4ee8c7ac604ca05a4e4511d168f10`,
+The current Reviewer caller pins `748866182dd34fcc0beff4621b94b7a7e0ba48b9 (trước V5.1: 128ed9e)`,
 the merged [central PR48](https://github.com/nexagnet/.github/pull/48), verified by
 [exact-main CI42570343030](https://github.com/nexagnet/.github/actions/runs/42570343030).
 It adds only
@@ -163,7 +163,7 @@ leave credentials unchanged.
 ## Builder command and duplicate prevention rollout (#493)
 
 The Builder caller uses the reviewed central merge SHA
-`3cc50ef9ae793c8e4fbb19a729ec764e1d7f1248`.
+`748866182dd34fcc0beff4621b94b7a7e0ba48b9 (trước V5.1: 3cc50ef)`.
 [Central PR34](https://github.com/nexagnet/.github/pull/34) covers the shared implementation,
 and [central CI44017644510](https://github.com/nexagnet/.github/actions/runs/44017644510)
 passed on that SHA. [Consumer #493](https://github.com/nexagnet/legal-office/issues/493)
@@ -254,3 +254,11 @@ vì Reviewer vẫn kiểm điều kiện riêng. Rollback: bỏ dòng `types`.
 - **Không chặn merge** và chưa nằm trong check bắt buộc của ruleset. Theo dõi 2 tuần (đến khoảng 2/12/2026):
   nếu phân loại đúng thì chủ quyết định đưa vào ruleset (việc tay) và đổi sang chế độ bắt buộc ở PR riêng.
 - Tắt: biến `AUTOPILOT_ENABLED=false` hoặc xóa workflow.
+
+## V5.1: đồng bộ pin 4 caller về một SHA trung tâm
+
+Cả Builder, Reviewer và Sandbox-probe caller đều ghim `nexagnet/.github@748866182dd34fcc0beff4621b94b7a7e0ba48b9` (PR trung tâm #49).
+Đã kiểm: so với pin cũ, `claude-builder.yml` và `claude-sandbox-probe.yml` **giống từng byte**; `claude-reviewer.yml` chỉ khác 8 dòng
+(concurrency theo PR, timeout 45 → 20 phút, `--model claude-sonnet-5-5`). Repair caller đã gỡ (xem mục D1).
+Nếu Reviewer lỗi vì model chưa hỗ trợ với OAuth Pro: gỡ dòng `--model` ở trung tâm (PR riêng) rồi đổi pin;
+không đổi model trong caller. Rollback: đưa pin Reviewer về `128ed9e61ab4ee8c7ac604ca05a4e4511d168f10`.
