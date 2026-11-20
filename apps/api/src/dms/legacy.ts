@@ -27,3 +27,6 @@ export const legacyOcrEnabled = (env: NodeJS.ProcessEnv = process.env): boolean 
  */
 export const legacySearchEnabled = (env: NodeJS.ProcessEnv = process.env): boolean =>
   flag(env.LEGACY_SEARCH_ENABLED);
+
+/** Kho ĐĨA nhận tệp qua API (không có liên kết ký sẵn): trần 200MB mỗi tệp, bằng giới hạn của trình duyệt khi băm. */
+export const LEGACY_LOCAL_MAX_BYTES = 200 * 1024 ** 2;
