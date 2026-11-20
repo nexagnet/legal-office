@@ -13,7 +13,7 @@ Máy: Ubuntu 22.04, Postgres 17 (apt, chỉ `127.0.0.1`), Docker, Caddy. Web và
 | `deploy/scripts/restore-test.sh` | Diễn tập khôi phục vào database tạm, đối chiếu số hàng. |
 | `deploy/scripts/warmup.sh` | Làm nóng cache sau reboot (truy vấn đầu sau reboot ~2 giây). |
 | `deploy/scripts/monitor.sh` | Cron 5 phút: ổ đĩa >75%, RAM available <150MB, swap, `/health`, Postgres, backup quá 26 giờ. |
-| `.github/workflows/deploy.yml` | Chạy tay (`workflow_dispatch`): build api/web, đẩy GHCR, SSH cập nhật. |
+| `.github/workflows/deploy.yml` | Chạy tay (`workflow_dispatch`), chọn dev/production: kiểm ci xanh, build, đẩy GHCR, SSH cập nhật. Xem `cd-quy-trinh.md`. |
 
 ## Bí mật GitHub (chủ dự án đặt)
 `DEPLOY_HOST` (IP/hostname), `DEPLOY_USER` (`dev`), `DEPLOY_SSH_KEY` (khoá riêng ed25519 chỉ dùng cho deploy; khoá công khai thêm vào `~dev/.ssh/authorized_keys`), `DEPLOY_KNOWN_HOSTS` (kết quả `ssh-keyscan -t ed25519 <host>` đã đối chiếu vân tay).
