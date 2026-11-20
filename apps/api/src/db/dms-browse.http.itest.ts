@@ -243,6 +243,18 @@ describe.skipIf(!ADMIN_URL)('DMS duyệt/lọc hồ sơ qua HTTP (PostgreSQL)', 
     const list = await api('GET', `/dms/saved-filters?${q({ domain: 'vibang' })}`, U.reader);
     expect(list.json.rows).toHaveLength(1);
     expect(list.json.rows[0].params).toEqual({ year: 2026, scan: 'missing' });
+    const withCols = await api('POST', '/dms/saved-filters', U.reader, {
+      officeId: OFF,
+      domain: 'vibang',
+      name: 'Lọc cột',
+      params: { status: 'RECORDED', cols: JSON.stringify({ ghi_chu: { c: 'x' } }) },
+    });
+    expect(withCols.status).toBe(201);
+    const list2 = await api('GET', `/dms/saved-filters?${q({ domain: 'vibang' })}`, U.reader);
+    const colRow = list2.json.rows.find((r: { name: string }) => r.name === 'Lọc cột');
+    expect(typeof colRow.params.cols).toBe('string'); // không bị biến thành đối tượng
+    expect(JSON.parse(colRow.params.cols)).toEqual({ ghi_chu: { c: 'x' } });
+    await api('DELETE', `/dms/saved-filters/${colRow.id}`, U.reader);
     expect(
       (
         await api('POST', '/dms/saved-filters', U.reader, {

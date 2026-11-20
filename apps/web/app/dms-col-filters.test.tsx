@@ -73,6 +73,12 @@ describe('lọc theo cột: tham số', () => {
     expect(parseCols(new URLSearchParams(href.split('?')[1]).get('cl')!)).toEqual(view.cols);
     expect(viewToQuery(view, { drop: ['cl'] }).get('cl')).toBeNull();
   });
+
+  it('bộ lọc đã lưu cũ (máy chủ từng lưu `cols` dạng đối tượng) vẫn mở lại đúng lọc cột', () => {
+    const cols = { ghi_chu: { c: 'x' }, ngay: { d: { from: '2026-01-01' } } };
+    const href = savedParamsToHref('/dms/vi-bang', { status: 'RECORDED', cols } as never);
+    expect(parseCols(new URLSearchParams(href.split('?')[1]).get('cl')!)).toEqual(cols);
+  });
 });
 
 describe('phễu lọc trên tiêu đề cột', () => {
