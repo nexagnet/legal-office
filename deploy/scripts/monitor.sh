@@ -18,7 +18,13 @@ curl -fsS -m 8 -o /dev/null http://127.0.0.1:3000/ 2>&1 || problems+=("web khong
 pg_isready -q -h 127.0.0.1 -p 5432 || problems+=("postgresql khong nhan ket noi")
 BK=/var/log/legal-office/backup.ok
 # Chưa có dấu = chưa từng sao lưu thành công; cũng cảnh báo (an toàn dữ liệu là ưu tiên 1).
-if [ -z "$(find "$BK" -mmin -1560 2>/dev/null)" ]; then problems+=("khong co ban sao luu thanh cong trong 26 gio"); fi
+# Bản không R2 (chưa đặt khoá sao lưu): không cảnh báo, vì chủ dự án đã quyết định không sao lưu.
+if [ -n "${BACKUP_R2_ACCESS_KEY_ID:-}" ] && [ -z "$(find "$BK" -mmin -1560 2>/dev/null)" ]; then problems+=("khong co ban sao luu thanh cong trong 26 gio"); fi
+# Kho tệp trên ổ đĩa: cảnh báo sớm khi đầy (API tự từ chối tệp mới khi ổ trống dưới FILE_STORE_MIN_FREE_PERCENT, mặc định 10%).
+if [ "${FILE_STORE:-}" = local ] && [ -d "${FILE_STORE_HOST_DIR:-/srv/legal-office/files}" ]; then
+  fdisk="$(df --output=pcent "${FILE_STORE_HOST_DIR:-/srv/legal-office/files}" | tail -1 | tr -dc '0-9')"
+  [ "${fdisk:-0}" -ge 80 ] && problems+=("o chua tep ${fdisk}% day")
+fi
 if [ "${#problems[@]}" -gt 0 ]; then
   msg="[legal-office $(hostname)] $(IFS='; '; echo "${problems[*]}")"
   echo "$(date -u +%FT%TZ) $msg" >> "$LOG"
