@@ -321,7 +321,7 @@ export function fileStoreFromEnv(env: Env = process.env): FileStore | null {
   if (kind === 'local') {
     if (!env.FILE_STORE_DIR) throw new Error('FILE_STORE_DIR is required when FILE_STORE=local');
     // FILE_STORE_MIN_FREE_PERCENT: ổ trống dưới mức này (mặc định 10%) thì từ chối tệp mới; 0 = tắt.
-    const pct = Number(env.FILE_STORE_MIN_FREE_PERCENT ?? '10');
+    const pct = Number(env.FILE_STORE_MIN_FREE_PERCENT?.trim() || '10');
     if (!Number.isFinite(pct) || pct < 0 || pct >= 100)
       throw new Error('FILE_STORE_MIN_FREE_PERCENT must be in [0, 100)');
     return new LocalFileStore(env.FILE_STORE_DIR, pct / 100);
