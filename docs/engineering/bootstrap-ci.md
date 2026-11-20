@@ -129,7 +129,7 @@ fallbacks and unrelated workflow pins intact.
 
 ## Bounded Reviewer SDK failure hints (#430)
 
-The current Reviewer caller pins `748866182dd34fcc0beff4621b94b7a7e0ba48b9 (trước V5.1: 128ed9e)`,
+The current Reviewer caller pins `4ed9b70e1d7e0fb3b162e822f1be7c1a094ffd47 (trước: 748866182)`,
 the merged [central PR48](https://github.com/nexagnet/.github/pull/48), verified by
 [exact-main CI42570343030](https://github.com/nexagnet/.github/actions/runs/42570343030).
 It adds only
@@ -257,7 +257,7 @@ vì Reviewer vẫn kiểm điều kiện riêng. Rollback: bỏ dòng `types`.
 
 ## V5.1: đồng bộ pin 4 caller về một SHA trung tâm
 
-Cả Builder, Reviewer và Sandbox-probe caller đều ghim `nexagnet/.github@748866182dd34fcc0beff4621b94b7a7e0ba48b9` (PR trung tâm #49).
+Builder và Sandbox-probe caller ghim `nexagnet/.github@748866182dd34fcc0beff4621b94b7a7e0ba48b9` (PR trung tâm #49); Reviewer caller ghim `4ed9b70e1d7e0fb3b162e822f1be7c1a094ffd47` (PR trung tâm #54: report không đỏ khi PR đã merge).
 Đã kiểm: so với pin cũ, `claude-builder.yml` và `claude-sandbox-probe.yml` **giống từng byte**; `claude-reviewer.yml` chỉ khác 8 dòng
 (concurrency theo PR, timeout 45 → 20 phút, `--model claude-sonnet-5-5`). Repair caller đã gỡ (xem mục D1).
 Nếu Reviewer lỗi vì model chưa hỗ trợ với OAuth Pro: gỡ dòng `--model` ở trung tâm (PR riêng) rồi đổi pin;
