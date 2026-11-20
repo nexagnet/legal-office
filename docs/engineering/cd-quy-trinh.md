@@ -28,7 +28,6 @@ Mỗi lần merge là một lần build 3 image và khởi động lại API tr�
 - [ ] Environment `production`: kiểm đã có **Required reviewers** và **Deployment branches = main**.
 - [ ] Environment `dev`: không cần bảo vệ gì; GitHub tự tạo khi chạy lần đầu (hoặc tạo trước ở Settings > Environments).
 - [ ] Bí mật `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`: hiện đặt ở cấp repo nên `dev` và `production` **cùng trỏ một server**. Khi có server production riêng, đặt bốn bí mật này vào Environment `production` (giá trị ở Environment ghi đè cấp repo) và để cấp repo cho `dev`. Trước lúc đó, chọn `production` sẽ deploy lên chính server Tencent.
-- [ ] (Tuỳ chọn) đặt `verify-ci` thành check bắt buộc cho `deploy` thì không cần; ruleset `main-protection` giữ nguyên.
 
 ## Quay lại bản cũ
 Trên server: `/opt/legal-office/deploy/scripts/deploy.sh "$(cat /opt/legal-office/.previous-tag)"`. Migration đã áp không tự lùi (migration tương thích ngược, xem `docs/handover/07-quy-uoc-lam-viec.md`).
