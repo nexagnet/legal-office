@@ -1,26 +1,68 @@
 name: deploy
 
-# Triển khai THỦ CÔNG lên server production: build image ở đây (không build trên server 2GB), đẩy GHCR, rồi SSH cập nhật.
-# Chỉ chạy khi chủ dự án bấm "Run workflow" trên nhánh main; không tự chạy khi push.
-# Cần secrets (Settings > Secrets and variables > Actions): DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS.
-# Xem docs/engineering/deploy-tencent.md.
+# CD của Legal Office: triển khai THỦ CÔNG, không tự chạy khi push. Mô tả đầy đủ ở docs/engineering/cd-quy-trinh.md.
+#
+#   Bấm "Run workflow" trên nhánh main, chọn môi trường:
+#   - dev        : máy thử (hiện là server Tencent 2GB). Không cần ai duyệt.
+#   - production : máy thật của khách. Environment `production` bắt buộc người duyệt, chỉ nhận nhánh main.
+#
+# Thứ tự: kiểm `ci` xanh đúng commit -> build 3 image, đẩy GHCR -> SSH vào server chạy deploy.sh (tự quay lại bản cũ nếu /health lỗi).
+# Bí mật DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS: đặt ở Environment tương ứng (ưu tiên) hoặc ở repo (dùng chung).
+# Dev trên Northflank vẫn tự deploy từ main ngoài GitHub, không đi qua workflow này.
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: "Môi trường cần triển khai"
+        type: choice
+        options: [dev, production]
+        default: dev
+        required: true
 
 permissions:
   contents: read
   packages: write
+  checks: read
 
 concurrency:
-  group: legal-office-deploy
+  group: legal-office-deploy-${{ inputs.target }}
   cancel-in-progress: false
 
 jobs:
+  # Bước 1: chỉ cho đi tiếp khi các check bắt buộc của `ci` đã xanh trên đúng commit sắp deploy.
+  # (e2e-smoke không bắt buộc vì đôi khi chập chờn, xem docs/handover/06-viec-dang-do.md.)
+  verify-ci:
+    name: kiem-tra-ci-xanh
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Yêu cầu các check bắt buộc đã thành công trên ${{ github.sha }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          required="bootstrap-verify bootstrap-safety app-verify audit db-integration"
+          runs="$(gh api "repos/$REPO/commits/$SHA/check-runs?per_page=100" --jq '.check_runs[] | "\(.name) \(.conclusion)"')"
+          echo "$runs"
+          fail=0
+          for name in $required; do
+            if ! echo "$runs" | grep -qx "$name success"; then
+              echo "::error::Check '$name' chưa xanh trên $SHA. Đợi ci xong (hoặc sửa lỗi) rồi chạy lại."
+              fail=1
+            fi
+          done
+          exit $fail
+
+  # Bước 2: build, đẩy GHCR, cập nhật server. Môi trường production dừng ở đây chờ người duyệt.
   deploy:
-    name: build-push-deploy
+    name: build-push-deploy (${{ inputs.target }})
+    needs: verify-ci
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    if: github.ref == 'refs/heads/main'
+    environment:
+      name: ${{ inputs.target }}
     env:
       IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
       TAG: ${{ github.sha }}
@@ -68,3 +110,15 @@ jobs:
           # Token tạm của job được dùng để pull rồi đăng xuất, không lưu lại trên server.
           printf '%s' "$GHCR_TOKEN" | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" \
             "docker login ghcr.io -u '$GHCR_USER' --password-stdin >/dev/null && (IMAGE_REGISTRY='$IMAGE_REGISTRY' /opt/legal-office/deploy/scripts/deploy.sh '$TAG'; rc=\$?; docker logout ghcr.io >/dev/null 2>&1; exit \$rc)"
+      - name: Tóm tắt lần chạy
+        if: always()
+        run: |
+          {
+            echo "## Deploy ${{ inputs.target }}"
+            echo "- Môi trường: **${{ inputs.target }}**"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Image: \`$IMAGE_REGISTRY/legal-office-{api,web,ocr}:$TAG\`"
+            echo "- Người bấm: ${{ github.actor }}"
+            echo "- Kết quả bước cuối: ${{ job.status }}"
+            echo "- Quay lại bản cũ: SSH vào server, chạy \`/opt/legal-office/deploy/scripts/deploy.sh \$(cat /opt/legal-office/.previous-tag)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
