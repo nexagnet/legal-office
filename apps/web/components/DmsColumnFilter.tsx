@@ -175,6 +175,12 @@ export function DmsColumnFilter({
                     />
                   ) : null}
                   {f.type === 'date' ? (
+                    <p className="muted m-0 text-xs">
+                      Lọc theo ngày ghi trong cột này, khác với “Thời gian ghi sổ” ở thanh lọc phía
+                      trên.
+                    </p>
+                  ) : null}
+                  {f.type === 'date' ? (
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         type="date"
