@@ -46,7 +46,7 @@ jobs:
     # Central preflight independently verifies intent, live issue and risk.
     needs: command-gate
     if: needs.command-gate.outputs.accepted == 'true' && github.run_attempt == '1'
-    uses: nexagnet/.github/.github/workflows/claude-builder.yml@907fd9287a9789bfe4db9428f91140efa6b87acc
+    uses: nexagnet/.github/.github/workflows/claude-builder.yml@748866182dd34fcc0beff4621b94b7a7e0ba48b9
     with:
       issue_number: ${{ github.event.issue.number }}
     secrets:
