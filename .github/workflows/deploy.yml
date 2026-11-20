@@ -11,6 +11,8 @@ name: deploy
 # Biến tuỳ chọn của Environment: HEALTH_URL (địa chỉ công khai, vd https://.../api/health) để kiểm thêm từ bên ngoài sau deploy.
 # Khác biệt cấu hình giữa hai server (FILE_STORE, thư mục tệp, tên miền...) nằm trong /opt/legal-office/.env trên từng máy, không nằm trong workflow.
 # Dev trên Northflank vẫn tự deploy từ main ngoài GitHub, không đi qua workflow này.
+# PRODUCTION KHÔNG BAO GIỜ TỰ DEPLOY: workflow này chỉ có trigger workflow_dispatch (bấm tay). Không được thêm push, pull_request,
+# schedule hay workflow_run cho production. Chỉ chủ dự án vào Actions > deploy > Run workflow, chọn production, rồi duyệt Environment.
 on:
   workflow_dispatch:
     inputs:

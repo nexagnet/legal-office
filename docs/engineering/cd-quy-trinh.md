@@ -1,6 +1,9 @@
 # Quy trình CD (triển khai) của Legal Office
 
-CD = đưa bản mới lên server. Ở repo này CD **luôn do người bấm**, không tự chạy khi merge. Lý do: chỉ chạy 1 bản API, migration chạy thẳng vào dữ liệu thật, server nhỏ.
+CD = đưa bản mới lên server. Ở repo này CD **luôn do người bấm**, không tự chạy khi merge.
+
+> **Production không bao giờ tự deploy.** Không có trigger tự động nào (push, merge, lịch, kết quả `ci`). Chỉ khi chủ dự án vào GitHub (Actions > deploy > Run workflow), chọn `production`, bấm chạy, rồi duyệt Environment `production`. Workflow chỉ có `workflow_dispatch`.
+ Lý do: chỉ chạy 1 bản API, migration chạy thẳng vào dữ liệu thật, server nhỏ.
 
 ## Hai server
 | | **dev** | **production** |
