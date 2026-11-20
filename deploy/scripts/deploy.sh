@@ -6,6 +6,13 @@ set -euo pipefail
 TAG="${1:?usage: deploy.sh <tag>}"
 APP=/opt/legal-office
 COMPOSE=(docker compose --env-file "$APP/.env" -f "$APP/deploy/docker-compose.yml")
+# Bản lưu tệp trên ổ đĩa (FILE_STORE=local): thêm lớp phủ gắn thư mục tệp vào api và ocr.
+if grep -qE '^FILE_STORE=local[[:space:]]*$' "$APP/.env" 2>/dev/null; then
+  COMPOSE+=(-f "$APP/deploy/docker-compose.local-files.yml")
+  files_dir="$(sed -n 's/^FILE_STORE_HOST_DIR=//p' "$APP/.env" | tail -1)"
+  files_dir="${files_dir:-/srv/legal-office/files}"
+  [ -d "$files_dir" ] || { echo "LOI: thieu thu muc tep ${files_dir} (xem docker-compose.local-files.yml)" >&2; exit 1; }
+fi
 cd "$APP"
 prev="$(cat "$APP/.current-tag" 2>/dev/null || true)"
 echo "Deploy ${TAG} (hien tai: ${prev:-none})"
