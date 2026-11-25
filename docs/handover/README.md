@@ -16,6 +16,7 @@ Thư mục này gom mọi thứ đã biết về dự án vào một chỗ, đ�
 | [08-lich-su-va-nguon.md](08-lich-su-va-nguon.md) | Dòng thời gian, danh sách PR, các luồng làm việc, nơi tìm thêm |
 | [09-ngu-canh-dieu-phoi.md](09-ngu-canh-dieu-phoi.md) | Quy tắc chủ dự án, trạng thái PR 13/11, việc cần chủ dự án quyết, lỗi smoke E2E đang mở, ghi chú vận hành |
 | [10-ban-luu-tep-tren-o-dia.md](10-ban-luu-tep-tren-o-dia.md) | Bản lưu tệp trên ổ đĩa (không R2): cách bật, cách hoạt động, bù Bucket Lock, **không có bản sao ngoài máy chủ (quyết định của chủ dự án)** |
+| [11-trien-khai-mat-bao-chung-adh.md](11-trien-khai-mat-bao-chung-adh.md) | Production trên Mắt Bão chạy chung máy với ứng dụng khác (Caddy dùng chung, Postgres 17 host, ufw) |
 | [reports/](reports/) | Bản sao các báo cáo gốc (đã lược bí mật) |
 
 AI đọc repo: bắt đầu từ [`AGENTS.md`](../../AGENTS.md) ở gốc, rồi tệp này.
