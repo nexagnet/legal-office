@@ -100,7 +100,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: '3000'
-      HOSTNAME: 127.0.0.1
+      # Mặc định chỉ nghe 127.0.0.1. Máy dùng chung Caddy trong Docker với ứng dụng khác: đặt WEB_BIND_HOST=0.0.0.0 trong .env và chặn 3000/3001 từ ngoài bằng ufw.
+      HOSTNAME: ${WEB_BIND_HOST:-127.0.0.1}
       NODE_OPTIONS: --max-old-space-size=224
       API_URL: http://127.0.0.1:3001
       TENANT_ID: ${TENANT_ID:?TENANT_ID is required}
