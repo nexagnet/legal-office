@@ -19,36 +19,10 @@ import { loadMyDmsPermissions } from '../lib/dms';
 import { loadPendingSubmissionCount } from '../lib/dms-submissions';
 import { currentSession, requestCookie } from '../lib/server';
 
-const BASE_METADATA = {
+export const metadata: Metadata = {
   title: 'Quản lý văn phòng',
   description: 'Quản lý văn phòng thừa hành viên',
 };
-
-/**
- * Biểu tượng tab: logo của văn phòng nếu đã đặt (URL có ?v=<thời điểm đổi> nên đổi logo là trình duyệt tải lại);
- * không thì favicon mặc định trong public. Không dùng tệp quy ước trong app/ vì Next.js luôn gắn thêm chúng và trình duyệt
- * có thể chọn chúng thay vì logo.
- */
-export async function generateMetadata(): Promise<Metadata> {
-  const session = await currentSession();
-  const logo = session.status === 'authenticated' ? session.logo : null;
-  if (logo) {
-    const url = `/api/office/logo?officeId=${encodeURIComponent(logo.officeId)}&v=${logo.version}`;
-    return { ...BASE_METADATA, icons: { icon: [{ url }], shortcut: [{ url }], apple: [{ url }] } };
-  }
-  return {
-    ...BASE_METADATA,
-    icons: {
-      icon: [
-        { url: '/favicon.ico?v=2', sizes: 'any' },
-        { url: '/icon.svg?v=2', type: 'image/svg+xml' },
-        { url: '/favicon-16x16.png?v=2', sizes: '16x16', type: 'image/png' },
-        { url: '/favicon-32x32.png?v=2', sizes: '32x32', type: 'image/png' },
-      ],
-      apple: [{ url: '/apple-touch-icon.png?v=2', sizes: '180x180', type: 'image/png' }],
-    },
-  };
-}
 
 export const dynamic = 'force-dynamic';
 
