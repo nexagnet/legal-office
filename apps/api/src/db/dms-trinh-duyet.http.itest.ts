@@ -153,6 +153,7 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt và xóa scan qua HTTP (Postgr
       files: [{ stagedId: up.json.label, label: 'x.pdf' }],
     });
     expect(denied.status).toBe(403);
+    // Bản scan không bắt buộc khi tạo bản trình (28/11/2026).
     expect(
       (
         await api('POST', '/dms/submissions', U.m1, {
@@ -161,7 +162,7 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt và xóa scan qua HTTP (Postgr
           files: [],
         })
       ).status,
-    ).toBe(400);
+    ).toBe(201);
     // Tệp đệm của người khác không dùng được.
     const other = await upload(U.m2, pdf('của m2'));
     const stolen = await api('POST', '/dms/submissions', U.m1, {

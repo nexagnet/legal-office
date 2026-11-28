@@ -29,10 +29,10 @@ import { sendStoredFile } from './dms-file-response';
 import { parse, respond, uuid } from './dms-http';
 
 /** Tệp đã tải lên bước đệm (POST /dms/uploads) kèm tên hiển thị. Tối đa 20 tệp một lần, khớp giới hạn của hàm DB. */
-const files = z
-  .array(z.object({ stagedId: uuid, label: z.string().trim().min(1).max(255) }).strict())
-  .min(1)
-  .max(20);
+const stagedFile = z.object({ stagedId: uuid, label: z.string().trim().min(1).max(255) }).strict();
+const files = z.array(stagedFile).min(1).max(20);
+/** Khi tạo bản trình, bản scan không bắt buộc (có thể không có tệp nào). */
+const optionalFiles = z.array(stagedFile).max(20).default([]);
 
 /**
  * Trình / Duyệt (N4): thay "Yêu cầu sửa đổi". Mọi thành viên văn phòng gửi được bản trình (tiêu đề, mô tả, các bản scan);
@@ -127,7 +127,7 @@ export class DmsSubmissionsController {
           description: z.string().max(5000).optional(),
           /** Hồ sơ liên quan (tuỳ chọn). Phải là hồ sơ người gửi được xem. */
           caseId: uuid.optional(),
-          files,
+          files: optionalFiles,
         })
         .strict(),
       body,
