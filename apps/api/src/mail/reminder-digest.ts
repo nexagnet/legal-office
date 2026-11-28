@@ -27,7 +27,7 @@ export async function renderReminderDigestMail(digest: Digest): Promise<string> 
   const sections = offices.map((office) => {
     const inOffice = digest.rows.filter((r) => r.office_name === office);
     return [
-      `<mj-text font-family="'Source Serif 4', Georgia, serif" font-size="17px" font-weight="600" padding-top="20px" padding-bottom="0">${escapeHtml(office)}</mj-text>`,
+      `<mj-text font-family="'Times New Roman', Times, serif" font-size="17px" font-weight="600" padding-top="20px" padding-bottom="0">${escapeHtml(office)}</mj-text>`,
       group(
         'Đã quá hạn',
         c.danger,

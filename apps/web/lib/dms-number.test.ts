@@ -8,8 +8,8 @@ describe('số hồ sơ: chữ mờ trước ô ngày', () => {
 
   it('nghiệp vụ khác giữ ký hiệu ...-TPL', () => {
     expect(numberPrefix('tongdat', 2026)).toBe('…/2026/TĐ-TPL ngày');
-    expect(numberPrefix('xacminh', 2026)).toBe('…/2026/XM-TPL ngày');
-    expect(numberPrefix('tochuc', 2026)).toBe('…/2026/TC-TPL ngày');
+    expect(numberPrefix('xacminh', 2026)).toBe('…/2026/HĐDV-XM ngày');
+    expect(numberPrefix('tochuc', 2026)).toBe('…/2026/HĐDV-THA ngày');
   });
 
   it('đã có số thì hiện đúng số đã cấp, kể cả số VB-TPL cấp trước khi đổi ký hiệu', () => {

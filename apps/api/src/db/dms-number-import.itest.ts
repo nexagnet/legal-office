@@ -168,8 +168,8 @@ describe.skipIf(!ADMIN_URL)('DMS nhập số cuối sổ giấy (PostgreSQL)', (
     const tc = await mkCase('tochuc');
     expect((await record(xm)).ok).toBe(true);
     expect((await record(tc)).ok).toBe(true);
-    expect(await numberOf(xm)).toBe(`008/${YEAR}/XM-TPL`);
-    expect(await numberOf(tc)).toBe(`100/${YEAR}/TC-TPL`);
+    expect(await numberOf(xm)).toBe(`008/${YEAR}/HĐDV-XM`);
+    expect(await numberOf(tc)).toBe(`100/${YEAR}/HĐDV-THA`);
   });
 
   it('Tống đạt: số hồ sơ = STT S-01 (một bộ đếm), không còn nhập riêng CASE-TD', async () => {
@@ -238,7 +238,7 @@ describe.skipIf(!ADMIN_URL)('DMS nhập số cuối sổ giấy (PostgreSQL)', (
     ).toBe(500);
     const c = await mkCase('xacminh', OFF_B);
     expect((await record(c)).ok).toBe(true);
-    expect(await numberOf(c)).toBe(`001/${YEAR}/XM-TPL`);
+    expect(await numberOf(c)).toBe(`001/${YEAR}/HĐDV-XM`);
   });
 
   it('nhật ký nhập số không sửa, không xoá được', async () => {
