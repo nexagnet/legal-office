@@ -210,6 +210,8 @@ const MESSAGES: Record<string, string> = {
     'Hồ sơ có ghi tên thừa hành viên. Chính thừa hành viên đó phải xác nhận nội dung trước khi lưu chính thức.',
   THV_CONFIRMATION_STALE:
     'Nội dung đã đổi sau khi thừa hành viên xác nhận. Thừa hành viên cần xác nhận lại.',
+  CASE_VOIDED: 'Hồ sơ này đã bị hủy nên không thể thay đổi thêm.',
+  CONFIRM_PHRASE_MISMATCH: 'Cụm xác nhận chưa đúng. Hãy gõ đúng cụm được yêu cầu.',
   CASE_NOT_RECORDED:
     'Thao tác này chỉ dùng cho hồ sơ đã lưu chính thức. Bản nháp thì sửa trực tiếp.',
   OBJECT_KEY_IN_USE: 'Tệp này đã được dùng ở nơi khác. Hãy tải lên lại.',

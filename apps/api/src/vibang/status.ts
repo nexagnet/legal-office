@@ -118,6 +118,7 @@ const INVALID = new Set([
   'INVALID_INPUT',
   'UNKNOWN_PERMISSION',
   'INVALID_OBJECT_KEY',
+  'CONFIRM_PHRASE_MISMATCH',
 ]);
 
 /** 2xx khi thành công; 403 từ chối quyền; 404 không thấy (kể cả khác tenant); 422 dữ liệu sai; 409 sai trạng thái. */

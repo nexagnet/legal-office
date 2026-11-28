@@ -80,6 +80,7 @@ const ACTION_LABEL: Readonly<Record<string, string>> = {
   'dms.case.create_draft': 'Tạo nháp hồ sơ',
   'dms.case.update_draft': 'Sửa nháp hồ sơ',
   'dms.case.cancel_draft': 'Hủy nháp hồ sơ',
+  'dms.case.void': 'Admin hủy hồ sơ đã ghi sổ',
   'dms.case.record': 'Xác nhận lưu chính thức (cấp số hồ sơ)',
   'dms.case.set_returned': 'Đổi ô "Đã trả kết quả"',
   'dms.case.set_branch': 'Gán chi nhánh cho hồ sơ',

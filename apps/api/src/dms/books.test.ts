@@ -144,3 +144,28 @@ describe('sổ Văn thư', () => {
     expect(cells.slice(0, 4)).toEqual(['3', '05/CV-VP', '', 'Công văn đề nghị']);
   });
 });
+
+describe('hồ sơ đã hủy (migration 0140)', () => {
+  const row = {
+    stt: 5,
+    case_title: 'VB',
+    case_attributes: { ghi_chu: 'Có phụ lục' },
+    doc_kind: null,
+    doc_attributes: null,
+    case_number: '005/2026/VB-THV',
+  };
+  it('nối "Đã hủy vi bằng" vào cột Ghi chú, giữ nguyên STT và ghi chú cũ', () => {
+    const spec = BOOKS['S-02'];
+    const cells = bookCells(spec, { ...row, void_note: 'Đã hủy vi bằng' });
+    expect(cells[0]).toBe('5');
+    expect(cells[cells.length - 1]).toBe('Có phụ lục. Đã hủy vi bằng');
+  });
+  it('ghi chú trống thì chỉ có chữ hủy; chưa hủy thì không đổi', () => {
+    const spec = BOOKS['S-04'];
+    const empty = { ...row, case_attributes: {} };
+    expect(bookCells(spec, { ...empty, void_note: 'Đã hủy xác minh' }).at(-1)).toBe(
+      'Đã hủy xác minh',
+    );
+    expect(bookCells(spec, empty).at(-1)).toBe('');
+  });
+});
