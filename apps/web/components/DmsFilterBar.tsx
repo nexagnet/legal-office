@@ -62,6 +62,9 @@ function selectOptions(list: readonly Option[], now?: string): ReactNode {
   ));
 }
 
+/** Ba sổ Văn thư không có "đã trả kết quả" và "việc còn dở". */
+const isVanThuDomain = (domain: string): boolean => domain.startsWith('vt');
+
 /** Số bộ lọc đang bật trong ngăn "Thêm bộ lọc" (Thời gian, Thừa hành viên và hai bộ lọc nghiệp vụ hiện sẵn trên hàng nên không đếm ở đây). */
 export function otherFilterCount(v: DmsView, domain: string, recordedView: boolean): number {
   let n = 0;
@@ -69,7 +72,7 @@ export function otherFilterCount(v: DmsView, domain: string, recordedView: boole
   if (v.branch) n += 1;
   if (recordedView) {
     if (v.filter === 'thieu-scan' || v.filter === 'du-scan') n += 1;
-    if (v.returned !== undefined) n += 1;
+    if (v.returned !== undefined && !isVanThuDomain(domain)) n += 1;
     if (v.open !== undefined && domain in OPEN_LABEL) n += 1;
   }
   return n;
@@ -272,7 +275,7 @@ export function DmsFilterFields({
                   </select>
                 </label>
               ) : null}
-              {recordedView ? (
+              {recordedView && !isVanThuDomain(domain) ? (
                 <label className="dms-field">
                   <span>{RL.title}</span>
                   <select
@@ -400,7 +403,7 @@ export function DmsActiveChips({
       text: view.overdue ? 'Quá hạn báo kết quả' : 'Chưa quá hạn',
       href: without({ overdue: undefined }),
     });
-  if (recordedView && view.returned !== undefined)
+  if (recordedView && view.returned !== undefined && !isVanThuDomain(domain))
     chips.push({
       key: 'returned',
       text: `${RL.title}: ${view.returned ? RL.yes : RL.no}`,

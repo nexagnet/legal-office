@@ -105,28 +105,24 @@ describe('trang danh sách hồ sơ DMS dùng lọc và phân trang ở cơ sở
     expect(document.querySelectorAll('nav[aria-label="Phân trang"] a').length).toBeLessThan(12);
   });
 
-  it('G7: có bảng thì liên kết tìm scan nằm đè ô trống đầu bảng; trống thì xếp theo dòng, không đè thông báo', async () => {
+  it('Văn thư dùng cùng bố cục với bốn nghiệp vụ: thanh lọc, bộ lọc đã lưu, xuất Excel đang lọc, không có bộ lọc đã trả kết quả', async () => {
     stubApi(2);
-    const first = render(
-      await DmsDomainPage({
-        params: Promise.resolve({ domain: 'van-ban-den' }),
-        searchParams: Promise.resolve({}),
-      }),
-    );
-    const withRows = screen.getByRole('link', { name: 'Tìm trong nội dung scan' });
-    expect(withRows.className).toContain('dms-card-link');
-    expect(withRows.className).not.toContain('dms-card-link--flow');
-    first.unmount();
-
-    stubApi(0, false, true);
     render(
       await DmsDomainPage({
         params: Promise.resolve({ domain: 'van-ban-den' }),
-        searchParams: Promise.resolve({}),
+        searchParams: Promise.resolve({ q: 'công văn', cl: '{"co_quan_ban_hanh":{"c":"Sở"}}' }),
       }),
     );
-    expect(screen.getByRole('link', { name: 'Tìm trong nội dung scan' }).className).toContain(
-      'dms-card-link--flow',
-    );
+    expect(screen.getByRole('navigation', { name: 'Ba sổ Văn thư' })).toBeTruthy();
+    expect(screen.getByLabelText(/Tổng hợp Văn bản đến năm/)).toBeTruthy();
+    const exp = screen.getByRole('link', { name: 'Xuất Excel (đang lọc)' });
+    expect(exp.getAttribute('href')).toContain('/api/dms/case-search/export?');
+    expect(exp.getAttribute('href')).toContain('domain=vtden');
+    expect(exp.getAttribute('href')).toContain('cols=');
+    expect(screen.getByRole('link', { name: 'Tìm trong nội dung scan' })).toBeTruthy();
+    expect(screen.getByText('Tình trạng scan')).toBeTruthy();
+    expect(screen.queryByText('Đã trả kết quả')).toBeNull();
+    expect(screen.queryByText('Việc còn dở')).toBeNull();
+    expect(screen.getByText(/Chính thức/)).toBeTruthy();
   });
 });

@@ -192,11 +192,10 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt (PostgreSQL)', () => {
     expect(foreign.code).toBe('PERMISSION_DENIED');
   });
 
-  it('đầu vào: tiêu đề bắt buộc, cần ít nhất một scan, nhãn khớp số tệp; lỗi không để lại bản trình', async () => {
+  it('đầu vào: tiêu đề bắt buộc, scan không bắt buộc, nhãn khớp số tệp; lỗi không để lại bản trình', async () => {
     const before = await count();
     expect((await submit(U.thv, { title: '   ' })).code).toBe('INVALID_INPUT');
     expect((await submit(U.thv, { title: 'x'.repeat(301) })).code).toBe('INVALID_INPUT');
-    expect((await submit(U.thv, { staged: [], labels: [] })).code).toBe('INVALID_INPUT');
     const s1 = await stage(U.thv);
     expect((await submit(U.thv, { staged: [s1], labels: [] })).code).toBe('INVALID_INPUT');
     expect((await submit(U.thv, { staged: [s1, s1], labels: ['a', 'b'] })).code).toBe(
@@ -204,6 +203,8 @@ describe.skipIf(!ADMIN_URL)('DMS Trình / Duyệt (PostgreSQL)', () => {
     );
     expect((await submit(U.thv, { staged: [s1], labels: ['  '] })).code).toBe('INVALID_INPUT');
     expect(await count()).toBe(before);
+    // Không có scan vẫn tạo được bản trình (chỉ tiêu đề, mô tả).
+    expect((await submit(U.thv, { staged: [], labels: [] })).ok).toBe(true);
     // Tệp đệm chưa bị dùng sau các lần lỗi nên vẫn dùng được.
     expect((await submit(U.thv, { staged: [s1], labels: ['ok.pdf'] })).ok).toBe(true);
   });

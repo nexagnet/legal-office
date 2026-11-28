@@ -35,7 +35,10 @@ export function NewSubmissionButton({ officeId }: { readonly officeId: string })
     setBusy(true);
     setError(null);
     try {
-      const staged = await stageFiles(filesOf(form));
+      // Bản scan không bắt buộc khi trình: không chọn tệp thì chỉ gửi tiêu đề, mô tả.
+      const chosen = filesOf(form);
+      const staged =
+        chosen.length > 0 ? await stageFiles(chosen) : { ok: true as const, files: [] };
       if (!staged.ok) return setError(staged.error);
       const description = String(f.get('description') ?? '').trim();
       const res = await fetch('/api/dms/submissions', {
@@ -70,7 +73,7 @@ export function NewSubmissionButton({ officeId }: { readonly officeId: string })
         open={open}
         onOpenChange={setOpen}
         title="Trình mới"
-        description="Gửi tiêu đề, mô tả và bản scan để Admin duyệt."
+        description="Gửi tiêu đề, mô tả (và bản scan nếu có) để Admin duyệt."
       >
         <form onSubmit={submit} className="grid gap-3" aria-label="Trình mới">
           <label className="grid gap-1 text-[13px] font-semibold">
@@ -82,8 +85,8 @@ export function NewSubmissionButton({ officeId }: { readonly officeId: string })
             <Textarea name="description" maxLength={5000} rows={3} />
           </label>
           <label className="grid gap-1 text-[13px] font-semibold">
-            Bản scan (PDF, JPEG hoặc PNG)
-            <input type="file" name="files" accept={ACCEPT} multiple required />
+            Bản scan (PDF, JPEG hoặc PNG, không bắt buộc)
+            <input type="file" name="files" accept={ACCEPT} multiple />
           </label>
           {error ? <p role="alert">{error}</p> : null}
           <div className="flex justify-end gap-2">
