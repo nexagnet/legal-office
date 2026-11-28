@@ -277,6 +277,8 @@ export interface BookRowRaw {
   readonly doc_attributes: Record<string, unknown> | null;
   /** Số hồ sơ tự cấp lúc ghi sổ (gắn vào dòng sổ bởi API); thiếu thì cột `autoNumber` chỉ hiện phần ngày. */
   readonly case_number?: string | null;
+  /** Hồ sơ đã bị Admin hủy: chữ "Đã hủy ..." được nối vào cột Ghi chú (không sửa dữ liệu gốc). */
+  readonly void_note?: string | null;
 }
 
 const text = (v: unknown): string => (v === null || v === undefined ? '' : String(v).trim());
@@ -295,7 +297,9 @@ export function bookCells(spec: BookSpec, row: BookRowRaw): string[] {
         ? text(legacy[c.key]) ||
           (c.key === 'loai_van_ban' && row.doc_attributes ? text(row.doc_kind) : '')
         : '');
-    const v = c.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
+    let v = c.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
+    if (c.key === 'ghi_chu' && row.void_note)
+      v = v === '' ? row.void_note : `${v}. ${row.void_note}`;
     return c.tick ? (v === '' ? '' : '✓') : v;
   });
 }

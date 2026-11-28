@@ -37,6 +37,9 @@ const attributes = z.record(z.string(), z.unknown());
 const caseAttributes = attributes.superRefine(attributePhoneCheck());
 /** Khi Admin sửa: null nghĩa là xóa khóa đó, nên cho phép null ở `so_dien_thoai`. */
 const editAttributes = attributes.superRefine(attributePhoneCheck(true));
+/** Cụm chủ dự án yêu cầu gõ trước khi hủy hồ sơ đã ghi sổ. */
+export const VOID_CONFIRM_PHRASE = 'dong y xuan ban';
+
 const status = z.enum(['DRAFT', 'RECORDED', 'CANCELLED']);
 /** Trần số dòng của một bản PDF (một sổ cả năm ở 10-20 đơn/ngày còn xa mức này). */
 const MAX_PDF_ROWS = 50_000;
@@ -411,6 +414,29 @@ export class DmsCasesController {
   ) {
     const b = parse(z.object({ reason: z.string().min(1).max(1000) }).strict(), body);
     return this.run(a, 'dms_case_cancel_draft', [id, b.reason]);
+  }
+
+  /**
+   * Admin HỦY hồ sơ đã ghi sổ: không xóa, chỉ đánh dấu "đã hủy" và ghi chú vào cột Ghi chú của sổ.
+   * Phải gõ đúng cụm xác nhận (máy chủ kiểm lại, không chỉ ở giao diện).
+   */
+  @Post('cases/:id/void')
+  @HttpCode(HttpStatus.OK)
+  voidCase(
+    @CurrentActor() a: AuthenticatedActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: unknown,
+  ) {
+    const b = parse(
+      z.object({ reason: z.string().min(1).max(1000), confirm: z.string().max(100) }).strict(),
+      body,
+    );
+    if (b.confirm.trim().toLowerCase() !== VOID_CONFIRM_PHRASE)
+      throw new HttpException(
+        { code: 'CONFIRM_PHRASE_MISMATCH', label: null },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    return this.run(a, 'dms_case_void', [id, b.reason]);
   }
 
   @Get('cases/:id/documents')

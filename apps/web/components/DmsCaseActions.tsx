@@ -353,3 +353,84 @@ export function DmsDraftActions({
     </div>
   );
 }
+
+/** Cụm chủ dự án yêu cầu gõ trước khi hủy hồ sơ đã ghi sổ (máy chủ kiểm lại). */
+export const VOID_CONFIRM_PHRASE = 'dong y xuan ban';
+
+/** Admin hủy hồ sơ đã ghi sổ: không xóa, chỉ đánh dấu "đã hủy" và ghi vào cột Ghi chú của sổ. */
+export function DmsVoidCase({
+  caseId,
+  label,
+  noteText,
+}: {
+  readonly caseId: string;
+  readonly label: string;
+  /** Chữ sẽ hiện ở cột Ghi chú, ví dụ "Đã hủy vi bằng". */
+  readonly noteText: string;
+}) {
+  const { send, error, busy } = useSender();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [phrase, setPhrase] = useState('');
+  const ready = reason.trim() !== '' && phrase.trim().toLowerCase() === VOID_CONFIRM_PHRASE;
+  return (
+    <>
+      <Button type="button" variant="danger" disabled={busy} onClick={() => setOpen(true)}>
+        Hủy {label}
+      </Button>
+      <Modal
+        open={open}
+        onOpenChange={setOpen}
+        title={`Hủy ${label}?`}
+        description={`Không xóa dữ liệu. Hồ sơ vẫn nằm trong sổ, giữ nguyên STT, cột Ghi chú hiện "${noteText}". Không hoàn tác được.`}
+      >
+        <form
+          aria-label={`Hủy ${label}`}
+          className="grid gap-3"
+          onSubmit={(e: FormEvent) => {
+            e.preventDefault();
+            if (!ready) return;
+            void send(`/api/dms/cases/${caseId}/void`, {
+              reason: reason.trim(),
+              confirm: phrase.trim(),
+            }).then((ok) => {
+              if (ok) {
+                setOpen(false);
+                window.location.reload();
+              }
+            });
+          }}
+        >
+          <label className="grid gap-1 text-[13px] font-semibold">
+            Lý do hủy
+            <Input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={1000}
+              required
+            />
+          </label>
+          <label className="grid gap-1 text-[13px] font-semibold">
+            {`Gõ đúng "${VOID_CONFIRM_PHRASE}" để xác nhận`}
+            <Input
+              value={phrase}
+              onChange={(e) => setPhrase(e.target.value)}
+              maxLength={100}
+              autoComplete="off"
+              required
+            />
+          </label>
+          {error ? <p role="alert">{error}</p> : null}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              Không hủy
+            </Button>
+            <Button type="submit" variant="danger" loading={busy} disabled={!ready}>
+              OK
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
+  );
+}

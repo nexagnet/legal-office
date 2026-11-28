@@ -6,7 +6,11 @@ import { DmsDocumentsTab } from '../../../../components/DmsDocumentsTab';
 import { DmsAdminEdit } from '../../../../components/DmsAdminEdit';
 import { DmsAttributesForm } from '../../../../components/DmsAttributesForm';
 import { DmsThvPicker } from '../../../../components/DmsThvActions';
-import { DmsDraftActions, DmsMultiUpload } from '../../../../components/DmsCaseActions';
+import {
+  DmsDraftActions,
+  DmsMultiUpload,
+  DmsVoidCase,
+} from '../../../../components/DmsCaseActions';
 import { OTHER_KIND } from '../../../../lib/dms-other-kind';
 import { DmsCaseExtrasForm } from '../../../../components/DmsCaseExtrasForm';
 import { AdminBanner } from '../../../../components/admin-banner';
@@ -50,6 +54,13 @@ const fmt = new Intl.DateTimeFormat('vi-VN', {
   timeStyle: 'short',
   timeZone: 'Asia/Ho_Chi_Minh',
 });
+/** Chữ ghi vào cột Ghi chú của sổ khi Admin hủy hồ sơ (khớp `dms_void_note` ở migration 0138). */
+const VOID_NOTE: Record<string, string> = {
+  vibang: 'Đã hủy vi bằng',
+  tongdat: 'Đã hủy tống đạt',
+  xacminh: 'Đã hủy xác minh',
+  tochuc: 'Đã hủy tổ chức thi hành án',
+};
 const STATUS: Record<string, string> = {
   DRAFT: 'Nháp',
   RECORDED: 'Đã ghi sổ',
@@ -176,7 +187,9 @@ export default async function DmsCasePage({
   ]);
   // Sau khi ghi sổ chỉ Admin sửa nội dung (N5); nhân viên chỉ tải thêm scan. Máy chủ vẫn kiểm lại (ADMIN_ONLY).
   const isAdmin = permissions.includes('dms.permission.approve');
-  const canAdminEdit = c.status === 'RECORDED' && isAdmin;
+  const isVoided = c.voided === true;
+  const canAdminEdit = c.status === 'RECORDED' && isAdmin && !isVoided;
+  const canVoid = c.status === 'RECORDED' && isAdmin && !isVoided && !isVanThu(domain.code);
   // Xóa scan (N6) là quyền riêng, không phải quyền của vai trò: chỉ hiện nút với người được cấp.
   const canDeleteScan = c.status !== 'CANCELLED' && permissions.includes('dms.scan.delete');
   const hasPhone = !isVanThu(domain.code);
@@ -263,6 +276,11 @@ export default async function DmsCasePage({
         >
           {STATUS[c.status]}
         </span>
+        {isVoided ? (
+          <span className="chip" data-tone="danger">
+            {c.void_note ?? 'Đã hủy'}
+          </span>
+        ) : null}
         <span className="chip" data-tone="info">
           {c.document_count} tài liệu
         </span>
@@ -288,7 +306,22 @@ export default async function DmsCasePage({
           })),
         ]}
       />
-      {c.status === 'RECORDED' && !canAdminEdit ? (
+      {isVoided ? (
+        <NoticeBar tone="info">
+          {c.void_note ?? 'Đã hủy'}. Lý do: {c.void_reason ?? '—'}. Hồ sơ vẫn nằm trong sổ, không
+          sửa thêm được.
+        </NoticeBar>
+      ) : null}
+      {canVoid ? (
+        <div className="mb-3 flex justify-end">
+          <DmsVoidCase
+            caseId={c.id}
+            label={domain.label.toLowerCase()}
+            noteText={VOID_NOTE[domain.code] ?? 'Đã hủy'}
+          />
+        </div>
+      ) : null}
+      {c.status === 'RECORDED' && !canAdminEdit && !isVoided ? (
         <NoticeBar lock action={<Link href={`${base}?tab=lich-su`}>Xem lịch sử</Link>}>
           Hồ sơ đã ghi sổ: nhân viên chỉ tải thêm scan. Cần sửa hồ sơ hoặc xóa scan: liên hệ Admin.
         </NoticeBar>
@@ -404,7 +437,10 @@ export default async function DmsCasePage({
                 ['Số hồ sơ', c.case_number ?? '—'],
                 ['Tên hồ sơ', c.title],
                 ...(hasPhone ? ([['SĐT khách hàng', c.phone ?? '—']] as const) : []),
-                ['Trạng thái', STATUS[c.status] ?? c.status],
+                [
+                  'Trạng thái',
+                  isVoided ? (c.void_note ?? 'Đã hủy') : (STATUS[c.status] ?? c.status),
+                ],
                 ['Người tạo', creatorName ?? '—'],
                 ['Ngày tạo', fmt.format(new Date(c.created_at))],
                 ['Ghi sổ', c.recorded_at ? fmt.format(new Date(c.recorded_at)) : '—'],

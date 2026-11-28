@@ -232,6 +232,11 @@ export function DmsDomainTable({
                       {r.case_number ?? r.title}
                     </Link>
                     {r.case_number ? <Clamp muted>{r.title}</Clamp> : null}
+                    {r.voided ? (
+                      <span className="dms-pill" data-tone="danger">
+                        {r.void_note ?? 'Đã hủy'}
+                      </span>
+                    ) : null}
                     {layout.some((x) => x.special === 'actions') ? (
                       <span className="dms-actions dms-stt-actions" aria-hidden="true">
                         {scan === 'ok' ? (

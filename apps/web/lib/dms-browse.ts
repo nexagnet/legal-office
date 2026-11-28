@@ -32,6 +32,10 @@ export interface DmsSearchCase extends DmsCaseRow {
   readonly returned: boolean;
   /** SĐT khách hàng (thuộc tính `so_dien_thoai`), hiện trong danh sách và chi tiết, không in vào sổ. */
   readonly phone: string | null;
+  /** Admin đã hủy hồ sơ đã ghi sổ (vẫn nằm trong sổ, Ghi chú hiện "Đã hủy ..."). */
+  readonly voided?: boolean;
+  readonly void_note?: string | null;
+  readonly void_reason?: string | null;
 }
 
 export interface DmsCaseSearchParams {

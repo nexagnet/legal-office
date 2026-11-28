@@ -188,6 +188,10 @@ export interface DmsCaseDetail extends DmsCaseRow {
   readonly phone: string | null;
   /** Tên người tạo hồ sơ (mọi trạng thái); null nếu không xác định. */
   readonly created_by_name: string | null;
+  /** Admin đã hủy hồ sơ đã ghi sổ; `void_note` là chữ ghi ở cột Ghi chú của sổ. */
+  readonly voided?: boolean;
+  readonly void_note?: string | null;
+  readonly void_reason?: string | null;
 }
 
 export interface DmsDocumentRow {
@@ -302,6 +306,8 @@ export interface DmsBookRow {
   readonly doc_attributes: Record<string, unknown> | null;
   /** Số hồ sơ tự cấp (API gắn vào); thiếu thì cột `autoNumber` chỉ hiện phần ngày. */
   readonly case_number?: string | null;
+  /** Hồ sơ đã hủy: chữ "Đã hủy ..." nối vào cột Ghi chú. */
+  readonly void_note?: string | null;
 }
 
 /** Sổ nghiệp vụ; `withVanThu` thêm ba sổ Văn thư (để dựng form nhập ở trang chi tiết). */
@@ -348,7 +354,9 @@ export function bookCell(spec: DmsBookSpec, col: DmsBookColumn, row: DmsBookRow)
     strOf(attrs[col.key]) ||
     strOf(legacy[col.key]) ||
     (col.key === 'loai_van_ban' && row.doc_attributes ? strOf(row.doc_kind) : '');
-  const v = col.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
+  let v = col.autoNumber ? withCaseNumber(row.case_number, raw) : raw;
+  if (col.key === 'ghi_chu' && row.void_note)
+    v = v === '' ? row.void_note : `${v}. ${row.void_note}`;
   return col.tick ? (v === '' ? '' : '✓') : v;
 }
 

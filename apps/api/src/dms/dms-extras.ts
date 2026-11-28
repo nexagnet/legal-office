@@ -7,6 +7,9 @@ export interface CaseExtras {
   readonly returned: boolean;
   readonly phone: string | null;
   readonly created_by_name: string | null;
+  readonly voided: boolean;
+  readonly void_note: string | null;
+  readonly void_reason: string | null;
 }
 
 /**
@@ -18,7 +21,7 @@ export async function mergeBookCaseNumbers<R extends { readonly case_id: string 
   repo: VibangRepo,
   a: AuthenticatedActor,
   rows: readonly R[],
-): Promise<Array<R & { case_number: string | null }>> {
+): Promise<Array<R & { case_number: string | null; void_note: string | null }>> {
   if (rows.length === 0) return [];
   const ids = [...new Set(rows.map((r) => r.case_id))];
   const extras = await repo.rows<CaseExtras>(a.tenantId, 'dms_case_extras', [
@@ -26,8 +29,12 @@ export async function mergeBookCaseNumbers<R extends { readonly case_id: string 
     a.userId,
     ids,
   ]);
-  const byId = new Map(extras.map((e) => [e.case_id, e.case_number]));
-  return rows.map((r) => ({ ...r, case_number: byId.get(r.case_id) ?? null }));
+  const byId = new Map(extras.map((e) => [e.case_id, e]));
+  return rows.map((r) => ({
+    ...r,
+    case_number: byId.get(r.case_id)?.case_number ?? null,
+    void_note: byId.get(r.case_id)?.void_note ?? null,
+  }));
 }
 
 export async function mergeCaseExtras<R extends { readonly id: string }>(
@@ -41,6 +48,9 @@ export async function mergeCaseExtras<R extends { readonly id: string }>(
       returned: boolean;
       phone: string | null;
       created_by_name: string | null;
+      voided: boolean;
+      void_note: string | null;
+      void_reason: string | null;
     }
   >
 > {
@@ -59,6 +69,9 @@ export async function mergeCaseExtras<R extends { readonly id: string }>(
       returned: e?.returned ?? false,
       phone: e?.phone ?? null,
       created_by_name: e?.created_by_name ?? null,
+      voided: e?.voided ?? false,
+      void_note: e?.void_note ?? null,
+      void_reason: e?.void_reason ?? null,
     };
   });
 }
