@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-// DMS (0138): Admin hủy hồ sơ đã ghi sổ (4 nghiệp vụ). PostgreSQL thật, dữ liệu giả lập.
+// DMS (0139): Admin hủy hồ sơ đã ghi sổ (4 nghiệp vụ). PostgreSQL thật, dữ liệu giả lập.
 const ADMIN_URL = process.env.DATABASE_URL;
 const DIR = resolve(__dirname, '../../drizzle');
 const MIGRATION = readdirSync(DIR)

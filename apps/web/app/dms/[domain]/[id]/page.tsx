@@ -54,7 +54,7 @@ const fmt = new Intl.DateTimeFormat('vi-VN', {
   timeStyle: 'short',
   timeZone: 'Asia/Ho_Chi_Minh',
 });
-/** Chữ ghi vào cột Ghi chú của sổ khi Admin hủy hồ sơ (khớp `dms_void_note` ở migration 0138). */
+/** Chữ ghi vào cột Ghi chú của sổ khi Admin hủy hồ sơ (khớp `dms_void_note` ở migration 0139). */
 const VOID_NOTE: Record<string, string> = {
   vibang: 'Đã hủy vi bằng',
   tongdat: 'Đã hủy tống đạt',

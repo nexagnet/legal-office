@@ -145,7 +145,7 @@ describe('sổ Văn thư', () => {
   });
 });
 
-describe('hồ sơ đã hủy (migration 0138)', () => {
+describe('hồ sơ đã hủy (migration 0139)', () => {
   const row = {
     stt: 5,
     case_title: 'VB',
