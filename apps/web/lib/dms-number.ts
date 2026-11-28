@@ -14,12 +14,12 @@ export function withCaseNumber(caseNumber: string | null | undefined, entered: s
   return `${n} ngày ${v.replace(/^ngày\s*/i, '')}`;
 }
 
-/** Ký hiệu cuối số hồ sơ, giống `dms_case_number_format` (0118): Vi bằng là VB-THV, các nghiệp vụ khác giữ ...-TPL. */
+/** Ký hiệu cuối số hồ sơ, giống `dms_case_number_format` (0118): Vi bằng là VB-THV, Xác minh HĐDV-XM, Tổ chức THA HĐDV-THA, Tống đạt TĐ-TPL (0138). */
 const CODE_OF_DOMAIN: Readonly<Record<string, string>> = {
   vibang: 'VB-THV',
   tongdat: 'TĐ-TPL',
-  xacminh: 'XM-TPL',
-  tochuc: 'TC-TPL',
+  xacminh: 'HĐDV-XM',
+  tochuc: 'HĐDV-THA',
 };
 
 /** Chữ mờ đặt trước ô ngày: số hồ sơ thật nếu đã có, chưa có (bản nháp) thì dạng "…/2026/VB-THV ngày". */

@@ -172,8 +172,8 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
     expect(await fmt(30, 2026, 'vibang')).toBe('030/2026/VB-THV');
     expect(await fmt(1, 2027, 'vibang')).toBe('001/2027/VB-THV');
     expect(await fmt(3, 2026, 'tongdat')).toBe('003/2026/TĐ-TPL');
-    expect(await fmt(7, 2026, 'xacminh')).toBe('007/2026/XM-TPL');
-    expect(await fmt(12, 2026, 'tochuc')).toBe('012/2026/TC-TPL');
+    expect(await fmt(7, 2026, 'xacminh')).toBe('007/2026/HĐDV-XM');
+    expect(await fmt(12, 2026, 'tochuc')).toBe('012/2026/HĐDV-THA');
     expect(await fmt(1234, 2026, 'vibang')).toBe('1234/2026/VB-THV');
     expect(await fmt(0, 2026, 'vibang')).toBeNull();
     expect(await fmt(null, 2026, 'vibang')).toBeNull();
@@ -205,13 +205,13 @@ describe.skipIf(!ADMIN_URL)('DMS số hồ sơ và cờ đã trả kết quả (
     expect(await numberOf(next)).toBe(`${pad(stt2)}/${YEAR}/VB-THV`);
   });
 
-  it('Xác minh THA và Tổ chức THA: số theo STT của sổ S-04 và S-05, đuôi XM-TPL và TC-TPL', async () => {
+  it('Xác minh THA và Tổ chức THA: số theo STT của sổ S-04 và S-05, đuôi HĐDV-XM và HĐDV-THA', async () => {
     const x = await mkCase(U.a, 'xacminh');
     const t = await mkCase(U.a, 'tochuc');
     expect((await record(U.a, x)).ok).toBe(true);
     expect((await record(U.a, t)).ok).toBe(true);
-    expect(await numberOf(x)).toBe(`${pad(await firstStt(x, 'S-04'))}/${YEAR}/XM-TPL`);
-    expect(await numberOf(t)).toBe(`${pad(await firstStt(t, 'S-05'))}/${YEAR}/TC-TPL`);
+    expect(await numberOf(x)).toBe(`${pad(await firstStt(x, 'S-04'))}/${YEAR}/HĐDV-XM`);
+    expect(await numberOf(t)).toBe(`${pad(await firstStt(t, 'S-05'))}/${YEAR}/HĐDV-THA`);
   });
 
   it('Tống đạt: số hồ sơ trùng STT S-01 như 3 nghiệp vụ kia, mỗi hồ sơ một dòng sổ', async () => {
