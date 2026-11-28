@@ -72,16 +72,16 @@ describe('định nghĩa sổ nghiệp vụ', () => {
     expect(bookCells(BOOKS['S-02'], { ...vb, case_number: null })[3]).toBe('31/10/2026');
     const xm = {
       ...base,
-      case_number: '012/2026/XM-TPL',
+      case_number: '012/2026/HĐDV-XM',
       case_attributes: { hop_dong_dich_vu: '01/11/2026' },
     };
-    expect(bookCells(BOOKS['S-04'], xm)[1]).toBe('012/2026/XM-TPL ngày 01/11/2026');
+    expect(bookCells(BOOKS['S-04'], xm)[1]).toBe('012/2026/HĐDV-XM ngày 01/11/2026');
     const tc = {
       ...base,
-      case_number: '005/2026/TC-TPL',
+      case_number: '005/2026/HĐDV-THA',
       case_attributes: { hop_dong_dich_vu: '02/11/2026' },
     };
-    expect(bookCells(BOOKS['S-05'], tc)[1]).toBe('005/2026/TC-TPL ngày 02/11/2026');
+    expect(bookCells(BOOKS['S-05'], tc)[1]).toBe('005/2026/HĐDV-THA ngày 02/11/2026');
   });
 
   it('Tống đạt S-01: một hồ sơ một dòng, cột 3 tự gắn số hồ sơ (= STT) trước ngày người nhập', () => {
