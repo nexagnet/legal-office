@@ -2,7 +2,6 @@ import { colsToParam } from '../../../lib/dms-col-filters';
 import Link from 'next/link';
 import { ErrorRetry } from '../../../components/ErrorRetry';
 import { notFound } from 'next/navigation';
-import { DmsCaseSuggest } from '../../../components/DmsCaseSuggest';
 import { AdminBanner } from '../../../components/admin-banner';
 import { DmsCaseTable } from '../../../components/DmsCaseTable';
 import { DmsDomainTable } from '../../../components/DmsDomainTable';
@@ -33,7 +32,6 @@ import {
 } from '../../../lib/dms';
 import {
   countDmsCases,
-  filterToParams,
   formatTotal,
   loadBookRowsForCases,
   loadDmsFacetCounts,
@@ -68,8 +66,9 @@ function kpiItems(
     missingScan: number | undefined;
     returned: number | undefined;
     stillOpen: number | undefined;
+    drafts: number | undefined;
     /** Bấm thẻ số = bật đúng bộ lọc tương ứng (Figma 05/11). */
-    links: { missing: string; open: string; returned: string };
+    links: { missing: string; open: string; returned: string; drafts: string };
   },
 ): Kpi[] {
   const official: Kpi = { label: `Hồ sơ chính thức ${v.year}`, value: v.official ?? '—' };
@@ -93,6 +92,20 @@ function kpiItems(
       return [official, docs('Tài liệu hiện hành'), open('Chưa có kết quả'), missing];
     case 'tochuc':
       return [official, docs('Tài liệu hiện hành'), open('Chưa có biên bản N-08'), missing];
+    case 'vtden':
+    case 'vtdi':
+    case 'vtnb':
+      return [
+        official,
+        docs('Tài liệu hiện hành'),
+        missing,
+        {
+          label: 'Nháp đang hoạt động',
+          value: v.drafts ?? '—',
+          tone: 'warn',
+          href: v.links.drafts,
+        },
+      ];
     default:
       return [
         official,
@@ -180,17 +193,17 @@ export default async function DmsDomainPage({
   const range = dmsDateRange(sp.tu, sp.den, extra.ky);
   const hasRange = Boolean(range.from || range.to);
   // Thừa hành viên, việc còn dở, đã trả chỉ áp cho bốn nghiệp vụ; hai bộ sau chỉ ở danh sách chính thức (nháp không có).
-  const recordedView = !vanThu && filter !== 'nhap' && filter !== 'da-huy';
+  const recordedView = filter !== 'nhap' && filter !== 'da-huy';
   const search = {
     from: range.from,
     to: range.to,
     thv: vanThu ? undefined : extra.thv,
-    open: recordedView ? extra.open : undefined,
-    returned: recordedView ? extra.returned : undefined,
+    open: recordedView && !vanThu ? extra.open : undefined,
+    returned: recordedView && !vanThu ? extra.returned : undefined,
     overdue: recordedView && domain.code === 'tongdat' ? extra.overdue : undefined,
     fa: vanThu ? undefined : extra.fa,
     fb: vanThu ? undefined : extra.fb,
-    cols: vanThu ? undefined : extra.cols,
+    cols: extra.cols,
     officeId,
     domain: domain.code,
     filter,
@@ -264,7 +277,7 @@ export default async function DmsDomainPage({
   const stillOpen = report === 'error' ? undefined : report.pending[domain.code];
   // Figma: chỉ hai chip Nháp và Đã hủy kèm số trong ngoặc; số của bốn chip còn lại nằm ở các thẻ số phía trên.
   const counts: Record<DmsFilter, number | undefined> = {
-    'chinh-thuc': vanThu || isDraftView ? nOfficial : undefined,
+    'chinh-thuc': isDraftView ? nOfficial : undefined,
     'thieu-scan': undefined,
     'du-scan': undefined,
     nhap: nDraft,
@@ -314,6 +327,7 @@ export default async function DmsDomainPage({
     missing: viewHref(base, { ...view, filter: 'thieu-scan' }),
     open: viewHref(base, { ...view, filter: 'chinh-thuc', open: true }),
     returned: viewHref(base, { ...view, filter: 'chinh-thuc', returned: true }),
+    drafts: viewHref(base, { ...view, filter: 'nhap' }),
   };
   const showScanSelect = !isDraftView;
   const showsTable = !!listLayout && !!(draftKind ? !vanThu : spec) && pageRows.length > 0;
@@ -323,29 +337,34 @@ export default async function DmsDomainPage({
       <DmsFilterNavBusy />
       <div className="dms-title-row">
         <h1 id="t">{vanThu ? 'Văn thư' : domain.label}</h1>
-        {!vanThu ? (
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {vanThu ? (
+            <PdfPrintButton
+              variant="secondary"
+              url={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=pdf`}
+            />
+          ) : (
             <Button asChild className="min-h-10 px-5 text-[15px] font-bold">
               <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
                 Xuất sổ {bookCode}
               </Link>
             </Button>
-            {canDraft(permissions, domain.code) ? (
-              <NewDmsCaseButton
-                officeId={officeId}
-                domainCode={domain.code}
-                label={domain.label}
-                buttonLabel="+ Tạo hồ sơ"
-                redirectBase={base}
-              />
-            ) : null}
-          </div>
-        ) : null}
+          )}
+          {canDraft(permissions, domain.code) ? (
+            <NewDmsCaseButton
+              officeId={officeId}
+              domainCode={domain.code}
+              label={domain.label}
+              buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
+              redirectBase={base}
+            />
+          ) : null}
+        </div>
       </div>
-      {draftKind && !vanThu ? (
+      {draftKind ? (
         <AdminBanner
           title={`${domain.label} · ${draftKind === 'nhap' ? 'Nháp' : 'Đã hủy'}`}
-          sub={`${draftKind === 'nhap' ? 'Nháp' : 'Nháp đã hủy'} chưa ghi sổ ${bookCode}, chưa có STT. Chỉ hiện nháp của bạn hoặc nháp được cấp quyền xem.`}
+          sub={`${draftKind === 'nhap' ? 'Nháp' : 'Nháp đã hủy'} chưa ghi sổ ${bookCode}, chưa có ${sttLabel}. Chỉ hiện nháp của bạn hoặc nháp được cấp quyền xem.`}
         />
       ) : null}
       {vanThu ? (
@@ -361,7 +380,8 @@ export default async function DmsDomainPage({
             }))}
           />
         </div>
-      ) : draftKind ? (
+      ) : null}
+      {draftKind ? (
         <KpiStrip label={`Tổng hợp nháp ${domain.label}`} items={draftKpis} />
       ) : (
         <KpiStrip
@@ -373,11 +393,12 @@ export default async function DmsDomainPage({
             missingScan: nMissing,
             returned: report === 'error' ? undefined : report.returned[domain.code],
             stillOpen,
+            drafts: nDraft,
             links: kpiLinks,
           })}
         />
       )}
-      {vanThu ? null : (
+      {
         <div className="dms-tb">
           <div className="dms-tb-row">
             <span className="dms-tb-label">Hồ sơ</span>
@@ -412,13 +433,21 @@ export default async function DmsDomainPage({
                   <span aria-hidden="true">⋯</span>
                 </summary>
                 <div className="dms-pop-body dms-menu">
-                  <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+                  {vanThu ? (
+                    <a
+                      href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
+                    >
+                      Xuất sổ {bookCode} (CSV)
+                    </a>
+                  ) : (
+                    <Link href={`/dms/so/${bookCode.toLowerCase()}`}>Xuất {bookCode}</Link>
+                  )}
                   <Link href="/dms/tim-kiem">Tìm trong nội dung scan</Link>
                 </div>
               </details>
             </span>
           </div>
-          {recordedView ? (
+          {recordedView && !vanThu ? (
             <div className="dms-tb-row">
               <span className="dms-tb-label">Việc cần làm</span>
               <DmsWorkChips
@@ -463,211 +492,13 @@ export default async function DmsDomainPage({
             matchText={formatTotal(total, result.totalCapped)}
           />
         </div>
-      )}
-      {vanThu ? (
-        <>
-          <TabNav
-            label={`Bộ lọc hồ sơ ${domain.label}`}
-            soft
-            active={filter}
-            tabs={chipSet.map((k) => ({
-              key: k,
-              label: DMS_FILTER_LABEL[k],
-              href: href(k),
-              count: counts[k],
-              tone:
-                !vanThu && !isDraftView && (k === 'nhap' || k === 'da-huy')
-                  ? ('warn' as const)
-                  : undefined,
-            }))}
-            action={
-              <span className="dms-actionbar">
-                {vanThu ? (
-                  <>
-                    <Button asChild variant="secondary">
-                      <a
-                        className="no-underline"
-                        href={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=csv`}
-                      >
-                        Xuất Excel
-                      </a>
-                    </Button>
-                    <PdfPrintButton
-                      variant="secondary"
-                      url={`/api/dms/books/${bookCode}?officeId=${officeId}&year=${year}&format=pdf`}
-                    />
-                  </>
-                ) : (
-                  <>
-                    {recordedView ? (
-                      <Button asChild variant="secondary">
-                        <a
-                          className="no-underline"
-                          href={exportCasesHref({ ...search, from: range.from, to: range.to })}
-                          title="Tải Excel đúng danh sách đang lọc (tối đa 10.000 hồ sơ)"
-                        >
-                          Xuất Excel (đang lọc)
-                        </a>
-                      </Button>
-                    ) : null}
-                    <Button asChild variant="secondary">
-                      <Link className="no-underline" href={`/dms/so/${bookCode.toLowerCase()}`}>
-                        Xuất {bookCode}
-                      </Link>
-                    </Button>
-                  </>
-                )}
-                {canDraft(permissions, domain.code) ? (
-                  <NewDmsCaseButton
-                    officeId={officeId}
-                    domainCode={domain.code}
-                    label={domain.label}
-                    buttonLabel={vanThu ? '+ Thêm bản ghi' : '+ Tạo hồ sơ'}
-                    redirectBase={base}
-                  />
-                ) : null}
-              </span>
-            }
-          />
-        </>
-      ) : null}
-      {vanThu ? (
-        <form method="get" action={base} role="search" className="dms-filters">
-          {!showScanSelect ? <input type="hidden" name="loc" value={filter} /> : null}
-          <DmsCaseSuggest
-            officeId={officeId}
-            domain={domain.code}
-            basePath={base}
-            status={filterToParams(filter, year).status}
-            year={filterToParams(filter, year).year}
-            defaultValue={q}
-          />
-          {vanThu ? (
-            <label>
-              <span className="sr-only">Năm</span>
-              <select name="year" defaultValue={year} className="dms-select" style={{ width: 96 }}>
-                {Array.from({ length: 6 }, (_, i) => yearOfVn(new Date()) - 4 + i)
-                  .concat(year)
-                  .filter((y, i, a) => a.indexOf(y) === i)
-                  .sort((x, y) => y - x)
-                  .map((y) => (
-                    <option key={y} value={y}>
-                      Năm {y}
-                    </option>
-                  ))}
-              </select>
-            </label>
-          ) : null}
-          {vanThu ? (
-            <>
-              <Button type="submit" variant="secondary" className="dms-find">
-                Tìm
-              </Button>
-              <details className="dms-adv">
-                <summary>Bộ lọc nâng cao</summary>
-                <div className="dms-adv-body">
-                  {(() => {
-                    const options = (
-                      list: readonly { value: string; label: string; n: number }[],
-                      now?: string,
-                    ) => {
-                      // Mục không có giá trị (vd "(chưa gán)") không lọc được và trùng giá trị rỗng của ô chọn, nên bỏ.
-                      list = list.filter((o) => o.value !== '');
-                      const rows =
-                        list.some((o) => o.value === now) || !now
-                          ? list
-                          : [...list, { value: now, label: now, n: 0 }];
-                      return rows.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label} ({o.n.toLocaleString('vi-VN')})
-                        </option>
-                      ));
-                    };
-                    return (
-                      <>
-                        <label>
-                          <span className="sr-only">Người tạo</span>
-                          <select
-                            name="nt"
-                            defaultValue={sp.nt ?? ''}
-                            className="dms-select"
-                            style={{ width: 98 }}
-                          >
-                            <option value="">Người tạo</option>
-                            {options(facets.creator, sp.nt)}
-                          </select>
-                        </label>
-                        <label>
-                          <span className="sr-only">Đơn vị</span>
-                          <select
-                            name="dv"
-                            defaultValue={sp.dv ?? ''}
-                            className="dms-select"
-                            style={{ width: 78 }}
-                          >
-                            <option value="">Đơn vị</option>
-                            {options(facets.branch, sp.dv)}
-                          </select>
-                        </label>
-                      </>
-                    );
-                  })()}
-                  {showScanSelect ? (
-                    <label>
-                      <span className="sr-only">Tình trạng scan</span>
-                      <select
-                        name="loc"
-                        defaultValue={
-                          filter === 'thieu-scan' || filter === 'du-scan' ? filter : 'chinh-thuc'
-                        }
-                        className="dms-select"
-                        style={{ width: 126 }}
-                      >
-                        <option value="chinh-thuc">Tình trạng scan</option>
-                        <option value="thieu-scan">Thiếu scan</option>
-                        <option value="du-scan">Đủ scan</option>
-                      </select>
-                    </label>
-                  ) : null}
-                  <DmsSavedFilters
-                    officeId={officeId}
-                    domain={domain.code}
-                    basePath={base}
-                    current={viewToSavedParams({
-                      filter,
-                      year: sp.year ? year : undefined,
-                      q,
-                      creator: sp.nt,
-                      branch: sp.dv,
-                    })}
-                  />
-                </div>
-              </details>
-            </>
-          ) : null}
-        </form>
-      ) : null}
+      }
       {range.inverted ? (
         <p className="dms-range-note" role="alert">
           “Từ” đang muộn hơn “Đến” nên không có hồ sơ nào. Hãy đổi lại hai mốc thời gian.
         </p>
-      ) : hasRange && vanThu ? (
-        <p className="dms-range-note" role="status">
-          Lọc theo thời điểm ghi sổ (giờ Việt Nam)
-          {range.tu ? `, từ ${range.tu.replace('T', ' ')}` : ''}
-          {range.den ? `, đến hết ${range.den.replace('T', ' ')}` : ''}.
-        </p>
       ) : null}
       <div className="dms-card">
-        {/* Liên kết nằm đè lên ô trống của đầu bảng; khi không vẽ bảng (trạng thái trống) phải xếp theo dòng, kẻo đè thông báo. */}
-        {vanThu ? (
-          <Link
-            href="/dms/tim-kiem"
-            className={`dms-scan-link dms-card-link${showsTable ? '' : ' dms-card-link--flow'}`}
-          >
-            Tìm trong nội dung scan
-          </Link>
-        ) : null}
         {showsTable && listLayout ? (
           <DmsListBusy>
             <DmsDomainTable
@@ -715,15 +546,13 @@ export default async function DmsDomainPage({
         )}
         <div className="dms-foot">
           <p>
-            {vanThu && !isDraftView
-              ? `Sổ năm ${year} · ${formatTotal(total, result.totalCapped)} bản ghi chính thức`
-              : `Hiển thị ${pageRows.length} / ${formatTotal(total, result.totalCapped)} hồ sơ ${
-                  isDraftView
-                    ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase()
-                    : hasRange
-                      ? 'chính thức trong khoảng đã chọn'
-                      : `chính thức năm ${year}`
-                }.`}
+            {`Hiển thị ${pageRows.length} / ${formatTotal(total, result.totalCapped)} hồ sơ ${
+              isDraftView
+                ? DMS_TAB_LABEL[tabForFilter(filter)].toLowerCase()
+                : hasRange
+                  ? 'chính thức trong khoảng đã chọn'
+                  : `chính thức năm ${year}`
+            }.`}
           </p>
           {pageCount > 1 ? (
             <nav aria-label="Phân trang" className="dms-pager">
