@@ -17,8 +17,8 @@ export const MAIL_COLORS = {
   danger: '#d13438',
 } as const;
 
-const SERIF = "'Source Serif 4', Georgia, 'Times New Roman', serif";
-const SANS = "'Be Vietnam Pro', 'Segoe UI', Roboto, Arial, sans-serif";
+const SERIF = "'Times New Roman', Times, 'Liberation Serif', serif";
+const SANS = "'Times New Roman', Times, 'Liberation Serif', serif";
 
 export const escapeHtml = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -40,8 +40,6 @@ export async function renderLayout(layout: MailLayout): Promise<string> {
   <mj-head>
     <mj-title>${escapeHtml(layout.title)}</mj-title>
     <mj-preview>${escapeHtml(layout.preheader)}</mj-preview>
-    <mj-font name="Source Serif 4" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600&amp;display=swap" />
-    <mj-font name="Be Vietnam Pro" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600&amp;display=swap" />
     <mj-attributes>
       <mj-all font-family="${SANS}" />
       <mj-text font-size="15px" line-height="24px" color="${c.ink}" />

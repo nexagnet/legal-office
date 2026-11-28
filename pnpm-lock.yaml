@@ -122,12 +122,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@fontsource-variable/source-serif-4':
-        specifier: ^5.3.1
-        version: 5.3.1
-      '@fontsource/be-vietnam-pro':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@hookform/resolvers':
         specifier: 6.0.0
         version: 6.0.0(@standard-schema/spec@1.1.0)(react-hook-form@7.90.0(@types/react@19.2.2)(react@19.2.0))(zod@4.6.7)
@@ -561,12 +555,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@fontsource-variable/source-serif-4@5.3.1':
-    resolution: {integrity: sha512-4Rtay22SC4lMvw11r/+9kxANB6P3M0X8s1NudBC2v0J1KU2y3DcMoNcT3lBoZ/CqLirzf+StlO6UlJilyrvaUg==}
-
-  '@fontsource/be-vietnam-pro@5.3.0':
-    resolution: {integrity: sha512-xhAQBGHDxP5BF8IJxedy5MoWUmc1DlPCcZbMLhvnPkf8TaYCbbUVs3LjpuJ4BYdTrdiCLaewNaY8z+owq/FqFw==}
 
   '@hookform/resolvers@6.0.0':
     resolution: {integrity: sha512-6iBzQnB+YwAveVc8HUi6QYLITn5X+xNKRMFIcNXHZlvp2aTI7yWbj4n/JodXxirMCcBc4VCjb2aYAJh4x07mVw==}
@@ -1405,7 +1393,9 @@ packages:
   '@smithy/core@3.35.2':
     resolution: {integrity: sha512-ejTukBuP/Pg3t9N8Ux+0zKsXeHWm7p6W3HbXFOyltKasSxZwCFmvTut7kBdZSCF3m9y1bXXyVu6p2xuMFcsTyQ==}
     engines: {node: '>=18.0.0'}
-    deprecated: Deprecated due to a bug in custom logger data redaction. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
+    deprecated: |-
+      Deprecated due to a bug in custom logger data redaction. Upgrade to the latest version. If you used a custom logger with this
+        version, review your logs and rotate any credentials or other secrets. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
 
   '@smithy/credential-provider-imds@4.5.2':
     resolution: {integrity: sha512-A9uSdn72ozbRUSit0eib0TW7nXuNPlaeM0zcGkJ+nE6tFcSDbnmtwoxbTCFBukVQcszDAyvsd7+rTduPTXpygg==}
@@ -5016,10 +5006,6 @@ snapshots:
       react-dom: 19.2.0(react@19.2.0)
 
   '@floating-ui/utils@0.2.12': {}
-
-  '@fontsource-variable/source-serif-4@5.3.1': {}
-
-  '@fontsource/be-vietnam-pro@5.3.0': {}
 
   '@hookform/resolvers@6.0.0(@standard-schema/spec@1.1.0)(react-hook-form@7.90.0(@types/react@19.2.2)(react@19.2.0))(zod@4.6.7)':
     dependencies:
