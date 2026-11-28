@@ -169,9 +169,13 @@ describe.skipIf(!ADMIN_URL)('DMS duyệt/lọc hồ sơ qua HTTP (PostgreSQL)', 
       (await get(`/dms/case-search/export?${q({ domain: 'vibang', status: 'DRAFT' })}`, U.reader))
         .res.status,
     ).toBe(400);
-    expect(
-      (await get(`/dms/case-search/export?${q({ domain: 'vtden' })}`, U.reader)).res.status,
-    ).toBe(400);
+    // Ba sổ Văn thư xuất được, nhưng không có cột SĐT, Mã hồ sơ, Đã trả kết quả.
+    const vt = await get(`/dms/case-search/export?${q({ domain: 'vtden' })}`, U.reader);
+    expect(vt.res.status).toBe(200);
+    const vtHead = (await rowsOf(vt.buf))[2]!;
+    expect(vtHead).toContain('Số đến');
+    expect(vtHead).not.toContain('SĐT khách hàng');
+    expect(vtHead).not.toContain('Đã trả kết quả');
   });
 
   it('tìm không dấu, lọc, tổng và phân trang bằng nextCursor đi hết đúng một lần', async () => {
