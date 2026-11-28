@@ -85,7 +85,7 @@ describe.skipIf(!ADMIN_URL)('DMS ô Tài liệu khác (PostgreSQL)', () => {
         T,
         uid,
       ]);
-    const domains = ['vibang', 'tongdat', 'xacminh', 'tochuc'];
+    const domains = ['vibang', 'tongdat', 'xacminh', 'tochuc', 'vtden', 'vtdi', 'vtnb'];
     const group = async (name: string, perms: string[], user: string) => {
       const g = await owner.query(
         `INSERT INTO dms_permission_groups (tenant_id, office_id, name) VALUES ($1,$2,$3) RETURNING id`,
@@ -123,7 +123,7 @@ describe.skipIf(!ADMIN_URL)('DMS ô Tài liệu khác (PostgreSQL)', () => {
     await admin.end();
   });
 
-  it.each(['vibang', 'tongdat', 'xacminh', 'tochuc'])(
+  it.each(['vibang', 'tongdat', 'xacminh', 'tochuc', 'vtden', 'vtdi', 'vtnb'])(
     '%s: tạo ô Tài liệu khác ở bản nháp, gọi lại vẫn chỉ một tài liệu',
     async (domain) => {
       const c = await mkCase(U.a, domain);
