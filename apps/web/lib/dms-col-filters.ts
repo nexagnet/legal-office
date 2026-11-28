@@ -159,11 +159,46 @@ export const COLUMN_FILTERS: Readonly<
     ket_qua: [choice('ket_qua_thi_hanh_an', 'Kết quả THA')],
     thv: [t('thua_hanh_vien', 'Thừa hành viên')],
   },
+  vtden: {
+    ngay_den: [date('ngay_den', 'Ngày đến')],
+    stt: [t('stt', 'Số đến')],
+    co_quan_ban_hanh: [t('co_quan_ban_hanh', 'Cơ quan ban hành')],
+    so_ky_hieu: [t('so_ky_hieu', 'Số, ký hiệu văn bản')],
+    ngay_van_ban: [t('ngay_van_ban', 'Ngày, tháng văn bản'), date('ngay_van_ban', 'Ngày văn bản')],
+    don_vi_nguoi_nhan: [t('don_vi_nguoi_nhan', 'Đơn vị, người nhận')],
+    ky_nhan: [t('ky_nhan', 'Ký nhận')],
+    ghi_chu: [t('ghi_chu', 'Ghi chú')],
+  },
+  vtdi: {
+    stt: [t('stt', 'STT')],
+    so_ky_hieu: [t('so_ky_hieu', 'Số, ký hiệu văn bản')],
+    ngay_van_ban: [t('ngay_van_ban', 'Ngày, tháng văn bản'), date('ngay_van_ban', 'Ngày văn bản')],
+    nguoi_ky: [t('nguoi_ky', 'Người ký')],
+    noi_nhan: [t('noi_nhan', 'Nơi nhận văn bản')],
+    so_luong_ban: [t('so_luong_ban', 'Số lượng bản')],
+    ngay_chuyen_giao: [date('ngay_chuyen_giao', 'Ngày chuyển giao')],
+    ghi_chu: [t('ghi_chu', 'Ghi chú')],
+  },
+  vtnb: {
+    stt: [t('stt', 'STT')],
+    so_ky_hieu: [t('so_ky_hieu', 'Số, ký hiệu văn bản')],
+    ngay_van_ban: [t('ngay_van_ban', 'Ngày, tháng văn bản'), date('ngay_van_ban', 'Ngày văn bản')],
+    nguoi_ky: [t('nguoi_ky', 'Người ký')],
+    noi_nhan: [t('noi_nhan', 'Nơi nhận văn bản')],
+    so_luong_ban: [t('so_luong_ban', 'Số lượng bản')],
+    ghi_chu: [t('ghi_chu', 'Ghi chú')],
+  },
 };
 
 /** Nhãn của một ô sổ lọc được (dùng cho chip), theo nghiệp vụ. */
 export function colLabel(domain: string, key: string): string {
   for (const fields of Object.values(COLUMN_FILTERS[domain] ?? {}))
     for (const f of fields) if (f.key === key) return f.label;
-  return key === 'stt' ? 'Mã hồ sơ' : key;
+  return key === 'stt'
+    ? domain === 'vtden'
+      ? 'Số đến'
+      : domain.startsWith('vt')
+        ? 'STT'
+        : 'Mã hồ sơ'
+    : key;
 }

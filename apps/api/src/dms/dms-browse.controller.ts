@@ -124,7 +124,12 @@ const BOOK_FOR: Readonly<Record<string, string>> = {
   vibang: 'S-02',
   xacminh: 'S-04',
   tochuc: 'S-05',
+  vtden: 'VT-DEN',
+  vtdi: 'VT-DI',
+  vtnb: 'VT-NB',
 };
+/** Ba sổ Văn thư không có SĐT khách hàng và cột "Đã trả kết quả". */
+const isVanThuDomain = (d: string): boolean => d.startsWith('vt');
 
 interface SearchRow {
   readonly total_capped: string | null;
@@ -214,6 +219,7 @@ export class DmsBrowseController {
     );
     const spec = bookOf(q.domain === 'tongdat' ? 'S-01' : (BOOK_FOR[q.domain] ?? ''));
     if (!spec) throw new HttpException({ code: 'INVALID_DOMAIN' }, HttpStatus.BAD_REQUEST);
+    const vanThu = isVanThuDomain(q.domain);
     const f = { ...q, status: 'RECORDED' as const };
     const cases: Array<Record<string, unknown> & { id: string }> = [];
     for (let offset = 0; offset < EXPORT_MAX + 1; offset += 200) {
@@ -289,9 +295,7 @@ export class DmsBrowseController {
       notice: `Xuất ${when.format(new Date())}. Bộ lọc: ${applied.length > 0 ? applied.join('; ') : 'không (toàn bộ hồ sơ đã ghi sổ trong phạm vi quyền xem)'}. Bản làm việc, không thay sổ pháp định.`,
       columns: [
         ...spec.columns.map((c) => c.heading),
-        'Mã hồ sơ',
-        'SĐT khách hàng',
-        'Đã trả kết quả',
+        ...(vanThu ? [] : ['Mã hồ sơ', 'SĐT khách hàng', 'Đã trả kết quả']),
         'Số tệp scan',
         'Ngày ghi sổ',
         'Người tạo',
@@ -309,9 +313,9 @@ export class DmsBrowseController {
           | undefined;
         return [
           ...bookCells(spec, r).map((v, k) => (k === 0 && r.stt === 0 ? '' : v)),
-          c?.case_number ?? '',
-          c?.phone ?? '',
-          c?.returned ? 'Đã trả' : 'Chưa trả',
+          ...(vanThu
+            ? []
+            : [c?.case_number ?? '', c?.phone ?? '', c?.returned ? 'Đã trả' : 'Chưa trả']),
           c?.scan_count ?? 0,
           c?.recorded_at ? day.format(new Date(c.recorded_at)) : '',
           c?.created_by_name ?? '',
